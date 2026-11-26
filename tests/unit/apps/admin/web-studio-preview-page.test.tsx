@@ -111,7 +111,7 @@ const FILLED_BLOCKS: Record<string, { block: object; expectText: string[] }> = {
       media: media("Feature image"),
       mediaCaption: "Feature caption",
     },
-    expectText: ["Feature title", "Feature body", "Feature caption"],
+    expectText: ["Feature title", "Feature body"],
   },
   "call-to-action": {
     block: {
@@ -239,7 +239,7 @@ describe("Web Studio private preview page", () => {
     },
   );
 
-  it("renders every layout block type the editor offers, from the shared registry", async () => {
+  it("renders every layout block type the editor offers, from the shared registry (D-18: WP6 part 2b media records carry no file, so no image or image caption shows)", async () => {
     const editorBlockTypes = (
       createPageLayoutField() as { blocks: Array<{ slug: string }> }
     ).blocks.map((block) => block.slug);
@@ -266,8 +266,8 @@ describe("Web Studio private preview page", () => {
         expect(screen.getByText(text), `${type}: ${text}`).toBeTruthy();
       }
     }
-    expect(screen.getByRole("img", { name: "Hero image" })).toBeTruthy();
-    expect(screen.getByRole("img", { name: "Feature image" })).toBeTruthy();
+    expect(screen.queryByRole("img")).toBeNull();
+    expect(screen.queryByText("Feature caption")).toBeNull();
     expect(screen.queryByText(/no previewable rich-text or layout/)).toBeNull();
   });
 

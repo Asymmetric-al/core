@@ -49,13 +49,8 @@ type CollectionWithViews = {
 
 const COLLECTIONS = [
   ["media", "Media"],
-  ["ministry-updates", "MinistryUpdates"],
-  ["missionary-giving-pages", "MissionaryGivingPages"],
-  ["missionary-profiles", "MissionaryProfiles"],
   ["navigation", "Navigation"],
-  ["page-templates", "PageTemplates"],
   ["pages", "Pages"],
-  ["project-pages", "ProjectPages"],
 ] as const;
 
 const editViews = new Map<string, EditViews | undefined>();
@@ -91,7 +86,7 @@ function renderInTabList(path: string) {
 
 describe("Studio document tabs", () => {
   it.each(COLLECTIONS.map(([file]) => file))(
-    "%s renders its Edit, Versions and API tabs with the Studio tab",
+    "%s renders its Edit, Versions and API tabs with the Studio tab (D-18: WP6 part 2b leaves three edited collections)",
     (file) => {
       const edit = editViews.get(file);
       expect(edit?.default?.Component).toMatch(/NativeEditView/);

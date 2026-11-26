@@ -33,7 +33,6 @@ Minimum for Payload + admin (from `.env.local` symlinked per app if needed):
 | `NEXT_PUBLIC_DONOR_URL`          | Origin for published public links from admin (optional; defaults in preview helper)                                                                |
 | `CMS_BASE_URL`                   | On **donor**: admin origin kept for media remote patterns (`public-media-remote-pattern.mjs`; prototype public CMS fetches retired in WP6 part 2a) |
 | `RESEND_API_KEY`                 | Payload auth email adapter in production                                                                                                           |
-| `BLOB_READ_WRITE_TOKEN`          | Payload media storage adapter in production; set by connected Vercel Blob store                                                                    |
 
 **Per-collection rollback** (optional, default = native on):
 
@@ -311,11 +310,10 @@ import map is stale for the current `payload.config.ts` or plugin set. Run
 2. Prepare the verified runtime pair: the session-pooler URI with exactly one `sslmode=verify-full`, and server-only `PAYLOAD_DATABASE_SSL_CA` containing the trusted PEM downloaded from that project's Database settings. Remove `sslrootcert`, `sslcert`, `sslkey`, `ssl`, and `uselibpqcompat` URI options when using the PEM variable; the runtime rejects conflicting TLS settings. The CA is public, but database credentials remain opaque. A certificate failure requires checking the project's current CA and hostname.
 3. Qualify this pair in an isolated preview first. The production release package must schedule the same approved environment update and redeployment; production execution is outside the modernization delivery. If `SUPABASE_DB_URL` is also used by hosted CLI scripts, supply its trusted local `sslrootcert` file separately rather than assuming the product PEM variable configures psql.
 4. Keep `PAYLOAD_DATABASE_POOL_MAX` unset unless the Supabase pool size is deliberately raised. The runtime defaults to `2` on Vercel/protected deployments because Payload keeps one startup Postgres client checked out and needs one query slot left open.
-5. Connect a Vercel Blob store to the admin project so production receives `BLOB_READ_WRITE_TOKEN`; Web Studio media uploads use Payload's official Vercel Blob adapter in hosted deployments.
-6. Keep `RESEND_API_KEY` configured in production. Payload auth email uses Payload's official Resend adapter and defaults to `Mission Control <noreply@asymmetric.al>` unless `PAYLOAD_EMAIL_FROM_ADDRESS` / `PAYLOAD_EMAIL_FROM_NAME` override it.
-7. Redeploy the admin app from the current production branch/commit.
-8. Verify `https://admin.asymmetric.al/web-studio` while signed in, then run `vercel logs --environment production --since 30m --query web-studio --level fatal` and confirm no new Web Studio fatal entries appear.
-9. Run `vercel logs --environment production --since 30m --query "No email adapter" --limit 20` and `vercel logs --environment production --since 30m --query "storage adapter" --limit 20`; both should return no new Payload startup warnings.
+5. Keep `RESEND_API_KEY` configured in production. Payload auth email uses Payload's official Resend adapter and defaults to `Mission Control <noreply@asymmetric.al>` unless `PAYLOAD_EMAIL_FROM_ADDRESS` / `PAYLOAD_EMAIL_FROM_NAME` override it.
+6. Redeploy the admin app from the current production branch/commit.
+7. Verify `https://admin.asymmetric.al/web-studio` while signed in, then run `vercel logs --environment production --since 30m --query web-studio --level fatal` and confirm no new Web Studio fatal entries appear.
+8. Run `vercel logs --environment production --since 30m --query "No email adapter" --limit 20`; it should return no new Payload startup warnings. Since WP6 part 2b Payload has no storage adapter: media records hold no file until part 2c.
 
 ### Admin dev: Contributions live query + stderr noise
 
@@ -355,7 +353,7 @@ Route files under `apps/admin/app/api/**/*.ts` must be **thin re-exports** to `@
 
 ### Phase 22 D17 certification note
 
-Do not treat `project-pages.fundId`, a fund-backed wizard result, copied source
+Do not treat a project page's `fundId`, a fund-backed New page result, copied source
 text, Payload relationship success, a public serializer field, or an
 application-level duplicate precheck as Page Subject authority. D17 requires an
 operational, same-scope, typed and immutable-versioned binding to one certified

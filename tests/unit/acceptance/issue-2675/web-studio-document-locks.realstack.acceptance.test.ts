@@ -44,7 +44,7 @@ it.runIf(IN_MIGRATE_JOB && !ADMIN_URL)(
   () => expect(ADMIN_URL).not.toBe(""),
 );
 
-type Doc = { id: number | string };
+type Doc = { id: string };
 type LockRow = Doc & {
   user?: { value?: Doc | string | number };
   document?: { relationTo?: string; value?: Doc | string | number };
@@ -68,7 +68,7 @@ const idOf = (value: unknown) =>
     : String(value);
 
 describe.skipIf(!ADMIN_URL)(
-  "AL-2675 document locks stay inside the organization (real stack)",
+  "AL-2675 document locks stay inside the organization (real stack; D-18: WP6 part 2b signs Web Studio in as principal-links, keys tenants by UUID and puts every menu on a Site presentation)",
   () => {
     const db = new pg.Client({ connectionString: ADMIN_URL });
     const stamp = randomUUID().slice(0, 8);
@@ -84,8 +84,8 @@ describe.skipIf(!ADMIN_URL)(
     let editorA1: Record<string, unknown>;
     let editorA2: Record<string, unknown>;
     let editorB: Record<string, unknown>;
-    // Round 3 (CR6): a super administrator whose selected organization is A.
-    let superAdminOfA: Record<string, unknown>;
+    // Round 3 (CR6): an administrator whose selected organization is A.
+    let adminOfA: Record<string, unknown>;
     let documentOfA: Doc;
     let rest: Record<string, RouteHandler>;
     let createE2EAuthCookieValue: (session: unknown) => Promise<string>;
@@ -94,6 +94,8 @@ describe.skipIf(!ADMIN_URL)(
       tenantId: string;
       assignmentId: string;
     }) => Promise<{ name: string; value: string }>;
+    let service: typeof import("../../../../apps/admin/src/cms/ports/service-port");
+    const HOME = { label: "Home", href: "https://example.org/" };
 
     beforeAll(async () => {
       vi.stubEnv("PAYLOAD_DATABASE_URI", ADMIN_URL);
@@ -129,65 +131,69 @@ describe.skipIf(!ADMIN_URL)(
       // map serves; the full one pulls Payload's stylesheets into Node.
       payload = await payloadModule.getPayload({ config, importMap: {} });
 
+      service =
+        await import("../../../../apps/admin/src/cms/ports/service-port");
+      const store = payload as never;
       const make = async (
         collection: string,
         data: Record<string, unknown>,
       ) => {
-        const doc = await payload.create({
-          collection,
+        const doc = (await service.serviceCreate(store, {
+          collection: collection as never,
           data,
-          overrideAccess: true,
-        });
+        })) as unknown as Doc;
         created.push([collection, doc]);
         return doc;
       };
-      const tenantA = await make("tenants", {
-        name: `Locks A ${stamp}`,
-        slug: `locks-a-${stamp}`,
-      });
-      const tenantB = await make("tenants", {
-        name: `Locks B ${stamp}`,
-        slug: `locks-b-${stamp}`,
-      });
-      documentOfB = await make("navigation", {
-        tenant: tenantB.id,
-        label: `Locks ${stamp}`,
-        items: [{ label: "Home", href: "/" }],
-      });
-      const editorOfA = await make("cms-users", {
-        email: `locks-${stamp}@example.org`,
-        role: "staff",
-        supabaseUserId: randomUUID(),
-        tenantId: String(tenantA.id),
-      });
-      // What Payload's strategy signs in for a cookie that selects A.
-      user = {
-        ...editorOfA,
-        collection: "cms-users",
-        role: "staff",
-        tenantId: String(tenantA.id),
+      const tenantA = randomUUID();
+      const tenantB = randomUUID();
+      const presentation = async (tenantId: string) => {
+        const doc = (await service.createSitePresentation(store, {
+          siteId: randomUUID(),
+          tenantId,
+        })) as unknown as Doc;
+        created.push(["site-presentations", doc]);
+        return doc;
       };
+      const siteA = await presentation(tenantA);
+      const siteB = await presentation(tenantB);
+      documentOfB = await make("navigation", {
+        tenant: tenantB,
+        site: siteB.id,
+        label: `Locks ${stamp}`,
+        items: [HOME],
+      });
+      const signedIn = async (
+        key: string,
+        tenantId: string,
+        isTenantAdmin = false,
+      ) => {
+        const row = (await service.ensurePrincipalLink(store, {
+          userId: randomUUID(),
+          email: `locks-${key}-${stamp}@example.org`,
+        })) as unknown as Doc;
+        created.push(["principal-links", row]);
+        return {
+          ...row,
+          collection: "principal-links",
+          tenantId,
+          assignmentId: randomUUID(),
+          staffRole: "development",
+          isTenantAdmin,
+        };
+      };
+      user = await signedIn("first", tenantA);
 
       documentOfA = await make("navigation", {
-        tenant: tenantA.id,
+        tenant: tenantA,
+        site: siteA.id,
         label: `Locks A ${stamp}`,
-        items: [{ label: "Home", href: "/" }],
-      });
-      const signedIn = async (key: string, tenant: Doc, role = "staff") => ({
-        ...(await make("cms-users", {
-          email: `locks-${key}-${stamp}@example.org`,
-          role,
-          supabaseUserId: randomUUID(),
-          tenantId: String(tenant.id),
-        })),
-        collection: "cms-users",
-        role,
-        tenantId: String(tenant.id),
+        items: [HOME],
       });
       editorA1 = await signedIn("a1", tenantA);
       editorA2 = await signedIn("a2", tenantA);
       editorB = await signedIn("b", tenantB);
-      superAdminOfA = await signedIn("super", tenantA, "super_admin");
+      adminOfA = await signedIn("admin", tenantA, true);
 
       rest =
         (await import("../../../../apps/admin/app/(payload)/web-studio/api/[...slug]/route")) as never;
@@ -202,12 +208,15 @@ describe.skipIf(!ADMIN_URL)(
       await db
         .query(
           "delete from cms.payload_locked_documents where id in (select parent_id from cms.payload_locked_documents_rels where navigation_id = any($1))",
-          [[documentOfB?.id ?? -1, documentOfA?.id ?? -1]],
+          [[documentOfB?.id ?? randomUUID(), documentOfA?.id ?? randomUUID()]],
         )
         .catch(() => undefined);
       for (const [collection, doc] of created.reverse()) {
-        await payload
-          .delete({ collection, id: doc.id, overrideAccess: true })
+        await service
+          ?.serviceDelete(payload as never, {
+            collection: collection as never,
+            id: doc.id,
+          })
           .catch(() => undefined);
       }
       await payload?.destroy().catch(() => undefined);
@@ -255,7 +264,7 @@ describe.skipIf(!ADMIN_URL)(
           collection: "payload-locked-documents",
           data: {
             document: { relationTo: "navigation", value: documentOfB.id },
-            user: { relationTo: "cms-users", value: user.id },
+            user: { relationTo: "principal-links", value: user.id },
           },
           overrideAccess: false,
           req,
@@ -277,10 +286,10 @@ describe.skipIf(!ADMIN_URL)(
     const locksOn = async (doc: Doc) =>
       (
         await db.query(
-          "select l.id, r.cms_users_id as user_id from cms.payload_locked_documents l join cms.payload_locked_documents_rels d on d.parent_id = l.id and d.navigation_id = $1 left join cms.payload_locked_documents_rels r on r.parent_id = l.id and r.path = 'user' order by l.id",
+          "select l.id, r.principal_links_id as user_id from cms.payload_locked_documents l join cms.payload_locked_documents_rels d on d.parent_id = l.id and d.navigation_id = $1 left join cms.payload_locked_documents_rels r on r.parent_id = l.id and r.path = 'user' order by l.id",
           [doc.id],
         )
-      ).rows as Array<{ id: number; user_id: number | null }>;
+      ).rows as Array<{ id: string; user_id: string | null }>;
 
     const formStateAs = async (person: Record<string, unknown>, doc: Doc) =>
       (await webStudioFormState({
@@ -363,7 +372,9 @@ describe.skipIf(!ADMIN_URL)(
           payload.update({
             collection: LOCKS,
             id: lock!.id,
-            data: { user: { relationTo: "cms-users", value: editorB.id } },
+            data: {
+              user: { relationTo: "principal-links", value: editorB.id },
+            },
             overrideAccess: false,
             user: editorB,
           }),
@@ -392,7 +403,7 @@ describe.skipIf(!ADMIN_URL)(
         collection: LOCKS,
         id: lock!.id,
         data: {
-          user: { relationTo: "cms-users", value: editorB.id },
+          user: { relationTo: "principal-links", value: editorB.id },
           document: { relationTo: "navigation", value: documentOfB.id },
         },
         overrideAccess: false,
@@ -415,13 +426,12 @@ describe.skipIf(!ADMIN_URL)(
       expect(await locksOn(documentOfA)).toEqual([]);
     });
 
-    // Round 3 (CR6): read access lets a super administrator see every
-    // organization; the lock stays in the one they selected, by the explicit
-    // tenant clause in `documentsInOrganization`.
+    // Round 3 (CR6): an administrator of A. Reads and the lock stay in the
+    // organization they selected, by the tenant clause in `documentsInOrganization`.
 
-    it("a super administrator who selected A writes no lock on a document of B", async () => {
+    it("an administrator of A writes no lock on a document of B (D-18: WP6 part 2b reads only in the selected organization, so the super administrator's case is the organization administrator's)", async () => {
       try {
-        await formStateAs(superAdminOfA, documentOfB);
+        await formStateAs(adminOfA, documentOfB);
         expect(await locksOnDocumentOfB()).toBe(0);
       } finally {
         // The next case starts from no lock, whatever happened here.
@@ -432,20 +442,20 @@ describe.skipIf(!ADMIN_URL)(
       }
     });
 
-    it("a super administrator who selected A neither sees, takes over nor releases the lock B's editor holds", async () => {
+    it("an administrator of A neither sees, takes over nor releases the lock B's editor holds (D-18: WP6 part 2b, as above)", async () => {
       await formStateAs(editorB, documentOfB);
       const held = await locksOn(documentOfB);
       expect(held).toHaveLength(1);
       expect(String(held[0]!.user_id)).toBe(idOf(editorB.id));
 
-      const seen = await locksSeenBy(superAdminOfA, documentOfB);
+      const seen = await locksSeenBy(adminOfA, documentOfB);
       const takeOver = await settled(
         payload.update({
           collection: LOCKS,
           id: held[0]!.id,
-          data: { user: { relationTo: "cms-users", value: superAdminOfA.id } },
+          data: { user: { relationTo: "principal-links", value: adminOfA.id } },
           overrideAccess: false,
-          user: superAdminOfA,
+          user: adminOfA,
         }),
       );
       const release = await settled(
@@ -453,7 +463,7 @@ describe.skipIf(!ADMIN_URL)(
           collection: LOCKS,
           id: held[0]!.id,
           overrideAccess: false,
-          user: superAdminOfA,
+          user: adminOfA,
         }),
       );
       const refused = expect.not.stringMatching(/^done$/);
@@ -518,26 +528,21 @@ describe.skipIf(!ADMIN_URL)(
       }
 
       afterAll(async () => {
-        await payload
-          .delete({
-            collection: "cms-users",
-            where: { email: { equals: `${person}@e2e.asym.local` } },
-            overrideAccess: true,
-          })
-          .catch(() => undefined);
-        await payload
-          .delete({
-            collection: "tenants",
-            where: { slug: { equals: tenant } },
-            overrideAccess: true,
+        await service
+          ?.serviceDelete(payload as never, {
+            collection: "principal-links" as never,
+            id: person,
           })
           .catch(() => undefined);
       });
 
       it("the REST route signs the person in, in their own organization", async () => {
         const me = await rest.GET!(
-          await fromOtherOrganization("GET", "/web-studio/api/cms-users/me"),
-          { params: Promise.resolve({ slug: ["cms-users", "me"] }) },
+          await fromOtherOrganization(
+            "GET",
+            "/web-studio/api/principal-links/me",
+          ),
+          { params: Promise.resolve({ slug: ["principal-links", "me"] }) },
         );
         expect(me.status).toBe(200);
         expect(
@@ -556,7 +561,7 @@ describe.skipIf(!ADMIN_URL)(
             "/web-studio/api/payload-locked-documents",
             {
               document: { relationTo: "navigation", value: documentOfA.id },
-              user: { relationTo: "cms-users", value: editorA1.id },
+              user: { relationTo: "principal-links", value: editorA1.id },
             },
           ),
           { params: Promise.resolve({ slug: [LOCKS] }) },
@@ -578,7 +583,7 @@ describe.skipIf(!ADMIN_URL)(
               method,
               `/web-studio/api/payload-locked-documents/${before[0]!.id}`,
               method === "PATCH"
-                ? { user: { relationTo: "cms-users", value: editorB.id } }
+                ? { user: { relationTo: "principal-links", value: editorB.id } }
                 : undefined,
             ),
             {
@@ -597,7 +602,7 @@ describe.skipIf(!ADMIN_URL)(
             query:
               "mutation ($user: PayloadLockedDocument_UserRelationshipInput!, $document: PayloadLockedDocument_DocumentRelationshipInput) { createPayloadLockedDocument(data: { user: $user, document: $document }) { id } }",
             variables: {
-              user: { relationTo: "cms_users", value: editorA1.id },
+              user: { relationTo: "principal_links", value: editorA1.id },
               document: { relationTo: "navigation", value: documentOfA.id },
             },
           }),
@@ -666,16 +671,20 @@ describe.skipIf(!ADMIN_URL)(
           });
         }
 
-        let lockedDocId: number | string | null = null;
+        let lockedDocId: string | null = null;
+        const sharedSite = (await service.createSitePresentation(
+          payload as never,
+          { siteId: randomUUID(), tenantId: sharedOrg },
+        )) as unknown as Doc;
         try {
           const meOne = await rest.GET!(
             await asSharedEditor(
               firstPerson,
               firstAssignment,
               "GET",
-              "/web-studio/api/cms-users/me",
+              "/web-studio/api/principal-links/me",
             ),
-            { params: Promise.resolve({ slug: ["cms-users", "me"] }) },
+            { params: Promise.resolve({ slug: ["principal-links", "me"] }) },
           );
           expect(meOne.status).toBe(200);
           const userOne = (
@@ -690,9 +699,9 @@ describe.skipIf(!ADMIN_URL)(
               secondPerson,
               secondAssignment,
               "GET",
-              "/web-studio/api/cms-users/me",
+              "/web-studio/api/principal-links/me",
             ),
-            { params: Promise.resolve({ slug: ["cms-users", "me"] }) },
+            { params: Promise.resolve({ slug: ["principal-links", "me"] }) },
           );
           expect(meTwo.status).toBe(200);
 
@@ -703,8 +712,9 @@ describe.skipIf(!ADMIN_URL)(
               "POST",
               "/web-studio/api/navigation",
               {
+                site: sharedSite.id,
                 label: originalLabel,
-                items: [{ label: "Home", href: "/" }],
+                items: [HOME],
               },
             ),
             { params: Promise.resolve({ slug: ["navigation"] }) },
@@ -713,7 +723,17 @@ describe.skipIf(!ADMIN_URL)(
           const lockedDoc = ((await createdNav.json()) as { doc: Doc }).doc;
           lockedDocId = lockedDoc.id;
 
-          await formStateAs({ ...userOne, collection: "cms-users" }, lockedDoc);
+          await formStateAs(
+            {
+              ...userOne,
+              collection: "principal-links",
+              tenantId: sharedOrg,
+              assignmentId: firstAssignment,
+              staffRole: "development",
+              isTenantAdmin: false,
+            },
+            lockedDoc,
+          );
           const locksBefore = await locksOn(lockedDoc);
           expect(locksBefore).toHaveLength(1);
 
@@ -769,7 +789,7 @@ describe.skipIf(!ADMIN_URL)(
             where: { id: { equals: lockedDoc.id } },
             overrideAccess: true,
           })) as unknown as {
-            docs: Array<{ id: number | string; label: string }>;
+            docs: Array<{ id: string; label: string }>;
           };
           expect(stored.docs).toHaveLength(1);
           expect(stored.docs[0]?.label).toBe(originalLabel);
@@ -791,19 +811,17 @@ describe.skipIf(!ADMIN_URL)(
               .catch(() => undefined);
           }
           for (const id of [firstPerson, secondPerson]) {
-            await payload
-              .delete({
-                collection: "cms-users",
-                where: { email: { equals: `${id}@e2e.asym.local` } },
-                overrideAccess: true,
+            await service
+              .serviceDelete(payload as never, {
+                collection: "principal-links" as never,
+                id,
               })
               .catch(() => undefined);
           }
-          await payload
-            .delete({
-              collection: "tenants",
-              where: { slug: { equals: sharedOrg } },
-              overrideAccess: true,
+          await service
+            .serviceDelete(payload as never, {
+              collection: "site-presentations" as never,
+              id: sharedSite.id,
             })
             .catch(() => undefined);
         }

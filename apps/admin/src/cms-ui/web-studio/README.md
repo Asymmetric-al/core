@@ -28,7 +28,8 @@ Mission Control–native UI that wraps **Payload CMS** (mounted at `/web-studio`
 3. After changing Payload component paths: `NODE_ENV=test bun run cms:importmap` from repo root.
 4. New **staff** HTTP handlers that touch Supabase belong in `packages/api` with thin re-exports under `apps/admin/app/api/`.
 5. Keep the interim draft preview authenticated under
-   `/web-studio/preview/:collection/:id`; public donor routes stay
+   `/web-studio/preview/pages/:id` (the one previewed collection since WP6
+   part 2b); public donor routes stay
    published-only. Do not treat its Payload login, `overrideAccess: false`, or
    URL as Phase 22 D10 authority: Public Ministry Preview must migrate to one
    exact saved revision/candidate with current Phase 12/10/D9 authorization,
@@ -115,7 +116,7 @@ Mission Control–native UI that wraps **Payload CMS** (mounted at `/web-studio`
     `overrideAccess: false` and `overrideLock: false`; Payload never supplies
     staff authority, provenance, review, release, or working-head truth. See
     [ADR-0141](../../../../../docs/adr/0141-attribution-preserving-staff-authored-page-revisions.md).
-16. Treat the current 300 ms autosave, Payload version cap, locks, restore,
+16. Treat the current two-second autosave, 50-version cap, locks, restore,
     trash, audit hook, and native status as prototype/provider seams only. D25
     derives permitted actions from current owner truth and adds no operational
     status, queue, expiry scan, per-autosave audit/outbox row, or actor draft

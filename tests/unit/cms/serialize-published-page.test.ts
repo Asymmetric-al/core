@@ -10,10 +10,13 @@ const context: PublicRequestContext = {
   siteId: null,
 };
 
-describe("serializePublishedPageLike", () => {
+const PAGE_ID = "0b6a2f4e-3c1d-4e5f-8a9b-0c1d2e3f4a5b";
+const MEDIA_ID = "5c4b3a29-1807-4f6e-9d5c-4b3a29180716";
+
+describe("serializePublishedPageLike (D-18: WP6 part 2b gives pages a family instead of a pageType, UUID ids and plain media records)", () => {
   it("maps known fields and stringifies id", () => {
     const out = serializePublishedPageLike({
-      id: 12,
+      id: PAGE_ID,
       title: "Hello",
       slug: "hello",
       summary: "S",
@@ -28,7 +31,7 @@ describe("serializePublishedPageLike", () => {
           openInNewTab: true,
         },
       ],
-      pageType: "standard",
+      family: "standard",
       missionaryId: "m1",
       fundId: "f1",
       legacyContentFallback: true,
@@ -36,7 +39,7 @@ describe("serializePublishedPageLike", () => {
     });
 
     expect(out).toEqual({
-      id: "12",
+      id: PAGE_ID,
       title: "Hello",
       slug: "hello",
       summary: "S",
@@ -63,7 +66,7 @@ describe("serializePublishedPageLike", () => {
 
   it("normalizes missionary giving CTAs through the checkout route", () => {
     const out = serializePublishedPageLike({
-      id: 12,
+      id: PAGE_ID,
       title: "Missionary",
       slug: "missionary",
       layout: [
@@ -73,18 +76,15 @@ describe("serializePublishedPageLike", () => {
           primaryCtaLabel: "Give monthly",
           primaryCtaHref: "https://example.org/manual-link",
           backgroundImage: {
-            id: 44,
+            id: MEDIA_ID,
             alt: "Jane in field",
-            url: "/web-studio/api/media/file/jane.jpg",
-            tenant: 99,
-            variants: {
-              thumbnail: { url: "/web-studio/api/media/file/jane-320.jpg" },
-              card: { url: "/web-studio/api/media/file/jane-960.jpg" },
-            },
+            credit: "Field team",
+            folder: "Portraits",
+            tenant: "00000000-0000-4000-8000-000000000101",
           },
         },
       ],
-      pageType: "missionary_giving",
+      family: "missionary",
       missionaryId: "123e4567-e89b-42d3-a456-426614174111",
     });
 
@@ -97,11 +97,11 @@ describe("serializePublishedPageLike", () => {
         headline: "Partner with Jane",
         subheading: null,
         backgroundImage: {
-          id: "44",
+          id: MEDIA_ID,
           alt: "Jane in field",
-          url: "/web-studio/api/media/file/jane.jpg",
-          thumbnailURL: "/web-studio/api/media/file/jane-320.jpg",
-          cardURL: "/web-studio/api/media/file/jane-960.jpg",
+          url: null,
+          thumbnailURL: null,
+          cardURL: null,
           width: null,
           height: null,
           mimeType: null,
@@ -113,12 +113,12 @@ describe("serializePublishedPageLike", () => {
     ]);
   });
 
-  it("emits public filename/caption only when present, identically to the package serializer (#529)", async () => {
+  it("serializes a media record as the package serializer does, emitting none of its tenant, credit or folder", async () => {
     const { serializePublicPage } =
       await import("../../../packages/api/src/cms/public/serializer");
 
     const doc = {
-      id: 12,
+      id: PAGE_ID,
       title: "Missionary",
       slug: "missionary",
       layout: [
@@ -129,23 +129,15 @@ describe("serializePublishedPageLike", () => {
           body: "A season of growth.",
           mediaCaption: null,
           media: {
-            id: 44,
+            id: MEDIA_ID,
             alt: "Jane in field",
-            url: "/web-studio/api/media/file/jane.jpg",
-            width: 1200,
-            height: 800,
-            mimeType: "image/jpeg",
-            filename: "jane.jpg",
-            caption: "Jane serving in June",
-            // Raw Payload internals that must never be emitted:
-            filesize: 123456,
-            focalX: 50,
-            focalY: 50,
-            tenant: 99,
+            credit: "Field team",
+            folder: "Portraits",
+            tenant: "00000000-0000-4000-8000-000000000101",
           },
         },
       ],
-      pageType: null,
+      family: null,
       missionaryId: null,
       fundId: null,
     };
@@ -155,38 +147,16 @@ describe("serializePublishedPageLike", () => {
       JSON.stringify(serializePublicPage(context, doc)),
     );
 
-    const shippedMedia = shipped.layout[0].media;
-    expect(shippedMedia.filename).toBe("jane.jpg");
-    expect(shippedMedia.caption).toBe("Jane serving in June");
-    expect(shippedMedia.filesize).toBeUndefined();
-    expect(shippedMedia.focalX).toBeUndefined();
-    expect(shippedMedia.tenant).toBeUndefined();
-
-    // Both serializers stay behavior-identical — the #523 parity baseline.
+    expect(Object.keys(shipped.layout[0].media).sort()).toEqual([
+      "alt",
+      "cardURL",
+      "height",
+      "id",
+      "mimeType",
+      "thumbnailURL",
+      "url",
+      "width",
+    ]);
     expect(shipped.layout).toEqual(packaged.layout);
-
-    // Present-only: a document without filename/caption emits neither key.
-    const bare = JSON.parse(
-      JSON.stringify(
-        serializePublishedPageLike({
-          ...doc,
-          layout: [
-            {
-              ...doc.layout[0],
-              media: {
-                id: 44,
-                alt: "Jane in field",
-                url: "/web-studio/api/media/file/jane.jpg",
-                width: 1200,
-                height: 800,
-                mimeType: "image/jpeg",
-              },
-            },
-          ],
-        }),
-      ),
-    );
-    expect("filename" in bare.layout[0].media).toBe(false);
-    expect("caption" in bare.layout[0].media).toBe(false);
   });
 });

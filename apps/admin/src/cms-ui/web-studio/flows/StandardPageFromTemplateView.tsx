@@ -8,7 +8,7 @@ import {
   FieldLabel,
 } from "@asym/ui/components/shadcn/field";
 import { Input } from "@asym/ui/components/shadcn/input";
-import { useAuth, useConfig } from "@payloadcms/ui";
+import { useConfig } from "@payloadcms/ui";
 import { useForm, useStore } from "@tanstack/react-form";
 import { useQuery } from "@tanstack/react-query";
 import { formatAdminURL } from "payload/shared";
@@ -21,19 +21,22 @@ import {
   StudioFlowFieldNote,
   StudioFlowFrame,
   StudioRequiredLabel,
+  StudioSelectField,
   describedBy,
   studioFieldErrorId,
   useStudioFieldErrors,
 } from "./studio-flow-frame";
 import { StudioFlowLoading } from "./studio-flow-loading";
+import { fetchStudioFunds } from "./studio-funds";
 import {
+  fetchStudioMissionaries,
+  studioMissionaryOptions,
+} from "./studio-missionaries";
+import {
+  STUDIO_TEMPLATES,
   StudioTemplateField,
-  canChooseTemplate,
-  soleTemplateId,
-  useStudioTemplates,
+  findStudioTemplate,
 } from "./studio-templates";
-import { buildTenantsQuery, isSuperAdminUser } from "./tenant-options";
-import { TENANT_REQUIRED_MESSAGE, TenantSelectField } from "./tenant-picker";
 import { buildWebStudioCreateFromTemplateUrl } from "./web-studio-create-api";
 import { normalizeWebAddressSegment } from "../../../cms/web-address";
 import { WEB_STUDIO_COLLECTION_CONFIGS } from "../collections/config";
@@ -44,13 +47,40 @@ const formSchema = z.object({
   slug: z.string().min(1, "Enter a URL slug."),
 });
 
-/** Field ids in screen order: the first invalid one takes focus. */
 const FIELD_IDS = {
   template: "page-template",
-  tenantId: "page-tenant",
+  site: "page-site",
+  reference: "page-reference",
   title: "title",
   slug: "slug",
 } as const;
+
+export const NO_SITE_NOTE =
+  "This organization has no Site in Web Studio yet, so pages cannot be created.";
+
+type SiteOption = { id: string };
+
+function useStudioSites() {
+  const {
+    config: { routes, serverURL },
+  } = useConfig();
+  return useQuery({
+    queryKey: ["web-studio", "site-presentations", serverURL, routes.api],
+    queryFn: async () => {
+      const path = formatAdminURL({
+        apiRoute: routes.api,
+        path: "/site-presentations",
+      });
+      const res = await fetch(
+        `${serverURL}${path}?limit=100&pagination=false&depth=0`,
+        { credentials: "include" },
+      );
+      if (!res.ok) throw new Error("Sites didn't load. Try again.");
+      const json = (await res.json()) as { docs?: SiteOption[] };
+      return (json.docs ?? []).map((doc) => ({ id: String(doc.id) }));
+    },
+  });
+}
 
 export function StandardPageFromTemplateView() {
   return (
@@ -66,20 +96,48 @@ function StandardPageFromTemplateViewContent() {
   const get = readSearchParam.bind(searchParams);
   const { push } = useRouter();
   const templateParam = get("template") ?? "";
+  const missionaryParam = get("missionaryId") ?? "";
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [chosenTemplateId, setChosenTemplateId] = useState("");
+  const [chosenSite, setChosenSite] = useState("");
+  const [reference, setReference] = useState(missionaryParam);
   const [slugEdited, setSlugEdited] = useState(false);
   const fieldErrors = useStudioFieldErrors(FIELD_IDS);
-  const { user } = useAuth();
-  const isSuperAdmin = isSuperAdminUser(user);
-  const templates = useStudioTemplates();
   const templateId =
-    templateParam ||
+    (findStudioTemplate(templateParam) ? templateParam : "") ||
     chosenTemplateId ||
-    soleTemplateId(templates.data, "standard");
+    (STUDIO_TEMPLATES.length === 1 ? STUDIO_TEMPLATES[0]!.id : "");
+  const template = findStudioTemplate(templateId);
+  const family = template?.family ?? "standard";
+
+  const sites = useStudioSites();
+  const siteId =
+    chosenSite || (sites.data?.length === 1 ? sites.data[0]!.id : "");
+  const noSite = sites.isSuccess && sites.data.length === 0;
+
+  const missionaries = useQuery({
+    queryKey: ["web-studio", "admin-missionaries"],
+    queryFn: ({ signal }) => fetchStudioMissionaries(signal),
+    enabled: family === "missionary",
+  });
+  const funds = useQuery({
+    queryKey: ["web-studio", "admin-funds"],
+    queryFn: ({ signal }) => fetchStudioFunds(signal),
+    enabled: family === "project",
+  });
+  const referenceReady =
+    family === "standard" ||
+    (family === "missionary" ? missionaries.isSuccess : funds.isSuccess);
+  const referenceOptions =
+    family === "missionary"
+      ? studioMissionaryOptions(missionaries.data ?? [])
+      : (funds.data ?? []).map((fund) => ({
+          value: fund.id,
+          label: fund.name?.trim() || fund.id,
+        }));
 
   const {
-    config: { routes, serverURL },
+    config: { routes },
   } = useConfig();
 
   const createUrl = useMemo(
@@ -90,39 +148,29 @@ function StandardPageFromTemplateViewContent() {
     [routes.api],
   );
 
-  const {
-    data: tenants,
-    error: tenantsError,
-    isError: tenantsIsError,
-    isPending: tenantsIsPending,
-  } = useQuery(
-    buildTenantsQuery({
-      apiRoute: routes.api,
-      serverURL,
-      isSuperAdmin,
-    }),
-  );
-
   const form = useForm({
     defaultValues: {
       title: "",
       slug: "",
-      tenantId: "",
     },
     onSubmit: async ({ value }) => {
-      if (!canChooseTemplate(templateId, templates.data, "standard", templates))
-        return;
       setSubmitError(null);
       const parsed = formSchema.safeParse(value);
       const issues = parsed.success ? {} : parsed.error.flatten().fieldErrors;
+      const standard = family === "standard";
       const valid = fieldErrors.report({
-        template: templateId ? undefined : "Choose a template to start from.",
-        tenantId:
-          isSuperAdmin && !value.tenantId ? TENANT_REQUIRED_MESSAGE : undefined,
-        title: issues.title?.[0],
-        slug: issues.slug?.[0],
+        template: template ? undefined : "Choose a template to start from.",
+        site: siteId ? undefined : "Choose a Site for this page.",
+        reference:
+          standard || reference
+            ? undefined
+            : family === "missionary"
+              ? "Choose a missionary."
+              : "Choose a fund.",
+        title: standard ? issues.title?.[0] : undefined,
+        slug: standard ? issues.slug?.[0] : undefined,
       });
-      if (!valid || !parsed.success) {
+      if (!valid || !template || (standard && !parsed.success)) {
         return;
       }
 
@@ -131,11 +179,13 @@ function StandardPageFromTemplateViewContent() {
         credentials: "include",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          targetCollection: "pages",
-          templateId,
-          title: parsed.data.title,
-          slug: parsed.data.slug,
-          ...(isSuperAdmin ? { tenantId: value.tenantId } : {}),
+          starterKey: template.templateKey,
+          site: siteId,
+          ...(standard
+            ? { title: value.title, slug: value.slug }
+            : family === "missionary"
+              ? { missionaryId: reference }
+              : { fundId: reference }),
         }),
       }).catch(() => null);
 
@@ -146,14 +196,11 @@ function StandardPageFromTemplateViewContent() {
         return;
       }
 
-      // Read the payload for both branches (error responses carry data) with
-      // the status check made before the body is consumed.
       const { ok, body } = await readJsonBody<{
         id?: string;
         collectionSlug?: string;
         error?: string;
         fieldErrors?: { slug?: string[] };
-        existingId?: string;
       }>(res);
 
       if (!ok) {
@@ -164,13 +211,14 @@ function StandardPageFromTemplateViewContent() {
       }
 
       if (body?.id && body.collectionSlug) {
-        const editPath = appPathname(
-          formatAdminURL({
-            adminRoute: routes.admin,
-            path: `/collections/${body.collectionSlug}/${body.id}`,
-          }),
+        push(
+          appPathname(
+            formatAdminURL({
+              adminRoute: routes.admin,
+              path: `/collections/${body.collectionSlug}/${body.id}`,
+            }),
+          ),
         );
-        push(editPath);
       }
     },
   });
@@ -185,15 +233,12 @@ function StandardPageFromTemplateViewContent() {
       cancelHref="/web-studio/collections/pages"
       error={submitError}
       isSubmitting={isSubmitting}
-      canSubmit={canChooseTemplate(
-        templateId,
-        templates.data,
-        "standard",
-        templates,
-      )}
+      canSubmit={
+        Boolean(template) && !noSite && !sites.isPending && referenceReady
+      }
       onSubmit={(e) => {
         e.preventDefault();
-        if (form.state.isSubmitting) {
+        if (form.state.isSubmitting || !referenceReady) {
           return;
         }
         void form.handleSubmit();
@@ -201,111 +246,150 @@ function StandardPageFromTemplateViewContent() {
     >
       <StudioTemplateField
         id={FIELD_IDS.template}
-        pageType="standard"
         preselectedTemplateId={templateParam}
         value={templateId}
         onValueChange={(id) => {
           setChosenTemplateId(id);
+          setReference("");
           fieldErrors.clear("template");
         }}
-        galleryHref="/web-studio/templates?pageType=standard"
+        galleryHref="/web-studio/templates"
         error={fieldErrors.errors.template}
       />
-      {isSuperAdmin ? (
-        <form.Field name="tenantId">
-          {(field) => (
-            <TenantSelectField
-              id={FIELD_IDS.tenantId}
-              label="Organization"
-              field={field}
-              options={tenants ?? []}
-              disabled={tenantsIsPending || tenantsIsError}
-              placeholder="Choose an organization"
-              error={fieldErrors.errors.tenantId}
-              onChange={() => fieldErrors.clear("tenantId")}
-            >
-              {tenantsIsError ? (
-                <StudioFlowFieldNote tone="error">
-                  {(tenantsError as Error).message}
-                </StudioFlowFieldNote>
-              ) : null}
-            </TenantSelectField>
-          )}
-        </form.Field>
-      ) : null}
-      <form.Field name="title">
-        {(field) => (
-          <Field data-invalid={fieldErrors.errors.title ? true : undefined}>
-            <FieldLabel htmlFor={FIELD_IDS.title}>
-              <StudioRequiredLabel>Title</StudioRequiredLabel>
-            </FieldLabel>
-            <Input
-              id={FIELD_IDS.title}
-              required
-              aria-invalid={fieldErrors.errors.title ? true : undefined}
-              aria-describedby={describedBy(
-                fieldErrors.errors.title && studioFieldErrorId(FIELD_IDS.title),
-              )}
-              value={field.state.value}
-              onChange={(e) => {
-                field.handleChange(e.target.value);
-                fieldErrors.clear("title");
-                if (!slugEdited) {
-                  const slug = slugFromTitle(e.target.value);
-                  form.setFieldValue("slug", slug);
-                  if (slug) fieldErrors.clear("slug");
-                }
-              }}
-              onBlur={field.handleBlur}
-              placeholder="e.g. About us"
-              autoComplete="off"
-            />
-            <StudioFieldError
-              fieldId={FIELD_IDS.title}
-              message={fieldErrors.errors.title}
-            />
-          </Field>
-        )}
-      </form.Field>
-      <form.Field name="slug">
-        {(field) => (
-          <Field data-invalid={fieldErrors.errors.slug ? true : undefined}>
-            <FieldLabel htmlFor={FIELD_IDS.slug}>
-              <StudioRequiredLabel>URL slug</StudioRequiredLabel>
-            </FieldLabel>
-            <Input
-              id={FIELD_IDS.slug}
-              required
-              aria-invalid={fieldErrors.errors.slug ? true : undefined}
-              value={field.state.value}
-              onChange={(e) => {
-                setSlugEdited(true);
-                field.handleChange(e.target.value);
-                fieldErrors.clear("slug");
-              }}
-              onBlur={field.handleBlur}
-              placeholder="e.g. about-us"
-              autoComplete="off"
-              aria-describedby={describedBy(
-                "slug-description",
-                fieldErrors.errors.slug && studioFieldErrorId(FIELD_IDS.slug),
-              )}
-            />
-            <FieldDescription id="slug-description">
-              The page address, suggested from the title.
-              {normalizeWebAddressSegment(field.state.value) ? (
-                <span className="mt-1 block break-all">
-                  Web address: /{normalizeWebAddressSegment(field.state.value)}
-                </span>
-              ) : null}
-            </FieldDescription>
-            <StudioFieldError
-              fieldId={FIELD_IDS.slug}
-              message={fieldErrors.errors.slug}
-            />
-          </Field>
-        )}
-      </form.Field>
+      <StudioSelectField
+        id={FIELD_IDS.site}
+        label="Site"
+        items={(sites.data ?? []).map((site) => ({
+          value: site.id,
+          label: `Site ${site.id}`,
+        }))}
+        value={siteId}
+        onValueChange={(id) => {
+          setChosenSite(id);
+          fieldErrors.clear("site");
+        }}
+        required
+        error={fieldErrors.errors.site}
+        disabled={sites.isPending || sites.isError || noSite}
+        placeholder={sites.isPending ? "Loading Sites…" : "Choose a Site"}
+      >
+        {sites.isError ? (
+          <StudioFlowFieldNote tone="error">
+            {(sites.error as Error).message}
+          </StudioFlowFieldNote>
+        ) : noSite ? (
+          <StudioFlowFieldNote>{NO_SITE_NOTE}</StudioFlowFieldNote>
+        ) : null}
+      </StudioSelectField>
+      {family === "standard" ? (
+        <>
+          <form.Field name="title">
+            {(field) => (
+              <Field data-invalid={fieldErrors.errors.title ? true : undefined}>
+                <FieldLabel htmlFor={FIELD_IDS.title}>
+                  <StudioRequiredLabel>Title</StudioRequiredLabel>
+                </FieldLabel>
+                <Input
+                  id={FIELD_IDS.title}
+                  required
+                  aria-invalid={fieldErrors.errors.title ? true : undefined}
+                  aria-describedby={describedBy(
+                    fieldErrors.errors.title &&
+                      studioFieldErrorId(FIELD_IDS.title),
+                  )}
+                  value={field.state.value}
+                  onChange={(e) => {
+                    field.handleChange(e.target.value);
+                    fieldErrors.clear("title");
+                    if (!slugEdited) {
+                      const slug = slugFromTitle(e.target.value);
+                      form.setFieldValue("slug", slug);
+                      if (slug) fieldErrors.clear("slug");
+                    }
+                  }}
+                  onBlur={field.handleBlur}
+                  placeholder="e.g. About us"
+                  autoComplete="off"
+                />
+                <StudioFieldError
+                  fieldId={FIELD_IDS.title}
+                  message={fieldErrors.errors.title}
+                />
+              </Field>
+            )}
+          </form.Field>
+          <form.Field name="slug">
+            {(field) => (
+              <Field data-invalid={fieldErrors.errors.slug ? true : undefined}>
+                <FieldLabel htmlFor={FIELD_IDS.slug}>
+                  <StudioRequiredLabel>URL slug</StudioRequiredLabel>
+                </FieldLabel>
+                <Input
+                  id={FIELD_IDS.slug}
+                  required
+                  aria-invalid={fieldErrors.errors.slug ? true : undefined}
+                  value={field.state.value}
+                  onChange={(e) => {
+                    setSlugEdited(true);
+                    field.handleChange(e.target.value);
+                    fieldErrors.clear("slug");
+                  }}
+                  onBlur={field.handleBlur}
+                  placeholder="e.g. about-us"
+                  autoComplete="off"
+                  aria-describedby={describedBy(
+                    "slug-description",
+                    fieldErrors.errors.slug &&
+                      studioFieldErrorId(FIELD_IDS.slug),
+                  )}
+                />
+                <FieldDescription id="slug-description">
+                  The page address, suggested from the title.
+                  {normalizeWebAddressSegment(field.state.value) ? (
+                    <span className="mt-1 block break-all">
+                      Web address: /
+                      {normalizeWebAddressSegment(field.state.value)}
+                    </span>
+                  ) : null}
+                </FieldDescription>
+                <StudioFieldError
+                  fieldId={FIELD_IDS.slug}
+                  message={fieldErrors.errors.slug}
+                />
+              </Field>
+            )}
+          </form.Field>
+        </>
+      ) : (
+        <StudioSelectField
+          id={FIELD_IDS.reference}
+          label={family === "missionary" ? "Missionary" : "Fund"}
+          items={referenceOptions}
+          value={reference}
+          onValueChange={(id) => {
+            setReference(id);
+            fieldErrors.clear("reference");
+          }}
+          required
+          error={fieldErrors.errors.reference}
+          disabled={
+            family === "missionary"
+              ? missionaries.isPending || missionaries.isError
+              : funds.isPending || funds.isError
+          }
+          placeholder={
+            family === "missionary" ? "Choose a missionary" : "Choose a fund"
+          }
+        >
+          {(family === "missionary" ? missionaries.isError : funds.isError) ? (
+            <StudioFlowFieldNote tone="error">
+              {family === "missionary"
+                ? "The missionary directory didn't load. Try again."
+                : "Funds didn't load. Try again."}
+            </StudioFlowFieldNote>
+          ) : null}
+        </StudioSelectField>
+      )}
     </StudioFlowFrame>
   );
 }

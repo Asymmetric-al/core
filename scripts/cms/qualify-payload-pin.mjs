@@ -30,9 +30,19 @@
 // roles get a random password for the run and lose it afterwards.
 import { spawn, spawnSync } from "node:child_process";
 import { randomBytes } from "node:crypto";
-import { existsSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
+import {
+  cpSync,
+  existsSync,
+  mkdtempSync,
+  readFileSync,
+  readdirSync,
+  rmSync,
+  writeFileSync,
+} from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+
+import { createRequire } from "node:module";
 
 import pg from "pg";
 
@@ -152,7 +162,11 @@ function runSync(label, command, args, options) {
 
 function runAsync(command, args, options, onTick) {
   return new Promise((resolve) => {
-    const child = spawn(command, args, { shell: false, ...options });
+    const child = spawn(command, args, {
+      shell: false,
+      stdio: ["ignore", "pipe", "pipe"],
+      ...options,
+    });
     let output = "";
     child.stdout.on("data", (chunk) => (output += chunk));
     child.stderr.on("data", (chunk) => (output += chunk));
@@ -244,6 +258,344 @@ async function errorCode(run) {
 
 function forbidden(check) {
   return check?.ok === false && check.status === 403;
+}
+
+const QUALIFICATION_CONFIG_SOURCE = `import { postgresAdapter } from "@payloadcms/db-postgres";
+import { lexicalEditor } from "@payloadcms/richtext-lexical";
+import { buildConfig } from "payload";
+
+import { Media } from "../src/cms/collections/media";
+import { Navigation } from "../src/cms/collections/navigation";
+import { Pages } from "../src/cms/collections/pages";
+import { PrincipalLinks } from "../src/cms/collections/principal-links";
+import { SitePresentations } from "../src/cms/collections/site-presentations";
+import { addTenantConstraints } from "../src/cms/tenancy/constraints";
+
+import type { Block, CollectionConfig, Field } from "payload";
+
+const variant = process.env.PAYLOAD_QUALIFICATION_VARIANT ?? "";
+
+function heroFields(fields: Field[]): Field[] {
+  if (variant === "block-add") {
+    return [...fields, { name: "probeNote", type: "text" }];
+  }
+  if (variant === "block-rename") {
+    return fields.map((field) =>
+      "name" in field && field.name === "eyebrow"
+        ? { ...field, name: "kicker" }
+        : field,
+    ) as Field[];
+  }
+  if (variant === "block-remove") {
+    return fields.filter(
+      (field) => !("name" in field && field.name === "subheading"),
+    );
+  }
+  return fields;
+}
+
+function withVariant(pages: CollectionConfig): CollectionConfig {
+  const fields = pages.fields.map((field) => {
+    if (!("name" in field) || field.name !== "layout" || field.type !== "blocks") {
+      return field;
+    }
+    return {
+      ...field,
+      blocks: (field.blocks as Block[]).map((block) =>
+        block.slug === "hero" ? { ...block, fields: heroFields(block.fields) } : block,
+      ),
+    } as Field;
+  });
+  if (variant === "add-column") {
+    fields.push({ name: "qualificationProbe", type: "text" });
+  }
+  return { ...pages, fields };
+}
+
+export default buildConfig({
+  admin: { user: PrincipalLinks.slug },
+  collections: [
+    PrincipalLinks,
+    SitePresentations,
+    withVariant(Pages),
+    Navigation,
+    Media,
+  ],
+  db: postgresAdapter({
+    schemaName: "cms",
+    idType: "uuid",
+    allowIDOnCreate: true,
+    blocksAsJSON: true,
+    afterSchemaInit: [addTenantConstraints],
+    push: false,
+    disableCreateDatabase: true,
+    migrationDir: process.env.PAYLOAD_QUALIFICATION_MIGRATION_DIR,
+    pool: { connectionString: process.env.PAYLOAD_DATABASE_URI ?? "" },
+  }),
+  editor: lexicalEditor(),
+  graphQL: { disable: true },
+  llmInstructions: false,
+  secret: process.env.PAYLOAD_SECRET ?? "payload-qualification",
+  routes: { admin: "/web-studio", api: "/web-studio/api" },
+});
+`;
+
+function writeQualificationConfig() {
+  const dir = mkdtempSync(path.join(adminAppDir, ".payload-qualification-"));
+  const file = path.join(dir, "payload.config.ts");
+  writeFileSync(file, QUALIFICATION_CONFIG_SOURCE);
+  return { dir, file };
+}
+
+let qualificationConfig = null;
+
+function runtimeMode(mode, env) {
+  return runAsync(
+    process.execPath,
+    [
+      path.join(cmsScriptsDir, "lib", "payload-qualification-runtime.mjs"),
+      mode,
+    ],
+    {
+      cwd: adminAppDir,
+      env: childEnv({
+        PAYLOAD_QUALIFICATION_CONFIG: qualificationConfig?.file ?? "",
+        ...env,
+      }),
+    },
+  ).then((run) => ({ run, result: parseChildResult(run.output) }));
+}
+
+function payloadCli(args, env) {
+  const payloadEntry = createRequire(
+    path.join(adminAppDir, "package.json"),
+  ).resolve("payload");
+  const payloadBin = path.join(
+    path.dirname(path.dirname(payloadEntry)),
+    "bin.js",
+  );
+  return runSync("payload", process.execPath, [payloadBin, ...args], {
+    cwd: adminAppDir,
+    env: childEnv({ PAYLOAD_CONFIG_PATH: qualificationConfig.file, ...env }),
+  });
+}
+
+function copyMigrations() {
+  const dir = mkdtempSync(path.join(qualificationConfig.dir, "migrations-"));
+  cpSync(path.join(adminAppDir, "src", "migrations"), dir, { recursive: true });
+  rmSync(path.join(dir, "index.ts"), { force: true });
+  return dir;
+}
+
+function newMigrationFiles(dir, known) {
+  return readdirSync(dir)
+    .filter((name) => name.endsWith(".ts") && !known.has(name))
+    .map((name) => path.join(dir, name));
+}
+
+async function constraintProblems(admin, expected) {
+  const constraints = (
+    await admin.query(
+      "SELECT c.relname AS table, con.conname AS name, pg_get_constraintdef(con.oid) AS definition FROM pg_constraint con JOIN pg_class c ON c.oid = con.conrelid JOIN pg_namespace n ON n.oid = c.relnamespace WHERE n.nspname = 'cms'",
+    )
+  ).rows;
+  const indexes = (
+    await admin.query(
+      "SELECT tablename AS table, indexname AS name, indexdef AS definition FROM pg_indexes WHERE schemaname = 'cms'",
+    )
+  ).rows;
+  return expected.flatMap((want) => {
+    const found = (want.kind === "unique index" ? indexes : constraints).find(
+      (item) => item.name === want.name,
+    );
+    if (!found) return [`missing ${want.name}`];
+    if (found.table !== want.table || found.definition !== want.definition) {
+      return [`changed ${want.name}: ${found.definition}`];
+    }
+    return [];
+  });
+}
+
+async function baselineChecks({ admin, ownerUrl, runtimeUrl }) {
+  const devEnv = {
+    NODE_ENV: "development",
+    PAYLOAD_DATABASE_URI: runtimeUrl,
+    PAYLOAD_DISABLE_SCHEMA_PUSH: "1",
+    E2E_AUTH_BYPASS: "true",
+    NEXT_PUBLIC_SUPABASE_URL: "https://example.supabase.co",
+    NEXT_PUBLIC_SUPABASE_ANON_KEY: "example-anon-key",
+  };
+  const listed = await runtimeMode("constraints", devEnv);
+  const expected = listed.result?.constraints ?? [];
+  const afterBaseline = await constraintProblems(admin, expected);
+
+  const known = new Set(
+    readdirSync(path.join(adminAppDir, "src", "migrations")),
+  );
+  const addDir = copyMigrations();
+  let afterAdd = ["not run"];
+  let addSql = "";
+  let addStatus = null;
+  let applyStatus = null;
+  let applyTail = null;
+  try {
+    const created = payloadCli(["migrate:create", "qualification_probe"], {
+      PAYLOAD_DATABASE_URI: ownerUrl,
+      PAYLOAD_QUALIFICATION_MIGRATION_DIR: addDir,
+      PAYLOAD_QUALIFICATION_VARIANT: "add-column",
+    });
+    addStatus = created.status;
+    const [file] = newMigrationFiles(addDir, known);
+    if (file) {
+      addSql = readFileSync(file, "utf8");
+      writeFileSync(
+        file,
+        addSql.replace(
+          /import \{ MigrateUpArgs, MigrateDownArgs, sql \} from '@payloadcms\/db-postgres'/,
+          "import { sql } from '@payloadcms/db-postgres'",
+        ),
+      );
+      const applied = payloadCli(["migrate"], {
+        PAYLOAD_DATABASE_URI: ownerUrl,
+        PAYLOAD_QUALIFICATION_MIGRATION_DIR: addDir,
+        PAYLOAD_QUALIFICATION_VARIANT: "add-column",
+      });
+      applyStatus = applied.status;
+      applyTail = applied.status === 0 ? null : tail(applied.output, 20);
+      afterAdd = await constraintProblems(admin, expected);
+    }
+  } finally {
+    rmSync(addDir, { recursive: true, force: true });
+    const owner = new pg.Client({ connectionString: ownerUrl });
+    await owner.connect();
+    await owner
+      .query(
+        "ALTER TABLE cms.pages DROP COLUMN IF EXISTS qualification_probe; ALTER TABLE cms._pages_v DROP COLUMN IF EXISTS version_qualification_probe; DELETE FROM cms.payload_migrations WHERE name LIKE '%qualification_probe';",
+      )
+      .finally(() => owner.end());
+  }
+
+  const baseline = await runtimeMode("baseline", devEnv);
+  const proof = baseline.result;
+  const upStatements = (
+    /export async function up[\s\S]*?sql`([\s\S]*?)`/.exec(addSql)?.[1] ?? ""
+  )
+    .split(";")
+    .map((line) => line.trim())
+    .filter(Boolean);
+  record(
+    "Hand-written constraints are in the catalog after the baseline and after a generated add-column migration; a cross-tenant Site is refused on create and on a later draft",
+    expected.length > 0 &&
+      afterBaseline.length === 0 &&
+      addStatus === 0 &&
+      applyStatus === 0 &&
+      upStatements.length > 0 &&
+      upStatements.every((line) =>
+        /^ALTER TABLE .* ADD COLUMN "(?:version_)?qualification_probe" varchar$/.test(
+          line,
+        ),
+      ) &&
+      afterAdd.length === 0 &&
+      JSON.stringify(proof?.crossTenantSite?.create) ===
+        JSON.stringify(["site"]) &&
+      JSON.stringify(proof?.crossTenantSite?.laterDraft) ===
+        JSON.stringify(["site"]),
+    {
+      constraints: expected.length,
+      afterBaseline,
+      addStatus,
+      applyStatus,
+      applyTail,
+      upStatements,
+      afterAdd,
+      crossTenantSite: proof?.crossTenantSite,
+    },
+  );
+  record(
+    "Supplied presentation IDs: the service port keeps one, and a REST create of a presentation is refused",
+    proof?.suppliedPresentationIds?.servicePortKept === true &&
+      proof?.suppliedPresentationIds?.restCreateStatus === 403,
+    proof?.suppliedPresentationIds ?? { tail: tail(baseline.run.output, 30) },
+  );
+
+  const blocks = {};
+  for (const variant of ["block-add", "block-rename", "block-remove"]) {
+    const dir = copyMigrations();
+    try {
+      const created = payloadCli(
+        ["migrate:create", "qualification_block", "--skip-empty"],
+        {
+          PAYLOAD_DATABASE_URI: ownerUrl,
+          PAYLOAD_QUALIFICATION_MIGRATION_DIR: dir,
+          PAYLOAD_QUALIFICATION_VARIANT: variant,
+        },
+      );
+      const read = await runtimeMode("blocks-read", {
+        ...devEnv,
+        PAYLOAD_QUALIFICATION_VARIANT: variant,
+        PAYLOAD_QUALIFICATION_PAGE_ID: proof?.jsonBlocks?.pageId ?? "",
+      });
+      blocks[variant] = {
+        generatorStatus: created.status,
+        generatedFiles: newMigrationFiles(dir, known).length,
+        hero: read.result?.hero ?? null,
+      };
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  }
+  const deleted = await runtimeMode("deleted-media-read", {
+    ...devEnv,
+    PAYLOAD_QUALIFICATION_PAGE_ID: proof?.jsonBlocks?.pageId ?? "",
+    PAYLOAD_QUALIFICATION_MEDIA_ID: proof?.jsonBlocks?.mediaId ?? "",
+  });
+  const mediaId = proof?.jsonBlocks?.mediaId;
+  const depth0 = proof?.jsonBlocks?.depth0;
+  const depth1 = proof?.jsonBlocks?.depth1;
+  record(
+    "JSON blocks: a media reference round-trips at depth 0 and 1; a block field added, renamed and removed reads the old data; the generated migration for each is empty; a deleted media ID reads back",
+    Boolean(mediaId) &&
+      depth0?.heroImage === mediaId &&
+      depth0?.richTextNode === mediaId &&
+      depth0?.contentNode === mediaId &&
+      depth1?.heroImage?.id === mediaId &&
+      depth1?.heroImage?.alt === "Qualification image" &&
+      depth1?.richTextNode?.id === mediaId &&
+      Object.values(blocks).every(
+        (item) => item.generatorStatus === 0 && item.generatedFiles === 0,
+      ) &&
+      blocks["block-add"]?.hero?.probeNote === undefined &&
+      blocks["block-add"]?.hero?.eyebrow === "Old eyebrow" &&
+      blocks["block-rename"]?.hero?.eyebrow === "Old eyebrow" &&
+      !blocks["block-rename"]?.hero?.kicker &&
+      blocks["block-remove"]?.hero?.subheading === "Old subheading" &&
+      deleted.result?.heroImage === mediaId &&
+      deleted.result?.richTextNodeValue === null,
+    { jsonBlocks: proof?.jsonBlocks, blocks, deleted: deleted.result },
+  );
+  record(
+    "A REST write of _status: published is refused, the row stays draft, and no statement leaves schema cms",
+    proof?.restStatusWrite?.status === 400 &&
+      proof?.restStatusWrite?.rowStatus === "draft" &&
+      proof?.restStatusWrite?.statements > 0 &&
+      proof?.restStatusWrite?.outsideCms?.length === 0,
+    proof?.restStatusWrite ?? { tail: tail(baseline.run.output, 30) },
+  );
+  const uuids = proof?.nonRfcUuids;
+  record(
+    "PostgreSQL UUIDs that are not RFC 4122 work: a seed login links twice and reads its row; a seed Site carries a page and a navigation item; not_equals excludes it; a locked media record survives a bulk delete (@payloadcms/drizzle patch, payloadcms/payload#16483)",
+    JSON.stringify(uuids?.principalLinks) ===
+      JSON.stringify([
+        "11111111-1111-1111-1111-111111111111",
+        "11111111-1111-1111-1111-111111111111",
+      ]) &&
+      uuids?.ownRow === "11111111-1111-1111-1111-111111111111" &&
+      uuids?.seedSitePage === "saved" &&
+      uuids?.seedSiteNavigation === "saved" &&
+      uuids?.notEqualsExcludesSeedSite === true &&
+      uuids?.lockedMediaKept === true,
+    uuids ?? { tail: tail(baseline.run.output, 30) },
+  );
 }
 
 /** Runs the qualification with the command-line arguments `argv`. */
@@ -559,16 +911,11 @@ export async function main(argv = process.argv.slice(2)) {
           checks.overrideFind.totalDocs === 1,
         checks,
       );
-      const publishedIds = new Set(proof.versions.publishedVersionIds);
-      const publicIds = checks.publicReadFindVersions.ids ?? [];
       record(
-        "Version reads: anonymous refused; the public reader sees no draft version; another tenant's staff see none",
+        "Version reads: anonymous refused; another tenant's staff see none; the tenant's staff see all",
         forbidden(checks.anonymousFindVersions) &&
           forbidden(checks.anonymousFindVersionByID) &&
           proof.versions.draftVersionId !== null &&
-          checks.publicReadFindVersions.ok &&
-          !publicIds.includes(proof.versions.draftVersionId) &&
-          publicIds.every((id) => publishedIds.has(id)) &&
           checks.otherTenantStaffFindVersions.ok &&
           checks.otherTenantStaffFindVersions.totalDocs === 0 &&
           checks.sameTenantStaffFindVersions.ok &&
@@ -589,6 +936,14 @@ export async function main(argv = process.argv.slice(2)) {
           files.missionControlApiOnPayload.length === 0,
         { routes, files },
       );
+    }
+
+    qualificationConfig = writeQualificationConfig();
+    try {
+      await baselineChecks({ admin, ownerUrl, runtimeUrl });
+    } finally {
+      rmSync(qualificationConfig.dir, { recursive: true, force: true });
+      qualificationConfig = null;
     }
 
     // 7. Start-up with schema push left on, against a schema that differs.
@@ -622,8 +977,8 @@ export async function main(argv = process.argv.slice(2)) {
     ).rows[0].n;
     record(
       "With schema push on, Payload as cms_runtime fails to start and changes nothing",
-      pushResult !== null &&
-        !pushResult.started &&
+      ((pushResult !== null && !pushResult.started) ||
+        (pushResult === null && push.status === 13)) &&
         drifted.fingerprint === afterPush.fingerprint &&
         pushMarkers === 0,
       {

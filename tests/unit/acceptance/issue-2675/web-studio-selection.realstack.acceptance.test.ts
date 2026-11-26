@@ -54,7 +54,7 @@ it.runIf(IN_MIGRATE_JOB && !ADMIN_URL)(
 );
 
 describe.skipIf(!ADMIN_URL)(
-  "AL-2675 the Web Studio tenant cookie against live memberships (real stack)",
+  "AL-2675 the Web Studio tenant cookie against live memberships (real stack; D-18: WP6 part 2b's strategy reads no public.tenants and links the login as a principal-links row)",
   () => {
     const db = new pg.Client({ connectionString: ADMIN_URL });
     const id = fixtureIds();
@@ -119,9 +119,9 @@ describe.skipIf(!ADMIN_URL)(
 
     /**
      * Payload's strategy itself. Its Supabase client is a double: the session
-     * names the person, `current_user_assignments` runs on the real catalog
-     * as the person, and the tenant read reads the real `public.tenants`. The
-     * Payload store is in memory: the CMS mirror is not under test here.
+     * names the person and `current_user_assignments` runs on the real catalog
+     * as the person. The Payload store is in memory: the login's
+     * `principal-links` row is not under test here.
      */
     const strategy = createSupabaseAuthStrategy({
       createSupabaseClient: (() => ({
@@ -137,29 +137,6 @@ describe.skipIf(!ADMIN_URL)(
           } catch (error) {
             return { data: null, error };
           }
-        },
-      })) as never,
-      createSupabaseDataClient: (() => ({
-        from: (table: string) => {
-          if (table !== "tenants") throw new Error(table);
-          let tenantId = "";
-          const chain = {
-            select: () => chain,
-            eq: (_column: string, value: string) => {
-              tenantId = value;
-              return chain;
-            },
-            maybeSingle: async () => ({
-              data:
-                (
-                  await db.query(
-                    "select id::text, name, slug from public.tenants where id = $1",
-                    [tenantId],
-                  )
-                ).rows[0] ?? null,
-            }),
-          };
-          return chain;
         },
       })) as never,
       readWebStudioCookie: (value: string | null) =>
@@ -215,7 +192,7 @@ describe.skipIf(!ADMIN_URL)(
         req,
       } as never);
       return user
-        ? keyOf((user as { publicTenantId?: string }).publicTenantId)
+        ? keyOf((user as { tenantId?: string }).tenantId)
         : `refused: ${readWebStudioRefusal(req)}`;
     }
 

@@ -121,6 +121,35 @@ describe("Eve sandbox file guardrails", () => {
     },
   );
 
+  it.each([
+    "apps/admin/src/cms/tenancy/reference-guard.ts",
+    "apps/admin/src/cms/tenancy",
+    "apps/admin/src/cms/ports/service-port.ts",
+    "apps/admin/src/cms/ports",
+    "apps/admin/src/cms/auth/supabase-strategy.ts",
+    "apps/admin/src/cms/auth",
+    "apps/admin/src/cms/document-locks.ts",
+  ])(
+    "pauses the CMS tenancy, port, authentication or lock path %s for durable approval (F5, WP6 part 2b moved them there)",
+    (path) => {
+      const result = scanEveSandboxPath(path);
+
+      expect(result.safe).toBe(false);
+      expect(result.requiresApproval).toBe(true);
+      expect(hasBlockingSandboxFinding(result)).toBe(false);
+      expect(result.findings.map((finding) => finding.rule)).toContain(
+        "tenant_and_access_control",
+      );
+    },
+  );
+
+  it("does not pause a CMS path outside those folders", () => {
+    expect(
+      scanEveSandboxPath("apps/admin/src/cms/starters/index.ts")
+        .requiresApproval,
+    ).toBe(false);
+  });
+
   it("detects protected paths in shell commands", () => {
     const result = scanEveSandboxCommand(
       "git add packages/auth/context.ts && git commit -m auth",

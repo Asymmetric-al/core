@@ -64,20 +64,20 @@ describe("pagesGeneratePreviewURL", () => {
     expect(url).toBe("/web-studio/collections/pages");
   });
 
-  it("can build authenticated preview URLs for page-like collections", () => {
+  it("builds authenticated preview URLs for the one pages collection (D-18: WP6 part 2b folds the page-like collections into pages)", () => {
     expect(
       buildWebStudioAuthenticatedPreviewPath({
-        collectionSlug: "project-pages",
-        id: "project 1",
+        collectionSlug: "pages",
+        id: "page 1",
       }),
-    ).toBe("/web-studio/preview/project-pages/project%201");
+    ).toBe("/web-studio/preview/pages/page%201");
 
     expect(
-      createWebStudioAuthenticatedPreviewURL("ministry-updates")(
-        { id: "update_1" },
+      createWebStudioAuthenticatedPreviewURL("pages")(
+        { id: "page_1" },
         { locale: "en", req: {} as never, token: null },
       ),
-    ).toBe("/web-studio/preview/ministry-updates/update_1");
+    ).toBe("/web-studio/preview/pages/page_1");
   });
 });
 
@@ -116,16 +116,24 @@ describe("resolveDonorOrigin", () => {
   });
 });
 
-it.each(["missionary-giving-pages", "project-pages"] as const)(
-  "keeps private preview without inventing a public reader for %s",
-  (collection) => {
-    const config = getWebStudioCollectionConfig(collection);
+it.each(["missionary", "project"] as const)(
+  "keeps private preview without inventing a public reader for a %s page (D-18: WP6 part 2b, giving and project pages are pages of a family)",
+  (family) => {
+    const config = getWebStudioCollectionConfig("pages");
     expect(config.previewMode).not.toBe("none");
     expect(
       config.previewPathForData?.({
+        family,
         missionaryId: "missionary",
         slug: "project",
       }) ?? null,
     ).toBeNull();
   },
 );
+
+it("gives a standard page its public address", () => {
+  const config = getWebStudioCollectionConfig("pages");
+  expect(
+    config.previewPathForData?.({ family: "standard", slug: "about" }),
+  ).toBe("/about");
+});

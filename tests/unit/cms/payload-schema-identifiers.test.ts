@@ -58,20 +58,17 @@ describe("Payload PostgreSQL schema", () => {
     expect(fetch).not.toHaveBeenCalled();
   });
 
-  it("preserves all seven unaffected impact-stat item table identities", () => {
+  it("keeps layout blocks in one JSON column, so no block or block-item table exists (D-18: WP6 part 2b sets blocksAsJSON, index 3)", () => {
     expect(
-      Object.keys(tables)
-        .filter((name) => name.includes("impact_stats_items"))
-        .sort(),
-    ).toEqual([
-      "_page_templates_v_blocks_impact_stats_items",
-      "_pages_v_blocks_impact_stats_items",
-      "_project_pages_v_blocks_impact_stats_items",
-      "missionary_giving_pages_blocks_impact_stats_items",
-      "page_templates_blocks_impact_stats_items",
-      "pages_blocks_impact_stats_items",
-      "project_pages_blocks_impact_stats_items",
-    ]);
-    expect(tables).toHaveProperty("_mgp_impact_items_v");
+      Object.keys(tables).filter(
+        (name) => name.includes("blocks") || name.includes("impact"),
+      ),
+    ).toEqual([]);
+    expect(
+      Object.values(tables.pages!.columns).map(({ name }) => name),
+    ).toContain("layout");
+    expect(
+      Object.values(tables._pages_v!.columns).map(({ name }) => name),
+    ).toContain("version_layout");
   });
 });
