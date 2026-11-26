@@ -322,6 +322,19 @@ describe("Local Supabase Stack workflow: the replay matches the platform's image
     expect(config).toContain('"**/auth-worker-record.spec.ts"');
   });
 
+  it("runs the Add Partner journey through both of the Partners page's buttons with the auth round trips, started by the journey, the dialog, the command's route and the page (AL-2678 WP5 rest)", () => {
+    const config = readFileSync("playwright.auth-mail.config.ts", "utf8");
+    expect(config).toContain('"**/auth-add-partner.spec.ts"');
+    for (const file of [
+      "tests/e2e/auth-add-partner.spec.ts",
+      "packages/missionary/components/add-partner-*",
+      "packages/api/src/missionary-portal/**",
+      "apps/missionary/app/donors/**",
+      "apps/missionary/app/api/missionary/donors/**",
+    ])
+      expect(workflow).toContain(`      - ${file}\n`);
+  });
+
   it("requires the own-donor proof through PostgREST after the worker-record proof, started by its suite and the readers it drives (AL-2678 WP5 rest)", () => {
     const suite =
       "tests/unit/acceptance/issue-2678/own-donor-reads.postgrest.acceptance.test.ts";

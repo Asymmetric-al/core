@@ -110,6 +110,12 @@ on:
       - apps/admin/app/(app)/workers/**
       - apps/admin/features/mission-control/workers/**
       - tests/e2e/auth-worker-record.spec.ts
+      # Add Partner from both of the Partners page's buttons, on the
+      # missionary's token (AL-2678, WP5 rest).
+      - tests/e2e/auth-add-partner.spec.ts
+      - packages/missionary/components/add-partner-*
+      - apps/missionary/app/donors/**
+      - apps/missionary/app/api/missionary/donors/**
       - packages/database/collections/schemas/giving.ts
       # The readers that name a worker outside Mission Control, which the
       # identity-key proof drives (AL-2678, WP5 part 2-r1).

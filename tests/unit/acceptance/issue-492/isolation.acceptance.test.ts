@@ -51,10 +51,10 @@ describe("#492 criterion 14: names never authorize", () => {
 });
 
 describe("#492 criterion 15: no capability tables", () => {
-  it("criterion 15: the registry is code; the table names appear only in docs", async () => {
+  it("criterion 15: the registry is code; the table names appear only in docs (D-18, AL-2678 WP5 rest: the missionary's partners.add makes 29)", async () => {
     const { CAPABILITY_REGISTRY } = await load("registry");
     // 18 at #492; AL-2675 adds the ten capabilities of plan 5.4.
-    expect(Object.keys(CAPABILITY_REGISTRY)).toHaveLength(28);
+    expect(Object.keys(CAPABILITY_REGISTRY)).toHaveLength(29);
     const tables = "permission_capabilities|role_capability_grants";
     const self = ":!tests/unit/acceptance/issue-492/**";
     const hits = git(`grep --untracked -lE ${tables} -- . :!docs/** ${self}`);

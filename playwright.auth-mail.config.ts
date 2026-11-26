@@ -102,6 +102,7 @@ export default defineConfig({
     "**/auth-crm-reads.spec.ts",
     "**/auth-member-care.spec.ts",
     "**/auth-worker-record.spec.ts",
+    "**/auth-add-partner.spec.ts",
     "**/auth-members-invitations.spec.ts",
     "**/auth-sites-settings.spec.ts",
   ],

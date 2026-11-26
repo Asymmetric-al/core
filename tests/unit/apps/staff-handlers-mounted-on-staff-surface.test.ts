@@ -16,9 +16,10 @@ import {
  *
  * Each app's proxy fixes the role class of every request (plan 5.1): staff in
  * Mission Control, donor in the donor app, missionary in the missionary
- * workspace. A capability comes only from the row the request acts under, and
- * donor and missionary rows hold none (the registry's `member:donor` and
- * `member:missionary` grant no bundle); the tenant-administrator flag lives
+ * workspace. A capability comes only from the row the request acts under:
+ * donor rows hold none (the registry's `member:donor` grants no bundle), and
+ * missionary rows hold `missionary_partners` (`partners.add`, AL-2678), which no
+ * staff subject holds; the tenant-administrator flag lives
  * only on a staff row. So a route whose handler requires a capability its
  * app's class cannot hold, or the flag outside Mission Control, can never be
  * used: the outbox catch-up for stuck donation saga work was such a route,
@@ -226,11 +227,11 @@ function unreachableChecks() {
 }
 
 describe("staff handlers are mounted on the staff surface (AL-2675 F9)", () => {
-  it("reads each app's role class from its proxy and the classes' capabilities from the registry", () => {
+  it("reads each app's role class from its proxy and the classes' capabilities from the registry (D-18, AL-2678 WP5 rest: a missionary holds partners.add alone)", () => {
     expect(APPS.map(proxyClass)).toEqual(["staff", "donor", "missionary"]);
     expect(holdable("staff").has("admin.gifts.manage")).toBe(true);
     expect(holdable("donor").size).toBe(0);
-    expect(holdable("missionary").size).toBe(0);
+    expect([...holdable("missionary")]).toEqual(["partners.add"]);
   });
 
   it("mounts no handler where the app's class cannot pass its capability or administrator check", () => {

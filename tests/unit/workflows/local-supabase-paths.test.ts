@@ -116,6 +116,19 @@ describe("the local Supabase workflow's path filter", () => {
   );
 
   it.each([
+    "tests/e2e/auth-add-partner.spec.ts",
+    "packages/missionary/components/add-partner-*",
+    "packages/api/src/missionary-portal/**",
+    "apps/missionary/app/donors/**",
+    "apps/missionary/app/api/missionary/donors/**",
+  ])(
+    "starts the Add Partner journey when %s, the journey, the dialog, the command's route or the page with both buttons, changes (AL-2678 WP5 rest)",
+    (file) => {
+      expect(paths).toContain(file);
+    },
+  );
+
+  it.each([
     "tests/unit/acceptance/issue-2678/crm-pages.postgrest.acceptance.test.ts",
     "packages/api/src/admin/crm/**",
   ])(
