@@ -82,14 +82,8 @@ async function openDialog(trigger = "Open partner") {
   return screen.findByRole("dialog", { name: "Add partner" });
 }
 
-function fillValidFields(
-  name = "Fixture partner",
-  email = "fixture@example.invalid",
-) {
+function fillValidFields(name = "Fixture partner") {
   fireEvent.change(screen.getByLabelText("Name"), { target: { value: name } });
-  fireEvent.change(screen.getByLabelText("Email"), {
-    target: { value: email },
-  });
   fireEvent.change(screen.getByLabelText("Location"), {
     target: { value: "Fixture location" },
   });
@@ -155,13 +149,13 @@ describe("AddPartnerDialog public form behavior", () => {
     render(<AddPartnerDialog trigger={<Button>Open partner</Button>} />);
     await openDialog();
     const name = screen.getByLabelText("Name");
-    const email = screen.getByLabelText("Email");
+    const location = screen.getByLabelText("Location");
     fireEvent.change(name, { target: { value: "X" } });
     fireEvent.blur(name);
-    fireEvent.change(email, { target: { value: "invalid" } });
-    fireEvent.blur(email);
+    fireEvent.change(location, { target: { value: "L" } });
+    fireEvent.blur(location);
     await screen.findByText("Name must be at least 2 characters");
-    await screen.findByText("Invalid email address");
+    await screen.findByText("Location is required");
     expect(name.getAttribute("aria-invalid")).toBe("true");
     expect(
       document.getElementById(name.getAttribute("aria-errormessage")!),
@@ -174,10 +168,17 @@ describe("AddPartnerDialog public form behavior", () => {
     expect(boundary.fetch).not.toHaveBeenCalled();
   });
 
-  it("sends the partner to the workspace's Add Partner command through the own-API wrapper, with a submission key and no owner, tenant, status or score; never the browser's table client (AL-2678 WP5 rest; red: the dialog inserted into donors)", async () => {
+  it("asks for no e-mail and promises no staff action (fix round F1 rules 2 and 8; red: an Email field)", async () => {
+    render(<AddPartnerDialog trigger={<Button>Open partner</Button>} />);
+    const dialog = await openDialog();
+    expect(within(dialog).queryByLabelText(/e-?mail/i)).toBeNull();
+    expect(dialog.textContent ?? "").not.toMatch(/e-?mail|staff|admin/i);
+  });
+
+  it("sends the partner to the workspace's Add Partner command through the own-API wrapper, with a submission key and no e-mail, owner, tenant, status or score; never the browser's table client (AL-2678 WP5 rest; fix round F1)", async () => {
     render(<AddPartnerDialog trigger={<Button>Open partner</Button>} />);
     await openDialog();
-    fillValidFields("Command partner", "command@example.invalid");
+    fillValidFields("Command partner");
     await submit();
     await waitFor(() => expect(boundary.fetch).toHaveBeenCalledTimes(1));
     const call = sent(0);
@@ -186,7 +187,6 @@ describe("AddPartnerDialog public form behavior", () => {
     expect(call.key).toMatch(KEY);
     expect(call.body).toEqual({
       name: "Command partner",
-      email: "command@example.invalid",
       phone: null,
       type: "Individual",
       frequency: "Monthly",
@@ -229,6 +229,31 @@ describe("AddPartnerDialog public form behavior", () => {
     expect(consoleError).toHaveBeenCalledTimes(1);
   });
 
+  it("a true key conflict says the form was already used for a different partner and to press Add Partner again; the next press is a new submission (fix round F1 rules 5 and 6; red: the generic words, the same key)", async () => {
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    boundary.fetch
+      .mockResolvedValueOnce(
+        answer(409, {
+          error:
+            "This form was already used for a different partner. Press Add Partner again.",
+        }),
+      )
+      .mockResolvedValueOnce(answer(201, ADDED));
+    render(<AddPartnerDialog trigger={<Button>Open partner</Button>} />);
+    await openDialog();
+    fillValidFields("Conflict partner");
+    await submit();
+    await waitFor(() =>
+      expect(boundary.error).toHaveBeenCalledWith(
+        "This form was already used for a different partner.",
+        { description: "Press Add Partner again." },
+      ),
+    );
+    await submit();
+    await waitFor(() => expect(boundary.fetch).toHaveBeenCalledTimes(2));
+    expect(sent(1).key).not.toBe(sent(0).key);
+  });
+
   it("after a lost answer the other button, given the same partner, sends the same submission key, so the server answers the partner it stored; a later new partner gets a new key (AL-2678 WP5 rest, brief section 4)", async () => {
     vi.spyOn(console, "error").mockImplementation(() => {});
     boundary.fetch
@@ -249,7 +274,7 @@ describe("AddPartnerDialog public form behavior", () => {
       </>,
     );
     await openDialog("Header add");
-    fillValidFields("Lost answer partner", "lost@example.invalid");
+    fillValidFields("Lost answer partner");
     await submit();
     await waitFor(() =>
       expect(boundary.error).toHaveBeenCalledWith(...UNCONFIRMED),
@@ -258,14 +283,14 @@ describe("AddPartnerDialog public form behavior", () => {
     await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull());
 
     const dialog = await openDialog("Empty state add");
-    fillValidFields("Lost answer  partner ", "LOST@example.invalid");
+    fillValidFields("Lost answer  partner ");
     await submit();
     await waitFor(() => expect(onSuccess).toHaveBeenCalledTimes(1));
     expect(sent(1).key).toBe(sent(0).key);
     expect(within(dialog).queryByRole("alert")).toBeNull();
 
     await openDialog("Header add");
-    fillValidFields("Lost answer partner", "lost@example.invalid");
+    fillValidFields("Lost answer partner");
     await submit();
     await waitFor(() => expect(onSuccess).toHaveBeenCalledTimes(2));
     expect(sent(2).key).toMatch(KEY);

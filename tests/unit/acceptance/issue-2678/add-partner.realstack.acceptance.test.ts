@@ -17,10 +17,14 @@ it.runIf(IN_MIGRATE_JOB && !ADMIN_URL)("migrate supplies its database", () =>
   expect(ADMIN_URL).toBeTruthy(),
 );
 
-const WRAPPER =
-  "public.add_partner(uuid,uuid,text,text,text,text,text,text,uuid)";
+const WRAPPER = "public.add_partner(uuid,uuid,text,text,text,text,text,uuid)";
 const COMMAND =
-  "tenant_guard.add_partner(uuid,uuid,text,text,text,text,text,text,uuid)";
+  "tenant_guard.add_partner(uuid,uuid,text,text,text,text,text,uuid)";
+const WITH_EMAIL = [
+  "public.add_partner(uuid,uuid,text,text,text,text,text,text,uuid)",
+  "tenant_guard.add_partner(uuid,uuid,text,text,text,text,text,text,uuid)",
+];
+const NAMED = '{"defaultAnonymousToRecipient": false}';
 
 describe.skipIf(!ADMIN_URL)(
   "AL-2678 WP5 rest (brief invariants 5 and 6, rule 13; D-16 ruling on Add Partner, items 5-9): Add Partner is a human command on the caller's token; every refusal (42501, 22023 for a payload that is not a partner, 23505 for a key used otherwise) writes no Party, donor or command-log row",
@@ -45,7 +49,7 @@ describe.skipIf(!ADMIN_URL)(
       key: string,
       fields: Partial<
         Record<
-          "name" | "email" | "phone" | "type" | "frequency" | "location",
+          "name" | "phone" | "type" | "frequency" | "location",
           string | null
         >
       > = {},
@@ -54,8 +58,47 @@ describe.skipIf(!ADMIN_URL)(
         const chosen = v === undefined ? fallback : v;
         return chosen === null ? "null" : `'${chosen.replaceAll("'", "''")}'`;
       };
-      return `select public.add_partner('${tenant}', '${key}', ${value(fields.name, "Partner Pat")}, ${value(fields.email, "pat@example.test")}, ${value(fields.phone, null)}, ${value(fields.type, "Individual")}, ${value(fields.frequency, "Monthly")}, ${value(fields.location, "Kampala")}, null) r`;
+      return `select public.add_partner('${tenant}', '${key}', ${value(fields.name, "Partner Pat")}, ${value(fields.phone, null)}, ${value(fields.type, "Individual")}, ${value(fields.frequency, "Monthly")}, ${value(fields.location, "Kampala")}, null) r`;
     };
+    async function attempt(
+      id: Record<string, string>,
+      who: { sub: string; headers: Record<string, string> },
+      sql: string,
+    ) {
+      await db.query("savepoint attempt");
+      try {
+        await db.query("set local role authenticated");
+        await db.query(
+          "select set_config('request.jwt.claims', $1, true), set_config('request.jwt.claim.sub', '', true), set_config('request.headers', $2, true)",
+          [
+            JSON.stringify({ sub: id[who.sub], role: "authenticated" }),
+            JSON.stringify(who.headers),
+          ],
+        );
+        const r = await db.query(sql);
+        await db.query("reset role");
+        await db.query(
+          "select set_config('request.jwt.claims', '', true), set_config('request.headers', '', true), set_config('app.current_tenant_id', '', true)",
+        );
+        await db.query("release savepoint attempt");
+        return {
+          code: null,
+          hint: null,
+          r: r.rows[0]?.r as Record<string, unknown>,
+        };
+      } catch (e) {
+        await db.query("rollback to savepoint attempt");
+        const err = e as { code?: string; hint?: string };
+        return { code: err.code ?? "?", hint: err.hint ?? null, r: null };
+      }
+    }
+    const donorRows = async (ids: string[]) =>
+      (
+        await db.query(
+          "select to_jsonb(d) - 'updated_at' row from public.donors d where d.id = any($1::uuid[]) order by d.id",
+          [ids],
+        )
+      ).rows;
     const counts = async (tenant: string) =>
       (
         await db.query(
@@ -80,7 +123,23 @@ describe.skipIf(!ADMIN_URL)(
       },
     });
 
-    it("both functions: the command a tenant_guard-owned definer with an empty search path, the wrapper a postgres-owned invoker, EXECUTE for authenticated only; no owner, assignment, Party or profile argument (red: 42883)", async () => {
+    it("both functions: the command a tenant_guard-owned definer with an empty search path, the wrapper a postgres-owned invoker, EXECUTE for authenticated only; no owner, assignment, Party, profile or e-mail argument, the signature with an e-mail gone, and the guard holds no e-mail column of donors (fix round F1 rule 1; red: the nine-argument signature)", async () => {
+      expect(
+        (
+          await db.query(
+            "select to_regprocedure($1) is null wrapper, to_regprocedure($2) is null command",
+            WITH_EMAIL,
+          )
+        ).rows,
+      ).toEqual([{ wrapper: true, command: true }]);
+      expect(
+        (
+          await db.query(
+            `select has_column_privilege('tenant_guard', 'public.donors', 'email', 'INSERT') email_insert,
+                    has_column_privilege('tenant_guard', 'public.donors', 'email', 'SELECT') email_select`,
+          )
+        ).rows,
+      ).toEqual([{ email_insert: false, email_select: false }]);
       const r = await db.query(
         `select p.oid::regprocedure::text fn, p.prosecdef, pg_get_userbyid(p.proowner) owner, p.proconfig, p.proargnames,
                 has_function_privilege('anon', p.oid, 'EXECUTE') anon,
@@ -93,7 +152,6 @@ describe.skipIf(!ADMIN_URL)(
         "p_tenant_id",
         "p_idempotency_key",
         "p_name",
-        "p_email",
         "p_phone",
         "p_type",
         "p_frequency",
@@ -102,7 +160,7 @@ describe.skipIf(!ADMIN_URL)(
       ];
       expect(r.rows).toEqual([
         {
-          fn: "add_partner(uuid,uuid,text,text,text,text,text,text,uuid)",
+          fn: "add_partner(uuid,uuid,text,text,text,text,text,uuid)",
           prosecdef: false,
           owner: "postgres",
           proconfig: ['search_path=""'],
@@ -112,7 +170,7 @@ describe.skipIf(!ADMIN_URL)(
           signed_in: true,
         },
         {
-          fn: "tenant_guard.add_partner(uuid,uuid,text,text,text,text,text,text,uuid)",
+          fn: "tenant_guard.add_partner(uuid,uuid,text,text,text,text,text,uuid)",
           prosecdef: true,
           owner: "tenant_guard",
           proconfig: ['search_path=""'],
@@ -124,7 +182,7 @@ describe.skipIf(!ADMIN_URL)(
       ]);
     });
 
-    it("a missionary of A adds a partner: one new Party joined to no login, one donor in A owned by their worker row, one command-log row; nothing linked or granted (red: 42883)", () =>
+    it("a missionary of A adds a partner: one new Party joined to no login, one donor in A owned by their worker row with no e-mail and named to its missionary by exactly one preference key, one command-log row; nothing linked or granted (fix round F1, F7 item 2; red: an e-mail argument, no preference)", () =>
       tx(async (id) => {
         const as = keepAs(db, id);
         const before = await counts(id.TA!);
@@ -149,6 +207,7 @@ describe.skipIf(!ADMIN_URL)(
         });
         const donor = await db.query(
           `select d.tenant_id, d.party_id, d.missionary_id, d.ministry_assignment_id, d.name, d.email, d.phone, d.type, d.frequency, d.location, d.status,
+                  d.giving_preferences::text preferences,
                   p.display_name, (select count(*) from public.account_links al where al.party_id = p.id)::int links
              from public.donors d join public.parties p on p.id = d.party_id where d.id = $1`,
           [result.donorId],
@@ -160,7 +219,8 @@ describe.skipIf(!ADMIN_URL)(
             missionary_id: id.UM,
             ministry_assignment_id: id.mA,
             name: "Partner Pat",
-            email: "pat@example.test",
+            email: null,
+            preferences: NAMED,
             phone: null,
             type: "Individual",
             frequency: "Monthly",
@@ -202,7 +262,6 @@ describe.skipIf(!ADMIN_URL)(
           caller(id, "UM", "mM", "TA"),
           partner(id.TA!, key, {
             name: "Partner  Pat",
-            email: "PAT@example.test",
             phone: " +1 555 0100 ",
           }),
         );
@@ -226,6 +285,176 @@ describe.skipIf(!ADMIN_URL)(
         }
         expect(await counts(id.TA!)).toEqual(after);
       }));
+
+    it("a key conflict says so to the route: other details, another caller or another command's key under it raise 23505 with the hint add_partner_key, and write nothing (fix round F1 rule 5; red: no hint)", () =>
+      tx(async (id) => {
+        const key = randomUUID();
+        expect(
+          (
+            await attempt(
+              id,
+              caller(id, "UM", "mM", "TA"),
+              partner(id.TA!, key),
+            )
+          ).code,
+        ).toBeNull();
+        const noteKey = randomUUID();
+        await db.query(
+          "insert into public.crm_command_logs (tenant_id, actor_user_id, action, resource_type, idempotency_key, status) values ($1, $2, 'crm.note.create', 'note', $3, 'succeeded')",
+          [id.TA, id.UM, noteKey],
+        );
+        const before = await counts(id.TA!);
+        for (const [label, who, membership, sql] of [
+          [
+            "other details",
+            "UM",
+            "mM",
+            partner(id.TA!, key, { name: "Someone Else" }),
+          ],
+          ["another caller", "UM2", "mM2", partner(id.TA!, key)],
+          ["another command's key", "UM", "mM", partner(id.TA!, noteKey)],
+        ] as const) {
+          const out = await attempt(id, caller(id, who, membership, "TA"), sql);
+          expect([label, out.code, out.hint]).toEqual([
+            label,
+            "23505",
+            "add_partner_key",
+          ]);
+        }
+        expect(await counts(id.TA!)).toEqual(before);
+      }));
+
+    it("a person the organization already knows is created like anyone else: a name and phone equal to another missionary's partner, an anonymous donor and a general-fund donor give a new Party, a donor with no e-mail and one log row, the answer of a fresh person, and the existing donors untouched (fix round F1 rule 3; red: an e-mail argument)", () =>
+      tx(async (id) => {
+        const existing: string[] = [];
+        for (const [email, missionary, preferences] of [
+          ["pat@example.test", id.UM2, "{}"],
+          [
+            "pat.anon@example.test",
+            null,
+            '{"defaultAnonymousToRecipient": true}',
+          ],
+          ["pat.fund@example.test", null, "{}"],
+        ] as const)
+          existing.push(
+            (
+              await db.query(
+                "insert into public.donors (tenant_id, name, phone, email, missionary_id, giving_preferences) values ($1, 'Partner Pat', '+1 555 0100', $2, $3, $4::jsonb) returning id",
+                [id.TA, email, missionary, preferences],
+              )
+            ).rows[0].id,
+          );
+        const untouched = await donorRows(existing);
+        const fresh = await attempt(
+          id,
+          caller(id, "UM", "mM", "TA"),
+          partner(id.TA!, randomUUID(), {
+            name: "Fresh Person",
+            phone: "+1 555 0199",
+          }),
+        );
+        expect(fresh.code).toBeNull();
+        const before = await counts(id.TA!);
+        const known = await attempt(
+          id,
+          caller(id, "UM", "mM", "TA"),
+          partner(id.TA!, randomUUID(), { phone: "+1 555 0100" }),
+        );
+        expect(known.code).toBeNull();
+        expect(Object.keys(known.r!).sort()).toEqual(
+          Object.keys(fresh.r!).sort(),
+        );
+        expect(known.r).toMatchObject({ duplicate: false });
+        expect(await counts(id.TA!)).toEqual({
+          ...before,
+          parties: before.parties + 1,
+          donors: before.donors + 1,
+          logs: before.logs + 1,
+        });
+        expect(
+          (
+            await db.query(
+              "select email, party_id <> all($2::uuid[]) new_party from public.donors where id = $1",
+              [
+                known.r!.donorId,
+                (
+                  await db.query(
+                    "select array_agg(party_id) p from public.donors where id = any($1::uuid[])",
+                    [existing],
+                  )
+                ).rows[0].p,
+              ],
+            )
+          ).rows,
+        ).toEqual([{ email: null, new_party: true }]);
+        expect(await donorRows(existing)).toEqual(untouched);
+      }));
+
+    it("the stored submission decides a replay, never the donor as it is now: after an edit of the partner the same details answer the stored pair, details equal to the edited row are a key conflict, and after the preference changed a replay answers duplicate and leaves it as it is (fix round F8, F9, F7 item 3; red: the edited row refuses the true retry)", () =>
+      tx(async (id) => {
+        const key = randomUUID();
+        const first = await attempt(
+          id,
+          caller(id, "UM", "mM", "TA"),
+          partner(id.TA!, key, { phone: "+1 555 0100" }),
+        );
+        expect(first.code).toBeNull();
+        await db.query(
+          "update public.donors set name = 'Edited Pat', location = 'Entebbe' where id = $1",
+          [first.r!.donorId],
+        );
+        const after = await counts(id.TA!);
+        const retry = await attempt(
+          id,
+          caller(id, "UM", "mM", "TA"),
+          partner(id.TA!, key, { phone: "+1 555 0100" }),
+        );
+        expect(retry.code).toBeNull();
+        expect(retry.r).toEqual({ ...first.r, duplicate: true });
+        const asEdited = await attempt(
+          id,
+          caller(id, "UM", "mM", "TA"),
+          partner(id.TA!, key, {
+            name: "Edited Pat",
+            location: "Entebbe",
+            phone: "+1 555 0100",
+          }),
+        );
+        expect([asEdited.code, asEdited.hint]).toEqual([
+          "23505",
+          "add_partner_key",
+        ]);
+        await db.query(
+          "update public.donors set giving_preferences = '{\"defaultAnonymousToRecipient\": true}' where id = $1",
+          [first.r!.donorId],
+        );
+        const afterChoice = await attempt(
+          id,
+          caller(id, "UM", "mM", "TA"),
+          partner(id.TA!, key, { phone: "+1 555 0100" }),
+        );
+        expect(afterChoice.r).toEqual({ ...first.r, duplicate: true });
+        expect(
+          (
+            await db.query(
+              "select giving_preferences::text p from public.donors where id = $1",
+              [first.r!.donorId],
+            )
+          ).rows,
+        ).toEqual([{ p: '{"defaultAnonymousToRecipient": true}' }]);
+        expect(await counts(id.TA!)).toEqual(after);
+      }));
+
+    it("the guard may insert the donor's giving_preferences and may not read it (fix round F7 item 7; red: no grant)", async () => {
+      expect(
+        (
+          await db.query(
+            `select has_column_privilege('tenant_guard', 'public.donors', 'giving_preferences', 'INSERT') can_insert,
+                    has_column_privilege('tenant_guard', 'public.donors', 'giving_preferences', 'SELECT') can_read`,
+          )
+        ).rows,
+      ).toEqual([{ can_insert: true, can_read: false }]);
+    });
 
     it("refusals, each 42501 writing nothing in A: staff of A of every sub-role and a tenant administrator, a donor of A, a missionary of A and B naming A with their B row, a request whose tenant header differs from the argument, a missionary of B alone naming A either way (who adds in B), a revoked or inactive missionary row, a missionary of an inactive A (red: 42883)", () =>
       tx(async (id) => {
@@ -400,7 +629,7 @@ describe.skipIf(!ADMIN_URL)(
         expect(unique.rows).toEqual([{ def: "UNIQUE (tenant_id, party_id)" }]);
       }));
 
-    it("a payload that is not a partner is 22023 and writes nothing: a name, location or email of only no-break spaces, an email that is not one address, an unknown type or frequency (red: 42883)", () =>
+    it("a payload that is not a partner is 22023 and writes nothing: a name or location of only no-break spaces, a one-letter name, a phone over 50, an unknown type or frequency (red: 42883)", () =>
       tx(async (id) => {
         const as = keepAs(db, id);
         const before = await counts(id.TA!);
@@ -408,9 +637,7 @@ describe.skipIf(!ADMIN_URL)(
           { name: "\u00a0\u00a0" },
           { name: "P" },
           { location: "\u3000" },
-          { email: "\u00a0" },
-          { email: "not an address" },
-          { email: "a@b@example.test" },
+          { phone: "5".repeat(51) },
           { type: "Household" },
           { frequency: "Weekly" },
         ]) {
@@ -470,6 +697,104 @@ describe.skipIf(!ADMIN_URL)(
         await second.query("rollback").catch(() => undefined);
         await first.end().catch(() => undefined);
         await second.end().catch(() => undefined);
+        for (const sql of [
+          "delete from public.crm_command_logs where tenant_id = any($1::uuid[])",
+          "delete from public.donor_feed_preferences where tenant_id = any($1::uuid[])",
+          "delete from public.follows where tenant_id = any($1::uuid[])",
+          "delete from public.donor_activities where tenant_id = any($1::uuid[])",
+          "delete from public.donor_pledges where tenant_id = any($1::uuid[])",
+          "delete from public.donations where tenant_id = any($1::uuid[])",
+          "delete from public.giving_target_entity_locks where tenant_id = any($1::uuid[])",
+          "delete from public.account_links where tenant_id = any($1::uuid[])",
+          "delete from public.donors where tenant_id = any($1::uuid[])",
+          "delete from public.missionaries where tenant_id = any($1::uuid[])",
+          "delete from public.parties where tenant_id = any($1::uuid[])",
+          "delete from public.legal_entities where tenant_id = any($1::uuid[])",
+          "delete from authz.memberships where tenant_id = any($1::uuid[])",
+          "delete from public.tenants where id = any($1::uuid[])",
+        ])
+          await db.query(sql, [[id.TA, id.TB]]);
+        await db.query("delete from auth.users where id = any($1::uuid[])", [
+          ["UDA", "UDC", "UD2", "UM", "UM2", "US", "UBS"].map((k) => id[k]),
+        ]);
+      }
+    });
+
+    it("a revocation or a suspension committed while the command waits on its key refuses it (42501) and nothing is written: what the preamble checked is held to commit (fix round F4; red: the partner is written)", async () => {
+      const id: Record<string, string> = fixtureIds();
+      const holder = new pg.Client({ connectionString: ADMIN_URL });
+      const callerClient = new pg.Client({ connectionString: ADMIN_URL });
+      await db.query(fixtureSql(id as never));
+      try {
+        await holder.connect();
+        await callerClient.connect();
+        const holderPid = await backendPid(holder);
+        const callerPid = await backendPid(callerClient);
+        for (const [label, change, undo] of [
+          [
+            "revoked",
+            "update authz.memberships set revoked_at = now() where id = $1",
+            "update authz.memberships set is_active = true where id = $1",
+          ],
+          [
+            "suspended",
+            "update public.tenants set status = 'suspended' where id = (select tenant_id from authz.memberships where id = $1)",
+            "update public.tenants set status = 'active' where id = (select tenant_id from authz.memberships where id = $1)",
+          ],
+        ] as const) {
+          const key = randomUUID();
+          await holder.query("begin");
+          await holder.query(
+            "select pg_advisory_xact_lock(hashtext('add_partner'), hashtext($1::text || ':' || $2::text))",
+            [id.TA, key],
+          );
+          await callerClient.query("begin");
+          await callerClient.query("set local role authenticated");
+          await callerClient.query(
+            "select set_config('request.jwt.claims', $1, true), set_config('request.headers', $2, true)",
+            [
+              JSON.stringify({ sub: id.UM, role: "authenticated" }),
+              JSON.stringify({
+                "x-asym-tenant": id.TA,
+                "x-asym-assignment": id.mM,
+              }),
+            ],
+          );
+          const waiting = callerClient.query(partner(id.TA!, key)).then(
+            () => null,
+            (e: { code?: string }) => e.code ?? "?",
+          );
+          await waitsOn(db, callerPid, holderPid);
+          await db.query("set lock_timeout = '10s'");
+          await db.query(change, [id.mM]);
+          await db.query("reset lock_timeout");
+          await holder.query("commit");
+          const code = await waiting;
+          await callerClient.query("rollback");
+          expect([label, code]).toEqual([label, "42501"]);
+          expect(
+            (
+              await db.query(
+                "select count(*)::int n from public.crm_command_logs where tenant_id = $1 and idempotency_key = $2",
+                [id.TA, key],
+              )
+            ).rows,
+          ).toEqual([{ n: 0 }]);
+          await db.query(undo, [id.mM]);
+        }
+        expect(
+          (
+            await db.query(
+              "select count(*)::int n from public.donors where tenant_id = $1 and missionary_id = $2",
+              [id.TA, id.UM],
+            )
+          ).rows,
+        ).toEqual([{ n: 0 }]);
+      } finally {
+        await holder.query("rollback").catch(() => undefined);
+        await callerClient.query("rollback").catch(() => undefined);
+        await holder.end().catch(() => undefined);
+        await callerClient.end().catch(() => undefined);
         for (const sql of [
           "delete from public.crm_command_logs where tenant_id = any($1::uuid[])",
           "delete from public.donor_feed_preferences where tenant_id = any($1::uuid[])",

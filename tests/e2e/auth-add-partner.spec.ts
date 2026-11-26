@@ -19,12 +19,12 @@ const workerParty = randomUUID();
 const PARTNERS = /^\/api\/missionary\/donors$/;
 const first = {
   name: `Lost Answer Partner ${tag}`,
-  email: `lost-${tag}@example.test`,
+  phone: "",
   location: "Kampala",
 };
 const second = {
   name: `Second Partner ${tag}`,
-  email: `second-${tag}@example.test`,
+  phone: "555 0100",
   location: "Nairobi",
 };
 let worker: Person | null = null;
@@ -35,8 +35,12 @@ function onMissionaryProject() {
 
 async function stored() {
   return withOwner(env!, async (db) => {
-    const donors = await db.query<{ id: string; name: string }>(
-      "select id::text, name from public.donors where tenant_id = $1 and missionary_id = $2 order by name",
+    const donors = await db.query<{
+      id: string;
+      name: string;
+      email: string | null;
+    }>(
+      "select id::text, name, email from public.donors where tenant_id = $1 and missionary_id = $2 order by name",
       [DEMO, worker!.userId],
     );
     const logs = await db.query<{ n: number }>(
@@ -50,8 +54,9 @@ async function stored() {
 async function fill(page: Page, partner: typeof first) {
   const dialog = page.getByRole("dialog", { name: "Add partner" });
   await expect(dialog).toBeVisible({ timeout: 120_000 });
+  await expect(dialog.getByLabel("Email")).toHaveCount(0);
   await dialog.getByLabel("Name").fill(partner.name);
-  await dialog.getByLabel("Email").fill(partner.email);
+  if (partner.phone) await dialog.getByLabel("Phone").fill(partner.phone);
   await dialog.getByLabel("Location").fill(partner.location);
   return dialog;
 }
@@ -117,7 +122,7 @@ test.afterAll(async () => {
   await deletePerson(env, worker);
 });
 
-test.describe("Add Partner in the missionary workspace (AL-2678 WP5 rest)", () => {
+test.describe("Add Partner in the missionary workspace (AL-2678 WP5 rest; fix round F1 and F7: a name and a phone, no e-mail, and the adding missionary sees the partner named)", () => {
   test.beforeEach(() => {
     test.skip(!onMissionaryProject(), "The missionary workspace only.");
     test.skip(!env?.dbUrl, "Needs the local stack's database.");
@@ -188,15 +193,43 @@ test.describe("Add Partner in the missionary workspace (AL-2678 WP5 rest)", () =
       expect((await added).status()).toBe(201);
     });
     const after = await stored();
-    expect(after.donors.map((donor) => donor.name)).toEqual([
-      first.name,
-      second.name,
+    expect(after.donors.map((donor) => [donor.name, donor.email])).toEqual([
+      [first.name, null],
+      [second.name, null],
     ]);
     expect(after.logs).toBe(2);
+    const rows = (
+      listed.json as {
+        donors: {
+          id: string;
+          name: string;
+          email: string;
+          phone: string;
+          is_anonymous: boolean;
+        }[];
+      }
+    ).donors;
+    expect(rows.map((donor) => donor.id).sort()).toEqual(
+      after.donors.map((donor) => donor.id).sort(),
+    );
     expect(
-      (listed.json as { donors: { id: string }[] }).donors
-        .map((donor) => donor.id)
-        .sort(),
-    ).toEqual(after.donors.map((donor) => donor.id).sort());
+      rows.map(({ name, email, phone, is_anonymous }) => ({
+        name,
+        email,
+        phone,
+        is_anonymous,
+      })),
+    ).toEqual([
+      { name: first.name, email: "", phone: "", is_anonymous: false },
+      {
+        name: second.name,
+        email: "",
+        phone: second.phone,
+        is_anonymous: false,
+      },
+    ]);
+    await expect(page.getByText(second.name).first()).toBeVisible();
+    await expect(page.getByText("Anonymous partner")).toHaveCount(0);
+    await expect(page.locator('a[href^="mailto:"]')).toHaveCount(0);
   });
 });

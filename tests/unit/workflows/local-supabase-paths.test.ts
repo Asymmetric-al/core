@@ -129,6 +129,16 @@ describe("the local Supabase workflow's path filter", () => {
   );
 
   it.each([
+    "tests/unit/acceptance/issue-2678/added-partner-visibility.postgrest.acceptance.test.ts",
+    "packages/api/src/missionary-portal/**",
+  ])(
+    "starts the added partner's visibility proof when %s, the suite or the module it drives, changes (AL-2678 WP5 rest, fix round F7)",
+    (file) => {
+      expect(paths).toContain(file);
+    },
+  );
+
+  it.each([
     "tests/unit/acceptance/issue-2678/crm-pages.postgrest.acceptance.test.ts",
     "packages/api/src/admin/crm/**",
   ])(

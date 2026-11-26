@@ -70,7 +70,6 @@ function auth(role: "missionary" | "donor" = "missionary"): AuthContext {
 
 const PARTNER = {
   name: "Partner Pat",
-  email: "pat@example.test",
   phone: "",
   type: "Individual",
   frequency: "Monthly",
@@ -97,7 +96,7 @@ describe("POST /api/missionary/donors (Add Partner; AL-2678 WP5 rest, D-16 rulin
     h.session.mockResolvedValue({ rpc: h.rpc });
   });
 
-  it("calls add_partner on the caller's token with the request's tenant, the submission key and the partner, and answers 201 with the pair", async () => {
+  it("calls add_partner on the caller's token with the request's tenant, the submission key and the partner (no e-mail), and answers 201 with the pair (fix round F1 rule 2; red: an e-mail is required)", async () => {
     h.rpc.mockResolvedValue({
       data: {
         donorId: "d-1",
@@ -120,7 +119,6 @@ describe("POST /api/missionary/donors (Add Partner; AL-2678 WP5 rest, D-16 rulin
       p_tenant_id: TENANT,
       p_idempotency_key: KEY,
       p_name: "Partner Pat",
-      p_email: "pat@example.test",
       p_phone: null,
       p_type: "Individual",
       p_frequency: "Monthly",
@@ -155,8 +153,11 @@ describe("POST /api/missionary/donors (Add Partner; AL-2678 WP5 rest, D-16 rulin
     ["assignmentId", "00000000-0000-4000-8000-0000000000c1"],
     ["partyId", "00000000-0000-4000-8000-0000000000d1"],
     ["profileId", "00000000-0000-4000-8000-0000000000e1"],
+    ["email", "pat@example.test"],
+    ["givingPreferences", { defaultAnonymousToRecipient: true }],
+    ["defaultAnonymousToRecipient", true],
   ])(
-    "refuses a body that carries %s (400) and calls nothing",
+    "refuses a body that carries %s (400) and calls nothing (fix round F1 rule 2 and F7 item 2: no e-mail, and no request sets the preference)",
     async (field, value) => {
       const response = await POST(request({ ...PARTNER, [field]: value }));
 
@@ -204,20 +205,44 @@ describe("POST /api/missionary/donors (Add Partner; AL-2678 WP5 rest, D-16 rulin
   });
 
   it.each([
-    ["42501", 403],
-    ["23505", 409],
-    ["22023", 400],
-    ["XX000", 500],
-  ])("maps the command's %s to %i, in plain words", async (code, status) => {
+    ["42501", null, 403],
+    ["22023", null, 400],
+    ["XX000", null, 500],
+    ["23505", null, 500],
+  ])(
+    "maps the command's %s (hint %s) to %i, in plain words; a unique violation that is not the key is a server error (fix round F1 rule 5)",
+    async (code, hint, status) => {
+      h.rpc.mockResolvedValue({
+        data: null,
+        error: { code, hint, message: "tenant_guard: internal detail" },
+      });
+
+      const response = await POST(request(PARTNER));
+      const body = await response.json();
+
+      expect(response.status).toBe(status);
+      expect(JSON.stringify(body)).not.toContain("tenant_guard");
+      expect(JSON.stringify(body)).not.toContain("This form was already used");
+    },
+  );
+
+  it("answers a true key conflict (23505 with the hint add_partner_key) 409 with the form's words, and no other failure with them (fix round F1 rule 5; red: the key's old words)", async () => {
     h.rpc.mockResolvedValue({
       data: null,
-      error: { code, message: "tenant_guard: internal detail" },
+      error: {
+        code: "23505",
+        hint: "add_partner_key",
+        message:
+          "tenant_guard: this submission key was used for another partner",
+      },
     });
 
     const response = await POST(request(PARTNER));
-    const body = await response.json();
 
-    expect(response.status).toBe(status);
-    expect(JSON.stringify(body)).not.toContain("tenant_guard");
+    expect(response.status).toBe(409);
+    expect(await response.json()).toMatchObject({
+      error:
+        "This form was already used for a different partner. Press Add Partner again.",
+    });
   });
 });
