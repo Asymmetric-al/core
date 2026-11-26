@@ -59,6 +59,10 @@ file applied and not recorded, and the next run applies it again (see
    at this step until it is re-dated. A branch whose migrations are dated
    before those of a branch that merges first re-dates them before it merges;
    WP2a's branch does so, with a guard test.
+   Where `cms.site_presentations` exists, preflight also refuses a Site
+   presentation with no Site in `public.sites`, or under another tenant than
+   its Site's, naming each, before anything is migrated (see
+   [Site presentations](#site-presentations-wp6-rest-pull-request-1)).
 3. **Migrate.** `supabase db push` (pinned CLI), then the two CMS role
    passwords are made those of the job's secrets (plan 7.5: after the role
    migration; see [The CMS role passwords](#the-cms-role-passwords)), then
@@ -84,6 +88,11 @@ file applied and not recorded, and the next run applies it again (see
    repository stops on the root `package.json`'s `overrides` (npm
    `EOVERRIDE`); the wrapper's local fallback gives npm an empty project
    outside the repository instead.
+   Before `db push` the step refuses when the Site presentation sweep could
+   not start (no `RELEASE_CMS_RUNTIME_PASSWORD`, a `cms_runtime` address the
+   target check refuses, no CA); after both ledgers are checked, the sweep
+   gives every Site without a presentation its one presentation (see
+   [Site presentations](#site-presentations-wp6-rest-pull-request-1)).
 4. **Gates.** The tenant RLS catalog gate, the cross-schema name-collision
    gate (no recorded exception since WP6 part 2b dropped `cms.tenants`) and the schema
    fingerprint, which must equal the replay's exactly, access lists included.
@@ -1277,7 +1286,9 @@ committed: it and its ledger row are one transaction. Absent means nothing in
 `cms` changed.
 
 **5. After the release.** Web Studio opens on the five collections, empty.
-It creates nothing until provisioning makes Site presentations (WP6 part 3):
+It creates nothing until provisioning makes Site presentations (WP6 part 3;
+a release that also carries WP6 rest's pull request 1 makes them at once, see
+[Site presentations](#site-presentations-wp6-rest-pull-request-1)):
 New page and the starter gallery refuse with their message, menus need a
 Site, no media upload until part 2c, and Publish is refused. The Users list is
 gone, and the legacy media redirect ends in `404`. `payload_preferences` is
@@ -1288,6 +1299,100 @@ collections are gone. The public site is unchanged.
 and Payload rolls it back. An admin build below this release runs against the
 new schema as in the window above, so do not return admin below it; fix
 forward.
+
+### Site presentations (WP6 rest, pull request 1)
+
+Every Site in `public.sites` has exactly one presentation in
+`cms.site_presentations`, under the Site's ID and with the Site's tenant
+(plan 6.2, 6.4), whatever the Site's status. One CMS step makes it
+(`apps/admin/src/cms/site-presentation-step.ts`): Mission Control's Sites
+route runs it after `create_site` commits, the CMS fixtures run it for the
+seed's Sites, and the release job runs it for every Site that has none, which
+covers a tenant provisioned through the Data API. No SQL changes and no
+secret is added. "Same" is equality as PostgreSQL `uuid`; the table holds a
+presentation's `tenant` as lower-case canonical text.
+
+**What a release does.** `migrate`, `first-rebuild` and `preview-rebuild`:
+
+1. **Before the first commit.** Preflight, where `cms.site_presentations`
+   exists, reads the presentations and then the Sites as `postgres` and
+   refuses a presentation with no Site, or under another tenant than its
+   Site's, naming each; nothing is migrated or deployed. Before `db push`
+   (a rebuild: before its reset) the step refuses when the sweep could not
+   start: no `RELEASE_CMS_RUNTIME_PASSWORD`, a `cms_runtime` address the
+   target check refuses, or no CA where the address says `verify-full`.
+2. **After Payload's migrations and the ledger check**, the sweep reads the
+   presentations, then the Sites, again, so a Site made in between is never
+   taken for one without its Site. It hands the Sites without a
+   presentation, and nothing else, to its own process
+   (`bun scripts/cms/sweep-site-presentations.mjs`), which checks its own
+   target, then runs Payload as `cms_runtime` on the job's host over
+   `verify-full` against the project's CA, with a `PAYLOAD_SECRET` made for
+   the run, and runs the step for each Site. It never deletes or rewrites a
+   presentation, and a Site already presented is left as it is.
+3. It reads again: each Site it was given must now have its presentation.
+
+A Site that an older admin build creates while the release runs gets its
+presentation at the next release's sweep.
+
+**Hosted, read-only, before and after.** Connected as the job connects
+([Connecting as the job does](#connecting-as-the-job-does)), on preview and
+then production:
+
+```sql
+BEGIN READ ONLY;
+SELECT (SELECT count(*) FROM public.sites) AS sites,
+       (SELECT count(*) FROM cms.site_presentations) AS presentations,
+       (SELECT count(*) FROM public.sites s
+          LEFT JOIN cms.site_presentations p ON p.id = s.id
+         WHERE p.id IS NULL) AS sites_without_one,
+       (SELECT count(*) FROM cms.site_presentations p
+          LEFT JOIN public.sites s ON s.id = p.id
+         WHERE s.id IS NULL OR p.tenant <> s.tenant_id::text) AS not_matching;
+ROLLBACK;
+```
+
+Before the release, after WP6 part 2b's baseline: `presentations` is `0` and
+`not_matching` is `0`. After: `sites_without_one` and `not_matching` are `0`,
+and `presentations` equals `sites`.
+
+#### If the Site presentation check stops a release
+
+Nothing was migrated or deployed. The refusal names each presentation; read
+them, read-only, connected as the job connects:
+
+```sql
+SELECT p.id, p.tenant, s.tenant_id AS site_tenant,
+       (SELECT count(*) FROM cms.pages g WHERE g.site_id = p.id) AS pages,
+       (SELECT count(*) FROM cms.navigation n WHERE n.site_id = p.id) AS menus
+FROM cms.site_presentations p
+LEFT JOIN public.sites s ON s.id = p.id
+WHERE s.id IS NULL OR p.tenant <> s.tenant_id::text;
+```
+
+- **No pages and no menus:** delete the presentation in one transaction, as
+  `cms_owner` or as `postgres`, which holds its privileges:
+  `DELETE FROM cms.site_presentations WHERE id = '<id>';`. Then release
+  again; the sweep makes a presentation under its Site's tenant where the
+  Site exists.
+- **Pages or menus:** do not delete. They are content of another
+  organization or of a Site Core does not hold; stop and consult the owner.
+
+The sweep stops the same way, naming each, when such a presentation appears
+after preflight; it has then written nothing.
+
+#### If the Site presentation sweep stops
+
+The migrations are committed; the gates, the heads and the deployment did
+not run. Every presentation the sweep wrote is kept, and each write is
+idempotent. Fix what the message names (a refused connection, the pooler's
+limit, a timeout), then re-run the release: it migrates nothing more, and the
+sweep writes only the presentations still missing. A rebuild that stopped
+here: rebuild again (a first rebuild: dispatch it again with the census link,
+typed confirmation and fresh approval).
+
+**Rollback.** Revert the apps; the presentations stay, since pages key on
+them. Admin never goes below WP6 part 2b's release.
 
 ### The database's certificate
 
