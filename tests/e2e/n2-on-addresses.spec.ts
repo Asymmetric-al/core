@@ -91,13 +91,15 @@ test("P works under /~development and /~finance in two tabs, each reading and wr
 }) => {
   await signIn(page, P_EMAIL);
   await expect(page).toHaveURL(/\/admin\/choose-organization\?next=%2F$/);
-  expect(
-    await page
-      .getByRole("link")
-      .evaluateAll((anchors) =>
-        anchors.map((anchor) => anchor.getAttribute("href")),
-      ),
-  ).toEqual(["/admin/~finance", "/admin/~development"]);
+  await expect
+    .poll(() =>
+      page
+        .getByRole("link")
+        .evaluateAll((anchors) =>
+          anchors.map((anchor) => anchor.getAttribute("href")),
+        ),
+    )
+    .toEqual(["/admin/~finance", "/admin/~development"]);
 
   const tabs = {
     development: page,
