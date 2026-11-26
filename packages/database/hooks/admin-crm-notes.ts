@@ -190,5 +190,6 @@ export function useAdminCrmNotesGrid() {
     search,
     sorting,
     tableError: notesQuery.error instanceof Error ? notesQuery.error : null,
+    totalCount: firstPage?.totalCount ?? null,
   };
 }
