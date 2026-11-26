@@ -65,8 +65,9 @@ plan's decision 6 (section 11.2) is to take a census, then rebuild from source.
   journey passes, then becomes `shared`. A new or rebuilt production database is
   set to `production` only at the end of WP11, which waits for the owner (D-02).
 - Until WP11, the deployments the job promotes use the development database.
-- Until WP6 replaces the prototype, the name-collision gate carries one recorded
-  exception for `cms.tenants`.
+- Until WP6 part 2b replaced the prototype, the name-collision gate carried one
+  recorded exception for `cms.tenants`; the clean baseline drops that table and
+  the exception list is empty.
 - The council's reservations stand: the plan does not yet say what migrates
   development once production has its own database, names no runner for
   scheduled work, and gives the job no step that registers job functions once

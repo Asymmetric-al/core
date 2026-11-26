@@ -102,27 +102,21 @@ Public Supabase seed:
 - Active staff membership
 - Missionaries and funds used by giving/project page creation
 
-CMS seed:
+CMS seed (since WP6 part 2b, `scripts/cms/lib/cms-fixtures.mjs`):
 
-- Payload tenant `give-hope-demo` with `primaryDomain=localhost`
-- CMS user `demo-owner@givehope.test` with admin tenant access
-- Media fixture `Local CMS Demo Image`
-- Page templates:
-  - `standard-local`
-  - `missionary-giving-local`
-  - `project-local`
-  - `ministry-update-local`
-- Published page `local-cms-home`
-- Draft preview page `local-cms-draft-preview`
-- Main navigation
-- Missionary profile linked to the seeded public missionary
-- Published ministry update `local-ministry-update`
-- Published missionary giving page for the demo missionary
-- Published project page `local-project`
-- Second tenant `second-demo` with a colliding page slug for isolation tests
+- A Site presentation for every seed Site in `public.sites`, under the Site's id
+- For each organization's default Site: the media record `Local CMS Demo Image`,
+  the published page `local-cms-home`, the draft page `local-cms-draft-preview`
+  and the menu `Main Navigation`
+- No CMS login or organization row: a login gets its `principal-links` row when
+  it first signs in to Web Studio, and starters live in code
 
-The seed script uses Payload Local API for CMS rows and is idempotent. Re-running
-`bun run cms:local:seed` updates or preserves rows instead of duplicating them.
+Every organization in the seed gets the same rows, so the isolation tests have a
+second organization with the same page addresses. The seed writes through the
+service port (`apps/admin/src/cms/ports/service-port.ts`), refuses a database
+that is not on this machine, and is idempotent: re-running
+`bun run cms:local:seed` keeps rows instead of duplicating them. CI runs the
+same fixtures with `bun run cms:fixtures` after the demo seed.
 
 ## Deterministic Payload schema
 

@@ -251,13 +251,15 @@ describe.skipIf(!adminDatabaseUrl)(
       ]);
     });
 
-    it("passes the catalog gates on a fresh replay, and fails a new cross-schema name collision", () => {
-      // Payload's migrations create cms.tenants, the one recorded exception;
-      // this replay ran the Supabase chain only, so stand in for it.
-      psql(first, "CREATE TABLE cms.tenants (id integer);");
+    it("passes the catalog gates on a fresh replay, and fails a cross-schema name collision, cms.tenants included (D-18: WP6 part 2b drops cms.tenants and empties the exception list)", () => {
       const clean = runCatalogGates({ databaseUrl: first });
       expect(clean.report).toContain("PASS: name-collision gate");
       expect(clean.ok).toBe(true);
+      psql(first, "CREATE TABLE cms.tenants (id integer);");
+      const tenants = runCatalogGates({ databaseUrl: first });
+      expect(tenants.ok).toBe(false);
+      expect(tenants.report).toContain("tenants exists in cms, public");
+      psql(first, "DROP TABLE cms.tenants;");
       psql(first, "CREATE TABLE cms.donors (id integer);");
       const collided = runCatalogGates({ databaseUrl: first });
       expect(collided.ok).toBe(false);

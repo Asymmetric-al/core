@@ -65,36 +65,8 @@ function fakes(rows: ReturnType<typeof row>[], signedIn = true) {
     }),
     from: vi.fn(),
   };
-  const tenants = vi.fn(() => {
-    let id = "";
-    const chain = {
-      select: () => chain,
-      eq: (_column: string, value: string) => {
-        id = value;
-        return chain;
-      },
-      maybeSingle: async () => ({
-        data: {
-          id,
-          name: id === TA ? "Alpha" : "Bravo",
-          slug: id === TA ? "alpha" : "bravo",
-        },
-      }),
-    };
-    return chain;
-  });
   const payload = {
-    find: vi.fn(
-      async (options: {
-        collection: string;
-        where?: { slug?: { equals?: string } };
-      }) =>
-        options.collection === "tenants"
-          ? {
-              docs: [{ id: options.where?.slug?.equals === "alpha" ? 11 : 22 }],
-            }
-          : { docs: [] },
-    ),
+    find: vi.fn(async () => ({ docs: [] })),
     create: vi.fn(async (options: { data: object }) => ({
       id: 5,
       ...options.data,
@@ -106,7 +78,6 @@ function fakes(rows: ReturnType<typeof row>[], signedIn = true) {
   };
   const strategy = createSupabaseAuthStrategy({
     createSupabaseClient: vi.fn(() => client),
-    createSupabaseDataClient: vi.fn(() => ({ from: tenants })),
   });
   return { strategy, payload };
 }
@@ -162,7 +133,7 @@ describe("on: Payload's strategy reads the name from its own headers", () => {
       headers: new Headers({ cookie: "sb=1", [NAME]: TB }),
       payload,
     });
-    expect(user).toMatchObject({ publicTenantId: TB });
+    expect(user).toMatchObject({ tenantId: TB });
   });
 
   it.each([
@@ -236,7 +207,7 @@ describe("on: Payload's strategy reads the name from its own headers", () => {
         headers: new Headers({ cookie, host: "localhost:3030", [NAME]: TA }),
         payload,
       });
-      expect(admitted.user).toMatchObject({ publicTenantId: TA });
+      expect(admitted.user).toMatchObject({ tenantId: TA });
     },
   );
 });
@@ -282,8 +253,8 @@ describe.each([
         headers: new Headers({ cookie, [NAME]: TA }),
         payload,
       });
-      expect(withName.user).toMatchObject({ publicTenantId: TB });
-      expect(withName.user?.publicTenantId).toBe(without.user?.publicTenantId);
+      expect(withName.user).toMatchObject({ tenantId: TB });
+      expect(withName.user?.tenantId).toBe(without.user?.tenantId);
     });
   },
 );

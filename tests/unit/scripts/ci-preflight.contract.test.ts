@@ -43,6 +43,10 @@ const EXPECTED_STAGES: Array<{ id: string; script: string }> = [
     id: "verify-cms-public-sole-entry",
     script: "verify:cms-public-sole-entry",
   },
+  {
+    id: "verify-cms-override-inventory",
+    script: "verify:cms-override-inventory",
+  },
   { id: "verify-workspace-contract", script: "verify:workspace-contract" },
   { id: "verify-bun-lock-drift", script: "verify:bun-lock-drift" },
   { id: "verify-eslint", script: "verify:eslint" },
@@ -71,6 +75,7 @@ const FAST_STAGE_IDS = [
   "verify-service-role-clients",
   "verify-data-boundary",
   "verify-cms-public-sole-entry",
+  "verify-cms-override-inventory",
   "verify-workspace-contract",
   "verify-bun-lock-drift",
   "verify-shadcn-config",
@@ -90,6 +95,7 @@ const SCOPED_STAGE_IDS = [
   "verify-service-role-clients",
   "verify-data-boundary",
   "verify-cms-public-sole-entry",
+  "verify-cms-override-inventory",
   "verify-workspace-contract",
 ];
 
@@ -147,6 +153,12 @@ const STAGE_INPUT_SAMPLES: Record<string, string[]> = {
     "packages/api/src/admin/comments/comment.ts",
     "scripts/cms/local-bootstrap.mjs",
     ".env.example",
+  ],
+  "verify-cms-override-inventory": [
+    "apps/admin/src/cms/ports/service-port.ts",
+    "packages/api/src/admin/comments/comment.ts",
+    "scripts/cms/seed-local.mjs",
+    "scripts/verify/cms-override-inventory.mjs",
   ],
   "verify-cms-public-sole-entry": [
     "apps/admin/src/cms/preview/serialize-published-page.ts",
@@ -259,7 +271,7 @@ describe("ci-preflight contract", () => {
     expect(builds).toEqual(["build", "build:factory-console"]);
   });
 
-  it("mirrors blocking ci.yml stage order documented in docs/ci.md", () => {
+  it("mirrors blocking ci.yml stage order documented in docs/ci.md (D-18: WP6 part 2b adds the CMS override inventory after the sole-entry check)", () => {
     expect(
       getPreflightStages(FULL_DOCS_CHANGE).map(({ id, script }: Stage) => ({
         id,
@@ -355,7 +367,7 @@ describe("ci-preflight contract", () => {
 });
 
 describe("fast pre-push profile", () => {
-  it("runs the cheap deterministic stages in the full profile's order", () => {
+  it("runs the cheap deterministic stages in the full profile's order (D-18: WP6 part 2b adds the CMS override inventory)", () => {
     expect(fastStages(["apps/donor/app/page.tsx"]).map((s) => s.id)).toEqual(
       FAST_STAGE_IDS,
     );

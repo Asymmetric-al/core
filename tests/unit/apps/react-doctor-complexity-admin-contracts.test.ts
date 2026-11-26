@@ -202,12 +202,14 @@ describe("admin high-complexity extraction contracts", () => {
     }
   });
 
-  it("resolves native collection edit model outside the Payload edit view", () => {
+  it("resolves native collection edit model outside the Payload edit view (D-18: WP6 part 2b previews pages only, so the preview-collection resolver goes)", () => {
     const source = readRepoFile(
       "apps/admin/src/cms-ui/web-studio/collections/shared/document-workspace/NativeCollectionEditView.tsx",
     );
 
-    expect(source).toContain("function resolveAuthenticatedPreviewCollection(");
+    expect(source).not.toContain(
+      "function resolveAuthenticatedPreviewCollection(",
+    );
     expect(source).toContain("function buildNativeInspectorItems(");
     expect(source).toContain("function resolveNativeCollectionEditModel(");
     expect(source).toContain("function useNativeCollectionWorkspace(");

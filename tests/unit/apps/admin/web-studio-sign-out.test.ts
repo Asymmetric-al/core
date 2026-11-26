@@ -18,8 +18,8 @@ vi.mock("@asym/api/auth/signout", () => ({
 
 const { POST } =
   await import("../../../../apps/admin/app/api/auth/signout/route");
-const { CmsUsers } =
-  await import("../../../../apps/admin/src/cms/collections/cms-users");
+const { PrincipalLinks } =
+  await import("../../../../apps/admin/src/cms/collections/principal-links");
 const { clearWebStudioTenantOnLogout } =
   await import("../../../../apps/admin/src/cms/auth/web-studio-logout");
 
@@ -58,7 +58,7 @@ describe("signing out of the admin app", () => {
 });
 
 describe("Payload's logout endpoint under /web-studio/api", () => {
-  it("clears the Web Studio cookie alongside Payload's own", async () => {
+  it("clears the Web Studio cookie alongside Payload's own (D-18: WP6 part 2b moves the hook from cms-users to principal-links)", async () => {
     const req = { responseHeaders: undefined as Headers | undefined };
 
     await clearWebStudioTenantOnLogout({ req } as never);
@@ -66,6 +66,8 @@ describe("Payload's logout endpoint under /web-studio/api", () => {
     expect(req.responseHeaders?.getSetCookie()).toEqual([
       expect.stringMatching(CLEARED),
     ]);
-    expect(CmsUsers.hooks?.afterLogout).toContain(clearWebStudioTenantOnLogout);
+    expect(PrincipalLinks.hooks?.afterLogout).toContain(
+      clearWebStudioTenantOnLogout,
+    );
   });
 });

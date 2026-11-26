@@ -167,6 +167,8 @@ jobs:
 
       - name: CMS public sole-entry check
         run: bun run verify:cms-public-sole-entry
+      - name: CMS override inventory
+        run: bun run verify:cms-override-inventory
       - run: bun run verify:workspace-contract
       - name: Check bun.lock workspace-manifest drift
         run: bun run verify:bun-lock-drift

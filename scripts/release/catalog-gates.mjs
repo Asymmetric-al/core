@@ -9,17 +9,7 @@ import {
   runTenantRlsCatalogGate,
 } from "../verify/tenant-rls-catalog.mjs";
 
-/**
- * Recorded exceptions. Plan 7.4: until WP6 replaces the prototype, the gate
- * carries one exception, for cms.tenants beside public.tenants.
- */
-export const NAME_COLLISION_EXCEPTIONS = Object.freeze([
-  Object.freeze({
-    name: "tenants",
-    schemas: Object.freeze(["cms", "public"]),
-    until: "WP6 replaces the Payload prototype",
-  }),
-]);
+export const NAME_COLLISION_EXCEPTIONS = Object.freeze([]);
 
 export const NAME_COLLISION_SQL = `
 SELECT coalesce(json_agg(json_build_object('name', relname, 'schemas', schemas)

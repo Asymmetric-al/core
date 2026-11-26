@@ -130,8 +130,7 @@ test.beforeAll(async () => {
       `/${DEMO}/crm`,
       "/web-studio/organization",
       "/web-studio",
-      "/web-studio/missionaries",
-      "/web-studio/projects/new",
+      "/web-studio/pages/new-from-template",
       "/api/admin/users",
       "/api/admin/crm/records",
       "/api/admin/missionaries",
@@ -288,7 +287,7 @@ test.describe("Mission Control", () => {
     }
   });
 
-  test("Web Studio: an editor of one organization sees its missionaries and funds only, and a person in two sees each after a switch", async ({
+  test("Web Studio: an editor of one organization sees its missionaries and funds only in New page's pickers, and a person in two sees each after a switch (record D-18: the missionaries and projects screens left with their collections in WP6 part 2b, and New page reads the same two routes)", async ({
     page,
     browser,
   }) => {
@@ -297,7 +296,10 @@ test.describe("Mission Control", () => {
       const missionaries = await nextRead(
         studio,
         /^\/api\/admin\/missionaries$/,
-        () => studio.goto("/web-studio/missionaries"),
+        () =>
+          studio.goto(
+            "/web-studio/pages/new-from-template?template=missionary-giving",
+          ),
       );
       expect(missionaries.status).toBe(200);
       expect(missionaries.tenant).toBe(tenant);
@@ -315,7 +317,7 @@ test.describe("Mission Control", () => {
         ),
       );
       const funds = await nextRead(studio, /^\/api\/admin\/funds$/, () =>
-        studio.goto("/web-studio/projects/new"),
+        studio.goto("/web-studio/pages/new-from-template?template=project"),
       );
       expect(funds.status).toBe(200);
       expect(funds.tenant).toBe(tenant);
@@ -339,11 +341,19 @@ test.describe("Mission Control", () => {
       timeout: 120_000,
     });
     await studioLists(page, SECOND);
-    await page.goto("/web-studio/missionaries");
+    await page.goto(
+      "/web-studio/pages/new-from-template?template=missionary-giving",
+    );
+    const picker = page.getByRole("combobox", { name: /^Missionary/ });
+    await expect(picker).toBeEnabled({ timeout: 120_000 });
+    await picker.click();
     await expect(
-      page.getByText(`Harbor field ${fixtures!.tag}`).first(),
-    ).toBeVisible({ timeout: 120_000 });
-    await expect(page.getByText(`Demo field ${fixtures!.tag}`)).toHaveCount(0);
+      page.getByRole("option", { name: `Harbor field ${fixtures!.tag}` }),
+    ).toBeVisible();
+    await expect(
+      page.getByRole("option", { name: `Demo field ${fixtures!.tag}` }),
+    ).toHaveCount(0);
+    await page.keyboard.press("Escape");
 
     // A staff member of both organizations, through Web Studio's chooser.
     const context = await browser.newContext({ baseURL: ADMIN_ORIGIN });

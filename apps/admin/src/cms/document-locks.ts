@@ -48,9 +48,8 @@ import type {
  * `overrideAccess: false`. "The organization" is the selected tenant
  * itself, not only what read access admits, so even a super administrator,
  * whom read access lets see every tenant, locks only in the one selected.
- * `cms-users` carry a `tenantId`, but it is the person's current selection,
- * rewritten when they switch, so a lock is placed by its document, never by
- * its holder.
+ * A `principal-links` row carries no organization at all, so a lock is
+ * placed by its document, never by its holder.
  */
 export const LOCKED_DOCUMENTS_SLUG = "payload-locked-documents";
 
@@ -69,7 +68,6 @@ function organizationField(
   req: PayloadRequest,
   collectionSlug: string,
 ): string | null {
-  if (collectionSlug === "tenants") return "id";
   const collections = req.payload.collections as Record<
     string,
     Collection | undefined
@@ -79,9 +77,7 @@ function organizationField(
   const names = new Set(
     collection.config.flattenedFields.map((field) => field.name),
   );
-  if (names.has("tenant")) return "tenant";
-  if (names.has("tenantId")) return "tenantId";
-  return null;
+  return names.has("tenant") ? "tenant" : null;
 }
 
 /**

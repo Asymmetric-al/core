@@ -56,13 +56,6 @@ await build({
         if (source === "virtual:base-ui-styles") return compiledCssPath;
         const workspaceFile = importer?.replaceAll("\\", "/");
         if (
-          (source === "@tanstack/react-query" &&
-            (workspaceFile?.endsWith(
-              "/web-studio/flows/MissionariesHubView.tsx",
-            ) ||
-              workspaceFile?.endsWith(
-                "/web-studio/flows/studio-missionaries.ts",
-              ))) ||
           (source === "@asym/lib/mission-control/context" &&
             [
               "/admin/app/eve/global-panel.tsx",

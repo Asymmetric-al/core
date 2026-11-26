@@ -1,0 +1,27 @@
+diff --git a/dist/queries/getTableColumnFromPath.js b/dist/queries/getTableColumnFromPath.js
+index e860e11e8297e0cf390f7593e40aad44e67e0e82..517ed6333f726100fec865b75a46d95ca5adebd9 100644
+--- a/dist/queries/getTableColumnFromPath.js
++++ b/dist/queries/getTableColumnFromPath.js
+@@ -2,7 +2,8 @@ import { and, eq, getTableName, like, sql } from 'drizzle-orm';
+ import { APIError, getFieldByPath } from 'payload';
+ import { fieldShouldBeLocalized, tabHasName } from 'payload/shared';
+ import toSnakeCase from 'to-snake-case';
+-import { validate as uuidValidate } from 'uuid';
++const POSTGRES_HEX_UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
++const uuidValidate = (value)=>typeof value === 'string' && POSTGRES_HEX_UUID_REGEX.test(value);
+ import { isPolymorphicRelationship } from '../utilities/isPolymorphicRelationship.js';
+ import { isUUIDType } from '../utilities/isUUIDType.js';
+ import { jsonBuildObject } from '../utilities/json.js';
+diff --git a/dist/queries/sanitizeQueryValue.js b/dist/queries/sanitizeQueryValue.js
+index 70db855774a67873c40f852a372d0b6ad450b702..611899801b8194543f5c8f61008f0f58a3c32d49 100644
+--- a/dist/queries/sanitizeQueryValue.js
++++ b/dist/queries/sanitizeQueryValue.js
+@@ -1,6 +1,7 @@
+ import { APIError, createArrayFromCommaDelineated } from 'payload';
+ import { fieldAffectsData, isDateOnlyFilter, isDateOnlyFilterValue } from 'payload/shared';
+-import { validate as uuidValidate } from 'uuid';
++const POSTGRES_HEX_UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
++const uuidValidate = (value)=>typeof value === 'string' && POSTGRES_HEX_UUID_REGEX.test(value);
+ import { getCollectionIdType } from '../utilities/getCollectionIdType.js';
+ import { isPolymorphicRelationship } from '../utilities/isPolymorphicRelationship.js';
+ import { isUUIDType } from '../utilities/isUUIDType.js';

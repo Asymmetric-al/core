@@ -1,749 +1,256 @@
-/**
- * Payload `config.endpoints` handler: **POST** `/web-studio/api/web-studio/create-from-template` (Payload's REST
- * routes sit under `/web-studio/api`; AL-2675)
- *
- * Instantiates **draft** CMS documents from `page-templates` while reusing Payload `req`
- * (staff auth, tenant access, audit hooks). Validates canonical IDs against Supabase when needed.
- *
- * @see docs/guides/architecture/web-studio-living-spec.md
- */
-import { findMissionaryById } from "@asym/api/missionaries/queries";
 import { ApiHttpError, ensureJsonBody } from "@asym/api/shared/http-errors";
-import { getAdminClient } from "@asym/database/supabase/admin";
 import { defaultRichTextValue } from "@payloadcms/richtext-lexical";
+import { ValidationError } from "payload";
 import { z } from "zod";
 
+import { readEditingActor } from "./access/tenant-context";
+import { actorCreate, actorFind, actorFindOne } from "./ports/actor-port";
+import { findPageStarter } from "./starters";
 import {
-  getTenantContext,
-  isStaffRole,
-  isSuperAdmin,
-} from "./access/tenant-context";
-import {
-  MISSIONARY_GIVING_PAGE_TYPE,
-  MINISTRY_UPDATE_TEMPLATE_PAGE_TYPE,
-  PROJECT_PAGE_TYPE,
-  STANDARD_PAGE_TYPE,
-} from "./collections/page-builders";
-import {
-  MISSIONARY_GIVING_PAGES_SLUG,
-  PAGE_TEMPLATES_SLUG,
-  PROJECT_PAGES_SLUG,
-} from "./constants";
+  openCoreSession,
+  readFund,
+  readMissionary,
+} from "./tenancy/core-session";
+import { CANONICAL_UUID } from "./tenancy/reference-guard";
 import { normalizeWebAddressSegment as slugifySegment } from "./web-address";
 
 import type {
-  CmsLayoutBlocks,
   CmsRichTextValue,
-  MinistryUpdateCreateFields,
-  MissionaryGivingPageCreateFields,
   PageCreateFields,
-  PageTemplateForCreate,
-  ProjectPageCreateFields,
 } from "./create-from-template-payload-shapes";
 import type { Endpoint, PayloadRequest } from "payload";
 
-const bodySchema = z.discriminatedUnion("targetCollection", [
-  z.object({
-    targetCollection: z.literal("pages"),
-    templateId: z.string().min(1),
-    title: z.string().min(1),
-    slug: z.string().min(1),
-    tenantId: z.string().optional(),
-  }),
-  z.object({
-    targetCollection: z.literal(MISSIONARY_GIVING_PAGES_SLUG),
-    templateId: z.string().min(1),
-    missionaryId: z.uuid(),
-    tenantId: z.string().optional(),
-  }),
-  z.object({
-    targetCollection: z.literal(PROJECT_PAGES_SLUG),
-    templateId: z.string().min(1),
-    fundId: z.uuid(),
-    tenantId: z.string().optional(),
-  }),
-  z.object({
-    targetCollection: z.literal("ministry-updates"),
-    templateId: z.string().min(1),
-    missionaryProfileId: z.string().min(1),
-    title: z.string().min(1),
-    slug: z.string().min(1),
-    tenantId: z.string().optional(),
-  }),
-]);
+const bodySchema = z.object({
+  starterKey: z.string().min(1),
+  site: z.string().regex(CANONICAL_UUID).optional(),
+  title: z.string().min(1).optional(),
+  slug: z.string().min(1).optional(),
+  missionaryId: z.string().regex(CANONICAL_UUID).optional(),
+  fundId: z.string().regex(CANONICAL_UUID).optional(),
+});
 
 type ParsedBody = z.infer<typeof bodySchema>;
-type TenantCtx = ReturnType<typeof getTenantContext>;
-type PageCreateData = PageCreateFields;
-type MissionaryGivingPageCreateData = MissionaryGivingPageCreateFields;
-type ProjectPageCreateData = ProjectPageCreateFields;
-type MinistryUpdateCreateData = MinistryUpdateCreateFields;
-type SupabaseAdminClient = NonNullable<
-  ReturnType<typeof getAdminClient>["client"]
->;
-type ResolvedTenant = {
-  cmsTenantId: string;
-  publicTenantId: string | null;
-  slug: string | null;
-};
+
+export const NO_PRESENTATION_MESSAGE =
+  "This organization has no Site in Web Studio yet, so pages cannot be created.";
+const NO_SESSION_MESSAGE =
+  "Web Studio needs your signed-in session to check this reference. Sign in again and retry.";
 
 function jsonResponse(body: unknown, status = 200) {
   return Response.json(body, { status });
 }
 
-type StaffAuthResult =
-  { ok: true; ctx: TenantCtx } | { ok: false; response: Response };
+function createDefaultRichTextValue(): CmsRichTextValue {
+  return { ...structuredClone(defaultRichTextValue) } as CmsRichTextValue;
+}
 
-async function requireStaff(req: PayloadRequest): Promise<StaffAuthResult> {
-  const ctx = getTenantContext(req);
-  if (!ctx.isAuthenticated || !isStaffRole(ctx)) {
-    return { ok: false, response: jsonResponse({ error: "Forbidden" }, 403) };
-  }
-  if (!isSuperAdmin(ctx) && !ctx.tenantId) {
+async function chooseSite(
+  req: PayloadRequest,
+  requested: string | undefined,
+): Promise<{ ok: true; site: string } | { ok: false; response: Response }> {
+  const presentations = await actorFind(req, {
+    collection: "site-presentations",
+  });
+  if (presentations.length === 0) {
     return {
       ok: false,
-      response: jsonResponse({ error: "Tenant context required" }, 400),
+      response: jsonResponse({ error: NO_PRESENTATION_MESSAGE }, 409),
     };
   }
-  return { ok: true, ctx };
-}
-
-function readTemplateTenant(template: PageTemplateForCreate): string | null {
-  const t = template.tenant;
-  if (typeof t === "string") {
-    return t;
-  }
-  if (typeof t === "number") {
-    return String(t);
-  }
-  if (t && typeof t === "object" && "id" in t) {
-    return String((t as { id: string | number }).id);
-  }
-  return null;
-}
-
-function readDefaultLayout(template: PageTemplateForCreate): CmsLayoutBlocks {
-  if (!Array.isArray(template.defaultLayout)) {
-    return [];
-  }
-
-  const layout = structuredClone(template.defaultLayout);
-  for (const block of layout) {
-    // A new document needs new persisted rows; relationship and rich-text IDs
-    // belong to the content and must survive template creation.
-    delete block.id;
-    if (block.blockType === "faq" || block.blockType === "impact-stats") {
-      for (const item of block.items) {
-        delete item.id;
-      }
+  if (!requested) {
+    if (presentations.length === 1) {
+      return { ok: true, site: String(presentations[0]!.id) };
     }
-  }
-  return layout;
-}
-
-function readTemplateKey(template: PageTemplateForCreate): string {
-  return typeof template.templateKey === "string"
-    ? template.templateKey
-    : "template";
-}
-
-function createDefaultRichTextValue(): CmsRichTextValue {
-  return { ...structuredClone(defaultRichTextValue) };
-}
-
-function readTenantIdFromDoc(doc: {
-  tenant?: number | { id: string | number } | null;
-}): string | null {
-  if (typeof doc.tenant === "number") {
-    return String(doc.tenant);
-  }
-  if (doc.tenant && typeof doc.tenant === "object" && "id" in doc.tenant) {
-    return String(doc.tenant.id);
-  }
-  return null;
-}
-
-async function resolveRequestedTenantId(
-  req: PayloadRequest,
-  ctx: TenantCtx,
-  parsed: ParsedBody,
-): Promise<
-  { ok: true; tenant: ResolvedTenant } | { ok: false; response: Response }
-> {
-  if (!isSuperAdmin(ctx)) {
-    if (!ctx.tenantId) {
-      return {
-        ok: false,
-        response: jsonResponse({ error: "Tenant context required" }, 400),
-      };
-    }
-
-    if (parsed.tenantId && parsed.tenantId !== ctx.tenantId) {
-      return {
-        ok: false,
-        response: jsonResponse({ error: "Tenant mismatch" }, 403),
-      };
-    }
-
     return {
-      ok: true,
-      tenant: {
-        cmsTenantId: ctx.tenantId,
-        publicTenantId: ctx.publicTenantId,
-        slug: null,
-      },
+      ok: false,
+      response: jsonResponse({ error: "Choose a Site for this page." }, 400),
     };
   }
-
-  if (!parsed.tenantId) {
+  if (!presentations.some((presentation) => presentation.id === requested)) {
     return {
       ok: false,
       response: jsonResponse(
-        { error: "Super-admin must choose a tenant" },
+        { error: "Site is not in your organization" },
+        403,
+      ),
+    };
+  }
+  return { ok: true, site: requested };
+}
+
+async function existingPage(
+  req: PayloadRequest,
+  field: "missionaryId" | "fundId",
+  value: string,
+) {
+  return actorFindOne(req, {
+    collection: "pages",
+    draft: true,
+    where: { [field]: { equals: value } },
+  });
+}
+
+type Target =
+  | {
+      ok: true;
+      fields: Pick<
+        PageCreateFields,
+        "title" | "slug" | "summary" | "missionaryId" | "fundId"
+      >;
+    }
+  | { ok: false; response: Response };
+
+async function resolveTarget(
+  req: PayloadRequest,
+  family: "standard" | "missionary" | "project",
+  parsed: ParsedBody,
+): Promise<Target> {
+  if (family === "standard") {
+    if (!parsed.title || !parsed.slug) {
+      return {
+        ok: false,
+        response: jsonResponse({ error: "Enter a title and an address." }, 400),
+      };
+    }
+    return {
+      ok: true,
+      fields: {
+        title: parsed.title,
+        slug: slugifySegment(parsed.slug),
+      },
+    };
+  }
+  const reference =
+    family === "missionary" ? parsed.missionaryId : parsed.fundId;
+  if (!reference) {
+    return {
+      ok: false,
+      response: jsonResponse(
+        {
+          error:
+            family === "missionary"
+              ? "Choose a missionary for this page."
+              : "Choose a fund for this page.",
+        },
         400,
       ),
     };
   }
-
-  const tenant = await req.payload.findByID({
-    collection: "tenants",
-    id: parsed.tenantId,
-    depth: 0,
-    req,
-  });
-
-  if (!tenant) {
+  const session = await openCoreSession(req);
+  if (!session) {
     return {
       ok: false,
-      response: jsonResponse({ error: "Tenant not found" }, 404),
+      response: jsonResponse({ error: NO_SESSION_MESSAGE }, 403),
     };
   }
-
-  const tenantDoc = tenant as { id: string | number; slug?: unknown };
-
-  return {
-    ok: true,
-    tenant: {
-      cmsTenantId: String(tenantDoc.id),
-      publicTenantId: null,
-      slug: typeof tenantDoc.slug === "string" ? tenantDoc.slug : null,
-    },
-  };
-}
-
-async function readCmsTenantSlug(req: PayloadRequest, cmsTenantId: string) {
-  const tenant = await req.payload.findByID({
-    collection: "tenants",
-    id: cmsTenantId,
-    depth: 0,
-    req,
-  });
-
-  return tenant &&
-    typeof tenant === "object" &&
-    "slug" in tenant &&
-    typeof tenant.slug === "string"
-    ? tenant.slug
-    : null;
-}
-
-async function resolvePublicTenantIdForGiving({
-  req,
-  supabase,
-  tenant,
-}: {
-  req: PayloadRequest;
-  supabase: SupabaseAdminClient;
-  tenant: ResolvedTenant;
-}) {
-  if (tenant.publicTenantId) {
-    return tenant.publicTenantId;
-  }
-
-  const tenantSlug =
-    tenant.slug ?? (await readCmsTenantSlug(req, tenant.cmsTenantId));
-  if (!tenantSlug) {
-    return null;
-  }
-
-  const { data } = await supabase
-    .from("tenants")
-    .select("id")
-    .eq("slug", tenantSlug)
-    .maybeSingle();
-
-  return data && typeof data.id === "string" ? data.id : null;
-}
-
-async function createPageFromTemplate(
-  req: PayloadRequest,
-  tenant: ResolvedTenant,
-  parsed: Extract<ParsedBody, { targetCollection: "pages" }>,
-  template: PageTemplateForCreate,
-  defaultLayout: CmsLayoutBlocks,
-  _templateKey: string,
-): Promise<Response> {
-  const { payload } = req;
-  const { cmsTenantId } = tenant;
-  const pageType =
-    typeof template.pageType === "string"
-      ? template.pageType
-      : STANDARD_PAGE_TYPE;
-  if (
-    pageType !== STANDARD_PAGE_TYPE &&
-    pageType !== MISSIONARY_GIVING_PAGE_TYPE &&
-    pageType !== PROJECT_PAGE_TYPE
-  ) {
-    return jsonResponse(
-      { error: "This template is not valid for standard pages collection" },
-      400,
-    );
-  }
-
-  const data: PageCreateData = {
-    tenant: Number(cmsTenantId),
-    title: parsed.title,
-    slug: slugifySegment(parsed.slug),
-    summary:
-      typeof template.defaultSummary === "string"
-        ? template.defaultSummary
-        : undefined,
-    pageType,
-    template: Number(parsed.templateId),
-    layout: defaultLayout,
-    content: createDefaultRichTextValue(),
-    legacyContentFallback: true,
-  };
-
-  const doc = await payload.create({
-    collection: "pages",
-    data,
-    draft: true,
-    req,
-  });
-
-  return jsonResponse({
-    id: String(doc.id),
-    collectionSlug: "pages" as const,
-  });
-}
-
-async function createMissionaryGivingPageFromTemplate(
-  req: PayloadRequest,
-  tenant: ResolvedTenant,
-  parsed: Extract<
-    ParsedBody,
-    { targetCollection: typeof MISSIONARY_GIVING_PAGES_SLUG }
-  >,
-  template: PageTemplateForCreate,
-  templateTenant: string | null,
-  defaultLayout: CmsLayoutBlocks,
-  templateKey: string,
-): Promise<Response> {
-  const { payload } = req;
-  const { cmsTenantId } = tenant;
-
-  if (templateTenant && templateTenant !== cmsTenantId) {
-    return jsonResponse({ error: "Template is not in your tenant" }, 403);
-  }
-
-  if (template.pageType !== MISSIONARY_GIVING_PAGE_TYPE) {
-    return jsonResponse(
-      { error: "Template page type must be missionary_giving" },
-      400,
-    );
-  }
-
-  const { client: supabase, error: adminError } = getAdminClient();
-  if (!supabase || adminError) {
-    return jsonResponse(
-      { error: adminError ?? "Admin client unavailable" },
-      503,
-    );
-  }
-
-  const publicTenantId = await resolvePublicTenantIdForGiving({
-    req,
-    supabase,
-    tenant,
-  });
-  if (!publicTenantId) {
-    return jsonResponse({ error: "Tenant is not linked to giving data" }, 422);
-  }
-
-  const { data: missionaryRowForTenant, error: missionaryError } =
-    await findMissionaryById(supabase, parsed.missionaryId, publicTenantId);
-  if (missionaryError || !missionaryRowForTenant?.id) {
-    return jsonResponse({ error: "Missionary not found for tenant" }, 404);
-  }
-
-  const dup = await payload.find({
-    collection: MISSIONARY_GIVING_PAGES_SLUG,
-    limit: 1,
-    pagination: false,
-    req,
-    where: {
-      and: [
-        { missionaryId: { equals: parsed.missionaryId } },
-        { tenant: { equals: cmsTenantId } },
-      ],
-    },
-  });
-  if (dup.docs[0]) {
-    return jsonResponse(
-      {
-        error: "A missionary giving page already exists for this missionary",
-        existingId: String(dup.docs[0].id),
-      },
-      409,
-    );
-  }
-
-  const missionaryRowQuery = supabase
-    .from("missionaries")
-    .select("id, profile_id")
-    .eq("id", parsed.missionaryId);
-
-  const scopedMissionaryRowQuery = missionaryRowQuery.eq(
-    "tenant_id",
-    publicTenantId,
-  );
-
-  const missionaryLookupResult = await scopedMissionaryRowQuery.single();
-  const missionaryRow = missionaryLookupResult?.data;
-  const missionaryRowError = missionaryLookupResult?.error;
-
-  if (missionaryRowError || !missionaryRow?.id) {
-    return jsonResponse({ error: "Missionary not found" }, 404);
-  }
-  if (!missionaryRow.profile_id) {
-    return jsonResponse({ error: "Missionary has no linked profile" }, 422);
-  }
-
-  const { data: profileRow } = await supabase
-    .from("profiles")
-    .select("full_name, display_name")
-    .eq("id", missionaryRow.profile_id)
-    .maybeSingle();
-
-  const display =
-    (typeof profileRow?.full_name === "string" &&
-      profileRow.full_name.trim()) ||
-    (typeof profileRow?.display_name === "string" &&
-      profileRow.display_name.trim()) ||
-    "Missionary";
-  const titleBase = `${display} — Give`;
-  const slugBase =
-    slugifySegment(`${display}-${parsed.missionaryId.slice(0, 8)}`) ||
-    slugifySegment(`give-${parsed.missionaryId}`);
-
-  const profileMatch = await payload.find({
-    collection: "missionary-profiles",
-    limit: 1,
-    pagination: false,
-    req,
-    where: {
-      and: [
-        { tenant: { equals: cmsTenantId } },
-        { supabaseMissionaryId: { equals: parsed.missionaryId } },
-      ],
-    },
-  });
-
-  const matchedProfile = profileMatch.docs[0] as
-    { id?: string | number } | undefined;
-  const missionaryProfileId =
-    matchedProfile &&
-    typeof matchedProfile === "object" &&
-    "id" in matchedProfile
-      ? matchedProfile.id
-      : undefined;
-
-  const data: MissionaryGivingPageCreateData = {
-    tenant: Number(cmsTenantId),
-    missionaryId: parsed.missionaryId,
-    missionaryProfile:
-      missionaryProfileId === undefined || missionaryProfileId === null
-        ? undefined
-        : Number(missionaryProfileId),
-    templateKey,
-    template: Number(parsed.templateId),
-    title: titleBase,
-    slug: slugBase || slugifySegment("give"),
-    summary:
-      typeof template.defaultSummary === "string"
-        ? template.defaultSummary
-        : undefined,
-    pageType: MISSIONARY_GIVING_PAGE_TYPE,
-    layout: defaultLayout,
-  };
-
-  let doc: { id: string | number };
-  try {
-    doc = await payload.create({
-      collection: MISSIONARY_GIVING_PAGES_SLUG,
-      data,
-      draft: true,
-      req,
-    });
-  } catch {
-    const race = await payload.find({
-      collection: MISSIONARY_GIVING_PAGES_SLUG,
-      limit: 1,
-      pagination: false,
-      req,
-      where: {
-        and: [
-          { missionaryId: { equals: parsed.missionaryId } },
-          { tenant: { equals: cmsTenantId } },
-        ],
-      },
-    });
-    if (race.docs[0]) {
-      return jsonResponse(
-        {
-          error: "A missionary giving page already exists for this missionary",
-          existingId: String(race.docs[0].id),
-        },
-        409,
-      );
+  const field = family === "missionary" ? "missionaryId" : "fundId";
+  if (family === "missionary") {
+    const missionary = await readMissionary(session, reference);
+    if (!missionary) {
+      return {
+        ok: false,
+        response: jsonResponse(
+          { error: "Missionary not found for tenant" },
+          404,
+        ),
+      };
     }
-    throw new Error("Failed to create missionary giving page");
-  }
-
-  return jsonResponse({
-    id: String(doc.id),
-    collectionSlug: MISSIONARY_GIVING_PAGES_SLUG,
-  });
-}
-
-async function createProjectPageFromTemplate(
-  req: PayloadRequest,
-  tenant: ResolvedTenant,
-  parsed: Extract<ParsedBody, { targetCollection: typeof PROJECT_PAGES_SLUG }>,
-  template: PageTemplateForCreate,
-  templateTenant: string | null,
-  defaultLayout: CmsLayoutBlocks,
-  templateKey: string,
-): Promise<Response> {
-  const { payload } = req;
-  const { cmsTenantId } = tenant;
-
-  if (templateTenant && templateTenant !== cmsTenantId) {
-    return jsonResponse({ error: "Template is not in your tenant" }, 403);
-  }
-
-  if (template.pageType !== PROJECT_PAGE_TYPE) {
-    return jsonResponse({ error: "Template page type must be project" }, 400);
-  }
-
-  const { client: supabase, error: adminError } = getAdminClient();
-  if (!supabase || adminError) {
-    return jsonResponse(
-      { error: adminError ?? "Admin client unavailable" },
-      503,
-    );
-  }
-
-  const publicTenantId = await resolvePublicTenantIdForGiving({
-    req,
-    supabase,
-    tenant,
-  });
-  if (!publicTenantId) {
-    return jsonResponse({ error: "Tenant is not linked to giving data" }, 422);
-  }
-
-  const fundQuery = supabase
-    .from("funds")
-    .select("id, name, description, missionary_id")
-    .is("system_purpose", null)
-    .eq("id", parsed.fundId);
-
-  const scopedFundQuery = fundQuery.eq("tenant_id", publicTenantId);
-
-  const { data: fund, error: fundError } = await scopedFundQuery.single();
-  if (fundError || !fund?.id) {
-    return jsonResponse({ error: "Fund not found for tenant" }, 404);
-  }
-
-  const dup = await payload.find({
-    collection: PROJECT_PAGES_SLUG,
-    limit: 1,
-    pagination: false,
-    req,
-    where: {
-      and: [
-        { fundId: { equals: parsed.fundId } },
-        { tenant: { equals: cmsTenantId } },
-      ],
-    },
-  });
-  if (dup.docs[0]) {
-    return jsonResponse(
-      {
-        error: "A project page already exists for this fund",
-        existingId: String(dup.docs[0].id),
+    const duplicate = await existingPage(req, field, reference);
+    if (duplicate) {
+      return {
+        ok: false,
+        response: jsonResponse(
+          {
+            error: "A missionary page already exists for this missionary",
+            existingId: String(duplicate.id),
+          },
+          409,
+        ),
+      };
+    }
+    return {
+      ok: true,
+      fields: {
+        title: `${missionary.name} — Give`,
+        slug:
+          slugifySegment(`${missionary.name}-${reference.slice(0, 8)}`) ||
+          slugifySegment(`give-${reference}`),
+        missionaryId: reference,
       },
-      409,
-    );
+    };
   }
-
-  const titleBase =
-    typeof fund.name === "string" && fund.name.trim().length > 0
-      ? fund.name
-      : "Project page";
-  const slugBase =
-    slugifySegment(`${titleBase}-${parsed.fundId.slice(0, 8)}`) ||
-    slugifySegment(parsed.fundId);
-
-  const data: ProjectPageCreateData = {
-    tenant: Number(cmsTenantId),
-    fundId: parsed.fundId,
-    templateKey,
-    template: Number(parsed.templateId),
-    title: titleBase,
-    slug: slugBase || slugifySegment(parsed.fundId),
-    summary:
-      typeof fund.description === "string"
-        ? fund.description
-        : typeof template.defaultSummary === "string"
-          ? template.defaultSummary
-          : undefined,
-    pageType: PROJECT_PAGE_TYPE,
-    layout: defaultLayout,
-  };
-
-  let doc: { id: string | number };
-  try {
-    doc = await payload.create({
-      collection: PROJECT_PAGES_SLUG,
-      data,
-      draft: true,
-      req,
-    });
-  } catch {
-    const race = await payload.find({
-      collection: PROJECT_PAGES_SLUG,
-      limit: 1,
-      pagination: false,
-      req,
-      where: {
-        and: [
-          { fundId: { equals: parsed.fundId } },
-          { tenant: { equals: cmsTenantId } },
-        ],
-      },
-    });
-    if (race.docs[0]) {
-      return jsonResponse(
+  const fund = await readFund(session, reference);
+  if (!fund) {
+    return {
+      ok: false,
+      response: jsonResponse({ error: "Fund not found for tenant" }, 404),
+    };
+  }
+  const duplicate = await existingPage(req, field, reference);
+  if (duplicate) {
+    return {
+      ok: false,
+      response: jsonResponse(
         {
           error: "A project page already exists for this fund",
-          existingId: String(race.docs[0].id),
+          existingId: String(duplicate.id),
         },
         409,
-      );
-    }
-    throw new Error("Failed to create project page");
+      ),
+    };
   }
-
-  return jsonResponse({
-    id: String(doc.id),
-    collectionSlug: PROJECT_PAGES_SLUG,
-  });
+  const title = fund.name?.trim() || "Project page";
+  return {
+    ok: true,
+    fields: {
+      title,
+      slug:
+        slugifySegment(`${title}-${reference.slice(0, 8)}`) ||
+        slugifySegment(reference),
+      summary: fund.description,
+      fundId: reference,
+    },
+  };
 }
 
-async function createMinistryUpdateFromTemplate(
-  req: PayloadRequest,
-  tenant: ResolvedTenant,
-  parsed: Extract<ParsedBody, { targetCollection: "ministry-updates" }>,
-  template: PageTemplateForCreate,
-  templateTenant: string | null,
-): Promise<Response> {
-  const { payload } = req;
-  const { cmsTenantId } = tenant;
-
-  if (templateTenant && templateTenant !== cmsTenantId) {
-    return jsonResponse({ error: "Template is not in your tenant" }, 403);
-  }
-
-  if (template.pageType !== MINISTRY_UPDATE_TEMPLATE_PAGE_TYPE) {
+function refusalResponse(error: unknown): Response | null {
+  if (error instanceof ValidationError) {
+    const errors =
+      (error.data as { errors?: Array<{ path?: string; message?: string }> })
+        ?.errors ?? [];
+    const slug = errors
+      .filter((item) => item.path === "slug")
+      .map((item) => item.message ?? "");
     return jsonResponse(
       {
-        error:
-          "Template page type must be ministry_update for ministry updates",
+        error: errors[0]?.message ?? error.message,
+        ...(slug.length > 0 ? { fieldErrors: { slug } } : {}),
       },
       400,
     );
   }
-
-  const profileCheck = await payload.findByID({
-    collection: "missionary-profiles",
-    id: parsed.missionaryProfileId,
-    depth: 0,
-    req,
-  });
-  const profileTenant = profileCheck
-    ? readTenantIdFromDoc(
-        profileCheck as { tenant?: number | { id: string | number } | null },
-      )
-    : null;
-  if (!profileCheck || profileTenant !== cmsTenantId) {
-    return jsonResponse({ error: "Missionary profile not found" }, 404);
-  }
-
-  const data: MinistryUpdateCreateData = {
-    tenant: Number(cmsTenantId),
-    missionary: Number(parsed.missionaryProfileId),
-    title: parsed.title,
-    slug: slugifySegment(parsed.slug),
-    excerpt:
-      typeof template.defaultSummary === "string"
-        ? template.defaultSummary
-        : undefined,
-    content: createDefaultRichTextValue(),
-  };
-
-  const doc = await payload.create({
-    collection: "ministry-updates",
-    data,
-    draft: true,
-    req,
-  });
-
-  return jsonResponse({
-    id: String(doc.id),
-    collectionSlug: "ministry-updates" as const,
-  });
+  return null;
 }
 
 export const webStudioCreateFromTemplateEndpoint: Endpoint = {
   method: "post",
   path: "/web-studio/create-from-template",
   handler: async (req): Promise<Response> => {
-    const auth = await requireStaff(req);
-    if (!auth.ok) {
-      return auth.response;
+    if (!readEditingActor(req)) {
+      return jsonResponse({ error: "Forbidden" }, 403);
     }
 
-    const { ctx } = auth;
-
-    // Payload parses bodies only for its own endpoints; this one reads the
-    // raw request through the shared reader, which refuses a body that is
-    // not JSON (fix check G1).
     let parsed: ParsedBody;
     try {
       const json = await ensureJsonBody(req as Request);
       parsed = bodySchema.parse(json);
     } catch (error) {
-      // The Studio envelope, as the proxy answers this refusal on these
-      // paths (re-check H4).
       if (error instanceof ApiHttpError && error.status === 415)
         return jsonResponse({ errors: [{ message: error.message }] }, 415);
       return jsonResponse({ error: "Invalid request body" }, 400);
     }
 
-    if ("slug" in parsed && !slugifySegment(parsed.slug)) {
+    if (parsed.slug !== undefined && !slugifySegment(parsed.slug)) {
       const message = "Enter an address with at least one letter or number.";
       return jsonResponse(
         { error: message, fieldErrors: { slug: [message] } },
@@ -751,81 +258,39 @@ export const webStudioCreateFromTemplateEndpoint: Endpoint = {
       );
     }
 
-    const { payload } = req;
-    const template = await payload.findByID({
-      collection: PAGE_TEMPLATES_SLUG,
-      id: parsed.templateId,
-      depth: 0,
-      req,
-    });
-
-    if (!template) {
-      return jsonResponse({ error: "Template not found" }, 404);
+    const starter = findPageStarter(parsed.starterKey);
+    if (!starter) {
+      return jsonResponse({ error: "Starter not found" }, 404);
     }
 
-    const templateDoc = template as unknown as PageTemplateForCreate;
+    const site = await chooseSite(req, parsed.site);
+    if (!site.ok) return site.response;
 
-    const templateTenant = readTemplateTenant(templateDoc);
+    const target = await resolveTarget(req, starter.family, parsed);
+    if (!target.ok) return target.response;
 
-    const tenantResolution = await resolveRequestedTenantId(req, ctx, parsed);
-    if (!tenantResolution.ok) {
-      return tenantResolution.response;
+    const data: PageCreateFields = {
+      site: site.site,
+      family: starter.family,
+      summary: starter.summary || null,
+      ...target.fields,
+      templateKey: starter.key,
+      layout: starter.layout(),
+      content: createDefaultRichTextValue(),
+      legacyContentFallback: true,
+    };
+
+    try {
+      const doc = await actorCreate(req, {
+        collection: "pages",
+        data,
+        draft: true,
+      });
+      return jsonResponse({ id: String(doc.id), collectionSlug: "pages" });
+    } catch (error) {
+      const response = refusalResponse(error);
+      if (response) return response;
+      throw error;
     }
-
-    const { tenant } = tenantResolution;
-
-    if (templateTenant && templateTenant !== tenant.cmsTenantId) {
-      return jsonResponse({ error: "Template is not in your tenant" }, 403);
-    }
-
-    const defaultLayout = readDefaultLayout(templateDoc);
-    const templateKey = readTemplateKey(templateDoc);
-
-    if (parsed.targetCollection === "pages") {
-      return createPageFromTemplate(
-        req,
-        tenant,
-        parsed,
-        templateDoc,
-        defaultLayout,
-        templateKey,
-      );
-    }
-
-    if (parsed.targetCollection === MISSIONARY_GIVING_PAGES_SLUG) {
-      return createMissionaryGivingPageFromTemplate(
-        req,
-        tenant,
-        parsed,
-        templateDoc,
-        templateTenant,
-        defaultLayout,
-        templateKey,
-      );
-    }
-
-    if (parsed.targetCollection === PROJECT_PAGES_SLUG) {
-      return createProjectPageFromTemplate(
-        req,
-        tenant,
-        parsed,
-        templateDoc,
-        templateTenant,
-        defaultLayout,
-        templateKey,
-      );
-    }
-
-    if (parsed.targetCollection === "ministry-updates") {
-      return createMinistryUpdateFromTemplate(
-        req,
-        tenant,
-        parsed,
-        templateDoc,
-        templateTenant,
-      );
-    }
-
-    return jsonResponse({ error: "Unsupported target" }, 400);
   },
 };
