@@ -16,10 +16,7 @@ import { loadWorkerPublicNames } from "./worker-public-names";
 import { sendUpdatedReceiptSnapshotEmail } from "../../giving/receipts";
 import { ApiHttpError } from "../../shared/http-errors";
 import { asString, isRecord } from "../../shared/json-coerce";
-import {
-  COUNTED_INTAKE_FILTER,
-  loadGiftHolds,
-} from "../../shared/line-based-gifts";
+import { isCountedIntake, loadGiftHolds } from "../../shared/line-based-gifts";
 import { tenantMemberProfileIds } from "../../shared/tenant-members";
 import {
   loadStripeRawEventForReplay,
@@ -334,14 +331,20 @@ async function loadContributionOperationDetail(input: {
   const donationResult = await input.supabaseAdmin
     .from("donations")
     .select(
-      "id, tenant_id, donor_id, missionary_id, fund_id, amount, currency, status, donation_type, payment_method, is_recurring, recurring_interval, notes, stripe_payment_intent_id, gift_date, campaign_id, pledge_id, processed_at, completed_at, failed_at, error_code, error_message, stripe_charge_id, stripe_refund_ids, refunded_at, refund_amount, source, created_at, updated_at",
+      "id, tenant_id, donor_id, missionary_id, fund_id, amount, currency, status, donation_type, payment_method, is_recurring, recurring_interval, notes, stripe_payment_intent_id, gift_date, campaign_id, pledge_id, processed_at, completed_at, failed_at, error_code, error_message, stripe_charge_id, stripe_refund_ids, refunded_at, refund_amount, source, created_at, updated_at, intake_format",
     )
     .eq("tenant_id", input.tenantId)
     .eq("id", input.contributionId)
-    .or(COUNTED_INTAKE_FILTER)
     .single();
 
-  if (donationResult.error || !isRecord(donationResult.data)) {
+  if (
+    donationResult.error ||
+    !isRecord(donationResult.data) ||
+    !isCountedIntake({
+      intake_format: asString(donationResult.data.intake_format),
+      status: asString(donationResult.data.status),
+    })
+  ) {
     throw new ApiHttpError(404, "Contribution not found.");
   }
 

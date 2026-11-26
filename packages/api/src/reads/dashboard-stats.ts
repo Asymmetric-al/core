@@ -11,7 +11,6 @@ import {
   normalizeSharedPaymentStatus,
 } from "../admin/contribution-shared/row-contract";
 import { ADMIN_CACHE_TAGS, READ_CACHE_TAGS } from "../shared/cache-tags";
-import { COUNTED_INTAKE_FILTER } from "../shared/line-based-gifts";
 
 type QueryError = { message?: string } | null;
 
@@ -171,7 +170,6 @@ async function listSettledGifts(
         "id, amount, refund_amount, currency, status, gift_date, created_at",
       )
       .eq("tenant_id", tenantId)
-      .or(COUNTED_INTAKE_FILTER)
       .or(
         `gift_date.gte.${periodStartIso.slice(0, 10)},and(gift_date.is.null,created_at.gte.${periodStartIso})`,
       )
