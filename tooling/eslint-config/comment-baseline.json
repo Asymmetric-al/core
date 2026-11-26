@@ -597,7 +597,7 @@
   "packages/api/src/admin/contributions/service.ts": 11,
   "packages/api/src/admin/contributions/staged-gifts.ts": 21,
   "packages/api/src/admin/crm/detail/gift-history.ts": 13,
-  "packages/api/src/admin/crm/detail/service.ts": 18,
+  "packages/api/src/admin/crm/detail/service.ts": 15,
   "packages/api/src/admin/crm/filter-variants.ts": 4,
   "packages/api/src/admin/crm/notes/model.ts": 1,
   "packages/api/src/admin/crm/relationships/model.ts": 3,

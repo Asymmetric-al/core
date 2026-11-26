@@ -1,5 +1,5 @@
 import { expandStoredValueSpellings } from "./filter-variants";
-import { loadCrmMemberLabels } from "./member-labels";
+import { loadCrmMissionaryLabels } from "./member-labels";
 import { buildCrmGridRow } from "./model";
 import {
   encodeCrmCursor,
@@ -156,7 +156,7 @@ async function fetchFilteredDonorRows(
   }
   let query = donors
     .select(
-      "id, profile_id, missionary_id, name, email, phone, avatar_url, location, type, status, total_given, last_gift_date, tags, organization, title, notes, created_at, updated_at",
+      "id, profile_id, missionary_id, ministry_assignment_id, name, email, phone, avatar_url, location, type, status, total_given, last_gift_date, tags, organization, title, notes, created_at, updated_at",
     )
     .eq("tenant_id", tenantId);
 
@@ -199,20 +199,23 @@ export async function listAdminCrmRecords(
   const pageRows = rows.slice(0, params.limit);
   const hasMore = rows.length > params.limit;
 
-  const missionaryIds = normalizeIds(
-    pageRows.map((d) => d.missionary_id || ""),
+  const assignmentIds = normalizeIds(
+    pageRows.map((d) => d.ministry_assignment_id || ""),
   );
-  const missionaryNames = await loadCrmMemberLabels(
+  const missionaryNames = await loadCrmMissionaryLabels(
     sessionClient,
     tenantId,
-    missionaryIds,
+    assignmentIds,
   );
 
   const gridRows = pageRows.map((donor) => {
-    const missionaryName = donor.missionary_id
-      ? (missionaryNames.get(donor.missionary_id) ?? null)
-      : null;
-    return buildCrmGridRow(donor, missionaryName);
+    const key = donor.ministry_assignment_id;
+    const owner = key && missionaryNames.has(key) ? key : null;
+    return buildCrmGridRow(
+      donor,
+      owner ? (missionaryNames.get(owner) ?? null) : null,
+      owner,
+    );
   });
 
   let nextCursor: string | null = null;

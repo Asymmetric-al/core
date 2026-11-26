@@ -19,6 +19,7 @@ export interface CrmGridRow {
   linkedAuthUserId: string | null;
   tags: string[];
   assignedMissionaryName: string | null;
+  ownerAssignmentId?: string | null;
   avatarUrl: string | null;
   email: string | null;
   phone: string | null;
