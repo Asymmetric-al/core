@@ -615,14 +615,6 @@ describe.skipIf(!READY)(
   },
 );
 
-/**
- * AL-2675 (WP2c rest, pull request A; brief stage5/wp2c-rest.md 4A, "Red,
- * refusals"): the launch-permission picker's list and the history with no
- * organization, through the stack's own PostgREST, with sessions its Auth
- * server issued at aal1 and at aal2. The seed's two organizations: the demo
- * one, where the operator and a person who is not one each hold a flagged
- * staff row, and the second one, where the operator holds none.
- */
 describe.skipIf(!READY)(
   "AL-2675 WP2c rest: the operator reads through PostgREST with real aal1 and aal2 sessions",
   () => {
@@ -688,7 +680,6 @@ describe.skipIf(!READY)(
       return String(verified.json!.access_token);
     }
 
-    /** A Data API call of a `public` function with arguments and request headers. */
     async function read(
       fn: string,
       token: string,

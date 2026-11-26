@@ -33,14 +33,6 @@ const CLEARED_GOVERNANCE = {
 
 const DISABLE_RELEASE_LABEL = "Disable release (no emergency)";
 
-/**
- * D-18 (AL-2675 WP2c rest, pull request A; brief stage5/wp2c-rest.md 2A and
- * 3A.4): the picker no longer asks the users API for `role=super_admin`,
- * which no membership holds, so it listed nobody. It asks
- * `/api/admin/eve/launch-readiness/operators`, the operators the launch grant
- * accepts in this organization, and says "platform operator" where it said
- * "platform owner"; a 403 there shows the non-operator sentence alone.
- */
 const OPERATORS_URL = "/api/admin/eve/launch-readiness/operators";
 
 const PLATFORM_OPERATORS = [
@@ -132,7 +124,7 @@ afterEach(() => {
   getQueryClient().clear();
 });
 
-describe("Eve launch readiness panel", () => {
+describe("Eve launch readiness panel (D-18: AL-2675 WP2c rest, pull request A: the picker asks the operator route, not role=super_admin, which listed nobody, and says platform operator)", () => {
   it("announces an in-flight control change and prevents duplicate submission", async () => {
     let finishMutation: () => void = () => {};
     const pendingMutation = new Promise<void>((resolve) => {
@@ -241,8 +233,7 @@ describe("Eve launch readiness panel", () => {
     const view = renderPanel();
 
     await view.findByText("Latest manifest");
-    // Only the operators the grant accepts here are eligible, so the picker
-    // asks the operator route for exactly them, and never the users API.
+    // Only the operators the grant accepts here are eligible, never all users.
     expect(
       fetchMock.mock.calls.some(([url]) => String(url) === OPERATORS_URL),
     ).toBe(true);
@@ -311,7 +302,12 @@ describe("Eve launch readiness panel", () => {
         view.getByText("No platform operators belong to this organization."),
       ).toBeTruthy(),
     );
-    expect(picker.getAttribute("aria-disabled")).toBe("true");
+    expect(
+      picker.hasAttribute("disabled") ||
+        picker.hasAttribute("data-disabled") ||
+        picker.getAttribute("aria-disabled") === "true",
+    ).toBe(true);
+    expect(view.queryAllByRole("option")).toHaveLength(0);
     expect(
       view.queryByRole("textbox", { name: "Platform operator's profile ID" }),
     ).toBeNull();

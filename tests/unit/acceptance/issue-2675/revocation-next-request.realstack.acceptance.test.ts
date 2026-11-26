@@ -1,25 +1,3 @@
-/**
- * AL-2675 (WP2c rest, pull request A; brief stage5/wp2c-rest.md 4A,
- * "Revocation"; plan 12 WP2 acceptance) real-stack acceptance: an
- * administrator of A revokes a staff member's row with `revoke_membership`,
- * and at the person's next request:
- *   - Mission Control refuses them: the resolver every request runs
- *     (`resolveActiveAssignment` over `public.current_user_assignments()`,
- *     `packages/auth/context.ts`) finds no row to act under;
- *   - an unfiltered Data API read returns nothing;
- *   - Web Studio refuses them: Payload's strategy marks `no_selection`, and
- *     the refusal hook answers JSON 403 with `x-asym-web-studio-refusal`,
- *     never a redirect.
- * `membership-role-commands.realstack` proves the command lane and the
- * assignment read after a revoke; `tenant-policy-migration.realstack` and
- * `web-studio-selection.realstack` prove the Data API and Web Studio after a
- * revocation written by hand. Here the three run after the command itself,
- * on the real catalog, with the person's own token as PostgREST passes it.
- *
- * Runs against TENANT_GUARD_IT_ADMIN_DATABASE_URL; skips without it, except
- * in CI's `migrate` job, where it fails. Every check runs in one transaction
- * that is always rolled back.
- */
 import pg from "pg";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 
@@ -58,7 +36,6 @@ describe.skipIf(!ADMIN_URL)(
     let id: Record<string, string> = {};
 
     beforeAll(async () => {
-      // The strategy reads a session only where Supabase is configured.
       vi.stubEnv("NEXT_PUBLIC_SUPABASE_URL", "https://example.supabase.co");
       vi.stubEnv("NEXT_PUBLIC_SUPABASE_ANON_KEY", "example-anon-key");
       vi.stubEnv("E2E_AUTH_BYPASS", "");
@@ -69,7 +46,6 @@ describe.skipIf(!ADMIN_URL)(
       await db.end();
     });
 
-    /** The harness fixture, and one note in TA that its staff may read. */
     async function tx(fn: () => Promise<void>) {
       id = fixtureIds();
       await db.query("begin");
@@ -85,11 +61,6 @@ describe.skipIf(!ADMIN_URL)(
       }
     }
 
-    /**
-     * One statement as a signed-in person, as PostgREST runs it; what it
-     * writes stays in the outer transaction, and the request's settings are
-     * cleared afterwards.
-     */
     async function call(
       who: string,
       sql: string,
@@ -126,7 +97,6 @@ describe.skipIf(!ADMIN_URL)(
       }
     }
 
-    /** The person's own live rows, as `current_user_assignments` serves them. */
     const readerFor = (who: string) =>
       createRpcAssignmentReader({
         rpc: async (fn: string) => {
@@ -141,7 +111,6 @@ describe.skipIf(!ADMIN_URL)(
         },
       } as never);
 
-    /** Mission Control's decision for the person's next request in TA. */
     async function missionControl(who: string, row: string) {
       const named = await resolveActiveAssignment(
         {
@@ -162,7 +131,6 @@ describe.skipIf(!ADMIN_URL)(
       ];
     }
 
-    /** An unfiltered Data API read of the notes, as the person's request sends it. */
     async function notes(who: string, row: string) {
       const counts: number[] = [];
       for (const headers of [
@@ -181,7 +149,6 @@ describe.skipIf(!ADMIN_URL)(
       return counts;
     }
 
-    /** What Web Studio answers the person's next REST call with this cookie. */
     async function webStudio(who: string, row: string) {
       const strategy = createSupabaseAuthStrategy({
         createSupabaseClient: (() => ({
@@ -313,9 +280,6 @@ describe.skipIf(!ADMIN_URL)(
           }),
         });
 
-        // Another staff member of A, untouched, still reads the note under
-        // the row the request names (UFC holds two staff rows in A, so an
-        // unnamed request resolves none).
         expect(await notes("UFC", "mFin")).toEqual([1, 0, 0]);
         expect(await notes("UADM", "mAdm")).toEqual([1, 1, 0]);
       }));

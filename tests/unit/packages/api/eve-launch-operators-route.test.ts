@@ -3,15 +3,6 @@ import { readFileSync } from "node:fs";
 import { NextRequest } from "next/server";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-/**
- * AL-2675 (WP2c rest, pull request A; brief stage5/wp2c-rest.md 3A.4 and 3A.6):
- * the launch-permission picker's route, `GET
- * /api/admin/eve/launch-readiness/operators`. It runs on the caller's own
- * token (`withOperation`'s session client, never the service key), only for
- * a tenant administrator who passes the shared operator check, and reads
- * `public.tenant_operators` for the request's own organization. A refusal is
- * a 403, never an empty list.
- */
 const TENANT = "00000000-0000-4000-8000-0000000000a1";
 const ROW = "00000000-0000-4000-8000-00000000a0a1";
 const USER = "00000000-0000-4000-9000-000000000001";
@@ -162,7 +153,6 @@ describe("GET /api/admin/eve/launch-readiness/operators (WP2c rest)", () => {
     expect(h.rpc).toHaveBeenCalledWith("tenant_operators", {
       p_tenant_id: TENANT,
     });
-    // Every session client carries the request's own tenant and row.
     expect(h.scopes.length).toBeGreaterThan(0);
     for (const scope of h.scopes)
       expect(scope).toEqual({ tenantId: TENANT, assignmentId: ROW });

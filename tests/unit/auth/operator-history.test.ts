@@ -5,14 +5,6 @@ import {
   type OperatorMfaClient,
 } from "../../../packages/auth/operator-mfa";
 
-/**
- * AL-2675 (WP2c rest, pull request A; brief stage5/wp2c-rest.md 3A.3-3A.5):
- * the operator area reads the changes recorded with no organization through
- * `@asym/auth/operator-mfa`, on the browser's own session client, as
- * `confirmOperatorSession` reads the operator session: no Core route. A
- * refusal is "refused" and a failure "failed", never an empty history, and a
- * row that carries an organization fails the whole read.
- */
 const ROW = {
   id: "00000000-0000-4000-8000-0000000000e1",
   run_id: null,

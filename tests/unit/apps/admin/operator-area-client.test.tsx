@@ -18,8 +18,6 @@ const mfa = vi.hoisted(() => ({
   startEnrolment: vi.fn(),
   verifyCode: vi.fn(),
   removeFactor: vi.fn(),
-  // D-18 (AL-2675 WP2c rest, pull request A): the area also reads the
-  // history with no organization; answered empty unless a test says more.
   readPlatformHistory: vi.fn(),
 }));
 
@@ -940,7 +938,7 @@ async function showAreaWithHistory() {
   await screen.findByText(VERIFIED);
 }
 
-describe("AL-2675 WP2c rest: the history with no organization in the operator area", () => {
+describe("AL-2675 WP2c rest: the history with no organization in the operator area (D-18: the module mock gains readPlatformHistory, answered empty unless a case says more)", () => {
   it.each([
     ["enrolment", { kind: "enrol" }],
     ["the challenge", { kind: "challenge", factorIds: ["v1"] }],

@@ -1,25 +1,3 @@
-/**
- * AL-2675 (WP2c rest, pull request A; brief stage5/wp2c-rest.md 3A and 4A,
- * rulings 1 and 2 of its check; plan 5.4 and 12 WP2c; record D-88 and
- * D-226) real-stack acceptance for the two operator reads:
- *   - `public.tenant_operators(uuid)`, the launch-permission picker's list:
- *     exactly the profiles `assert_eve_launch_profile(<tenant>, <profile>,
- *     'super_admin')` accepts in the request's own organization, with the
- *     name and e-mail on the profile; refused (42501) unless the tenant
- *     asked for is the request's `x-asym-tenant` and the caller, an operator
- *     at aal2, holds a live staff row there;
- *   - `public.platform_eve_history(integer)`: every row of
- *     `public.eve_audit_events` with no organization, newest first, for any
- *     operator at aal2, whoever acted; a row with an organization never.
- * Callers are emulated as PostgREST does it (../issue-2674/harness.ts): the
- * role, the JSON claims with their `aal`, and the request headers. The Auth
- * server's own aal1 and aal2 sessions through PostgREST are proved by
- * `operator-mfa.localstack.test.ts`.
- *
- * Runs against TENANT_GUARD_IT_ADMIN_DATABASE_URL; skips without it, except
- * in CI's `migrate` job, where it fails. Every check runs in one transaction
- * that is always rolled back.
- */
 import { randomUUID } from "node:crypto";
 
 import pg from "pg";
@@ -49,7 +27,6 @@ const NO_STAFF_ROW =
   "platform: the caller holds no live staff row in this organization";
 const BAD_LIMIT = "platform: the history limit must be from 1 to 200";
 
-/** The operators of the fixture, and the people they are. */
 const OPERATORS = {
   OX: { name: "Oakley Operator", email: "oakley.operator@example.org" },
   OW: { name: "Wren Operator", email: "wren.operator@example.org" },
@@ -94,15 +71,6 @@ describe.skipIf(!ADMIN_URL)(
     beforeAll(() => db.connect());
     afterAll(() => db.end());
 
-    /**
-     * The harness fixture (TA, TB, and UADM, the administrator of TA who is
-     * not an operator), plus four operators: OX, staff in TA (the flag) and
-     * in TB; OW, whose only row in TA is a donor row; OV, staff in TB only;
-     * OR, whose staff row in TA is revoked. TC is a tenant where OX holds no
-     * row. Three audit rows dated after any other: W's global kill switch
-     * (hW), a service's row with no organization (hS), and OX's row in TA
-     * (hT, the newest).
-     */
     async function tx(fn: () => Promise<void>) {
       id = fixtureIds();
       for (const k of [
@@ -159,7 +127,6 @@ describe.skipIf(!ADMIN_URL)(
     const keyOf = (value: unknown) =>
       Object.keys(id).find((k) => id[k] === value) ?? String(value);
 
-    /** The picker's list for `tenant`, as `who` at `aal`, with `headers`. */
     function operators(
       who: string | null,
       tenant: string,
@@ -174,7 +141,6 @@ describe.skipIf(!ADMIN_URL)(
       );
     }
 
-    /** The history with no organization, as `who` at `aal`. */
     function history(
       who: string | null,
       limit: string,
@@ -191,7 +157,6 @@ describe.skipIf(!ADMIN_URL)(
 
     const scopedTo = (tenant: string) => ({ "x-asym-tenant": id[tenant]! });
 
-    /** Whether `assert_eve_launch_profile` accepts `profile` in `tenant` as the grant's actor. */
     async function accepted(tenant: string, profile: string) {
       await db.query("savepoint accepts");
       try {
@@ -217,9 +182,6 @@ describe.skipIf(!ADMIN_URL)(
         const accepts: string[] = [];
         for (const p of people) if (await accepted("TA", p)) accepts.push(p);
         expect(listed.map((o) => keyOf(o.id)).sort()).toEqual(accepts.sort());
-        // OX is staff in TA and OW holds only a donor row there: both are
-        // accepted. OV (TB only), OR (revoked) and UADM (not an operator) are
-        // not.
         expect(accepts.sort()).toEqual(["OW", "OX"]);
 
         expect(listed).toEqual([
@@ -255,8 +217,6 @@ describe.skipIf(!ADMIN_URL)(
             NOT_REQUEST_TENANT,
           ]);
         }
-        // The same organization by UUID, in capitals or with spaces around
-        // it, as D-226's check reads the header.
         for (const value of [id.TA!.toUpperCase(), ` ${id.TA} `]) {
           const out = await operators("OX", "TA", { "x-asym-tenant": value });
           expect([value, out.code]).toEqual([value, null]);
@@ -270,7 +230,6 @@ describe.skipIf(!ADMIN_URL)(
 
     it("refuses an operator at aal1, a person who is not an operator, an operator with no live staff row there, and nobody signed in", () =>
       tx(async () => {
-        // One call at a time: every call shares the one connection.
         const refusals: Array<
           [string, () => ReturnType<typeof history>, string]
         > = [

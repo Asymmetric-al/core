@@ -203,7 +203,6 @@ describe("AL-2675 WP2c part 2a, T7: the operator area journey starts the stack",
   });
 });
 
-/** Whether a changed `file` matches a path-filter pattern (`*` within a segment, `**` across). */
 function matchesPattern(pattern: string, file: string): boolean {
   const source = pattern
     .split(/(\*\*|\*)/)
@@ -218,7 +217,6 @@ function matchesPattern(pattern: string, file: string): boolean {
   return new RegExp(`^${source}$`).test(file);
 }
 
-/** The repository file a relative import of `from` names, or null. */
 function resolveImport(from: string, specifier: string): string | null {
   const base = path.posix.join(path.posix.dirname(from), specifier);
   for (const candidate of [
@@ -234,11 +232,6 @@ function resolveImport(from: string, specifier: string): string | null {
   return null;
 }
 
-/**
- * Every repository file the journey imports by a relative path, and what
- * those imports under `tests/` import in turn. Packages are matched by their
- * own patterns, not walked.
- */
 function journeyImports(entry: string): string[] {
   const seen = new Set<string>();
   const queue = [entry];
