@@ -3,6 +3,7 @@ import { cacheLife, cacheTag } from "next/cache";
 
 import { type PaginatedResult, type PaginationParams } from "./types";
 import { READ_CACHE_TAGS } from "../shared/cache-tags";
+import { findOwnDonor, type OwnDonorLookup } from "../shared/queries";
 
 type QueryError = { message?: string } | null;
 
@@ -154,20 +155,22 @@ export async function resolveDonorId(
     return null;
   }
 
-  const { data, error: donorLookupError } = await client
-    .from("donors")
-    .select("id")
-    .eq("tenant_id", tenantId)
-    .eq("profile_id", profileId)
-    .maybeSingle<DonorRow>();
-
-  if (donorLookupError || !data?.id) {
+  let lookup: OwnDonorLookup<DonorRow>;
+  try {
+    lookup = await findOwnDonor<DonorRow>(client, {
+      userId: profileId,
+      tenantId,
+    });
+  } catch {
+    return null;
+  }
+  if (lookup.status !== "found") {
     return null;
   }
 
-  if (queryDonorId && queryDonorId !== data.id) {
+  if (queryDonorId && queryDonorId !== lookup.donor.id) {
     return null;
   }
 
-  return data.id;
+  return lookup.donor.id;
 }

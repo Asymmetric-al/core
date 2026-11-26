@@ -11,6 +11,7 @@ import { beginGiftIntake } from "../donate/begin-gift-intake";
 import { resolveRequiredIdempotencyKey } from "../donate/idempotency";
 import { processDonationSagaOutboxEvent } from "../donate/saga";
 import { ensureJsonBody, toErrorResponse } from "../shared/http-errors";
+import { findOwnDonor, type OwnDonorLookup } from "../shared/queries";
 import { resolveTenantStripe } from "../stripe/tenant-client";
 
 function getSupabaseAdmin() {
@@ -37,23 +38,29 @@ export async function GET(request: NextRequest) {
     const limit = parseInt(searchParams.get("limit") || "20");
     const offset = parseInt(searchParams.get("offset") || "0");
 
-    const { data: donor, error: donorError } = await supabaseAdmin
-      .from("donors")
-      .select("id")
-      .eq("profile_id", ctx.profileId)
-      .eq("tenant_id", ctx.tenantId)
-      .maybeSingle();
-
-    if (donorError) {
+    let lookup: OwnDonorLookup<{ id: string }>;
+    try {
+      lookup = await findOwnDonor(supabaseAdmin, {
+        userId: ctx.userId,
+        tenantId: ctx.tenantId,
+      });
+    } catch (donorError) {
       console.error("[donations] Donor lookup failed", donorError);
       return NextResponse.json(
         { error: "Failed to load donations" },
         { status: 500 },
       );
     }
-    if (!donor?.id) {
+    if (lookup.status === "multiple") {
+      return NextResponse.json(
+        { error: "Multiple donor records for this account" },
+        { status: 409 },
+      );
+    }
+    if (lookup.status === "none") {
       return NextResponse.json({ donations: [] });
     }
+    const donor = lookup.donor;
 
     const { data, error: queryError } = await supabaseAdmin
       .from("donations")

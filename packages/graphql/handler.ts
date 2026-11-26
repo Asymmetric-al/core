@@ -6,6 +6,7 @@ import {
 } from "@asym/api/donations/select";
 import { isAnonymousToRecipient } from "@asym/api/missionary-portal/redaction";
 import { CACHE_TAGS, revalidateTags } from "@asym/api/shared/cache-tags";
+import { findOwnDonor, type OwnDonorLookup } from "@asym/api/shared/queries";
 import {
   getAuthContext,
   hasContextRoleClass,
@@ -364,14 +365,22 @@ const resolvers = {
       const limit = args.limit || 20;
       const offset = args.offset || 0;
 
-      const { data: donor, error: donorError } = await ctx.supabaseAdmin
-        .from("donors")
-        .select("id")
-        .eq("profile_id", auth.profileId)
-        .eq("tenant_id", auth.tenantId)
-        .maybeSingle();
-      if (donorError) throw donationsQueryFailed("Donor lookup", donorError);
-      if (!donor?.id) return [];
+      let lookup: OwnDonorLookup<{ id: string }>;
+      try {
+        lookup = await findOwnDonor(ctx.supabaseAdmin, {
+          userId: auth.userId,
+          tenantId: auth.tenantId,
+        });
+      } catch (donorError) {
+        throw donationsQueryFailed("Donor lookup", donorError);
+      }
+      if (lookup.status === "multiple") {
+        throw createGraphQLError("Multiple donor records for this account", {
+          extensions: { code: "MULTIPLE_DONORS" },
+        });
+      }
+      if (lookup.status === "none") return [];
+      const donor = lookup.donor;
 
       const { data, error } = await ctx.supabaseAdmin
         .from("donations")
