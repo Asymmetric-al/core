@@ -60,7 +60,7 @@ describe("Payload's copy-and-paste store is emptied at each change of person or 
     ],
     [
       "Web Studio's organization choice, which every change of organization passes",
-      "apps/admin/app/(auth)/web-studio/organization/page.tsx",
+      "apps/admin/app/(auth)/web-studio/organization/layout.tsx",
     ],
   ])("is mounted on %s", (_label, file) => {
     const source = read(file);
