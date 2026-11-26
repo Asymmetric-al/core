@@ -6,6 +6,7 @@ import {
 import {
   applyRequestScopeHeaders,
   retiredScopeResponse,
+  SCOPE_GENERATION_HEADER,
   SCOPE_REFUSED_HEADER,
 } from "./request-scope-headers";
 
@@ -84,6 +85,10 @@ export function ownApiFetch(
   }
   const scope = state.kind === "scoped" ? state.scope : null;
   const headers = applyRequestScopeHeaders(new Headers(init.headers), scope);
+  headers.delete(SCOPE_GENERATION_HEADER);
+  if (scope?.generation !== undefined) {
+    headers.set(SCOPE_GENERATION_HEADER, String(scope.generation));
+  }
   const sent = fetch(withAppBasePath(path), {
     credentials: "same-origin",
     ...init,

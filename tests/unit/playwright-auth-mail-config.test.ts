@@ -1,4 +1,13 @@
-import { describe, expect, it } from "vitest";
+import { spawnSync } from "node:child_process";
+import { readdirSync, readFileSync } from "node:fs";
+
+import { afterEach, describe, expect, it, vi } from "vitest";
+
+import {
+  loadWorkflowDocument,
+  type WorkflowStep,
+} from "./helpers/workflow-yaml";
+import { adminServerLogFile } from "../e2e/helpers/auth-mail";
 
 /**
  * The auth email journeys' dev servers (playwright.auth-mail.config.ts).
@@ -19,13 +28,39 @@ type Server = {
   env?: Record<string, string>;
 };
 
-function server(app: string): Server {
-  const servers = (
-    Array.isArray(config.webServer) ? config.webServer : [config.webServer]
+function serversOf(loaded: typeof config): Server[] {
+  return (
+    Array.isArray(loaded.webServer) ? loaded.webServer : [loaded.webServer]
   ) as Server[];
+}
+
+function server(app: string, loaded: typeof config = config): Server {
+  const servers = serversOf(loaded);
   const found = servers.find((s) => s.command.includes(`apps/${app} `));
   if (!found) throw new Error(`no web server for ${app}`);
   return found;
+}
+
+function uploadedPaths(): string[] {
+  const uploads: string[] = [];
+  for (const file of readdirSync(".github/workflows").filter((name) =>
+    /\.ya?ml$/.test(name),
+  )) {
+    const document = loadWorkflowDocument(`.github/workflows/${file}`) as {
+      jobs?: Record<string, { steps?: WorkflowStep[] }>;
+    };
+    for (const job of Object.values(document.jobs ?? {})) {
+      for (const step of job.steps ?? []) {
+        if (!String(step.uses ?? "").startsWith("actions/upload-artifact"))
+          continue;
+        for (const line of String(step.with?.path ?? "").split(/\r?\n/)) {
+          const entry = line.trim();
+          if (entry && !entry.startsWith("!")) uploads.push(entry);
+        }
+      }
+    }
+  }
+  return uploads;
 }
 
 describe("the auth email suite's dev servers", () => {
@@ -44,5 +79,111 @@ describe("the auth email suite's dev servers", () => {
     expect(command).toMatch(/--hostname 127\.0\.0\.1$/);
     expect(env?.NODE_OPTIONS ?? "").not.toContain("--dns-result-order");
     expect(new URL(url).hostname).toBe("127.0.0.1");
+  });
+});
+
+describe("AL-2675 WP2c part 2a, T7: the operator area journey", () => {
+  const adminPort = Number(process.env.AUTH_MAIL_ADMIN_PORT || 3130);
+
+  it.each([
+    ["**/auth-password-recovery.spec.ts", "an earlier journey"],
+    ["**/auth-signup-confirmation.spec.ts", "an earlier journey"],
+    ["**/auth-two-organizations.spec.ts", "an earlier journey"],
+    ["**/auth-request-scope-reads.spec.ts", "an earlier journey"],
+    ["**/auth-crm-reads.spec.ts", "an earlier journey"],
+    ["**/auth-member-care.spec.ts", "an earlier journey"],
+    [
+      "**/auth-worker-record.spec.ts",
+      "AL-2678 r2b1, the worker record, from develop with pull request 2833",
+    ],
+    ["**/auth-members-invitations.spec.ts", "an earlier journey"],
+    ["**/auth-sites-settings.spec.ts", "an earlier journey"],
+    ["**/auth-operator-area.spec.ts", "AL-2675 WP2c part 2a, this journey"],
+  ])("runs %s beside the operator area journey (%s)", (pattern) => {
+    expect(config.testMatch).toContain(pattern);
+  });
+
+  afterEach(() => {
+    vi.unstubAllEnvs();
+    vi.resetModules();
+  });
+
+  it("gives only Mission Control's server an operations address, its own localhost port", () => {
+    expect(server("admin").env?.OPERATIONS_NAMES).toBe(
+      `localhost:${adminPort}`,
+    );
+    expect(server("donor").env?.OPERATIONS_NAMES).toBeUndefined();
+    expect(server("missionary").env?.OPERATIONS_NAMES).toBeUndefined();
+  });
+
+  it("B12: sets its own operations list whatever the shell exports, admitting localhost and not 127.0.0.1", async () => {
+    vi.stubEnv("OPERATIONS_NAMES", "evil.example,127.0.0.1:3130");
+    vi.resetModules();
+    const { default: fresh } =
+      await import("../../playwright.auth-mail.config");
+    expect(server("admin", fresh).env?.OPERATIONS_NAMES).toBe(
+      `localhost:${adminPort}`,
+    );
+    expect(server("donor", fresh).env?.OPERATIONS_NAMES).toBeUndefined();
+    expect(server("missionary", fresh).env?.OPERATIONS_NAMES).toBeUndefined();
+  });
+
+  it("F5: gives each server process the operations list the config names, whatever the shell exports, in the environment Playwright 1.63 starts it with (process.env, then the server's env)", async () => {
+    vi.stubEnv("OPERATIONS_NAMES", "evil.example,127.0.0.1:3130");
+    vi.resetModules();
+    const { default: fresh } =
+      await import("../../playwright.auth-mail.config");
+    const seenBy = (app: string) =>
+      spawnSync(
+        process.execPath,
+        [
+          "-e",
+          "process.stdout.write(process.env.OPERATIONS_NAMES ?? '<unset>')",
+        ],
+        {
+          encoding: "utf8",
+          env: { ...process.env, ...server(app, fresh).env },
+        },
+      ).stdout;
+    expect(seenBy("admin")).toBe(`localhost:${adminPort}`);
+    expect(seenBy("donor")).toBe("<unset>");
+    expect(seenBy("missionary")).toBe("<unset>");
+  });
+
+  it("R1: keeps the admin server's log, which can hold forwarded browser output, outside every path a workflow uploads", () => {
+    const log = adminServerLogFile({} as NodeJS.ProcessEnv);
+    expect(log).toBe(".e2e-logs/auth-mail-admin-server.log");
+    const uploads = uploadedPaths();
+    expect(uploads).toContain("test-results/auth-mail/");
+    for (const entry of uploads) {
+      if (entry.startsWith("${{ runner.temp }}/")) continue;
+      const prefix = entry.replace(/[*?[{$].*$/, "");
+      expect(prefix, entry).not.toBe("");
+      expect(log.startsWith(prefix), entry).toBe(false);
+    }
+  });
+
+  it("F6: leaves no page snapshot of the operator journey in the uploaded results, because the journey closes its pages after a failure", () => {
+    expect(config.outputDir).toBe("test-results/auth-mail");
+    expect(uploadedPaths()).toContain("test-results/auth-mail/");
+    const spec = readFileSync("tests/e2e/auth-operator-area.spec.ts", "utf8");
+    expect(spec).toMatch(
+      /test\.afterEach\(\s*async\s*\(\{\s*page\s*\},\s*testInfo\)\s*=>\s*closePagesAfterFailure\(testInfo,\s*page\.context\(\)\)/,
+    );
+  });
+
+  it("mirrors Mission Control's server output to the log file the journey reads, and starts it the same way", () => {
+    const { command, env } = server("admin");
+    expect(command).toContain(
+      "node scripts/e2e/tee-dev-server.mjs bun run --cwd apps/admin dev:playwright",
+    );
+    expect(command).toMatch(/--hostname localhost$/);
+    expect(env?.AUTH_MAIL_ADMIN_LOG_FILE).toBe(
+      process.env.AUTH_MAIL_ADMIN_LOG_FILE?.trim() ||
+        ".e2e-logs/auth-mail-admin-server.log",
+    );
+    for (const app of ["donor", "missionary"]) {
+      expect(server(app).command).not.toContain("tee-dev-server");
+    }
   });
 });

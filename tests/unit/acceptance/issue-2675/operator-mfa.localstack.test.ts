@@ -24,10 +24,12 @@
  * flag it fails instead. It creates two logins of its own and removes them.
  */
 import { spawnSync } from "node:child_process";
-import { createHmac, randomUUID } from "node:crypto";
+import { randomUUID } from "node:crypto";
 
 import pg from "pg";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
+
+import { totp } from "../../../e2e/helpers/totp";
 
 const API = process.env.OPERATOR_MFA_API_URL ?? "";
 const ANON = process.env.OPERATOR_MFA_ANON_KEY ?? "";
@@ -44,40 +46,6 @@ it.runIf(REQUIRED && !READY)(
   "the runner passes the stack's values (fails, never skips)",
   () => expect(READY).toBe(true),
 );
-
-/** RFC 4648 base32, as TOTP secrets are written. */
-function base32(secret: string): Buffer {
-  const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567";
-  const bytes: number[] = [];
-  let bits = 0;
-  let value = 0;
-  for (const char of secret.replace(/=+$/, "").toUpperCase()) {
-    const index = alphabet.indexOf(char);
-    if (index < 0) throw new Error("the TOTP secret is not base32");
-    value = (value << 5) | index;
-    bits += 5;
-    if (bits >= 8) {
-      bytes.push((value >>> (bits - 8)) & 0xff);
-      bits -= 8;
-      value &= (1 << bits) - 1;
-    }
-  }
-  return Buffer.from(bytes);
-}
-
-/** RFC 6238: six digits, SHA-1, 30-second steps. */
-function totp(secret: string, at = Date.now()): string {
-  const step = Buffer.alloc(8);
-  step.writeBigUInt64BE(BigInt(Math.floor(at / 30_000)));
-  const mac = createHmac("sha1", base32(secret)).update(step).digest();
-  const offset = mac[mac.length - 1]! & 0x0f;
-  const code =
-    ((mac[offset]! & 0x7f) << 24) |
-    (mac[offset + 1]! << 16) |
-    (mac[offset + 2]! << 8) |
-    mac[offset + 3]!;
-  return String(code % 1_000_000).padStart(6, "0");
-}
 
 /** The claims of an access token, unverified: what Auth says it issued. */
 function claims(token: string): Record<string, unknown> {
@@ -402,6 +370,247 @@ describe.skipIf(!READY)(
       });
       const read = await rpc("caller_is_platform_operator", operatorAal2);
       expect([read.status, read.json]).toEqual([200, false]);
+    });
+  },
+);
+
+describe.skipIf(!READY)(
+  "AL-2675 WP2c part 2a, T5: what Supabase Auth does with operators' factors, refreshes and removals",
+  () => {
+    const db = new pg.Client({
+      connectionString: DB_URL,
+      connectionTimeoutMillis: 10_000,
+      query_timeout: 15_000,
+      statement_timeout: 15_000,
+    });
+    const password = `wp2c2a-${randomUUID()}`;
+    const operator = {
+      email: `wp2c2a-operator-${randomUUID()}@example.invalid`,
+      id: "",
+    };
+    const keeper = {
+      email: `wp2c2a-keeper-${randomUUID()}@example.invalid`,
+      id: "",
+    };
+    const person = {
+      email: `wp2c2a-person-${randomUUID()}@example.invalid`,
+      id: "",
+    };
+
+    type Session = { access: string; refresh: string };
+
+    async function createLogin(login: { email: string; id: string }) {
+      const created = await auth(
+        "/admin/users",
+        { email: login.email, password, email_confirm: true },
+        undefined,
+        true,
+      );
+      expect(created.status, JSON.stringify(created.json)).toBe(200);
+      login.id = String(created.json!.id);
+    }
+
+    function addToList(login: { email: string }) {
+      const added = spawnSync(
+        process.execPath,
+        [
+          "scripts/platform/operators.mjs",
+          "add",
+          "--user",
+          login.email,
+          "--actor",
+          "WP2c part 2a stack proof",
+          "--reason",
+          "Factor and refresh proof on a local stack",
+        ],
+        {
+          encoding: "utf8",
+          timeout: 60_000,
+          env: { ...process.env, OPERATORS_DATABASE_URL: DB_URL },
+        },
+      );
+      expect(added.status, added.stderr).toBe(0);
+    }
+
+    async function signIn(email: string): Promise<Session> {
+      const session = await auth("/token?grant_type=password", {
+        email,
+        password,
+      });
+      expect(session.status, JSON.stringify(session.json?.code)).toBe(200);
+      return {
+        access: String(session.json!.access_token),
+        refresh: String(session.json!.refresh_token),
+      };
+    }
+
+    async function refresh(session: Session): Promise<Session> {
+      const renewed = await auth("/token?grant_type=refresh_token", {
+        refresh_token: session.refresh,
+      });
+      expect(renewed.status, JSON.stringify(renewed.json?.code)).toBe(200);
+      return {
+        access: String(renewed.json!.access_token),
+        refresh: String(renewed.json!.refresh_token),
+      };
+    }
+
+    async function enrol(token: string) {
+      const enrolled = await auth(
+        "/factors",
+        { factor_type: "totp", friendly_name: `wp2c2a-${randomUUID()}` },
+        token,
+      );
+      expect(enrolled.status, JSON.stringify(enrolled.json?.code)).toBe(200);
+      return {
+        id: String(enrolled.json!.id),
+        secret: String((enrolled.json!.totp as { secret: string }).secret),
+      };
+    }
+
+    async function verify(
+      token: string,
+      factor: { id: string; secret: string },
+    ): Promise<Session> {
+      const challenge = await auth(
+        `/factors/${factor.id}/challenge`,
+        {},
+        token,
+      );
+      expect(challenge.status, JSON.stringify(challenge.json?.code)).toBe(200);
+      const verified = await auth(
+        `/factors/${factor.id}/verify`,
+        {
+          challenge_id: String(challenge.json!.id),
+          code: totp(factor.secret),
+        },
+        token,
+      );
+      expect(verified.status, JSON.stringify(verified.json?.code)).toBe(200);
+      return {
+        access: String(verified.json!.access_token),
+        refresh: String(verified.json!.refresh_token),
+      };
+    }
+
+    function unenrol(token: string, factorId: string) {
+      return call(`${API}/auth/v1/factors/${factorId}`, {
+        method: "DELETE",
+        headers: { apikey: ANON, authorization: `Bearer ${token}` },
+      });
+    }
+
+    let session: Session = { access: "", refresh: "" };
+    let first = { id: "", secret: "" };
+    let second = { id: "", secret: "" };
+
+    beforeAll(async () => {
+      await db.connect();
+      await createLogin(operator);
+      await createLogin(keeper);
+      await createLogin(person);
+      addToList(keeper);
+      addToList(operator);
+      session = await signIn(operator.email);
+    });
+
+    afterAll(() =>
+      cleanupProofUsers([operator, keeper, person], {
+        findIds: async (emails) =>
+          (
+            await db.query<{ id: string }>(
+              "select id from auth.users where email = any($1::text[])",
+              [emails],
+            )
+          ).rows.map((user) => user.id),
+        removeOperators: async (ids) => {
+          await db.query(
+            "delete from authz.platform_operators where user_id = any($1::uuid[])",
+            [ids],
+          );
+        },
+        removeAudit: async (ids) => {
+          await db.query(
+            "delete from public.audit_logs where resource_type = 'platform_operator' and resource_id = any($1::text[])",
+            [ids],
+          );
+        },
+        removeLogin: async (id) => {
+          const removed = await call(`${API}/auth/v1/admin/users/${id}`, {
+            method: "DELETE",
+            headers: { apikey: SERVICE, authorization: `Bearer ${SERVICE}` },
+          });
+          if (removed.status !== 200)
+            throw new Error(
+              `deleting proof login ${id} answered ${removed.status}`,
+            );
+        },
+        close: () => db.end(),
+      }),
+    );
+
+    it("(1) keeps aal2 across a refresh, and the shared check still passes", async () => {
+      first = await enrol(session.access);
+      session = await verify(session.access, first);
+      expect(claims(session.access).aal).toBe("aal2");
+      session = await refresh(session);
+      expect(claims(session.access).aal).toBe("aal2");
+      const passed = await rpc("platform_operator_session", session.access);
+      expect([passed.status, passed.json]).toEqual([
+        200,
+        { operator_id: operator.id },
+      ]);
+    });
+
+    it("(2) with two verified factors, removing one at aal2 and refreshing keeps aal2, and the other still verifies", async () => {
+      second = await enrol(session.access);
+      session = await verify(session.access, second);
+      const removed = await unenrol(session.access, first.id);
+      expect(removed.status, JSON.stringify(removed.json?.code)).toBe(200);
+      session = await refresh(session);
+      expect(claims(session.access).aal).toBe("aal2");
+      session = await verify(session.access, second);
+      expect(claims(session.access).aal).toBe("aal2");
+      const passed = await rpc("platform_operator_session", session.access);
+      expect(passed.status).toBe(200);
+    });
+
+    it("(3) removing the last verified factor and refreshing gives aal1, and the shared check refuses", async () => {
+      const removed = await unenrol(session.access, second.id);
+      expect(removed.status, JSON.stringify(removed.json?.code)).toBe(200);
+      session = await refresh(session);
+      expect(claims(session.access).aal).toBe("aal1");
+      const refused = await rpc("platform_operator_session", session.access);
+      expect(refused.status).toBe(403);
+      expect(refused.json).toMatchObject({
+        code: "42501",
+        message: NO_SECOND_FACTOR,
+      });
+    });
+
+    it("(4) removes an unverified factor at aal1, and a new enrolment starts", async () => {
+      expect(claims(session.access).aal).toBe("aal1");
+      const pending = await enrol(session.access);
+      const removed = await unenrol(session.access, pending.id);
+      expect(removed.status, JSON.stringify(removed.json?.code)).toBe(200);
+      const next = await enrol(session.access);
+      expect(next.id).not.toBe(pending.id);
+      const cleared = await unenrol(session.access, next.id);
+      expect(cleared.status).toBe(200);
+    });
+
+    it("(5) a person who is not on the list may enrol and verify through Auth directly and reach aal2, yet the list read the area's admission uses answers false and platform_operator_session refuses", async () => {
+      const own = await signIn(person.email);
+      const verified = await verify(own.access, await enrol(own.access));
+      expect(claims(verified.access).aal).toBe("aal2");
+      const read = await rpc("caller_is_platform_operator", verified.access);
+      expect([read.status, read.json]).toEqual([200, false]);
+      const refused = await rpc("platform_operator_session", verified.access);
+      expect(refused.status).toBe(403);
+      expect(refused.json).toMatchObject({
+        code: "42501",
+        message: NOT_OPERATOR,
+      });
     });
   },
 );

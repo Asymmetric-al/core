@@ -26,12 +26,14 @@ import {
 } from "./principal/reader";
 import {
   ADDRESS_PREFIX_HEADER,
+  API_SCOPE_CLAIM_HEADERS,
   ASSIGNMENT_HEADER,
-  NAME_TENANT_HEADER,
   PAGE_SCOPE_HEADERS,
   ROLE_CLASS_HEADER,
+  setVerifiedNameHeaders,
   TENANT_HEADER,
   TENANT_REWRITE_HEADER,
+  type VerifiedNameFacts,
 } from "./request-headers";
 import {
   isListedRouteMatch,
@@ -132,18 +134,17 @@ function forwardedRequestHeaders(
   pathname: string,
   roleClass: RoleClass | null,
   isApiRequest: boolean,
-  nameTenantId?: string,
+  name: VerifiedNameFacts,
 ) {
   const requestHeaders = new Headers(request.headers);
   requestHeaders.set("x-asym-pathname", pathname);
   if (roleClass) requestHeaders.set(ROLE_CLASS_HEADER, roleClass);
   else requestHeaders.delete(ROLE_CLASS_HEADER);
-  for (const name of PAGE_SCOPE_HEADERS) {
-    if (isApiRequest && (name === TENANT_HEADER || name === ASSIGNMENT_HEADER))
-      continue;
-    requestHeaders.delete(name);
+  for (const header of PAGE_SCOPE_HEADERS) {
+    if (isApiRequest && API_SCOPE_CLAIM_HEADERS.includes(header)) continue;
+    requestHeaders.delete(header);
   }
-  if (nameTenantId) requestHeaders.set(NAME_TENANT_HEADER, nameTenantId);
+  setVerifiedNameHeaders(requestHeaders, name);
   return requestHeaders;
 }
 
@@ -151,7 +152,7 @@ function withPathHeader(
   request: NextRequest,
   pathname: string,
   roleClass: RoleClass | null,
-  nameTenantId?: string,
+  name: VerifiedNameFacts,
 ) {
   return NextResponse.next({
     request: {
@@ -160,7 +161,7 @@ function withPathHeader(
         pathname,
         roleClass,
         pathname.startsWith("/api/"),
-        nameTenantId,
+        name,
       ),
     },
   });
@@ -269,7 +270,7 @@ function withSearch(request: NextRequest, pathname: string) {
   return `${pathname}${request.nextUrl.search}`;
 }
 
-function ownOriginUrl(request: NextRequest, path: string): URL | null {
+export function ownOriginUrl(request: NextRequest, path: string): URL | null {
   if (!path.startsWith("/")) return null;
   const url = appUrl(request, path);
   return url.origin === request.nextUrl.origin && !url.pathname.startsWith("//")
@@ -350,8 +351,9 @@ export function createAuthMiddleware(options: AuthMiddlewareOptions = {}) {
 
   return async function authMiddleware(
     request: NextRequest,
-    { nameTenantId }: { nameTenantId?: string } = {},
+    name: VerifiedNameFacts = {},
   ) {
+    const { nameTenantId } = name;
     const addressPathname = request.nextUrl.pathname;
     const refusal = await admitApiMutation(request, addressPathname);
     if (refusal) return refusal;
@@ -373,17 +375,12 @@ export function createAuthMiddleware(options: AuthMiddlewareOptions = {}) {
 
     if (allowApi && pathname.startsWith("/api/")) {
       if (address) return new NextResponse(null, { status: 404 });
-      return withPathHeader(request, pathname, roleClass, nameTenantId);
+      return withPathHeader(request, pathname, roleClass, name);
     }
 
     if (webStudio && isWebStudioApiPath(pathname)) {
       if (address) return refusedAddress();
-      return refreshWebStudioApiSession(
-        request,
-        pathname,
-        roleClass,
-        nameTenantId,
-      );
+      return refreshWebStudioApiSession(request, pathname, roleClass, name);
     }
 
     if (webStudio && !address && isStrayWebStudioChooserPath(pathname)) {
@@ -412,7 +409,7 @@ export function createAuthMiddleware(options: AuthMiddlewareOptions = {}) {
       isProtectedActionDoorwayPath(pathname)
     ) {
       return applyProtectedActionHeaders(
-        withPathHeader(request, pathname, roleClass, nameTenantId),
+        withPathHeader(request, pathname, roleClass, name),
       );
     }
 
@@ -436,7 +433,7 @@ export function createAuthMiddleware(options: AuthMiddlewareOptions = {}) {
         return NextResponse.redirect(redirectUrl);
       }
 
-      return withPathHeader(request, pathname, roleClass, nameTenantId);
+      return withPathHeader(request, pathname, roleClass, name);
     }
 
     const requestHeaders = forwardedRequestHeaders(
@@ -444,7 +441,7 @@ export function createAuthMiddleware(options: AuthMiddlewareOptions = {}) {
       addressPathname,
       roleClass,
       false,
-      nameTenantId,
+      name,
     );
     let supabaseResponse = NextResponse.next({
       request: { headers: requestHeaders },

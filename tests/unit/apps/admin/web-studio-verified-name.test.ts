@@ -105,7 +105,11 @@ function onName(tenantId: string | null) {
   state.headers = new Headers(
     tenantId === null
       ? { "next-action": "choose" }
-      : { [NAME]: tenantId, "next-action": "choose" },
+      : {
+          [NAME]: tenantId,
+          "x-asym-name-generation": "7",
+          "next-action": "choose",
+        },
   );
 }
 
@@ -139,7 +143,7 @@ afterEach(() => {
   vi.unstubAllEnvs();
 });
 
-describe("on: Web Studio's render gate takes the name", () => {
+describe("on: Web Studio's render gate takes the name (D-18, N2 part 2a: the name's fixture carries its generation, 7)", () => {
   it("sends P with a cookie for B to the chooser with refused=1 on name A, and selects nothing", async () => {
     onName(TA);
     await selectCookie(TB, P_DEV_B.assignmentId);
@@ -323,6 +327,69 @@ describe.each([
       expect(await gate()).toBe("/web-studio/organization?next=%2Fweb-studio");
       await redirectOf(() => choose(TB, P_DEV_B.assignmentId));
       expect(state.set).toHaveLength(1);
+    });
+  },
+);
+
+describe("on: Web Studio's scope carries the name's generation", () => {
+  it("gives Q's document on name A generation 7, so its own-API calls send it", async () => {
+    onName(TA);
+    state.signedIn = signedIn(Q);
+    const access = await requireWebStudioAccess("/web-studio");
+    expect(access.scope).toEqual({
+      userId: USER,
+      tenantId: TA,
+      assignmentId: Q[0]!.assignmentId,
+      addressPrefix: "",
+      generation: 7,
+    });
+  });
+
+  it.each([
+    ["absent", null],
+    ["invalid", "07"],
+  ] as const)(
+    "refuses a valid name whose generation is %s: /no-access, and selects nothing",
+    async (_label, generation) => {
+      onName(TA);
+      state.headers.delete("x-asym-name-generation");
+      if (generation !== null) {
+        state.headers.set("x-asym-name-generation", generation);
+      }
+      state.signedIn = signedIn(Q);
+      expect(
+        await redirectOf(() => requireWebStudioAccess("/web-studio")),
+      ).toBe("/no-access");
+      await expect(readWebStudioSelection()).resolves.toEqual({
+        kind: "none",
+      });
+    },
+  );
+});
+
+describe.each([
+  ["unset", undefined],
+  ["0", "0"],
+] as const)(
+  "off (switch %s): a client's generation headers change nothing",
+  (_label, value) => {
+    it("the gate's scope has today's keys", async () => {
+      vi.stubEnv("CORE_SERVE_UNDER_PATHS", value);
+      vi.stubEnv("CORE_APP_BASE_PATH", "");
+      state.signedIn = signedIn(Q);
+      const without = await requireWebStudioAccess("/web-studio");
+      state.headers = new Headers({
+        "x-asym-name-generation": "6",
+        "x-asym-scope-generation": "6",
+      });
+      const withThem = await requireWebStudioAccess("/web-studio");
+      expect(withThem).toEqual(without);
+      expect(Object.keys(withThem.scope).sort()).toEqual([
+        "addressPrefix",
+        "assignmentId",
+        "tenantId",
+        "userId",
+      ]);
     });
   },
 );

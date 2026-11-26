@@ -9,7 +9,9 @@ import {
   STAFF_READ_ONLY_EXEMPT_PREFIXES,
   withoutFrontHeaders,
 } from "@asym/auth/front";
+import { answerAdmittedRedirect } from "@asym/auth/legacy-redirects";
 import { createAuthMiddleware } from "@asym/auth/middleware";
+import { admitOperatorArea } from "@asym/auth/operator-area";
 import { resolveUserRoleFromDatabase } from "@asym/auth/resolve-user-role";
 import {
   lookUpVerifiedName,
@@ -20,6 +22,7 @@ import {
   isServeUnderPathsEnabled,
 } from "@asym/database/document-reload";
 
+import { legacyRedirects } from "./lib/legacy-redirects";
 import { readWebStudioTenantCookie } from "./src/cms/web-studio-tenant-cookie";
 
 import type { NextRequest } from "next/server";
@@ -59,6 +62,8 @@ const authProxy = createAuthMiddleware({
 });
 
 export async function proxy(request: NextRequest) {
+  const operatorArea = await admitOperatorArea(request, process.env);
+  if (operatorArea) return operatorArea;
   if (!isServeUnderPathsEnabled()) {
     return authProxy(withoutFrontHeaders(request));
   }
@@ -79,10 +84,12 @@ export async function proxy(request: NextRequest) {
   );
   if (name.kind === "refused") return frontNotFound();
   if (name.kind === "unavailable") return verifiedNameUnavailable();
-  const response = await authProxy(
-    asStampedRequest(request, admission.origin),
-    { nameTenantId: name.tenantId },
-  );
+  const response =
+    answerAdmittedRedirect(request, legacyRedirects) ??
+    (await authProxy(asStampedRequest(request, admission.origin), {
+      nameTenantId: name.tenantId,
+      nameGeneration: name.generation,
+    }));
   return rebaseLocation(response, request.nextUrl.origin, admission.origin);
 }
 

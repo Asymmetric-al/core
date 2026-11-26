@@ -613,6 +613,16 @@ describe("the three next.config.ts files in off and on modes", () => {
       "/invite",
       "/invite/:path*",
     ]);
+    expect((await missionaryCfg.redirects?.())?.map((r) => r.source)).toEqual([
+      "/ministry-updates",
+      "/:prefix([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}(?:~[a-z_]+)?)/ministry-updates",
+      "/email-studio",
+      "/:prefix([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}(?:~[a-z_]+)?)/email-studio",
+    ]);
+    expect(Object.hasOwn(adminCfg, "skipTrailingSlashRedirect")).toBe(false);
+    expect(Object.hasOwn(missionaryCfg, "skipTrailingSlashRedirect")).toBe(
+      false,
+    );
 
     const donorCfg = donorMod.default;
     expect(donorCfg.basePath).toBeUndefined();
@@ -649,7 +659,7 @@ describe("the three next.config.ts files in off and on modes", () => {
     expect(donorMod.default.env?.CORE_SERVE_UNDER_PATHS).toBe("0");
   });
 
-  it("sets basePath, inlined env, donor header skips and the donor's static-file rewrites when CORE_SERVE_UNDER_PATHS=1", async () => {
+  it("sets basePath, inlined env, donor header skips and the donor's static-file rewrites when CORE_SERVE_UNDER_PATHS=1, and leaves the dashboards' redirects and trailing-slash 308s to their proxies (D-18, N2 part 2a: on, redirects() is [] and skipTrailingSlashRedirect is true, so nothing answers before the name is admitted)", async () => {
     vi.stubEnv("CORE_SERVE_UNDER_PATHS", "1");
     vi.stubEnv("VERCEL_ENV", "");
     vi.stubEnv("VERCEL_TARGET_ENV", "");
@@ -668,12 +678,8 @@ describe("the three next.config.ts files in off and on modes", () => {
       "/invite",
       "/invite/:path*",
     ]);
-    expect((await adminCfg.redirects?.())?.map((r) => r.source)).toEqual([
-      "/mc",
-      "/mc/",
-      "/mc/:path*",
-      "/api/media/file/:path*",
-    ]);
+    expect(await adminCfg.redirects?.()).toEqual([]);
+    expect(adminCfg.skipTrailingSlashRedirect).toBe(true);
 
     const missionaryCfg = missionaryMod.default;
     expect(missionaryCfg.basePath).toBe("/missionary");
@@ -683,6 +689,8 @@ describe("the three next.config.ts files in off and on modes", () => {
       "/invite",
       "/invite/:path*",
     ]);
+    expect(await missionaryCfg.redirects?.()).toEqual([]);
+    expect(missionaryCfg.skipTrailingSlashRedirect).toBe(true);
 
     const donorCfg = donorMod.default;
     expect(donorCfg.basePath).toBeUndefined();

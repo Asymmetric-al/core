@@ -1,8 +1,9 @@
 # 0015. The dashboards take their organization from the verified name
 
 **Status:** Recorded on 2026-11-25 with N2 part 1 of the Core CRM, CMS and
-database foundation program (AL-2671). It describes the code as it is and
-ratifies no product intent. Accepted platform intent is in
+database foundation program (AL-2671); decisions 12 to 20 added on 2026-11-26
+with N2 part 2a. It describes the code as it is and ratifies no product
+intent. Accepted platform intent is in
 [`docs/adr/`](../../../../docs/adr/README.md) and in the OpenSpec change
 `adopt-tenant-owned-domains`.
 
@@ -117,16 +118,133 @@ surface)` in `verified-name.ts` calls `resolve_verified_host` with the
     signed-in person to `/no-access`. A Site's status is the website's (WP7):
     a home name need not have a Site.
 
+### The name's generation (N2 part 2a)
+
+12. **Two headers.** The lookup's `generation` (decision 1) reaches the
+    request as `x-asym-name-generation`, set only by the dashboards'
+    middleware beside the name, from the second argument
+    `{ nameTenantId, nameGeneration }` the proxies pass, as
+    `String(generation)`. The document's claim is `x-asym-scope-generation`
+    (`@asym/database/request-scope-headers`, re-exported by
+    `@asym/auth/request-headers`). Both are in `PAGE_SCOPE_HEADERS`, so a
+    client's copies are removed wherever the list is looped; the claim is in
+    `API_SCOPE_CLAIM_HEADERS` with the tenant and the assignment, so it is kept
+    on `/api/*` and removed on pages and the tenant rewrite.
+    `refreshWebStudioApiSession` deletes the trusted header by name and sets
+    it with the name; it keeps the claim. The donor app passes no generation
+    (decision 19).
+
+13. **The reading rule.** `readNameGeneration(headers)` is `off` while the
+    switch is off (decided before the header is read), `absent` without the
+    header, `valid` when the raw value, nothing trimmed, is an ASCII `1`-`9`
+    followed only by ASCII `0`-`9` and its `Number` is a safe integer, and
+    `invalid` otherwise (a leading zero, a sign, white space, an exponent, a
+    duplicated header joined by a comma, a non-ASCII digit, a value past
+    `2^53 - 1`). `readServerNameGeneration()` returns `off` without calling
+    `headers()`, and `absent` when the headers cannot be read.
+    `isNameGenerationRefused(name, generation)` is true only beside a `valid`
+    name: an `invalid` generation, or an `absent` one under a dashboard's base
+    path. Nothing reads a generation without a valid name, so a client's copy
+    on a path that removes only the name (`routeToDashboard` and
+    `admitExemptRequest` in `front.ts`, `:277` and `:422` at `fb43b3361`) is
+    inert; the next package that edits `front.ts` deletes
+    `NAME_GENERATION_HEADER` beside the name there.
+
+14. **The claim is compared on every own-API call.** In `getAuthContext`,
+    with a valid name and `nameTenant` not `"ignore"`, a refused generation is
+    the plain refusal (decision 6). With a valid generation, a claim present
+    and not byte for byte `String(generation)`, or no claim at all on a call
+    made with its request (whatever else it carries), is `generation_mismatch`
+    with the scope refusal, after the tenant conflict (both together answer
+    `tenant_mismatch`) and before any row is read; the E2E bypass refuses the
+    same. `getAuthContext()` without a request (a page render, whose claim the
+    proxy removes) never requires it. `generation_mismatch` is an
+    `AuthContext` denial, not an `AssignmentDenyReason`: `requireAuth` throws
+    `ScopeRefusedError`, the answer is `401` with
+    `x-asym-scope-refused: generation_mismatch`, and the browser retires the
+    document. Only `GET /api/media/[assetId]`, which an `<img>` loads with no
+    claim, passes `allowAbsentScopeGeneration: true`, and only on, so its off
+    call keeps its exact options; it stays bound by
+    `resolve_staff_media_access` and its expected tenant against the name, and
+    a present wrong claim is refused there too.
+
+15. **The document scope carries it.** `DocumentScope.generation` is set by
+    `readDocumentScope` and Web Studio's gate from a valid generation (no key
+    when off), and each refuses a name whose generation is refused;
+    `readPortalDocumentScope` is unchanged (decision 19). `sameScope` compares
+    it, so another generation's scope in the same document shows the reload
+    notice and reloads once. `ownApiFetch` removes a caller's claim and sends
+    the scope's generation when it has one; the Data API's and the
+    assistant's headers carry none (N6, N3 part 3). The added `headers()`
+    reads sit inside the layouts' existing `<Suspense>` boundaries; nothing is
+    cached.
+
+16. **What the generation is not.** It changes only when a name's row is
+    inserted or re-claimed, or explicitly re-generated. It does not cover, and
+    must not replace, three refusals that already hold: a revoked membership
+    or role, or an organization made inactive (the live assignment read on
+    every call gives `not_owned_or_inactive`, a scope refusal); a sub-role
+    switch in another tab (each document sends its own row and the server
+    keeps no current sub-role); a demoted home, a removed surface or a name no
+    longer ready (the proxy's lookup on every request answers `404 no-store`
+    before any session read).
+
+17. **Configuration redirects behind admission.** On, both dashboards'
+    `redirects()` return `[]` and set `skipTrailingSlashRedirect: true`, since
+    Next.js otherwise answers both before the proxy, on a refused name too.
+    Each proxy, after the lookup admits the name and before the middleware,
+    answers the same table (`apps/admin/lib/legacy-redirects.ts`,
+    `apps/missionary/lib/legacy-redirects.ts`) with `answerAdmittedRedirect`
+    (`packages/auth/legacy-redirects.ts`): `307` or `308` as `permanent` says,
+    the query kept, then `308` to a non-root path without its trailing slash.
+    The `Location` is built with `ownOriginUrl` and rebased to the public
+    origin; a destination with a backslash or starting with `//` is a
+    `404 no-store`. No session is read and no cookie set. The missionary
+    table's form with the organization in the address is answered only for
+    the name's own ID, byte for byte; otherwise the middleware decides. The
+    matcher follows Next.js's (case-insensitive, strict about the trailing
+    slash) on both tables; it also matches a remainder with an empty segment,
+    which Next.js leaves alone, so that `/mc//x` is refused rather than handed
+    on. Off, both configurations are as before and the proxies answer no
+    redirect. The staff media redirect keeps links that still hold Payload's
+    old `/api/media/file/` address working for this release
+    (`docs/guides/architecture/cms-runtime.md`); the missionary table keeps
+    saved links to the retired update pages answering a real `308` (council
+    round 1, A11). Through the front, the donor app's own trailing-slash `308`
+    still answers first (`docs/guides/architecture/overview.md`).
+
+18. **The callback and the invitation.** On, the sign-in callback counts only
+    the rows of the name's organization when it picks the home class, and
+    falls back to `next` on a refused name state without reading a row.
+    Accepting an invitation refuses a refused name state with
+    `403 INVITATION_INVALID` before the database, and answers
+    `redirectPath: "/"` for the name's organization and `"/no-access"` for
+    another; off it answers `/<organization>` as before. Refusing another
+    organization's invitation before its write is N4's.
+
+19. **The donor app.** Its proxy sets no generation and its base path is
+    empty, so an absent generation is not refused there. The next WP3b part
+    that edits `apps/donor/proxy.ts` threads the generation, adds it to
+    `readPortalDocumentScope` and removes the empty-base-path exception from
+    `isNameGenerationRefused` (ruling R3).
+
+20. **No name, no generation.** A request that reaches a dashboard without
+    a verified name (an exempt path, or the operator area that WP2c part 2a
+    answers on an operations address, never on an organization's name)
+    carries no generation: `readAssignmentNarrowing` reads one only beside a
+    valid name.
+
 ### Not here
 
 11. **Owned elsewhere.** The prototype `/api/cms/public/*` reads and their
-    front exemption were retired in WP6 part 2a (AL-2679). The dashboards'
-    configuration redirects
-    (`apps/admin/next.config.ts`, `apps/missionary/next.config.ts`) run before
-    the proxy, so on a refused name they still redirect before the follow-up
-    gets the `404`; N2 part 2 moves them behind admission, and also takes the
-    organization ID and the chooser out of the address, the browser's guard,
-    the name's generation and the invitation and callback redirects. N2 parts 3
+    front exemption were retired in WP6 part 2a (AL-2679). N2 part 2a moved
+    the dashboards' configuration redirects behind admission and added the
+    name's generation, the callback and the invitation (decisions 12 to 20).
+    N2 part 2b takes the organization ID and the chooser out of the address,
+    with `~<sub-role>`, copied links, Web Studio's entry and the lint rule;
+    part 2c proves two tabs under two roles and a stale tab in a browser;
+    part 2d makes Web Studio's REST calls and server functions send and
+    compare the claim. N2 parts 3
     to 5 own page identity, cache keys and the donor's cache rules (with WP7),
     addresses built outside a request, and deleting the off-mode path. WP3b
     part 1 built the donor app's verified-name admission, active-only donor

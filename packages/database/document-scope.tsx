@@ -122,6 +122,7 @@ export interface DocumentScope {
    * whose links are not prefixed.
    */
   readonly addressPrefix: string;
+  readonly generation?: number;
 }
 
 /**
@@ -260,7 +261,8 @@ function sameScope(a: DocumentScope, b: DocumentScope): boolean {
     a.userId === b.userId &&
     a.tenantId === b.tenantId &&
     a.assignmentId === b.assignmentId &&
-    a.addressPrefix === b.addressPrefix
+    a.addressPrefix === b.addressPrefix &&
+    a.generation === b.generation
   );
 }
 
