@@ -26,6 +26,7 @@ import {
 import { readBrowserStores } from "./helpers/browser-stores";
 import { readFailedRequest, type Read } from "./helpers/operator-reads";
 import { withOwner } from "./helpers/request-scope-reads";
+import { closePagesAfterFailure } from "./helpers/secret-pages";
 import { totp, totpStep } from "./helpers/totp";
 
 const env = readAuthMailEnv();
@@ -199,10 +200,15 @@ async function operatorSessionCheck(stack: AuthMailEnv, token: string) {
   };
 }
 
-async function storageSnapshot(page: Page): Promise<string> {
-  const inPage = JSON.stringify(await page.evaluate(readBrowserStores));
+async function storageSnapshot(
+  page: Page,
+): Promise<{ text: string; unreadable: string[] }> {
+  const stores = await page.evaluate(readBrowserStores);
   const cookies = JSON.stringify(await page.context().cookies());
-  return `${inPage}\n${cookies}`;
+  return {
+    text: `${JSON.stringify(stores)}\n${cookies}`,
+    unreadable: stores.unreadable,
+  };
 }
 
 async function ownerTextScan(stack: AuthMailEnv) {
@@ -324,6 +330,10 @@ test.describe("AL-2675 WP2c part 2a, T6: the operator area in the browser", () =
     );
     await warmUpRoutes(ADMIN_ORIGIN, ["/login"]);
   });
+
+  test.afterEach(async ({ page }, testInfo) =>
+    closePagesAfterFailure(testInfo, page.context()),
+  );
 
   test.afterAll(async () => {
     const stack = env;
@@ -655,11 +665,19 @@ test.describe("AL-2675 WP2c part 2a, T6: the operator area in the browser", () =
       "admin-origin requests carrying the key",
     ).toEqual([]);
     expect(
-      holds(storageWhileEnrolling, forms),
+      storageWhileEnrolling.unreadable,
+      "browser stores that could not be read while enrolling",
+    ).toEqual([]);
+    expect(
+      storageAtEnd.unreadable,
+      "browser stores that could not be read at the end",
+    ).toEqual([]);
+    expect(
+      holds(storageWhileEnrolling.text, forms),
       "browser storage while enrolling holds the key",
     ).toBe(false);
     expect(
-      holds(storageAtEnd, forms),
+      holds(storageAtEnd.text, forms),
       "browser storage at the end holds the key",
     ).toBe(false);
     expect(

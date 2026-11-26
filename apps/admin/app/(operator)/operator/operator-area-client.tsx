@@ -130,6 +130,17 @@ function CodeField({
   );
 }
 
+function useAlive() {
+  const alive = useRef(true);
+  useEffect(() => {
+    alive.current = true;
+    return () => {
+      alive.current = false;
+    };
+  }, []);
+  return alive;
+}
+
 function FailureAlert({ message }: { message: string | null }) {
   if (!message) return null;
   return (
@@ -153,6 +164,7 @@ function EnrolmentPanel({
   const [message, setMessage] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
   const inFlight = useRef(false);
+  const alive = useAlive();
   const codeId = useId();
   const titleId = useId();
 
@@ -163,6 +175,7 @@ function EnrolmentPanel({
     setMessage(null);
     try {
       const result = await startEnrolment();
+      if (!alive.current) return;
       if (result.ok) {
         setCode("");
         setEnrolment({
@@ -189,6 +202,7 @@ function EnrolmentPanel({
     setMessage(null);
     try {
       const result = await verifyCode(enrolment.factorId, code);
+      if (!alive.current) return;
       if (result.ok) {
         setEnrolment(null);
         setCode("");
@@ -217,6 +231,7 @@ function EnrolmentPanel({
     setPending(true);
     try {
       const result = await removeFactor(factorId);
+      if (!alive.current) return;
       if (!result.ok) {
         if (result.message) setMessage(result.message);
         if (result.reread) onReread();
@@ -340,20 +355,23 @@ function ChallengePanel({
   const [pending, setPending] = useState(false);
   const [helpOpen, setHelpOpen] = useState(false);
   const inFlight = useRef(false);
+  const alive = useAlive();
   const titleId = useId();
   const codeId = useId();
+  const gone = () => !alive.current || stopped();
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (inFlight.current || code.length !== CODE_LENGTH || stopped()) return;
+    if (inFlight.current || code.length !== CODE_LENGTH || gone()) return;
     inFlight.current = true;
     setPending(true);
     setMessage(null);
     try {
       let failure: string | null = null;
       for (const factorId of factorIds) {
-        if (stopped()) return;
+        if (gone()) return;
         const result = await verifyCode(factorId, code);
+        if (gone()) return;
         if (result.ok) {
           setCode("");
           onVerified();
@@ -366,7 +384,7 @@ function ChallengePanel({
         failure = result.message;
         if (!result.mismatch) break;
       }
-      if (stopped()) return;
+      if (gone()) return;
       setCode("");
       setMessage(failure);
     } finally {
@@ -426,43 +444,42 @@ function AreaPanel({
   factors,
   onChanged,
   signingOut,
+  removalLocked,
+  beginRemoval,
+  settleRemoval,
 }: {
   factors: VerifiedFactor[];
   onChanged: () => void;
   signingOut: boolean;
+  removalLocked: boolean;
+  beginRemoval: () => boolean;
+  settleRemoval: (changed: boolean) => void;
 }) {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [target, setTarget] = useState<VerifiedFactor | null>(null);
-  const [awaitingList, setAwaitingList] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
-  const removing = useRef(false);
   const titleId = useId();
-  const canRemove = factors.length >= 2 && !awaitingList;
+  const canRemove = factors.length >= 2 && !removalLocked;
 
   function askToRemove(factor: VerifiedFactor) {
-    if (removing.current || awaitingList) return;
+    if (removalLocked) return;
     setMessage(null);
     setTarget(factor);
     setDialogOpen(true);
   }
 
   async function confirmRemoval() {
-    if (!target || removing.current || awaitingList) return;
-    removing.current = true;
-    setAwaitingList(true);
+    if (!target || !beginRemoval()) return;
+    const { id } = target;
     setDialogOpen(false);
     setMessage(null);
-    try {
-      const result = await removeFactor(target.id);
-      if (result.ok || result.reread) {
-        onChanged();
-        return;
-      }
-      setAwaitingList(false);
-      setMessage(result.message);
-    } finally {
-      removing.current = false;
+    const result = await removeFactor(id);
+    if (result.ok || result.reread) {
+      settleRemoval(true);
+      return;
     }
+    settleRemoval(false);
+    setMessage(result.message);
   }
 
   return (
@@ -533,18 +550,24 @@ function AreaPanel({
   );
 }
 
+interface RemovalLock {
+  removalLocked: boolean;
+  beginRemoval: () => boolean;
+  settleRemoval: (changed: boolean) => void;
+}
+
 function StateBody({
   view,
-  version,
   signingOut,
   isSigningOut,
   reread,
+  removal,
 }: {
   view: FactorState;
-  version: number;
   signingOut: boolean;
   isSigningOut: () => boolean;
   reread: () => void;
+  removal: RemovalLock;
 }) {
   switch (view.kind) {
     case "enrol":
@@ -563,10 +586,12 @@ function StateBody({
     case "area":
       return (
         <AreaPanel
-          key={version}
           factors={view.factors}
           onChanged={reread}
           signingOut={signingOut}
+          removalLocked={removal.removalLocked}
+          beginRemoval={removal.beginRemoval}
+          settleRemoval={removal.settleRemoval}
         />
       );
     case "refused":
@@ -593,20 +618,45 @@ function StateBody({
 
 export function OperatorAreaClient() {
   const [view, setView] = useState<View>({ kind: "loading" });
-  const [version, setVersion] = useState(0);
   const [signingOut, setSigningOut] = useState(false);
+  const [removalLocked, setRemovalLocked] = useState(false);
   const signingOutRef = useRef(false);
   const reads = useRef(0);
+  const removal = useRef<{ settledAt: number | null } | null>(null);
 
   const reread = useCallback(() => {
     reads.current += 1;
     const turn = reads.current;
     void readFactorState().then((next) => {
       if (turn !== reads.current) return;
+      const lock = removal.current;
+      if (lock && lock.settledAt !== null && turn >= lock.settledAt) {
+        removal.current = null;
+        setRemovalLocked(false);
+      }
       setView(next);
-      setVersion((current) => current + 1);
     });
   }, []);
+
+  const beginRemoval = useCallback(() => {
+    if (removal.current) return false;
+    removal.current = { settledAt: null };
+    setRemovalLocked(true);
+    return true;
+  }, []);
+
+  const settleRemoval = useCallback(
+    (changed: boolean) => {
+      if (!changed) {
+        removal.current = null;
+        setRemovalLocked(false);
+        return;
+      }
+      removal.current = { settledAt: reads.current + 1 };
+      reread();
+    },
+    [reread],
+  );
 
   const isSigningOut = useCallback(() => signingOutRef.current, []);
 
@@ -637,10 +687,10 @@ export function OperatorAreaClient() {
     <div className="flex max-w-xl flex-col gap-6">
       <StateBody
         view={view}
-        version={version}
         signingOut={signingOut}
         isSigningOut={isSigningOut}
         reread={reread}
+        removal={{ removalLocked, beginRemoval, settleRemoval }}
       />
       <div>
         <Button variant="outline" onClick={signOut} disabled={signingOut}>

@@ -1,7 +1,8 @@
-import type { BrowserContext, TestInfo } from "@playwright/test";
 import { describe, expect, it, vi } from "vitest";
 
 import { closePagesAfterFailure } from "../../e2e/helpers/secret-pages";
+
+import type { BrowserContext, TestInfo } from "@playwright/test";
 
 function contextWith(count: number, refuse: number[] = []) {
   const pages = Array.from({ length: count }, (_page, index) => ({

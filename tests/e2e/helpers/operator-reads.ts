@@ -16,6 +16,18 @@ const NOT_REPLAYED = new Set([
   "host",
 ]);
 
+function isRouteDataTheRouterAborted(request: Request, failure: string) {
+  const headers = request.headers();
+  return (
+    request.method() === "GET" &&
+    failure === "net::ERR_ABORTED" &&
+    !request.isNavigationRequest() &&
+    request.resourceType() === "fetch" &&
+    headers.rsc === "1" &&
+    headers["next-router-prefetch"] === undefined
+  );
+}
+
 export async function readFailedRequest(
   api: APIRequestContext,
   request: Request,
@@ -23,7 +35,7 @@ export async function readFailedRequest(
   named: boolean,
 ): Promise<Read> {
   const failure = request.failure()?.errorText ?? "failed";
-  if (!named || request.method() !== "GET") {
+  if (!named || !isRouteDataTheRouterAborted(request, failure)) {
     return { where, named, text: null, reason: failure };
   }
   try {
@@ -37,6 +49,14 @@ export async function readFailedRequest(
       headers,
       maxRedirects: 0,
     });
+    if (response.status() !== 200) {
+      return {
+        where,
+        named: true,
+        text: null,
+        reason: `${failure}; read again: ${response.status()}`,
+      };
+    }
     const body = (await response.body()).toString("utf8");
     return {
       where,

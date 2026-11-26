@@ -61,7 +61,7 @@ const surfaces = [
 const ADMIN_PORT = surfaces.find(({ app }) => app === "admin")!.port;
 const TEE = "node scripts/e2e/tee-dev-server.mjs";
 
-const serverEnv = {
+const serverEnv: Record<string, string | undefined> = {
   ...process.env,
   // Real sessions only: the e2e cookie bypass would hide auth defects.
   E2E_AUTH_BYPASS: "false",
@@ -74,13 +74,13 @@ const serverEnv = {
   ...(!process.env.PAYLOAD_DATABASE_URI && process.env.E2E_AUTH_MAIL_DB_URL
     ? { PAYLOAD_DATABASE_URI: process.env.E2E_AUTH_MAIL_DB_URL }
     : {}),
-} as Record<string, string>;
-delete serverEnv.OPERATIONS_NAMES;
+  OPERATIONS_NAMES: undefined,
+};
 
 /** The hostname an app's dev server binds, and the environment it starts with. */
 function binding(app: string): {
   hostname: string;
-  env: Record<string, string>;
+  env: Record<string, string | undefined>;
 } {
   if (!TENANT_ADDRESS_APPS.has(app)) {
     return { hostname: SERVER_HOST, env: serverEnv };
@@ -147,7 +147,7 @@ export default defineConfig({
   webServer: surfaces.map(({ app, port, readyPath }) => ({
     command: serverCommand(app, port),
     url: `http://${SERVER_HOST}:${port}${readyPath}`,
-    env: binding(app).env,
+    env: binding(app).env as Record<string, string>,
     reuseExistingServer: shouldReuseExistingServer(process.env),
     timeout: SERVER_TIMEOUT_MS,
   })),

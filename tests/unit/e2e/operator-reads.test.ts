@@ -1,7 +1,8 @@
-import type { APIRequestContext, Request } from "@playwright/test";
 import { describe, expect, it, vi } from "vitest";
 
 import { readFailedRequest } from "../../e2e/helpers/operator-reads";
+
+import type { APIRequestContext, Request } from "@playwright/test";
 
 const ROUTE_DATA = "http://localhost:3130/operator?_rsc=t6mUerBowmZM7s7p";
 

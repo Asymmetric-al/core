@@ -3,6 +3,7 @@ export interface BrowserStores {
   session: Array<[string, string | null]>;
   cookie: string;
   databases: unknown[];
+  unreadable: string[];
 }
 
 export async function readBrowserStores(): Promise<BrowserStores> {
@@ -15,48 +16,78 @@ export async function readBrowserStores(): Promise<BrowserStores> {
     return out;
   };
   const databases: unknown[] = [];
-  if (typeof indexedDB.databases === "function") {
-    for (const info of await indexedDB.databases()) {
-      if (!info.name) continue;
-      databases.push(
-        await new Promise<unknown>((resolve) => {
-          const opened = indexedDB.open(info.name!);
-          opened.onerror = () => resolve({ name: info.name, error: true });
-          opened.onsuccess = () => {
-            const db = opened.result;
-            const stores = Array.from(db.objectStoreNames);
-            if (stores.length === 0) {
-              db.close();
-              resolve({ name: info.name, stores: [] });
-              return;
-            }
-            const tx = db.transaction(stores, "readonly");
-            const result: Record<string, unknown> = {};
-            let remaining = stores.length;
-            for (const store of stores) {
-              const all = tx.objectStore(store).getAll();
-              const done = () => {
-                remaining -= 1;
-                if (remaining === 0) {
-                  db.close();
-                  resolve({ name: info.name, result });
-                }
-              };
-              all.onsuccess = () => {
-                result[store] = all.result;
-                done();
-              };
-              all.onerror = done;
-            }
+  const unreadable: string[] = [];
+  const readDatabase = (name: string) =>
+    new Promise<void>((resolve) => {
+      const refuse = (what: string) => {
+        unreadable.push(what);
+        resolve();
+      };
+      let opened: IDBOpenDBRequest;
+      try {
+        opened = indexedDB.open(name);
+      } catch {
+        refuse(name);
+        return;
+      }
+      opened.onerror = () => refuse(name);
+      opened.onsuccess = () => {
+        const db = opened.result;
+        const stores = Array.from(db.objectStoreNames);
+        if (stores.length === 0) {
+          db.close();
+          databases.push({ name, stores: [] });
+          resolve();
+          return;
+        }
+        let tx: IDBTransaction;
+        try {
+          tx = db.transaction(stores, "readonly");
+        } catch {
+          db.close();
+          refuse(name);
+          return;
+        }
+        const result: Record<string, unknown> = {};
+        let remaining = stores.length;
+        const done = () => {
+          remaining -= 1;
+          if (remaining > 0) return;
+          db.close();
+          databases.push({ name, result });
+          resolve();
+        };
+        for (const store of stores) {
+          const all = tx.objectStore(store).getAll();
+          all.onsuccess = () => {
+            result[store] = all.result;
+            done();
           };
-        }),
-      );
+          all.onerror = () => {
+            unreadable.push(`${name}/${store}`);
+            done();
+          };
+        }
+      };
+    });
+  let listed: IDBDatabaseInfo[] | null = null;
+  try {
+    if (typeof indexedDB.databases === "function") {
+      listed = await indexedDB.databases();
     }
+  } catch {
+    listed = null;
+  }
+  if (listed === null) unreadable.push("indexedDB");
+  for (const info of listed ?? []) {
+    if (info.name) await readDatabase(info.name);
+    else unreadable.push("indexedDB/(no name)");
   }
   return {
     local: entries(window.localStorage),
     session: entries(window.sessionStorage),
     cookie: document.cookie,
     databases,
+    unreadable,
   };
 }

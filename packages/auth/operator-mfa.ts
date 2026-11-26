@@ -59,6 +59,8 @@ export const OPERATOR_MFA_MESSAGES = {
   tooMany:
     "This account has the most authenticators allowed. Remove one first.",
   nameConflict: "Try again in a minute.",
+  rejected:
+    "A security check refused this code. Wait a few minutes, then enter a new code. If it happens again, ask the release owner.",
   generic: "Something went wrong. Try again.",
 } as const;
 
@@ -66,7 +68,7 @@ type MessageKey = keyof typeof OPERATOR_MFA_MESSAGES;
 
 const MESSAGE_FOR_CODE = new Map<string, MessageKey>([
   ["mfa_verification_failed", "mismatch"],
-  ["mfa_verification_rejected", "mismatch"],
+  ["mfa_verification_rejected", "rejected"],
   ["mfa_challenge_expired", "expired"],
   ["mfa_ip_address_mismatch", "network"],
   ["over_request_rate_limit", "rateLimited"],
@@ -274,24 +276,28 @@ export async function verifyCode(
   }
 }
 
+const REMOVED_BUT_NOT_REFRESHED: OperatorMfaFailure = {
+  ok: false,
+  message: OPERATOR_MFA_MESSAGES.generic,
+  reread: true,
+  mismatch: false,
+};
+
 export async function removeFactor(
   factorId: string,
   client: OperatorMfaClient = defaultClient(),
 ): Promise<{ ok: true } | OperatorMfaFailure> {
+  let deleted = false;
   try {
     const removed = await client.auth.mfa.unenroll({ factorId });
     if (removed.error) return operatorMfaFailure(removed.error);
+    deleted = true;
     const refreshed = await client.auth.refreshSession();
-    if (refreshed.error) {
-      return {
-        ok: false,
-        message: OPERATOR_MFA_MESSAGES.generic,
-        reread: true,
-        mismatch: false,
-      };
-    }
+    if (refreshed.error) return { ...REMOVED_BUT_NOT_REFRESHED };
     return { ok: true };
   } catch {
-    return operatorMfaFailure(null);
+    return deleted
+      ? { ...REMOVED_BUT_NOT_REFRESHED }
+      : operatorMfaFailure(null);
   }
 }
