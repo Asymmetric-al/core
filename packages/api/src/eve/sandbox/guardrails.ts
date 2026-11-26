@@ -64,7 +64,7 @@ const PROTECTED_PATH_PATTERNS: ReadonlyArray<{
     // whose data. They live outside packages/auth, so without this rule strict
     // auto-merge sees no protected area on a PR that changes authorization.
     pattern:
-      /(^|\/)(?:apps\/admin\/src\/cms\/(?:public|access)(?:\/|$)|apps\/admin\/app\/admin\/users(?:\/|$)|packages\/api\/src\/cms\/public(?:\/|$)|[^/]*resolve-tenant\.)/iu,
+      /(^|\/)(?:apps\/admin\/src\/cms\/(?:public|access|tenancy|ports|auth)(?:\/|$)|apps\/admin\/src\/cms\/document-locks\.ts$|apps\/admin\/app\/admin\/users(?:\/|$)|packages\/api\/src\/cms\/public(?:\/|$)|[^/]*resolve-tenant\.)/iu,
     rule: "tenant_and_access_control",
   },
   {
