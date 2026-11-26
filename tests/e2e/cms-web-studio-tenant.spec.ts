@@ -2188,11 +2188,8 @@ test("@cms Payload's copy-and-paste store is empty after a change of organizatio
     await signIn(page);
     await page.goto(`${base}/${DEMO}`);
     await page.evaluate((key) => localStorage.setItem(key, "{}"), CLIPBOARD);
-    await page
-      .getByRole("button", { name: /account menu|user menu/i })
-      .first()
-      .click();
-    await page.getByRole("menuitem", { name: /log out|sign out/i }).click();
+    await page.getByRole("button", { name: "Open profile menu" }).click();
+    await page.getByRole("menuitem", { name: "Sign out" }).click();
     await page.waitForURL((url) => url.pathname === "/login");
     await expect.poll(() => clipboardOf(page)).toBeNull();
   } finally {
