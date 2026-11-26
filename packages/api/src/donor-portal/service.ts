@@ -171,14 +171,14 @@ export async function resolveDonorPortalContext(
   profileId: string,
   tenantId: string,
 ): Promise<DonorPortalContext> {
-  const profile = assertResult(
+  const { user_id: loginId, ...profile } = assertResult(
     (await supabaseAdmin
       .from("profiles")
-      .select(PROFILE_SELECT)
-      // The person's own profile, by id. Their account link and Party in this
-      // tenant, below, name their donor (AL-2675, NR-68; AL-2678).
+      .select(`${PROFILE_SELECT}, user_id`)
+      // The person's own profile, by id. Its login's account link and Party
+      // in this tenant, below, name their donor (AL-2675, NR-68; AL-2678).
       .eq("id", profileId)
-      .single()) as SupabaseResult<DonorPortalProfileRow>,
+      .single()) as SupabaseResult<DonorPortalProfileRow & { user_id: string }>,
     "Donor profile not found",
   );
 
@@ -186,7 +186,7 @@ export async function resolveDonorPortalContext(
   try {
     lookup = await findOwnDonor<DonorPortalDonorRow>(
       supabaseAdmin,
-      { userId: profileId, tenantId },
+      { userId: loginId, tenantId },
       DONOR_SELECT,
     );
   } catch (error) {

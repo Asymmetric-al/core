@@ -155,10 +155,19 @@ export async function resolveDonorId(
     return null;
   }
 
+  const { data: profile, error: profileError } = await client
+    .from("profiles")
+    .select("user_id")
+    .eq("id", profileId)
+    .maybeSingle<{ user_id: string }>();
+  if (profileError || !profile?.user_id) {
+    return null;
+  }
+
   let lookup: OwnDonorLookup<DonorRow>;
   try {
     lookup = await findOwnDonor<DonorRow>(client, {
-      userId: profileId,
+      userId: profile.user_id,
       tenantId,
     });
   } catch {
