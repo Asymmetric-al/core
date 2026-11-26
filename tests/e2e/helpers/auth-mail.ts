@@ -67,6 +67,13 @@ function assertLocalDatabase(dbUrl: string) {
   }
 }
 
+export function adminServerLogFile(env: NodeJS.ProcessEnv = process.env) {
+  return (
+    env.AUTH_MAIL_ADMIN_LOG_FILE?.trim() ||
+    "test-results/auth-mail/admin-server.log"
+  );
+}
+
 /** A unique address on a reserved domain, so no real mailbox is involved. */
 export function uniqueTestEmail(label: string): string {
   const nonce = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;

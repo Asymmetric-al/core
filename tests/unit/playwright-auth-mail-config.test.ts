@@ -46,3 +46,46 @@ describe("the auth email suite's dev servers", () => {
     expect(new URL(url).hostname).toBe("127.0.0.1");
   });
 });
+
+describe("AL-2675 WP2c part 2a, T7: the operator area journey", () => {
+  const adminPort = Number(process.env.AUTH_MAIL_ADMIN_PORT || 3130);
+
+  it("runs auth-operator-area.spec.ts beside every earlier journey", () => {
+    expect(config.testMatch).toEqual([
+      "**/auth-password-recovery.spec.ts",
+      "**/auth-signup-confirmation.spec.ts",
+      "**/auth-two-organizations.spec.ts",
+      "**/auth-request-scope-reads.spec.ts",
+      "**/auth-crm-reads.spec.ts",
+      "**/auth-member-care.spec.ts",
+      "**/auth-members-invitations.spec.ts",
+      "**/auth-sites-settings.spec.ts",
+      "**/auth-operator-area.spec.ts",
+    ]);
+  });
+
+  it("gives only Mission Control's server an operations address, its own localhost port", () => {
+    expect(server("admin").env?.OPERATIONS_NAMES).toBe(
+      process.env.OPERATIONS_NAMES ?? `localhost:${adminPort}`,
+    );
+    if (process.env.OPERATIONS_NAMES === undefined) {
+      expect(server("donor").env?.OPERATIONS_NAMES).toBeUndefined();
+      expect(server("missionary").env?.OPERATIONS_NAMES).toBeUndefined();
+    }
+  });
+
+  it("mirrors Mission Control's server output to the log file the journey reads, and starts it the same way", () => {
+    const { command, env } = server("admin");
+    expect(command).toContain(
+      "node scripts/e2e/tee-dev-server.mjs bun run --cwd apps/admin dev:playwright",
+    );
+    expect(command).toMatch(/--hostname localhost$/);
+    expect(env?.AUTH_MAIL_ADMIN_LOG_FILE).toBe(
+      process.env.AUTH_MAIL_ADMIN_LOG_FILE?.trim() ||
+        "test-results/auth-mail/admin-server.log",
+    );
+    for (const app of ["donor", "missionary"]) {
+      expect(server(app).command).not.toContain("tee-dev-server");
+    }
+  });
+});
