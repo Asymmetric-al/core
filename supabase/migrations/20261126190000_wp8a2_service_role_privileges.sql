@@ -32,12 +32,23 @@
 --    TRIGGER, and MAINTAIN on Postgres 17 or later, FROM service_role: the
 --    loop of 20261117034926:97-104 for one more role. A table-level REVOKE
 --    also removes a column's REFERENCES (none exists).
--- 2. The default privileges of `postgres` in `public` no longer grant
---    `service_role` the four on tables, so a table a later migration creates
---    does not receive them again. Its DML from those defaults stays.
+-- 2. The default privileges of `postgres` in `public`, and its default
+--    privileges for every schema (the global entry, which applies in `public`
+--    too), no longer grant `service_role` the four on tables, so a table a
+--    later migration creates in `public` does not receive them again. Its DML
+--    from those defaults stays. The global revoke is a no-op where no global
+--    entry exists (as on the replays and the platform's image), and creates
+--    none. Default privileges of `postgres` in any other schema, such as the
+--    platform's `storage`, which grant `service_role` everything there, are
+--    not this file's: it neither changes nor reads them, as stage 1
+--    (20261117034926:161-182) and the release job read only `public` and the
+--    global entry.
 -- 3. REVOKE CREATE ON SCHEMA authz FROM service_role (it keeps USAGE). The
 --    post-assert shows that `service_role` holds CREATE on no schema the
 --    chain owns (`cms` was closed at 20261117084109:315).
+-- What the post-assert reads as `service_role`: its own privileges and those
+-- of every role it can use or SET ROLE to (pg_has_role USAGE or SET), so a
+-- membership granted WITH INHERIT FALSE, SET TRUE does not hide one.
 -- 4. private.refuse_sealed_truncate() and a statement-level BEFORE TRUNCATE
 --    trigger, <table>_no_truncate, on each table whose rows carry a "never
 --    deleted" seal: public.staged_gifts, public.staged_gift_allocations,
@@ -56,14 +67,20 @@
 --    truncates, so none is refused. Postgres checks a TRUNCATE's foreign keys
 --    before its triggers: a TRUNCATE naming a sealed table without the
 --    tables that reference it answers 0A000, as it did before.
--- The catalog gate (scripts/verify/tenant-rls-catalog.mjs) keeps 1 to 3 on
--- every later chain: it fails when `service_role` holds one of the four on a
--- relation in `public` or CREATE on a schema the chain owns, unless a
--- reviewed exception names it.
+-- The catalog gate (scripts/verify/tenant-rls-catalog.mjs) keeps 1 and 3 on
+-- every later chain: it fails when `service_role`, or a role it can use or
+-- SET ROLE to, holds one of the four on a relation in `public` or CREATE on
+-- a schema the release fingerprint covers, unless a reviewed exception names
+-- it. It reads no default privileges. So a later migration that grants
+-- `service_role` ALL, or one of the four, on a table in `public` fails the
+-- gate in CI and in the release (SERVICE_ROLE_UNSAFE_PRIVILEGE): it grants
+-- the DML it needs by name instead.
 --
--- Locks: SHARE ROW EXCLUSIVE on each of the five tables, held to COMMIT, for
--- CREATE TRIGGER; the revokes change catalog rows only. lock_timeout stops a
--- run rather than queue it behind live traffic.
+-- Locks, taken first and held to COMMIT: SHARE ROW EXCLUSIVE on the five
+-- tables in the writers' order (donations, donation_intake_lines,
+-- payment_observations, staged_gifts, staged_gift_allocations), which
+-- CREATE TRIGGER needs; the revokes change catalog rows only. lock_timeout
+-- stops a run rather than queue it behind live traffic.
 --
 -- A second run of the applied file: the revokes change nothing, and it stops
 -- at CREATE FUNCTION private.refuse_sealed_truncate() (42723, function
@@ -76,19 +93,36 @@
 --
 -- Hosted order (issue 2841): on each hosted database this file is applied in
 -- an earlier release than, or the same release as, the first one that
--- deploys a live writer of a line-based row there. After that release, this
--- read-only query answers no row:
+-- deploys a live writer of a line-based row there. Before that release, read
+-- on the database the roles `service_role` can use or SET ROLE to, and the
+-- relations in `public` that `postgres` does not own; the post-assert fails
+-- the release if one of those roles holds one of the four in `public` or
+-- CREATE on a schema of the chain, or if such a relation grants
+-- `service_role` one of the four:
+--   SELECT r.rolname FROM pg_roles r WHERE r.rolname <> 'service_role'
+--     AND (pg_has_role('service_role', r.oid, 'USAGE')
+--          OR pg_has_role('service_role', r.oid, 'SET'));
+--   SELECT c.relname, pg_get_userbyid(c.relowner) FROM pg_class c
+--     WHERE c.relnamespace = 'public'::regnamespace
+--     AND c.relkind IN ('r', 'p', 'v', 'm', 'f')
+--     AND c.relowner <> 'postgres'::regrole;
+-- After that release, this read-only query answers no row:
 --   SELECT c.relname, p FROM pg_class c CROSS JOIN unnest(ARRAY['TRUNCATE',
---     'REFERENCES', 'TRIGGER', 'MAINTAIN']) p WHERE c.oid IN
+--     'REFERENCES', 'TRIGGER', 'MAINTAIN']) p JOIN pg_roles r
+--     ON pg_has_role('service_role', r.oid, 'USAGE')
+--     OR pg_has_role('service_role', r.oid, 'SET') WHERE c.oid IN
 --     ('public.staged_gifts'::regclass, 'public.staged_gift_allocations'::regclass,
 --     'public.donations'::regclass, 'public.donation_intake_lines'::regclass,
 --     'public.payment_observations'::regclass)
---     AND has_table_privilege('service_role', c.oid, p)
---   UNION ALL SELECT 'schema authz', 'CREATE'
---     WHERE has_schema_privilege('service_role', 'authz', 'CREATE');
+--     AND has_table_privilege(r.oid, c.oid, p)
+--   UNION ALL SELECT 'schema authz', 'CREATE' FROM pg_roles r
+--     WHERE (pg_has_role('service_role', r.oid, 'USAGE')
+--            OR pg_has_role('service_role', r.oid, 'SET'))
+--     AND has_schema_privilege(r.oid, 'authz', 'CREATE');
 --
--- Down, an operator's last resort, in one transaction; it refuses while a
--- line-based row exists. Following 20261117034926, it re-grants nothing:
+-- Down, an operator's last resort, in one transaction; it locks the five
+-- tables first, in the writers' order, then refuses while any of them holds
+-- a line-based row. Following 20261117034926, it re-grants nothing:
 -- re-granting would reopen what this file closes. After a Down,
 -- `service_role` therefore holds a narrower list of privileges than before
 -- this file (none of the four in `public`, no CREATE on `authz`, and the
@@ -96,26 +130,36 @@
 -- from a replay of the earlier chain in those access lists only.
 --   BEGIN;
 --   SET LOCAL lock_timeout = '5s';
+--   LOCK TABLE public.donations, public.donation_intake_lines,
+--     public.payment_observations, public.staged_gifts,
+--     public.staged_gift_allocations IN ACCESS EXCLUSIVE MODE;
 --   DO $$
 --   BEGIN
 --     IF EXISTS (SELECT 1 FROM public.donations WHERE intake_format = 'line_based')
---        OR EXISTS (SELECT 1 FROM public.staged_gifts WHERE intake_format = 'line_based')
 --        OR EXISTS (SELECT 1 FROM public.donation_intake_lines)
---        OR EXISTS (SELECT 1 FROM public.payment_observations) THEN
+--        OR EXISTS (SELECT 1 FROM public.payment_observations)
+--        OR EXISTS (SELECT 1 FROM public.staged_gifts WHERE intake_format = 'line_based')
+--        OR EXISTS (SELECT 1 FROM public.staged_gift_allocations WHERE intake_format = 'line_based') THEN
 --       RAISE EXCEPTION 'Down of 20261126190000 refused: a line-based row exists' USING ERRCODE = '55000';
 --     END IF;
 --   END
 --   $$;
+--   DROP TRIGGER staged_gift_allocations_no_truncate ON public.staged_gift_allocations;
+--   DROP TRIGGER staged_gifts_no_truncate ON public.staged_gifts;
 --   DROP TRIGGER payment_observations_no_truncate ON public.payment_observations;
 --   DROP TRIGGER donation_intake_lines_no_truncate ON public.donation_intake_lines;
 --   DROP TRIGGER donations_no_truncate ON public.donations;
---   DROP TRIGGER staged_gift_allocations_no_truncate ON public.staged_gift_allocations;
---   DROP TRIGGER staged_gifts_no_truncate ON public.staged_gifts;
 --   DROP FUNCTION private.refuse_sealed_truncate();
 --   COMMIT;
 
 BEGIN;
 SET LOCAL lock_timeout = '5s';
+
+LOCK TABLE public.donations IN SHARE ROW EXCLUSIVE MODE;
+LOCK TABLE public.donation_intake_lines IN SHARE ROW EXCLUSIVE MODE;
+LOCK TABLE public.payment_observations IN SHARE ROW EXCLUSIVE MODE;
+LOCK TABLE public.staged_gifts IN SHARE ROW EXCLUSIVE MODE;
+LOCK TABLE public.staged_gift_allocations IN SHARE ROW EXCLUSIVE MODE;
 
 -- 1. The four table privileges on every relation in `public`.
 DO $$
@@ -140,13 +184,17 @@ BEGIN
   END LOOP;
 END $$;
 
--- 2. The default privileges of `postgres` in `public`.
+-- 2. The default privileges of `postgres` in `public` and for every schema.
 ALTER DEFAULT PRIVILEGES FOR ROLE postgres IN SCHEMA public
+  REVOKE TRUNCATE, REFERENCES, TRIGGER ON TABLES FROM service_role;
+ALTER DEFAULT PRIVILEGES FOR ROLE postgres
   REVOKE TRUNCATE, REFERENCES, TRIGGER ON TABLES FROM service_role;
 DO $$
 BEGIN
   IF current_setting('server_version_num')::int >= 170000 THEN
     EXECUTE 'ALTER DEFAULT PRIVILEGES FOR ROLE postgres IN SCHEMA public '
+      'REVOKE MAINTAIN ON TABLES FROM service_role';
+    EXECUTE 'ALTER DEFAULT PRIVILEGES FOR ROLE postgres '
       'REVOKE MAINTAIN ON TABLES FROM service_role';
   END IF;
 END $$;
@@ -173,12 +221,6 @@ $$;
 REVOKE ALL ON FUNCTION private.refuse_sealed_truncate()
   FROM PUBLIC, anon, authenticated, service_role;
 
-CREATE TRIGGER staged_gifts_no_truncate
-  BEFORE TRUNCATE ON public.staged_gifts
-  FOR EACH STATEMENT EXECUTE FUNCTION private.refuse_sealed_truncate();
-CREATE TRIGGER staged_gift_allocations_no_truncate
-  BEFORE TRUNCATE ON public.staged_gift_allocations
-  FOR EACH STATEMENT EXECUTE FUNCTION private.refuse_sealed_truncate();
 CREATE TRIGGER donations_no_truncate
   BEFORE TRUNCATE ON public.donations
   FOR EACH STATEMENT EXECUTE FUNCTION private.refuse_sealed_truncate();
@@ -187,6 +229,12 @@ CREATE TRIGGER donation_intake_lines_no_truncate
   FOR EACH STATEMENT EXECUTE FUNCTION private.refuse_sealed_truncate();
 CREATE TRIGGER payment_observations_no_truncate
   BEFORE TRUNCATE ON public.payment_observations
+  FOR EACH STATEMENT EXECUTE FUNCTION private.refuse_sealed_truncate();
+CREATE TRIGGER staged_gifts_no_truncate
+  BEFORE TRUNCATE ON public.staged_gifts
+  FOR EACH STATEMENT EXECUTE FUNCTION private.refuse_sealed_truncate();
+CREATE TRIGGER staged_gift_allocations_no_truncate
+  BEFORE TRUNCATE ON public.staged_gift_allocations
   FOR EACH STATEMENT EXECUTE FUNCTION private.refuse_sealed_truncate();
 
 -- Post-assert: the end state above holds, or the migration fails.
@@ -200,29 +248,45 @@ BEGIN
     unsafe := array_append(unsafe, 'MAINTAIN');
   END IF;
 
-  SELECT string_agg(format('%s %s', c.relname, p), ', ' ORDER BY c.relname, p)
+  SELECT string_agg(h.held, ', ' ORDER BY h.held)
   INTO problem
-  FROM pg_class c
-  JOIN pg_namespace n ON n.oid = c.relnamespace
-  CROSS JOIN unnest(unsafe) AS p
-  WHERE n.nspname = 'public'
-    AND c.relkind IN ('r', 'p', 'v', 'm', 'f')
-    AND (has_table_privilege('service_role', c.oid, p)
-         OR (p = 'REFERENCES'
-             AND has_any_column_privilege('service_role', c.oid, p)));
+  FROM (
+    SELECT DISTINCT format('%s %s', c.relname, p) AS held
+    FROM pg_class c
+    JOIN pg_namespace n ON n.oid = c.relnamespace
+    CROSS JOIN unnest(unsafe) AS p
+    JOIN pg_roles r ON pg_has_role('service_role', r.oid, 'USAGE')
+                    OR pg_has_role('service_role', r.oid, 'SET')
+    WHERE n.nspname = 'public'
+      AND c.relkind IN ('r', 'p', 'v', 'm', 'f')
+      AND (has_table_privilege(r.oid, c.oid, p)
+           OR (p = 'REFERENCES'
+               AND has_any_column_privilege(r.oid, c.oid, p)))
+  ) AS h;
   IF problem IS NOT NULL THEN
     RAISE EXCEPTION 'AL-2681: service_role still holds in public: %', problem;
   END IF;
 
-  SELECT string_agg(format('%s %s', d.defaclnamespace::regnamespace, a.privilege_type), ', ')
+  SELECT string_agg(h.held, ', ' ORDER BY h.held)
   INTO problem
-  FROM pg_default_acl d
-  CROSS JOIN LATERAL aclexplode(d.defaclacl) a
-  WHERE d.defaclrole = 'postgres'::regrole
-    AND a.grantee = 'service_role'::regrole
-    AND a.privilege_type = ANY (unsafe);
+  FROM (
+    SELECT DISTINCT format('%s %s',
+      coalesce(nullif(d.defaclnamespace, 0)::regnamespace::text, 'every schema'),
+      a.privilege_type) AS held
+    FROM pg_default_acl d
+    CROSS JOIN LATERAL aclexplode(d.defaclacl) a
+    WHERE d.defaclrole = 'postgres'::regrole
+      AND d.defaclnamespace IN ('public'::regnamespace, 0)
+      AND d.defaclobjtype = 'r'
+      AND a.privilege_type = ANY (unsafe)
+      AND (a.grantee = 0 OR EXISTS (
+        SELECT 1 FROM pg_roles r
+        WHERE r.oid = a.grantee
+          AND (pg_has_role('service_role', r.oid, 'USAGE')
+               OR pg_has_role('service_role', r.oid, 'SET'))))
+  ) AS h;
   IF problem IS NOT NULL THEN
-    RAISE EXCEPTION 'AL-2681: default privileges of postgres still grant service_role: %', problem;
+    RAISE EXCEPTION 'AL-2681: default privileges of postgres in public or for every schema still grant service_role: %', problem;
   END IF;
 
   SELECT string_agg(n.nspname, ', ' ORDER BY n.nspname)
@@ -230,7 +294,11 @@ BEGIN
   FROM pg_namespace n
   WHERE n.nspname IN ('public', 'authz', 'cms', 'document_cutover', 'platform',
                       'private', 'tenant_guard')
-    AND has_schema_privilege('service_role', n.oid, 'CREATE');
+    AND EXISTS (
+      SELECT 1 FROM pg_roles r
+      WHERE (pg_has_role('service_role', r.oid, 'USAGE')
+             OR pg_has_role('service_role', r.oid, 'SET'))
+        AND has_schema_privilege(r.oid, n.oid, 'CREATE'));
   IF problem IS NOT NULL THEN
     RAISE EXCEPTION 'AL-2681: service_role still holds CREATE on schema: %', problem;
   END IF;
