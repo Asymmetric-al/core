@@ -144,9 +144,13 @@ function SitesLoadFailed({
 
 function DonorAccountNameSection({
   stored,
+  readAt,
+  currentReadAt,
   onSettled,
 }: {
   stored: string | null;
+  readAt: number;
+  currentReadAt: () => number;
   onSettled: Settle;
 }) {
   const headingId = useId();
@@ -155,12 +159,19 @@ function DonorAccountNameSection({
   const errorId = useId();
   const inputRef = useRef<HTMLInputElement>(null);
   const [draft, setDraft] = useState<string | null>(null);
+  const [committed, setCommitted] = useState<{
+    name: string;
+    readAt: number;
+  } | null>(null);
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<unknown>(null);
   const inFlightRef = useRef(false);
-  const value = draft ?? stored ?? "";
+  const committedName =
+    committed && committed.readAt === readAt ? committed.name : null;
+  const baseline = committedName ?? stored ?? "";
+  const value = draft ?? baseline;
   const invalid = isInvalidNameError(error);
-  const unchanged = stripNameEdges(value) === (stored ?? "");
+  const unchanged = stripNameEdges(value) === baseline;
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -170,10 +181,10 @@ function DonorAccountNameSection({
     setDraft(displayName);
     setError(null);
     setPending(true);
-    let saved = false;
+    let saved: { name: string; readAt: number } | null = null;
     try {
       const brand = await setDonorAccountName(displayName);
-      saved = true;
+      saved = { name: brand.display_name, readAt: currentReadAt() };
       toast.success(`Donor account name saved as ${brand.display_name}.`);
     } catch (caught) {
       setError(caught);
@@ -181,6 +192,7 @@ function DonorAccountNameSection({
     } finally {
       await onSettled();
       if (saved) {
+        setCommitted(saved);
         setDraft((current) => (current === displayName ? null : current));
       }
       inFlightRef.current = false;
@@ -594,6 +606,11 @@ function SiteSettingsScreen() {
     () => queryClient.invalidateQueries({ queryKey: SITE_SETTINGS_QUERY_KEY }),
     [queryClient],
   );
+  const currentReadAt = useCallback(
+    () =>
+      queryClient.getQueryState(SITE_SETTINGS_QUERY_KEY)?.dataUpdatedAt ?? 0,
+    [queryClient],
+  );
 
   if (settings.isError && isNoAccessError(settings.error)) {
     return <SitesNoAccess />;
@@ -615,7 +632,12 @@ function SiteSettingsScreen() {
         {settings.isRefetchError && (
           <SitesLoadFailed refreshing onRetry={() => void settings.refetch()} />
         )}
-        <DonorAccountNameSection stored={stored} onSettled={refresh} />
+        <DonorAccountNameSection
+          stored={stored}
+          readAt={settings.dataUpdatedAt}
+          currentReadAt={currentReadAt}
+          onSettled={refresh}
+        />
         <SitesSection sites={settings.data.sites} onSettled={refresh} />
       </div>
     );
