@@ -5,6 +5,7 @@ import { NextRequest } from "next/server";
 import pg from "pg";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 
+import { BLANK_ALIASES, REAL_ALIAS, codePoints } from "./blank-aliases";
 import { renderContributionReceiptSnapshotPdf } from "../../../../packages/api/src/admin/contribution-operations/receipt-pdf";
 import { GET as getDonations } from "../../../../packages/api/src/donations";
 import { GET as getDonorPortal } from "../../../../packages/api/src/donor-portal";
@@ -84,6 +85,11 @@ const id = Object.fromEntries(
     "pR",
     "pC",
     "pD",
+    "pS",
+    "pN",
+    "pE",
+    "pX",
+    "pY",
     "wU",
     "wK",
     "wV",
@@ -163,6 +169,25 @@ async function api(
     },
     body: init.body === undefined ? undefined : JSON.stringify(init.body),
   });
+}
+
+async function rpc(name: string, body: Record<string, unknown>) {
+  const response = await fetch(`${url}/rest/v1/rpc/${name}`, {
+    method: "POST",
+    headers: {
+      apikey: anon!,
+      Authorization: `Bearer ${token.A}`,
+      "Content-Type": "application/json",
+      "x-asym-tenant": TA,
+      "x-asym-assignment": id.mA!,
+    },
+    body: JSON.stringify(body),
+  });
+  const text = await response.text();
+  return {
+    status: response.status,
+    body: text ? (JSON.parse(text) as Record<string, unknown>) : null,
+  };
 }
 
 type Role = "staff" | "missionary" | "donor";
@@ -466,7 +491,12 @@ describe.skipIf(!required && ![url, database, anon, service].some(Boolean))(
              (:pR, :TA, 'Party Rowan', 'standard', 'manual', null),
              (:pC, :TA, 'Party Cole', 'standard', 'manual', null),
              (:pD, :TA, 'Donor Dee', 'standard', 'manual', null),
-             (:pZ, :TB, 'Worker Zed', 'standard', 'manual', null)`,
+             (:pZ, :TB, 'Worker Zed', 'standard', 'manual', null),
+             (:pS, :TA, 'Worker Sorrel', 'standard', 'manual', 'Ash'),
+             (:pN, :TA, 'Worker Nettle', 'standard', 'manual', 'Ash'),
+             (:pE, :TA, 'Worker Esker', 'standard', 'manual', 'Ash'),
+             (:pX, :TA, 'Worker Xylem', 'restricted', 'manual', 'Elm'),
+             (:pY, :TA, 'Worker Yew', 'standard', 'manual', null)`,
         );
         await sql(
           `insert into public.missionaries (id, tenant_id, party_id, profile_id, legal_entity_id) values
@@ -1041,6 +1071,122 @@ describe.skipIf(!required && ![url, database, anon, service].some(Boolean))(
       });
       expect(await publicName()).toEqual(["Wren", "Wren"]);
       seen.push(lowered, updated, afterReveal, cleared);
+    });
+
+    const restrictRpc = (
+      party: string,
+      level: string | null,
+      alias: string,
+      doNotPublish: boolean | null,
+      reason = "last round",
+    ) =>
+      rpc("restrict_worker_publication", {
+        p_tenant_id: TA,
+        p_party_id: party,
+        p_security_level: level,
+        p_public_alias: alias,
+        p_do_not_publish: doNotPublish,
+        p_reason: reason,
+      });
+    const liftRpc = (party: string, level: string | null, clear: boolean) =>
+      rpc("lift_worker_restriction", {
+        p_tenant_id: TA,
+        p_party_id: party,
+        p_security_level: level,
+        p_clear_do_not_publish: clear,
+        p_reason: "reset",
+      });
+    const partyRow = async (party: string) =>
+      (
+        await db.query(
+          "select security_level, public_alias, do_not_publish from public.parties where id = $1",
+          [party],
+        )
+      ).rows[0];
+
+    it("A1 (r2b1 last round) (a) an administrator calling restrict_worker_publication through PostgREST, with no route between, with a level and an alias the database reduces to nothing: the level rises and the stored alias stays", async () => {
+      for (const alias of BLANK_ALIASES) {
+        const label = codePoints(alias);
+        const raised = await restrictRpc(id.pS!, "sensitive", alias, null);
+        expect(raised.status, `${label}: ${JSON.stringify(raised.body)}`).toBe(
+          200,
+        );
+        expect(await partyRow(id.pS!), label).toEqual({
+          security_level: "sensitive",
+          public_alias: "Ash",
+          do_not_publish: false,
+        });
+        const lowered = await liftRpc(id.pS!, "standard", false);
+        expect(lowered.status, JSON.stringify(lowered.body)).toBe(200);
+      }
+    });
+
+    it("A1 (b) through PostgREST with only such an alias: 400, 22023 Nothing to change, and the stored alias stays", async () => {
+      for (const alias of BLANK_ALIASES) {
+        const label = codePoints(alias);
+        const nothing = await restrictRpc(id.pN!, null, alias, null);
+        expect(
+          {
+            status: nothing.status,
+            code: nothing.body?.code,
+            message: nothing.body?.message,
+          },
+          label,
+        ).toEqual({ status: 400, code: "22023", message: "Nothing to change" });
+        expect(await partyRow(id.pN!), label).toEqual({
+          security_level: "standard",
+          public_alias: "Ash",
+          do_not_publish: false,
+        });
+      }
+    });
+
+    it("A1 (c) through PostgREST with such an alias and do-not-publish: a restricted worker keeps its stored alias, no 23514", async () => {
+      for (const alias of BLANK_ALIASES) {
+        const label = codePoints(alias);
+        const kept = await restrictRpc(id.pX!, null, alias, true);
+        expect(kept.status, `${label}: ${JSON.stringify(kept.body)}`).toBe(200);
+        expect(await partyRow(id.pX!), label).toEqual({
+          security_level: "restricted",
+          public_alias: "Elm",
+          do_not_publish: true,
+        });
+        const cleared = await liftRpc(id.pX!, null, true);
+        expect(cleared.status, JSON.stringify(cleared.body)).toBe(200);
+      }
+    });
+
+    it("A1 (d) through PostgREST a real alias between invisible characters is stored normalized", async () => {
+      const real = await restrictRpc(id.pY!, null, REAL_ALIAS, null);
+      expect(real.status, JSON.stringify(real.body)).toBe(200);
+      expect(await partyRow(id.pY!)).toEqual({
+        security_level: "standard",
+        public_alias: "Oak Two",
+        do_not_publish: false,
+      });
+    });
+
+    it("A1 (e) through PostgREST the audit row of each case (a) records no alias change", async () => {
+      for (const alias of BLANK_ALIASES) {
+        const raised = await restrictRpc(
+          id.pE!,
+          "sensitive",
+          alias,
+          null,
+          "audit (e)",
+        );
+        expect(raised.status, JSON.stringify(raised.body)).toBe(200);
+        const lowered = await liftRpc(id.pE!, "standard", false);
+        expect(lowered.status, JSON.stringify(lowered.body)).toBe(200);
+      }
+      expect(
+        (
+          await db.query(
+            "select details->'alias_changed' as changed from public.audit_logs where resource_id = $1 and action = 'worker_publication_restricted' and details->>'reason' = 'audit (e)' order by created_at, id",
+            [id.pE],
+          )
+        ).rows.map((r) => r.changed as boolean),
+      ).toEqual(BLANK_ALIASES.map(() => false));
     });
 
     it("T3 the revealed values reach no other response", () => {

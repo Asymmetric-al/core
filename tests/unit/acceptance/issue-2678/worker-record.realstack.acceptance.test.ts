@@ -6,6 +6,7 @@ import path from "node:path";
 import pg from "pg";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
+import { BLANK_ALIASES, REAL_ALIAS, codePoints } from "./blank-aliases";
 import {
   ADMIN_URL,
   IN_MIGRATE_JOB,
@@ -17,6 +18,7 @@ import {
   keepAs,
   migration,
 } from "./harness";
+import { normalizesToNothing } from "../../../../packages/api/src/admin/workers/safety-text";
 import {
   captureFingerprint,
   diffFingerprints,
@@ -63,6 +65,23 @@ const COMMITTED = `select to_regprocedure('public.worker_records(uuid)') is not 
    and to_regprocedure('public.reveal_worker_identity(uuid,uuid,text)') is not null
    and coalesce(not has_function_privilege('authenticated', to_regprocedure('public.read_party_restricted(uuid)'), 'EXECUTE'), false)
    and coalesce(not has_column_privilege('service_role', to_regclass('public.parties'), 'security_level', 'UPDATE'), false) as committed`;
+const RESTRICT = "tenant_guard.restrict_worker_publication";
+const PART_ONE = "20261125050400_worker_safety_room.sql";
+const ALIAS_EDITS = [
+  ["  v_after RECORD;\nBEGIN\n", "  v_after RECORD;\n  v_alias TEXT;\nBEGIN\n"],
+  [
+    "    RAISE EXCEPTION 'A reason is required' USING ERRCODE = '22023';\n  END IF;\n",
+    "    RAISE EXCEPTION 'A reason is required' USING ERRCODE = '22023';\n  END IF;\n  v_alias := private.normalize_safety_text(p_public_alias);\n",
+  ],
+  [
+    "p_security_level IS NULL AND p_public_alias IS NULL AND p_do_not_publish IS NULL",
+    "p_security_level IS NULL AND v_alias IS NULL AND p_do_not_publish IS NULL",
+  ],
+  [
+    "CASE WHEN p_public_alias IS NULL THEN p.public_alias ELSE private.normalize_safety_text(p_public_alias) END",
+    "COALESCE(v_alias, p.public_alias)",
+  ],
+] as const;
 const NO_CAPABILITY =
   "tenant_guard: the selected assignment does not hold the capability this command requires";
 
@@ -76,6 +95,10 @@ function absent(value: unknown) {
     );
 }
 
+function functionText(text: string, from: number) {
+  return text.slice(from, text.indexOf("\n$$;", from) + "\n$$;".length);
+}
+
 function downSql(file: string) {
   const lines = readFileSync(file, "utf8").split(/\r?\n/);
   const start = lines.findIndex((line) => line.startsWith("-- Down "));
@@ -83,6 +106,7 @@ function downSql(file: string) {
   const body: string[] = [];
   for (const line of lines.slice(start + 1)) {
     if (line.startsWith("--   ")) body.push(line.slice("--   ".length));
+    else if (line === "--" && body.length) body.push("");
     else if (body.length) break;
   }
   return body.join("\n");
@@ -111,6 +135,9 @@ describe.skipIf(!ADMIN_URL)(
           "wV",
           "pZ",
           "wZ",
+          "pS",
+          "pX",
+          "pY",
         ].map((k) => [k, randomUUID()]),
       ) as Record<
         | "UP"
@@ -127,7 +154,10 @@ describe.skipIf(!ADMIN_URL)(
         | "pV"
         | "wV"
         | "pZ"
-        | "wZ",
+        | "wZ"
+        | "pS"
+        | "pX"
+        | "pY",
         string
       >),
     };
@@ -204,6 +234,13 @@ describe.skipIf(!ADMIN_URL)(
            ($3, $5, 'Worker Vale', 'restricted', 'manual', 'Birch'),
            ($4, $6, 'Worker Zed', 'standard', 'manual', null)`,
         [id.pU, id.pK, id.pV, id.pZ, id.TA, id.TB],
+      );
+      await db.query(
+        `insert into public.parties (id, tenant_id, display_name, security_level, security_level_source, public_alias) values
+           ($1, $4, 'Worker Sorrel', 'standard', 'manual', 'Ash'),
+           ($2, $4, 'Worker Xylem', 'restricted', 'manual', 'Elm'),
+           ($3, $4, 'Worker Yew', 'standard', 'manual', null)`,
+        [id.pS, id.pX, id.pY, id.TA],
       );
       await db.query(
         `insert into public.missionaries (id, tenant_id, party_id, profile_id, legal_entity_id) values
@@ -539,6 +576,141 @@ describe.skipIf(!ADMIN_URL)(
         ).rows,
       ).toEqual([{ prosecdef: true, owner: "postgres" }]);
     });
+
+    const sqlText = (value: string | null) =>
+      value === null ? "null" : `'${value.replaceAll("'", "''")}'`;
+    const restrictDirect = (
+      party: string,
+      level: string | null,
+      alias: string,
+      doNotPublish: boolean | null,
+      reason = "last round",
+    ) =>
+      keep(
+        "authenticated",
+        admin,
+        `select tenant_guard.restrict_worker_publication('${id.TA}', '${party}', ${sqlText(level)}, ${sqlText(alias)}, ${doNotPublish === null ? "null" : String(doNotPublish)}, ${sqlText(reason)}) as r`,
+      );
+    const liftDirect = (party: string, level: string | null, clear: boolean) =>
+      keep(
+        "authenticated",
+        admin,
+        `select tenant_guard.lift_worker_restriction('${id.TA}', '${party}', ${sqlText(level)}, ${String(clear)}, 'reset') as r`,
+      );
+    const partyRow = async (party: string) =>
+      (
+        await db.query(
+          "select security_level, public_alias, do_not_publish from public.parties where id = $1",
+          [party],
+        )
+      ).rows[0];
+    const inSavepoint = async (body: () => Promise<void>) => {
+      await db.query("savepoint s");
+      try {
+        await body();
+      } finally {
+        await db.query("rollback to savepoint s");
+      }
+    };
+
+    it("A1 (r2b1 last round) the aliases below are blank to the database and to normalizesToNothing alike", async () => {
+      for (const alias of BLANK_ALIASES) {
+        expect(normalizesToNothing(alias), codePoints(alias)).toBe(true);
+        expect(
+          (
+            await db.query(
+              "select private.normalize_safety_text($1) is null as blank",
+              [alias],
+            )
+          ).rows[0].blank,
+          codePoints(alias),
+        ).toBe(true);
+      }
+    });
+
+    it("A1 (a) called directly, with a level and an alias the database reduces to nothing, restrict raises the level and keeps the stored alias", () =>
+      inSavepoint(async () => {
+        for (const alias of BLANK_ALIASES) {
+          const label = codePoints(alias);
+          const raised = await restrictDirect(id.pS, "sensitive", alias, null);
+          expect(raised.code, `${label}: ${raised.message}`).toBeNull();
+          expect(await partyRow(id.pS), label).toEqual({
+            security_level: "sensitive",
+            public_alias: "Ash",
+            do_not_publish: false,
+          });
+          const lowered = await liftDirect(id.pS, "standard", false);
+          expect(lowered.code, lowered.message).toBeNull();
+        }
+      }));
+
+    it("A1 (b) called directly with only such an alias, restrict is 22023 Nothing to change and the stored alias stays", () =>
+      inSavepoint(async () => {
+        for (const alias of BLANK_ALIASES) {
+          const label = codePoints(alias);
+          const nothing = await restrictDirect(id.pS, null, alias, null);
+          expect(
+            { code: nothing.code, message: nothing.message },
+            label,
+          ).toEqual({ code: "22023", message: "Nothing to change" });
+          expect(await partyRow(id.pS), label).toEqual({
+            security_level: "standard",
+            public_alias: "Ash",
+            do_not_publish: false,
+          });
+        }
+      }));
+
+    it("A1 (c) called directly with such an alias and do-not-publish, a restricted worker keeps its stored alias and no 23514 is raised", () =>
+      inSavepoint(async () => {
+        for (const alias of BLANK_ALIASES) {
+          const label = codePoints(alias);
+          const kept = await restrictDirect(id.pX, null, alias, true);
+          expect(kept.code, `${label}: ${kept.message}`).toBeNull();
+          expect(await partyRow(id.pX), label).toEqual({
+            security_level: "restricted",
+            public_alias: "Elm",
+            do_not_publish: true,
+          });
+          const cleared = await liftDirect(id.pX, null, true);
+          expect(cleared.code, cleared.message).toBeNull();
+        }
+      }));
+
+    it("A1 (d) called directly with a real alias between invisible characters, restrict stores it normalized", () =>
+      inSavepoint(async () => {
+        const real = await restrictDirect(id.pY, null, REAL_ALIAS, null);
+        expect(real.code, real.message).toBeNull();
+        expect(await partyRow(id.pY)).toEqual({
+          security_level: "standard",
+          public_alias: "Oak Two",
+          do_not_publish: false,
+        });
+      }));
+
+    it("A1 (e) the audit row of each case (a) records no alias change", () =>
+      inSavepoint(async () => {
+        for (const alias of BLANK_ALIASES) {
+          const raised = await restrictDirect(
+            id.pS,
+            "sensitive",
+            alias,
+            null,
+            "audit (e)",
+          );
+          expect(raised.code, raised.message).toBeNull();
+          const lowered = await liftDirect(id.pS, "standard", false);
+          expect(lowered.code, lowered.message).toBeNull();
+        }
+        expect(
+          (
+            await db.query(
+              "select details->'alias_changed' as changed from public.audit_logs where resource_id = $1 and action = 'worker_publication_restricted' and details->>'reason' = 'audit (e)' order by created_at, id",
+              [id.pS],
+            )
+          ).rows.map((r) => r.changed as boolean),
+        ).toEqual(BLANK_ALIASES.map(() => false));
+      }));
   },
 );
 
@@ -643,6 +815,69 @@ describe.skipIf(!ADMIN_URL)(
         unexpected: [],
         changed: [],
       });
+    }, 300_000);
+
+    it("A1 (r2b1 last round): the file replaces tenant_guard.restrict_worker_publication with part 1's text and exactly the alias edits, restating part 1's grants; owner, security, search_path, comment and grants stay; tenant_guard is left with CREATE on no schema; the Down, as the header writes it, restores part 1's definition byte for byte", async () => {
+      const partOne = readFileSync(`${MIG}/${PART_ONE}`, "utf8");
+      const written = functionText(
+        partOne,
+        partOne.indexOf(`CREATE FUNCTION ${RESTRICT}(`),
+      ).replace("CREATE FUNCTION", "CREATE OR REPLACE FUNCTION");
+      let expected = written;
+      for (const [from, to] of ALIAS_EDITS) {
+        expect(expected.split(from).length - 1, from).toBe(1);
+        expected = expected.replace(from, to);
+      }
+      const text = readFileSync(file, "utf8");
+      const at = text.indexOf(`\nCREATE OR REPLACE FUNCTION ${RESTRICT}(`);
+      expect(at, "the file replaces the function").toBeGreaterThan(-1);
+      expect(functionText(text, at + 1)).toBe(expected);
+      for (const line of [
+        `REVOKE ALL ON FUNCTION ${RESTRICT}(UUID, UUID, TEXT, TEXT, BOOLEAN, TEXT) FROM PUBLIC, anon, authenticated, service_role;`,
+        `GRANT EXECUTE ON FUNCTION ${RESTRICT}(UUID, UUID, TEXT, TEXT, BOOLEAN, TEXT) TO authenticated;`,
+      ]) {
+        expect(partOne).toContain(line);
+        expect(text.slice(text.indexOf("\nBEGIN;"))).toContain(line);
+      }
+      const down = downSql(file);
+      const downAt = down.indexOf(`CREATE OR REPLACE FUNCTION ${RESTRICT}(`);
+      expect(downAt, "the Down restores the function").toBeGreaterThan(-1);
+      expect(functionText(down, downAt)).toBe(written);
+
+      const catalog = async () =>
+        (
+          await db.query(
+            `select pg_get_functiondef(p.oid) as def, pg_get_userbyid(p.proowner) as owner, p.prosecdef, p.proconfig,
+                    p.proacl::text[] as acl, obj_description(p.oid, 'pg_proc') as comment
+               from pg_proc as p where p.oid = '${RESTRICT}(uuid,uuid,text,text,boolean,text)'::regprocedure`,
+          )
+        ).rows[0] as Record<string, unknown>;
+      const schemasWithCreate = async () =>
+        (
+          await db.query(
+            "select n.nspname from pg_namespace as n where has_schema_privilege('tenant_guard', n.oid, 'CREATE') order by 1",
+          )
+        ).rows;
+      expect(await committed(), "before the file").toBe(false);
+      const base = await catalog();
+      expect(base.owner).toBe("tenant_guard");
+      const createBase = await schemasWithCreate();
+      expect(createBase).not.toContainEqual({ nspname: "tenant_guard" });
+
+      const applied = psql(file);
+      expect(applied.status, applied.stderr).toBe(0);
+      const after = await catalog();
+      expect(after.def).not.toBe(base.def);
+      expect(after.def).toContain(
+        "v_alias := private.normalize_safety_text(p_public_alias);",
+      );
+      expect({ ...after, def: null }).toEqual({ ...base, def: null });
+      expect(await schemasWithCreate()).toEqual(createBase);
+
+      await db.query(down);
+      expect(await committed(), "after the Down").toBe(false);
+      expect(await catalog()).toEqual(base);
+      expect(await schemasWithCreate()).toEqual(createBase);
     }, 300_000);
   },
 );
