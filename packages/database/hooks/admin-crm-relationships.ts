@@ -240,6 +240,6 @@ export function useAdminCrmRelationshipsGrid() {
       relationshipsQuery.error instanceof Error
         ? relationshipsQuery.error
         : null,
-    totalCount: firstPage?.totalCount ?? null,
+    totalCount: relationshipsQuery.data?.pages.at(-1)?.totalCount ?? null,
   };
 }

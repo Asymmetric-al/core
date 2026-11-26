@@ -13,8 +13,11 @@
 --    title, the body, the body with its whitespace runs made one space (the
 --    list's preview), the author name ('Mission Control' when blank), and the
 --    linked record's id, label and type. Sort by updatedAt (the default),
---    createdAt or title, either way, and always then by id, so pages over
---    tied keys never drop or repeat a note.
+--    createdAt or title, either way, and always then by id, so the order is
+--    total: offset pages over a result set that does not change between
+--    them never drop or repeat a note, tied keys included. A note added or
+--    removed between two page reads moves the later pages by one (offset
+--    paging promises no more).
 -- 2. public.crm_relationships_page(tenant, search, domains, sort, descending,
 --    offset, limit, now): the relationships list the service built in Node
 --    from four whole tables (donors as people, households, organizations
@@ -27,20 +30,35 @@
 --    an order or a page boundary, and every care-derived number is 0
 --    whether or not care activity exists. Sensitive care activity (pastoral
 --    notes, care-plan updates, crisis interventions, and any type or title
---    naming care, private, counsel or pastoral) is never listed; a care
---    reader sees it counted in excludedCareActivityCount. The report covers
+--    naming care, private, counsel or pastoral, in any letter case) is never
+--    listed; a care reader sees it counted in excludedCareActivityCount. The
+--    report's monthly commitment per currency is the sum of each active
+--    pledge's amount times its payments a year, divided by twelve once and
+--    rounded half away from zero, so 12,006 a year is 1,001 a month, as the
+--    removed TypeScript gave. The report covers
 --    the whole authorized set; totalCount covers the domain and search
 --    filter. Worker names come from public.tenant_member_directory, as the
 --    service's did, 150 profiles a call. Sort by updatedAt or lastActivityAt
 --    (the default), createdAt, displayName, domain, status or
 --    commitmentAmountCents, either way, and always then by the row's unique
---    id ("<kind>:<record id>", byte order).
+--    id ("<kind>:<record id>", byte order): pages over an unchanging result
+--    set never drop or repeat a row; a row added between two page reads
+--    moves the later pages by one.
+--    In both functions a page's end is computed in bigint, so an offset up to
+--    the top of the integer range answers an empty page with the exact total.
 -- 3. Two tenant-first indexes on crm_notes for the created-at and title
 --    orders (updated-at has one since 20260818000000).
 --
 -- Locks, all held to COMMIT: SHARE on crm_notes while its two indexes are
 -- built (writes wait; reads do not); object locks on the new functions.
 -- lock_timeout stops a run rather than queue it behind live traffic.
+--
+-- If the lock limit stops this file (a long write holding crm_notes), the
+-- file rolls back whole and leaves nothing of itself; the release stops
+-- here, with the release's earlier files committed (20261126200000 among
+-- them). The running build keeps working on that state: it calls neither
+-- function, and the indexes only speed reads. Run the release again once
+-- the write has finished; this file then applies from its start.
 --
 -- Recovery. A run lost between its COMMIT and its ledger row stops on the
 -- next run at its first CREATE (public.crm_notes_page, 42723), rolling back.
@@ -125,8 +143,8 @@ AS $$
                 )
                 ORDER BY o.position)
          FROM ordered AS o
-        WHERE o.position > GREATEST(COALESCE(p_offset, 0), 0)
-          AND o.position <= GREATEST(COALESCE(p_offset, 0), 0) + LEAST(GREATEST(COALESCE(p_limit, 50), 1), 100)),
+        WHERE o.position > GREATEST(COALESCE(p_offset, 0), 0)::BIGINT
+          AND o.position <= GREATEST(COALESCE(p_offset, 0), 0)::BIGINT + LEAST(GREATEST(COALESCE(p_limit, 50), 1), 100)),
       '[]'::jsonb
     )
   );
@@ -210,9 +228,9 @@ AS $$
            COALESCE(a.created_at, p_now) AS created_at,
            a.occurred_at,
            (
-             COALESCE(pg_catalog.btrim(a.type), '') IN ('pastoral_note', 'care_plan_update', 'crisis_intervention')
-             OR COALESCE(a.type, '') ~ '(care|private|counsel|pastoral)'
-             OR COALESCE(a.title, '') ~ '(care|private|counsel|pastoral)'
+             pg_catalog.lower(COALESCE(pg_catalog.btrim(a.type), '')) IN ('pastoral_note', 'care_plan_update', 'crisis_intervention')
+             OR COALESCE(a.type, '') ~* '(care|private|counsel|pastoral)'
+             OR COALESCE(a.title, '') ~* '(care|private|counsel|pastoral)'
            ) AS sensitive
       FROM public.member_care_activities AS a
      WHERE (SELECT authz.assignment_holds('care.access'))
@@ -323,16 +341,16 @@ AS $$
            ) AS position
       FROM visible AS v
   ),
-  frequencies (key, factor) AS (
+  frequencies (key, per_year) AS (
     VALUES
-      ('annual', 1::NUMERIC / 12), ('annually', 1::NUMERIC / 12), ('biweekly', 26::NUMERIC / 12),
-      ('month', 1::NUMERIC), ('monthly', 1::NUMERIC), ('quarter', 1::NUMERIC / 3), ('quarterly', 1::NUMERIC / 3),
-      ('semi_annual', 1::NUMERIC / 6), ('semi_annually', 1::NUMERIC / 6), ('semiannual', 1::NUMERIC / 6),
-      ('semiannually', 1::NUMERIC / 6), ('semimonthly', 2::NUMERIC), ('week', 52::NUMERIC / 12),
-      ('weekly', 52::NUMERIC / 12), ('year', 1::NUMERIC / 12), ('yearly', 1::NUMERIC / 12)
+      ('annual', 1::NUMERIC), ('annually', 1::NUMERIC), ('biweekly', 26::NUMERIC),
+      ('month', 12::NUMERIC), ('monthly', 12::NUMERIC), ('quarter', 4::NUMERIC), ('quarterly', 4::NUMERIC),
+      ('semi_annual', 2::NUMERIC), ('semi_annually', 2::NUMERIC), ('semiannual', 2::NUMERIC),
+      ('semiannually', 2::NUMERIC), ('semimonthly', 24::NUMERIC), ('week', 52::NUMERIC),
+      ('weekly', 52::NUMERIC), ('year', 1::NUMERIC), ('yearly', 1::NUMERIC)
   ),
   active_pledges AS (
-    SELECT pg_catalog.upper(r.currency) AS currency, r.amount, f.factor
+    SELECT pg_catalog.upper(r.currency) AS currency, r.amount, f.per_year
       FROM relationship_rows AS r
       LEFT JOIN frequencies AS f
         ON f.key = pg_catalog.regexp_replace(pg_catalog.regexp_replace(pg_catalog.lower(COALESCE(r.frequency, '')), '^[[:space:]_-]+|[[:space:]_-]+$', '', 'g'), '[[:space:]_-]+', '_', 'g')
@@ -365,14 +383,14 @@ AS $$
                    'currency', m.currency, 'monthlyCents', m.cents, 'pledgeCount', m.n)
                    ORDER BY m.currency)
             FROM (
-              SELECT a.currency, pg_catalog.round(pg_catalog.sum(a.amount * a.factor))::BIGINT AS cents, pg_catalog.count(*) AS n
+              SELECT a.currency, pg_catalog.round(pg_catalog.sum(a.amount * a.per_year) / 12)::BIGINT AS cents, pg_catalog.count(*) AS n
                 FROM active_pledges AS a
-               WHERE a.factor IS NOT NULL
+               WHERE a.per_year IS NOT NULL
                GROUP BY a.currency
             ) AS m
         ), '[]'::jsonb),
         'pledgeCount', (SELECT pg_catalog.count(*) FROM active_pledges),
-        'unknownFrequencyCount', (SELECT pg_catalog.count(*) FROM active_pledges AS a WHERE a.factor IS NULL)
+        'unknownFrequencyCount', (SELECT pg_catalog.count(*) FROM active_pledges AS a WHERE a.per_year IS NULL)
       ),
       'recentActivityCount', pg_catalog.count(*) FILTER (WHERE r.domain = 'activity'),
       'totalRows', pg_catalog.count(*)
@@ -410,8 +428,8 @@ AS $$
                 )
                 ORDER BY o.position)
          FROM ordered AS o
-        WHERE o.position > GREATEST(COALESCE(p_offset, 0), 0)
-          AND o.position <= GREATEST(COALESCE(p_offset, 0), 0) + LEAST(GREATEST(COALESCE(p_limit, 50), 1), 100)),
+        WHERE o.position > GREATEST(COALESCE(p_offset, 0), 0)::BIGINT
+          AND o.position <= GREATEST(COALESCE(p_offset, 0), 0)::BIGINT + LEAST(GREATEST(COALESCE(p_limit, 50), 1), 100)),
       '[]'::jsonb
     ),
     'report', (SELECT r.value FROM report AS r)
