@@ -77,7 +77,7 @@ Each is the owner's, by hand, once per hosted project, and none runs in CI:
 
 1. Switch on TOTP enrolment and verification in the project's Auth settings (Authentication, Multi-Factor). The repository's `supabase/config.toml` switches them on for local stacks only; `supabase config push` is not part of any job.
 2. Add the first operator: the owner's own login, with the project's `postgres` connection in `OPERATORS_DATABASE_URL` and its ref in `OPERATORS_SUPABASE_PROJECT_REF`.
-3. Sign in on the operations address at `/operator`, set up an authenticator and pass the challenge. The area then says the session is verified with a second factor; until then every platform gate stays closed to that session. Do this at once after step 2: between adding a person to the list and their first enrolment, their password alone is enough to enrol.
+3. Sign in on the operations address at `/operator`, set up an authenticator and pass the challenge. The area then says the session is verified with a second factor; until then every platform gate stays closed to that session. Do this at once after step 2: between adding a person to the list and their first enrolment, their password alone is enough to enrol. While `CORE_SERVE_UNDER_PATHS=1`, this step waits for the package that opens sign-in on the operations address (N3/N4): under the switch the unstamped sign-in and callback routes are not open, so the first sign-in there cannot start ([ADR 0018](../../packages/auth/docs/adr/0018-operator-area-admission-and-mfa.md), decision 13).
 
 ## The operator area
 
@@ -119,6 +119,7 @@ For a compromised device or account, work in this order. `platform.require_opera
 
 1. Remove the person from `authz.platform_operators` with the script (effective at the next call).
 2. Revoke the user's sessions and remove the compromised factor in Auth (dashboard or admin API); for an account compromise, also reset the password.
-3. Add the person back to the list with the script, and have them set up a new authenticator in the operator area at once: until they do, their password alone is enough to enrol.
+3. Stay off the list until every access token issued before step 2 has expired: once the person is back on the list, such a token passes the list check again with its old `aal2` claim. The project's `jwt_expiry` (Authentication settings, access token expiry; `3600` seconds, one hour, in `supabase/config.toml`) fixes that time.
+4. Add the person back to the list with the script, and have them set up a new authenticator in the operator area at once: until they do, their password alone is enough to enrol.
 
 If the last operator is locked out or compromised, the release owner first adds a trusted replacement with the database script, which does not need an MFA session. Then remove the old operator before deleting the login from Auth.

@@ -136,15 +136,22 @@ path of the tenant flow, and no application code called
     `platform_operator_session()` returning the caller's own id. If the
     database refuses, the page says so and offers sign-out, never "verified".
     With several verified authenticators the challenge tries the next one
-    only after a wrong code; any other refusal (rate limit, switched-off TOTP,
-    expired challenge, network change, server error) stops there with its
-    own text, since Auth limits these calls per address. No submit with fewer
-    than six digits reaches Auth, and none is sent once sign-out has begun.
+    only after a wrong code (`mfa_verification_failed`); any other refusal
+    (rate limit, switched-off TOTP, expired challenge, network change, a
+    refusal by the MFA verification hook, `mfa_verification_rejected`,
+    server error) stops there with its own text, since Auth limits these
+    calls per address. No submit with fewer than six digits reaches Auth,
+    and none is sent once sign-out has begun; a verification that answers
+    after sign-out began, or after its panel went, does nothing more. A
+    re-read never discards an enrolment the operator has open or a message
+    on the screen.
 
 11. **The last factor (ruling Q5).** "Remove" appears only while two or more
     verified TOTP factors exist, behind a confirmation; removal is followed at
-    once by a session refresh and a fresh read. Until that read is on the
-    screen no Remove control is offered, so a second removal can never be
+    once by a session refresh and a fresh read, also when the refresh fails
+    or throws. From the confirmation until a read started after the removal
+    is on the screen, no Remove control is offered or confirmed, whatever
+    other read resolves in between, so a second removal can never be
     confirmed from a stale list; a removal that did not happen says so. The
     product never removes the last verified factor; the release owner does,
     by the runbook.
@@ -179,9 +186,12 @@ Auth on refresh and removal) and `tests/e2e/auth-operator-area.spec.ts` (the
 journeys, including the absence of the key, plain and grouped, the
 `otpauth` address and a slice of the QR's SVG from every Mission Control
 response and request, the server log, the browser's storage and the
-database; the journey fails when an `/operator` response cannot be read,
-and reads again, with the same address, headers and cookies, each `/operator`
-route-data request the browser aborts, as the router does after sign-in).
+database; the journey fails when an `/operator` response or a browser store
+cannot be read, and reads again, with the same address, headers and cookies,
+only an `/operator` route-data fetch the router aborted, as it does after
+sign-in, taking only a `200` answer). After a failed case the journey closes
+its pages, so Playwright's `error-context.md` holds no snapshot of a page
+that may show the key.
 
 The journey's server log (`.e2e-logs/auth-mail-admin-server.log`) lies
 outside every path a workflow uploads, because `next dev` forwards browser
