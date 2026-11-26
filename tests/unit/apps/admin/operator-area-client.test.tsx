@@ -187,8 +187,11 @@ describe("AL-2675 WP2c part 2a, T4: the operator area's screens", () => {
       name: "QR code for your authenticator app",
     });
     expect(qr.closest("[data-sentry-block]")).not.toBeNull();
-    const key = screen.getByLabelText("Key", { selector: "code" });
+    const key = screen
+      .getByRole("group", { name: "Key" })
+      .querySelector("code")!;
     expect(key.textContent).toBe(secret.match(/.{1,4}/g)!.join(" "));
+    expect(key.hasAttribute("aria-labelledby")).toBe(false);
     expect(key.closest("[data-sentry-block]")).not.toBeNull();
     const field = document.querySelector('[data-slot="input-otp"]')!;
     expect(field.hasAttribute("data-sentry-block")).toBe(true);

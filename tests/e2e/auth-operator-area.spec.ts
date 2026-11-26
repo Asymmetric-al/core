@@ -507,7 +507,10 @@ test.describe("AL-2675 WP2c part 2a, T6: the operator area in the browser", () =
       page.getByRole("img", { name: "QR code for your authenticator app" }),
     ).toBeVisible();
     const shownKey =
-      (await page.getByLabel("Key", { exact: true }).textContent()) ?? "";
+      (await page
+        .getByRole("group", { name: "Key", exact: true })
+        .locator("code")
+        .textContent()) ?? "";
     const secret = shownKey.replace(/\s/g, "");
     expect(/^[A-Z2-7]{16,}$/.test(secret), "the page shows a base32 key").toBe(
       true,
