@@ -89,6 +89,11 @@ on:
       - tests/unit/acceptance/issue-2678/identity-keys.postgrest-fixture.ts
       - tests/unit/acceptance/issue-2678/worker-names.postgrest.acceptance.test.ts
       - tests/unit/acceptance/issue-2678/supporter-names.postgrest.acceptance.test.ts
+      # The assignment keys and the CRM's owner by key (AL-2678, WP5 part 2-r3).
+      - tests/unit/acceptance/issue-2678/assignment-keys.postgrest.acceptance.test.ts
+      - tests/unit/acceptance/issue-2678/assignment-keys.realstack.acceptance.test.ts
+      - packages/database/types/crm-detail.ts
+      - packages/database/types/crm-grid.ts
       - packages/database/collections/schemas/giving.ts
       # The readers that name a worker outside Mission Control, which the
       # identity-key proof drives (AL-2678, WP5 part 2-r1).
@@ -340,6 +345,17 @@ jobs:
           WP5_IDENTITY_IT_SERVICE_KEY="$(jq -er '.SERVICE_ROLE_KEY | select(length > 0)' <<< "$status")"
           export WP5_IDENTITY_IT_ANON_KEY WP5_IDENTITY_IT_SERVICE_KEY
           bunx vitest run --maxWorkers=1 tests/unit/acceptance/issue-2678/supporter-names.postgrest.acceptance.test.ts
+      - name: Verify assignment keys and the CRM's record owner through PostgREST
+        shell: bash
+        env:
+          WP5_IDENTITY_IT_URL: http://127.0.0.1:54321
+          WP5_IDENTITY_IT_DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:54322/postgres
+        run: |
+          status="$(bun run supabase -- status -o json)"
+          WP5_IDENTITY_IT_ANON_KEY="$(jq -er '.ANON_KEY | select(length > 0)' <<< "$status")"
+          WP5_IDENTITY_IT_SERVICE_KEY="$(jq -er '.SERVICE_ROLE_KEY | select(length > 0)' <<< "$status")"
+          export WP5_IDENTITY_IT_ANON_KEY WP5_IDENTITY_IT_SERVICE_KEY
+          bunx vitest run --maxWorkers=1 tests/unit/acceptance/issue-2678/assignment-keys.postgrest.acceptance.test.ts
       - name: Verify invitations, directory and role concurrency through PostgREST
         shell: bash
         env:

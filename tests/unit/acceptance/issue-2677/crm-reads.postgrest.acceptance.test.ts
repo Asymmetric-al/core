@@ -674,45 +674,51 @@ describe.skipIf(!url && process.env.CRM_READ_IT_REQUIRED !== "1")(
     it.each([
       ["records", records],
       ["tags", tags],
-    ] as const)("reads %s with the caller token", async (kind, handler) => {
-      const path = "/api/admin/crm?q=" + marker;
-      const refused = await handler(request(path, sole, tenantB));
-      expect(refused.status).toBe(401);
-      expect(refused.headers.has("x-asym-scope-refused")).toBe(true);
-      const req = request(path, dual);
-      const list = await handler(req);
-      expect(list.status).toBe(200);
-      const body = await list.json();
-      if (kind === "records") {
-        expect(body.rows.map((r: { id: string }) => r.id).sort()).toEqual(
+    ] as const)(
+      "D-18 (AL-2678 r3, Q-r3-2: the owner is named only through the record's assignment key; the first owner's sole worker row in tenantA, which the seed gives the profile's own id, is still named, and the second owner's only worker row is in tenantB, so that row, \"Former member\" before, is not named): reads %s with the caller token",
+      async (kind, handler) => {
+        const path = "/api/admin/crm?q=" + marker;
+        const refused = await handler(request(path, sole, tenantB));
+        expect(refused.status).toBe(401);
+        expect(refused.headers.has("x-asym-scope-refused")).toBe(true);
+        const req = request(path, dual);
+        const list = await handler(req);
+        expect(list.status).toBe(200);
+        const body = await list.json();
+        if (kind === "records") {
+          expect(body.rows.map((r: { id: string }) => r.id).sort()).toEqual(
+            donorIds.slice(0, 2).sort(),
+          );
+          const named = body.rows.find(
+            (r: { id: string }) => r.id === donorIds[0],
+          );
+          expect(named.assignedMissionaryName).toBeTruthy();
+          expect(named.ownerAssignmentId).toBe(otherProfile);
+          expect(
+            body.rows.find((r: { id: string }) => r.id === donorIds[1]),
+          ).toMatchObject({
+            assignedMissionaryName: null,
+            ownerAssignmentId: null,
+          });
+        } else {
+          expect(body.tags).toContain(marker);
+          expect(body.tags).not.toContain(marker + "-B");
+        }
+        const scoped = await createRequestSessionClient(req, {
+          tenantId: tenantA,
+          assignmentId: dual.assignment,
+        });
+        const direct = await scoped
+          .from("donors")
+          .select("id")
+          .in("id", donorIds);
+        expect(direct.error).toBeNull();
+        expect(direct.data?.map((r) => r.id).sort()).toEqual(
           donorIds.slice(0, 2).sort(),
         );
-        expect(
-          body.rows.find((r: { id: string }) => r.id === donorIds[0])
-            .assignedMissionaryName,
-        ).toBeTruthy();
-        expect(
-          body.rows.find((r: { id: string }) => r.id === donorIds[1])
-            .assignedMissionaryName,
-        ).toBe("Former member");
-      } else {
-        expect(body.tags).toContain(marker);
-        expect(body.tags).not.toContain(marker + "-B");
-      }
-      const scoped = await createRequestSessionClient(req, {
-        tenantId: tenantA,
-        assignmentId: dual.assignment,
-      });
-      const direct = await scoped
-        .from("donors")
-        .select("id")
-        .in("id", donorIds);
-      expect(direct.error).toBeNull();
-      expect(direct.data?.map((r) => r.id).sort()).toEqual(
-        donorIds.slice(0, 2).sort(),
-      );
-      expect(getAdminClient).not.toHaveBeenCalled();
-    });
+        expect(getAdminClient).not.toHaveBeenCalled();
+      },
+    );
 
     it("reads relationships from the selected tenant and names workers from the directory", async () => {
       const path = "/api/admin/crm/relationships?q=Riley";

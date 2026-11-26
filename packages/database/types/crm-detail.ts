@@ -124,6 +124,7 @@ export interface CrmDonorDetailResponse {
     missionaryId: string | null;
     /** The owner's name (from profiles), when it can be read. */
     missionaryName?: string | null;
+    ownerAssignmentId?: string | null;
     notesPreview: string | null;
     tags: string[];
     avatarUrl: string | null;

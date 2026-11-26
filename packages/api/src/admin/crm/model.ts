@@ -6,6 +6,7 @@ type DonorRow = {
   id: string;
   profile_id: string | null;
   missionary_id: string | null;
+  ministry_assignment_id: string | null;
   name: string | null;
   email: string | null;
   phone: string | null;
@@ -41,6 +42,7 @@ function previewNotes(
 export function buildCrmGridRow(
   donor: DonorRow,
   missionaryDisplayName: string | null,
+  ownerAssignmentId: string | null,
 ): CrmGridRow {
   const linked = donor.profile_id != null && donor.profile_id.length > 0;
   return {
@@ -61,6 +63,7 @@ export function buildCrmGridRow(
     linkedAuthUserId: donor.profile_id,
     tags: donor.tags ?? [],
     assignedMissionaryName: missionaryDisplayName,
+    ownerAssignmentId,
     avatarUrl: donor.avatar_url,
     email: donor.email,
     phone: donor.phone,
