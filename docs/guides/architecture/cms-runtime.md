@@ -19,7 +19,7 @@ The CMS has five collections, all on UUID ids (`apps/admin/src/cms/collections/`
 - `site-presentations`: one per Core Site, under the Site's id, created only by the CMS step of provisioning through the service port (see below); staff read it and nothing more.
 - `pages`: every page, with a required `site`, a `family` (`standard`, `missionary` or `project`), drafts that validate, autosave every two seconds and at most 50 versions. A `missionary` page names its missionary (`missionaryId`), a `project` page its fund (`fundId`), a `standard` page neither.
 - `navigation`: menus of a Site; each item points at a page of the same Site or at an absolute `http:` or `https:` address with a host.
-- `media`: plain records of `alt`, `credit` and `folder` under the custody id; the service port creates and deletes them, staff edit the three fields. No file is uploaded through Payload; files arrive with WP6 part 2c.
+- `media`: plain records of `alt`, `credit` and `folder` under the custody id; the service port creates and deletes them, staff edit the three fields. No file passes through Payload: the media library uploads straight to private Storage (below).
 - `principal-links`: Payload's auth collection, one row per login UUID, holding no tenant or role.
 
 The four tenant collections carry `tenant` (the organization's UUID as text) and are built by `tenantScoped()` (`apps/admin/src/cms/tenancy/tenant-scoped.ts`).
@@ -35,6 +35,21 @@ Three paths call it, each with its own reader of Core:
 - **The fixtures.** `bun run cms:fixtures` and `bun run cms:local:seed` present the seed's Sites (`scripts/cms/lib/cms-fixtures.mjs`).
 
 `apps/admin/src/cms/site-presentation-step.ts` is in `SERVICE_PORT_CALLERS` (`scripts/verify/cms-override-inventory.mjs`) because it is the one place a presentation is created, and the service port is the only writer of `site-presentations`. The route, `site-created.ts` and the sweep reach the port only through it.
+
+### The media library (WP6 rest, pull request 2, AL-2679)
+
+Staff holding `web_studio.edit` upload, see, edit and delete images in Web Studio's media list. One adapter in the browser (`apps/admin/src/cms-ui/web-studio/media/media-upload.ts`) moves the bytes, and no byte passes through Payload or a function body:
+
+1. `POST /api/cms/media/start` through `ownApiFetch`, which names the document's tenant and assignment; it opens a custody row and returns a signed upload address.
+2. `PUT` of the file to that address, Storage's own, into the private `cms-media` bucket.
+3. `POST /api/cms/media/finalize` through `ownApiFetch`: the storage module checks and re-encodes the image and writes its bounded variants.
+4. `POST /web-studio/api/web-studio/media/register` through the document's `fetch`, which Web Studio wraps with the organization's claims. The endpoint (`apps/admin/src/cms/media-endpoints.ts`) reads the asset on the person's own token, in the organization the Web Studio cookie selects (`readMediaCustody`, through `media_assets_staff_select`), and only an asset `ready` there is registered through the service port's `registerMediaRecord`. A failed registration is retried by itself; finalize and registration are idempotent, so a retry writes no second object and no second row.
+
+Delete runs `POST /api/cms/media/delete` (`delete_media_asset` on the caller's token; a record with no stored file, as the fixtures' are, answers 404 and goes on), then `POST /web-studio/api/web-studio/media/remove`, which refuses while the file is still stored and calls `deleteMediaRecord` with the organization: another organization's row is refused, a row already gone is nothing to do.
+
+Thumbnails and the preview's images come only from `/api/media/<id>` and its bounded variants (`?variant=w320`, `w960`), never a Storage address; an `<img>` there needs no header, as the route admits by the session and the asset's own organization.
+
+`apps/admin/src/cms/media-endpoints.ts` is in `SERVICE_PORT_CALLERS` because media records are created and deleted only through the service port, and these two endpoints are the library's only path to it.
 
 Top-level Payload admin views (still under `/web-studio`):
 
@@ -75,7 +90,19 @@ do not wrap Web Studio views in the Mission Control shell a second time.
 - Tenant context is the assignment the strategy resolved (`apps/admin/src/cms/access/tenant-context.ts`); only an actor holding `web_studio.edit` edits.
 - Collection access is deny-by-default and scoped to the selected organization's tenant for every actor; a foreign `tenant` on create or a changed `tenant` on update is refused, not rewritten, and a reference to another tenant's Site, page or media is refused with its field path.
 - Two ports carry every Local API call: `apps/admin/src/cms/ports/actor-port.ts` (access on, the user, a tenant condition) and `apps/admin/src/cms/ports/service-port.ts`, the only module that passes `overrideAccess: true`. The CI gate `bun run verify:cms-override-inventory` fails on any `overrideAccess: true` or direct `payload.db.*` elsewhere in `apps/` and `packages/`, outside the lock-access read.
+- The gate also fails an import of the service port by a module not in `SERVICE_PORT_CALLERS`: a static or dynamic import, a `require`, a re-export, a relative specifier resolved against the importing file (a sibling in `ports/` included), and a specifier written as a concatenation or a template of string literals (#2839).
 - The prototype admin `/api/cms/public/*` routes, `resolve-tenant.ts`, and `published-content-reader.ts` were retired in WP6 part 2a (AL-2679). The sole-entry gate allowlist (`scripts/verify/cms-public-sole-entry.mjs`) is empty until WP7 implements the target public reader under `packages/api/src/cms/public`.
+
+### What the override gate cannot see
+
+`scripts/verify/cms-override-inventory.mjs` reads each file's syntax tree alone, so it cannot see:
+
+- options passed through parameters or helpers: an options object built in one function and handed to a Local API call in another;
+- port functions passed on as values: a listed caller that hands `serviceFind` or another port function to a module that is not listed;
+- computed keys outside a Local API call: a computed key in an object that later reaches a call (it fails only a computed key written in a call's own options, for every method Payload's Local API has, `jobs.queue`, `renameFile`, `validate` and `validateGlobal` included);
+- computed import paths: a specifier built at run time, such as `cms:qualify`'s `fromAdmin("src", "cms", "ports", "service-port.ts")` (`scripts/cms/lib/payload-qualification-body.mjs`), whose overrides the gate's allowlist counts instead.
+
+Review covers these; the gate keeps the literal cases out.
 
 ## Public rendering flow
 

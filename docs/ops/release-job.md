@@ -1383,8 +1383,11 @@ Two checks can refuse such a presentation, naming each:
 - **`migrate`'s preflight**, before the first commit: nothing was migrated,
   written or deployed.
 - **The sweep**, after Payload's migrations, when such a presentation
-  appeared after preflight: the migrations are committed; the sweep wrote
-  nothing in this run, and presentations from earlier runs stay.
+  appeared after preflight: the migrations are committed. Found before the
+  sweep starts ("The sweep wrote nothing"), the sweep wrote nothing in this
+  run; found by its check after the sweep ("The Site presentation sweep
+  ended, but"), the presentations it wrote in this run stay. Presentations
+  from earlier runs stay either way.
 
 Read the named presentations, read-only, connected as the job connects. A
 presentation can be deleted only when no page, stored page version or menu
@@ -1419,7 +1422,10 @@ limit, a timeout), then retry:
   more, and the sweep hands over only the Sites still without one.
 - **A rebuild:** rebuild again (a first rebuild: dispatch it again with the
   census link, typed confirmation and fresh approval). It starts over: the
-  reset removes every presentation and the sweep writes them all again.
+  reset removes every presentation and the sweep writes them all again. The
+  stop's own message says every presentation the sweep wrote is kept and a
+  re-run writes only those still missing; that holds for `migrate` only, and
+  for a rebuild only until the next reset.
 
 **Rollback.** Revert the apps; the presentations stay, since pages key on
 them. Admin never goes below WP6 part 2b's release.
