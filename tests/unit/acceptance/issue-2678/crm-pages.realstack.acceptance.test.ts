@@ -18,6 +18,35 @@ type Page = {
   rows: Record<string, unknown>[];
   report?: Record<string, unknown>;
 };
+type Row = Record<string, unknown>;
+type Key = (row: Row) => string | number;
+
+const RELATIONSHIP_KEYS: Record<string, Key> = {
+  updatedAt: (row) => Date.parse(String(row.updatedAt)),
+  lastActivityAt: (row) => Date.parse(String(row.updatedAt)),
+  createdAt: (row) => Date.parse(String(row.createdAt)),
+  displayName: (row) => String(row.displayName),
+  domain: (row) => String(row.domain),
+  status: (row) => String(row.status ?? ""),
+  commitmentAmountCents: (row) => Number(row.commitmentAmountCents ?? 0),
+};
+const NOTE_KEYS: Record<string, Key> = {
+  updatedAt: (row) => Date.parse(String(row.updated_at)),
+  createdAt: (row) => Date.parse(String(row.created_at)),
+  title: (row) => String(row.title),
+};
+
+function ordered(rows: Row[], key: Key, descending: boolean) {
+  const compare = (x: string | number, y: string | number) =>
+    x < y ? -1 : x > y ? 1 : 0;
+  return [...rows]
+    .sort((a, b) => {
+      const by = compare(key(a), key(b));
+      if (by !== 0) return descending ? -by : by;
+      return compare(String(a.id), String(b.id));
+    })
+    .map((row) => row.id);
+}
 
 describe.skipIf(!ADMIN_URL)(
   "AL-2678 WP5 rest r6 (brief invariants 9 and 10, ruling WP5 part 2 Q11): CRM notes and relationships page in Postgres on the caller's token, keeping what the Node model guaranteed and adding the paging and care-gate rules; each case rolls back",
@@ -381,7 +410,7 @@ describe.skipIf(!ADMIN_URL)(
         expect(pledges.report).toEqual(page.report);
       }));
 
-    it("care: a non-care caller's whole response is the same before and after care activity is added, every care number 0; a care reader sees non-sensitive activity and the sensitive counted (red: 42883)", () =>
+    it("care: a non-care caller's whole response is the same before and after care activity is added, every care number 0; a care reader sees non-sensitive activity and the sensitive counted, whatever the letter case of the care words (fix round F6; red: a capitalised or mixed-case title is listed)", () =>
       tx(async () => {
         await donor("Jordan Lee");
         await careWorker();
@@ -400,6 +429,8 @@ describe.skipIf(!ADMIN_URL)(
         );
         await care("in_person_visit", "A private conversation");
         await care("video_call", "Scared of flying");
+        await care("check_in", "Private Visit", "Capitalised");
+        await care("check_in", "A PasToral call", "Mixed case");
         expect({
           all: await relationships("staff"),
           activity: await relationships("staff", { domains: ["activity"] }),
@@ -425,10 +456,10 @@ describe.skipIf(!ADMIN_URL)(
           updatedAt: "2026-08-02T00:00:00+00:00",
         });
         expect(JSON.stringify(reader)).not.toMatch(
-          /Confidential|private conversation|Scared/,
+          /Confidential|private conversation|Scared|Capitalised|Mixed case/i,
         );
         expect(reader.report).toMatchObject({
-          excludedCareActivityCount: 4,
+          excludedCareActivityCount: 6,
           recentActivityCount: 1,
         });
       }));
@@ -482,6 +513,38 @@ describe.skipIf(!ADMIN_URL)(
         );
       }));
 
+    it("states an annual pledge that does not divide by twelve as the removed TypeScript did, to the cent: 12,006 a year is 1,001 a month (fix round F15; red: 1,000, from a truncated one-twelfth)", () =>
+      tx(async () => {
+        await pledge({
+          amount: 12006,
+          frequency: "annually",
+          status: "active",
+        });
+        const page = await relationships("staff");
+        expect(Math.round(12006 * (1 / 12))).toBe(1001);
+        expect(page.report!.activeCommitments).toMatchObject({
+          monthlyByCurrency: [
+            { currency: "USD", monthlyCents: 1001, pledgeCount: 1 },
+          ],
+        });
+      }));
+
+    it("an offset at the top of the integer range answers an empty page with the exact total, never an overflow (fix round F10; red: 22003)", () =>
+      tx(async () => {
+        await donor("Edge of the range");
+        await db.query(
+          "insert into public.crm_notes (tenant_id, title, body, visibility) values ($1, 'Edge note', 'Body', 'standard')",
+          [id.T],
+        );
+        const whole = await relationships("staff");
+        const far = await relationships("staff", { offset: 2147483647 });
+        expect(far.rows).toEqual([]);
+        expect(far.totalCount).toBe(whole.totalCount);
+        const farNotes = await notes("staff", { offset: 2147483647 });
+        expect(farNotes.rows).toEqual([]);
+        expect(farNotes.totalCount).toBe(1);
+      }));
+
     it("counts church-named organization duplicates and duplicate people as merge candidates, separately", () =>
       tx(async () => {
         await donor(null, { type: "church", organization: "Grace Church" });
@@ -498,7 +561,7 @@ describe.skipIf(!ADMIN_URL)(
         });
       }));
 
-    it("pages exactly over tied sort keys in either direction and every sort field: disjoint, complete, ending on the unique id; totalCount is the filtered set and the report the whole authorized set", () =>
+    it("pages exactly over tied sort keys in either direction and every sort field: disjoint, complete, in the order an independent comparator over the whole set gives, ending on the unique id; totalCount is the filtered set and the report the whole authorized set (fix round F11: compared in the order returned; red on a function that ignores the sort)", () =>
       tx(async () => {
         for (let i = 0; i < 37; i += 1)
           await donor(`Tied ${i % 3}`, {
@@ -536,10 +599,10 @@ describe.skipIf(!ADMIN_URL)(
               descending,
               everyId.length,
             ]);
-            expect([sort, descending, [...seen].sort()]).toEqual([
+            expect([sort, descending, seen]).toEqual([
               sort,
               descending,
-              everyId,
+              ordered(whole.rows, RELATIONSHIP_KEYS[sort]!, descending),
             ]);
           }
         const people = await relationships("staff", {
@@ -551,7 +614,7 @@ describe.skipIf(!ADMIN_URL)(
         expect(whole.report!.totalRows).toBe(whole.totalCount);
       }));
 
-    it("notes: restricted notes are in neither the rows nor the total for staff and in both for the administrator; search totals are exact; tied keys page disjoint and complete; another tenant's notes never (red: 42883)", () =>
+    it("notes: restricted notes are in neither the rows nor the total for staff and in both for the administrator; search totals are exact; tied keys page disjoint and complete, in the order an independent comparator gives; another tenant's notes never (red: 42883; fix round F11: compared in the order returned)", () =>
       tx(async () => {
         const at = "2026-08-18T12:00:00Z";
         for (let i = 0; i < 29; i += 1)
@@ -601,6 +664,11 @@ describe.skipIf(!ADMIN_URL)(
               sort,
               descending,
               everyId,
+            ]);
+            expect([sort, descending, seen]).toEqual([
+              sort,
+              descending,
+              ordered(staff.rows, NOTE_KEYS[sort]!, descending),
             ]);
           }
       }));
