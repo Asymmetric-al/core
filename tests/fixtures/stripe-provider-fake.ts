@@ -30,7 +30,7 @@ export type FakePaymentIntent = {
   amount: number;
   currency: string;
   metadata: Record<string, unknown>;
-  status: "requires_payment_method";
+  status: "requires_payment_method" | "canceled";
 };
 
 export type FakeObject = FakePaymentIntent & {
@@ -131,6 +131,17 @@ export const refuse = (options: BehaviourOptions = {}): FakeBehaviour =>
       code: "card_declined",
       decline_code: "generic_decline",
       message: "Your card was declined.",
+    }),
+    { ...options, store: true },
+  );
+
+export const unexpectedState = (options: BehaviourOptions = {}) =>
+  answer(
+    stripeError(400, {
+      type: "invalid_request_error",
+      code: "payment_intent_unexpected_state",
+      message:
+        "This PaymentIntent's status is succeeded, which does not allow cancellation.",
     }),
     { ...options, store: true },
   );
@@ -456,6 +467,28 @@ export function createStripeProviderFake(
         request,
         wait,
         act() {
+          const cancel =
+            /^\/v1\/payment_intents\/(pi_[A-Za-z0-9]+)\/cancel$/.exec(
+              request.path,
+            );
+          if (cancel) {
+            const known = created.find((o) => o.id === cancel[1]);
+            const intent: FakePaymentIntent = {
+              id: cancel[1]!,
+              object: "payment_intent",
+              livemode: false,
+              amount: known?.amount ?? 0,
+              currency: known?.currency ?? "usd",
+              metadata: known?.metadata ?? {},
+              status: "canceled",
+            };
+            created.push({
+              ...intent,
+              account: request.account,
+              key: request.key,
+            });
+            return intent;
+          }
           const metadata = (request.body.metadata ?? {}) as Record<
             string,
             unknown
