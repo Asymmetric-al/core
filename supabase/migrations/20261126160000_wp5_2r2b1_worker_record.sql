@@ -80,7 +80,7 @@
 --      AND COALESCE(NOT has_column_privilege('service_role', to_regclass('public.parties'), 'security_level', 'UPDATE'), false);
 -- Then follow docs/ops/release-job.md, "If the migration committed but its
 -- ledger row is missing", with this check and this file's version,
--- 20261126120000, in place of the section's own.
+-- 20261126160000, in place of the section's own.
 --
 -- Down (only after the build that calls these functions is rolled back; the
 -- audit rows stay). Revoking service_role's table INSERT and UPDATE before

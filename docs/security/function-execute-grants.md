@@ -407,7 +407,7 @@ name's account paths to home) are the two entries on
 | `public.read_party_restricted(uuid)`                    | DEFINER  | `postgres` (owner)                      |
 
 Each new function revokes `PUBLIC`, `anon`, `authenticated` and
-`service_role` by name before granting (`20261126120000_wp5_2r2b1_worker_record.sql`,
+`service_role` by name before granting (`20261126160000_wp5_2r2b1_worker_record.sql`,
 re-dated with the package). `worker_records` answers the request's
 organization's staff only, never a legal name, and fills `has_legal_identity`
 only for an assignment holding `safety.restrict_publication`; for any other
