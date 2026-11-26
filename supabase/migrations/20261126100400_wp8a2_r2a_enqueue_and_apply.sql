@@ -25,7 +25,13 @@
 --    row changed; terminal effects by key, the display state by the event's
 --    creation time (strictly newer wins); one staged gift and one allocation
 --    per line on the first success. Calling it again on one event changes
---    nothing and raises nothing.
+--    nothing and raises nothing. The event's recorded contradiction is looked
+--    up again right after the intake's row lock, on both lookup paths,
+--    because every contradiction is written under that lock and a direct
+--    call (WP8c's adoption) may have passed the first lookup before another
+--    session committed one; the event row is not locked here, since a caller
+--    that already holds the request and the intake would then invert the
+--    worker's order (event, account, request, intake).
 -- 3. tenant_guard.apply_payment_outcome(uuid, uuid, integer) RETURNS jsonb,
 --    the worker entry: a SECURITY DEFINER owned by tenant_guard (the
 --    three-step transfer), EXECUTE for service_role. It enters the tenant,
@@ -340,6 +346,26 @@ BEGIN
        FOR NO KEY UPDATE;
     v_found := FOUND;
 
+    IF v_found THEN
+      SELECT l.task_id, l.metadata
+        INTO v_link
+        FROM public.mission_control_task_links AS l
+       WHERE l.tenant_id = v_event.tenant_id
+         AND l.record_type = 'stripe_connect_event'
+         AND l.record_id = p_event_id::TEXT
+         AND l.relationship = 'payment_contradiction';
+      IF FOUND THEN
+        RETURN pg_catalog.jsonb_build_object(
+          'outcome', 'contradiction',
+          'reason', v_link.metadata ->> 'reason',
+          'task_id', v_link.task_id,
+          'effect', v_effect,
+          'payment_object_id', v_pi,
+          'donation_id', v_link.metadata -> 'donation_id'
+        );
+      END IF;
+    END IF;
+
     IF NOT v_found THEN
       IF (pg_catalog.jsonb_typeof(v_object -> 'metadata' -> 'asym_operation') = 'string'
           AND (v_object -> 'metadata' ->> 'asym_operation')
@@ -380,6 +406,24 @@ BEGIN
         FROM public.donations AS d
        WHERE d.id = v_request.donation_id
          FOR NO KEY UPDATE;
+
+      SELECT l.task_id, l.metadata
+        INTO v_link
+        FROM public.mission_control_task_links AS l
+       WHERE l.tenant_id = v_event.tenant_id
+         AND l.record_type = 'stripe_connect_event'
+         AND l.record_id = p_event_id::TEXT
+         AND l.relationship = 'payment_contradiction';
+      IF FOUND THEN
+        RETURN pg_catalog.jsonb_build_object(
+          'outcome', 'contradiction',
+          'reason', v_link.metadata ->> 'reason',
+          'task_id', v_link.task_id,
+          'effect', v_effect,
+          'payment_object_id', v_pi,
+          'donation_id', v_link.metadata -> 'donation_id'
+        );
+      END IF;
 
       IF (v_intake.stripe_payment_intent_id = v_pi) IS TRUE THEN
         NULL;

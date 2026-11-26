@@ -46,16 +46,20 @@
 --
 -- Down, an operator's last resort, in one transaction, after the Down of the
 -- R2a enqueue and apply file; it refuses while an observation or a provider
--- request exists. The guard's column INSERT is revoked column by column: a
--- table REVOKE would also strip R1a's own column grants.
+-- request exists, and it locks the observations before it counts them, so
+-- none arrives between the count and the DROP. The guard's column INSERT is
+-- revoked column by column: a table REVOKE would also strip R1a's own column
+-- grants.
 --   BEGIN;
 --   SET LOCAL lock_timeout = '5s';
 --   LOCK TABLE public.donation_saga_outbox IN ACCESS EXCLUSIVE MODE;
 --   DO $$
 --   BEGIN
---     IF to_regclass('public.payment_observations') IS NOT NULL
---        AND EXISTS (SELECT 1 FROM public.payment_observations) THEN
---       RAISE EXCEPTION 'Down of the R2a observations refused: an observation exists' USING ERRCODE = '55000';
+--     IF to_regclass('public.payment_observations') IS NOT NULL THEN
+--       EXECUTE 'LOCK TABLE public.payment_observations IN ACCESS EXCLUSIVE MODE';
+--       IF EXISTS (SELECT 1 FROM public.payment_observations) THEN
+--         RAISE EXCEPTION 'Down of the R2a observations refused: an observation exists' USING ERRCODE = '55000';
+--       END IF;
 --     END IF;
 --     IF EXISTS (SELECT 1 FROM public.donation_saga_outbox WHERE kind = 'provider_request') THEN
 --       RAISE EXCEPTION 'Down of the R2a observations refused: a provider request exists' USING ERRCODE = '55000';
