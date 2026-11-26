@@ -465,4 +465,167 @@ describe("AL-2678 r2b1: a worker's record in Mission Control", () => {
     await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull());
     expect(document.body.textContent).not.toContain(SECRET);
   });
+
+  const checked = (dialog: HTMLElement) =>
+    within(dialog)
+      .queryAllByRole("radio")
+      .filter((radio) => radio.getAttribute("aria-checked") === "true")
+      .map((radio) => radio.getAttribute("aria-label") ?? radio.id);
+  const levelUnder = async (overrides: Record<string, unknown>) => {
+    current = worker(overrides);
+    await act(async () => {
+      await client.invalidateQueries();
+    });
+    await waitFor(() =>
+      expect(
+        screen.getByText(
+          String(
+            {
+              standard: "Standard",
+              sensitive: "Sensitive",
+              restricted: "Restricted",
+              high_risk: "High risk",
+            }[current.securityLevel as string],
+          ),
+          { selector: "dd *, dd" },
+        ),
+      ).toBeTruthy(),
+    );
+  };
+
+  it("B3 (bot round): Restrict, when the worker's level rises under the open dialog past the chosen level, selects the current level and sends no level; the reason and alias stay", async () => {
+    current = worker({ securityLevel: "sensitive" });
+    show();
+    const dialog = await openDialog(/Restrict Worker Kestrel/);
+    fireEvent.click(within(dialog).getByRole("radio", { name: "Restricted" }));
+    fireEvent.change(within(dialog).getByLabelText("Public alias"), {
+      target: { value: "Heron" },
+    });
+    fillReason(dialog);
+    await levelUnder({
+      securityLevel: "high_risk",
+      securityLevelSource: "manual",
+      publicAlias: "Birch",
+    });
+    expect(within(dialog).getAllByRole("radio")).toHaveLength(1);
+    expect(
+      within(dialog)
+        .getByRole("radio", { name: "High risk" })
+        .getAttribute("aria-checked"),
+    ).toBe("true");
+    expect(
+      (within(dialog).getByLabelText("Public alias") as HTMLInputElement).value,
+    ).toBe("Heron");
+    expect(
+      (within(dialog).getByLabelText("Reason") as HTMLTextAreaElement).value,
+    ).toBe("Field security");
+    fireEvent.click(within(dialog).getByRole("button", { name: "Restrict" }));
+    await waitFor(() => expect(posts).toHaveLength(1));
+    expect(posts[0]?.body).toEqual({
+      alias: "Heron",
+      reason: "Field security",
+    });
+  });
+
+  it("B3 (bot round): Restrict, when the worker's level falls under the open dialog, selects the new current level instead of the one chosen against the old options", async () => {
+    current = worker({
+      securityLevel: "restricted",
+      securityLevelSource: "manual",
+      publicAlias: "Birch",
+    });
+    show();
+    const dialog = await openDialog(/Restrict Worker Kestrel/);
+    fireEvent.click(within(dialog).getByRole("radio", { name: "High risk" }));
+    fillReason(dialog);
+    await levelUnder({
+      securityLevel: "sensitive",
+      securityLevelSource: "manual",
+      publicAlias: "Birch",
+    });
+    expect(
+      within(dialog)
+        .getByRole("radio", { name: "Sensitive" })
+        .getAttribute("aria-checked"),
+    ).toBe("true");
+    expect(
+      within(dialog)
+        .getByRole("radio", { name: "High risk" })
+        .getAttribute("aria-checked"),
+    ).toBe("false");
+    fireEvent.click(
+      within(dialog).getByRole("checkbox", { name: "Do not publish" }),
+    );
+    fireEvent.click(within(dialog).getByRole("button", { name: "Restrict" }));
+    await waitFor(() => expect(posts).toHaveLength(1));
+    expect(posts[0]?.body).toEqual({
+      doNotPublish: true,
+      reason: "Field security",
+    });
+  });
+
+  it("B3 (bot round): Lift, when the worker's level falls under the open dialog below the chosen level, selects nothing and sends nothing until a level shown is chosen; the reason stays", async () => {
+    current = worker({
+      securityLevel: "high_risk",
+      securityLevelSource: "manual",
+      publicAlias: "Birch",
+    });
+    show();
+    const dialog = await openDialog(/Lift restriction for Worker Kestrel/);
+    fireEvent.click(within(dialog).getByRole("radio", { name: "Restricted" }));
+    fillReason(dialog);
+    await levelUnder({
+      securityLevel: "sensitive",
+      securityLevelSource: "manual",
+      publicAlias: "Birch",
+    });
+    expect(within(dialog).getAllByRole("radio")).toHaveLength(1);
+    expect(
+      within(dialog).getByRole("radio", { name: "Standard" }),
+    ).toBeTruthy();
+    expect(checked(dialog)).toEqual([]);
+    const submit = within(dialog).getByRole("button", {
+      name: "Lift restriction",
+    }) as HTMLButtonElement;
+    expect(submit.disabled).toBe(true);
+    fireEvent.submit(submit.closest("form")!);
+    expect(posts).toEqual([]);
+    expect(
+      (within(dialog).getByLabelText("Reason") as HTMLTextAreaElement).value,
+    ).toBe("Field security");
+    fireEvent.click(within(dialog).getByRole("radio", { name: "Standard" }));
+    fireEvent.click(submit);
+    await waitFor(() => expect(posts).toHaveLength(1));
+    expect(posts[0]?.body).toEqual({
+      level: "standard",
+      reason: "Field security",
+    });
+  });
+
+  it("B2 (bot round): an answer that the change may have been saved shows its text in the open dialog and reads the worker again", async () => {
+    const text =
+      "The change may have been saved. Reload this worker before trying again.";
+    postReply = () => ({
+      status: 500,
+      body: { error: text, code: "OUTCOME_UNKNOWN", requestId: "r" },
+    });
+    show();
+    const dialog = await openDialog(/Restrict Worker Kestrel/);
+    fillReason(dialog);
+    fireEvent.click(
+      within(dialog).getByRole("checkbox", { name: "Do not publish" }),
+    );
+    const reads = () =>
+      fetchMock.mock.calls.filter(
+        ([url, init]) =>
+          String(url) === `/api/admin/workers/${WORKER}` &&
+          (init as RequestInit | undefined)?.method !== "POST",
+      ).length;
+    const before = reads();
+    fireEvent.click(within(dialog).getByRole("button", { name: "Restrict" }));
+    expect((await within(dialog).findByRole("alert")).textContent).toBe(text);
+    await waitFor(() => expect(reads()).toBeGreaterThan(before));
+    expect(document.body.textContent).not.toContain(
+      "Something went wrong. Nothing was changed.",
+    );
+  });
 });

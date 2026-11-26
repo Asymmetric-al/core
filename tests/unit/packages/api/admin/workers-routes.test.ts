@@ -27,6 +27,8 @@ const SECRET = "Legal Kestrel";
 const NOT_PERMITTED =
   "Only staff with the Restrict publication permission can change these settings.";
 const FAILURE = "Something went wrong. Nothing was changed.";
+const OUTCOME_UNKNOWN =
+  "The change may have been saved. Reload this worker before trying again.";
 
 const h = vi.hoisted(() => ({
   auth: vi.fn(),
@@ -136,19 +138,58 @@ function commandAnswer(overrides: Record<string, unknown> = {}) {
 
 type Answer = { data?: unknown; error?: unknown; count?: number | null };
 
-function stubSession(answers: Record<string, Answer | (() => Answer)>) {
-  const rpc = vi.fn(async (fn: string) => {
-    const answer = answers[fn];
-    if (!answer) throw new Error(`unexpected rpc ${fn}`);
-    const value = typeof answer === "function" ? answer() : answer;
-    return {
-      data: value.data ?? null,
-      error: value.error ?? null,
-      count: value.count,
+interface Query {
+  order: (column: string) => Query;
+  range: (from: number, to: number) => Query;
+  then: <R>(
+    resolve: (value: {
+      data: unknown;
+      error: unknown;
+      count?: number | null;
+    }) => R,
+  ) => Promise<R>;
+}
+
+function stubSession(
+  answers: Record<string, Answer | ((page: number) => Answer)>,
+  cap = Number.POSITIVE_INFINITY,
+) {
+  const orders: string[][] = [];
+  const ranges: [number, number][] = [];
+  let pages = 0;
+  const rpc = vi.fn((fn: string) => {
+    const order: string[] = [];
+    orders.push(order);
+    let range: [number, number] | null = null;
+    const query: Query = {
+      order: (column) => {
+        order.push(column);
+        return query;
+      },
+      range: (from, to) => {
+        range = [from, to];
+        ranges.push(range);
+        return query;
+      },
+      then: async (resolve) => {
+        const answer = answers[fn];
+        if (!answer) throw new Error(`unexpected rpc ${fn}`);
+        const value = typeof answer === "function" ? answer(pages++) : answer;
+        let data = value.data ?? null;
+        if (range && Array.isArray(data))
+          data = data.slice(range[0], range[1] + 1);
+        if (Array.isArray(data)) data = data.slice(0, cap);
+        return resolve({
+          data,
+          error: value.error ?? null,
+          count: value.count,
+        });
+      },
     };
+    return query;
   });
   h.session.mockResolvedValue({ rpc });
-  return rpc;
+  return Object.assign(rpc, { orders, ranges });
 }
 
 const params = (assignmentId = WORKER) => ({
@@ -220,6 +261,59 @@ describe("AL-2678 WP5 part 2-r2b1: the workers' routes (contract, error map, ali
     });
     expect(rpc).toHaveBeenCalledWith("worker_records", {});
     expect(h.serviceKeyUsed).not.toHaveBeenCalled();
+  });
+
+  it("B1 (bot round): when the Data API cuts every answer at its row cap, the directory still answers every worker once, page by page in the order display_name then assignment_id, never the first page as the whole list", async () => {
+    h.auth.mockResolvedValue(makeAuth("staff"));
+    const ids = [1, 2, 3, 4, 5].map(
+      (n) => `00000000-0000-4000-8000-00000000c0c${n}`,
+    );
+    const rpc = stubSession(
+      {
+        worker_records: {
+          data: ids.map((id, n) =>
+            row({ assignment_id: id, display_name: `Worker ${n}` }),
+          ),
+        },
+      },
+      2,
+    );
+    const response = await GET(get("/api/admin/workers"));
+    expect(response.status).toBe(200);
+    const body = (await read(response)) as {
+      workers: { assignmentId: string }[];
+    };
+    expect(body.workers.map((w) => w.assignmentId)).toEqual(ids);
+    expect(rpc.orders.length).toBeGreaterThan(1);
+    for (const order of rpc.orders)
+      expect(order).toEqual(["display_name", "assignment_id"]);
+    expect(rpc.ranges[0]?.[0]).toBe(0);
+    expect(rpc.ranges.map(([from]) => from)).toEqual([0, 2, 4, 5]);
+  });
+
+  it("B1 (bot round): a later page that fails answers the route's failure with its request id, never the rows read so far", async () => {
+    h.auth.mockResolvedValue(makeAuth("staff"));
+    const rows = [1, 2, 3].map((n) =>
+      row({
+        assignment_id: `00000000-0000-4000-8000-00000000c0c${n}`,
+        display_name: `Worker ${n}`,
+      }),
+    );
+    stubSession(
+      {
+        worker_records: (page) =>
+          page === 0
+            ? { data: rows }
+            : { error: { code: "57014", message: "canceling statement" } },
+      },
+      2,
+    );
+    const response = await GET(get("/api/admin/workers"));
+    expect(response.status).toBe(500);
+    const raw = (await response.clone().json()) as Record<string, unknown>;
+    expect(typeof raw.requestId).toBe("string");
+    expect(await read(response)).toEqual({ error: FAILURE });
+    expect(h.captureError).toHaveBeenCalledTimes(1);
   });
 
   it("the reads refuse a missionary and a donor with withOperation's own 403 and a signed-out request with its 401, each with no-store", async () => {
@@ -718,6 +812,50 @@ describe("AL-2678 WP5 part 2-r2b1: the workers' routes (contract, error map, ali
           /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/,
         ),
       });
+    },
+  );
+
+  it.each(
+    COMMANDS.slice(0, 3).flatMap(([name, handler, body]) =>
+      (
+        [
+          ["its answer does not parse", { legal_name: SECRET }, null],
+          [
+            "the worker cannot be read again",
+            {},
+            { error: { code: "57014", message: SECRET } },
+          ],
+          ["the worker read again is not one row", {}, { data: [] }],
+        ] as const
+      ).map(
+        ([path, extra, reread]) =>
+          [name, path, handler, body, extra, reread] as const,
+      ),
+    ),
+  )(
+    "B2 (bot round): %s, once the command call returned without an error, answers OUTCOME_UNKNOWN, never that nothing was changed, when %s",
+    async (_name, _path, handler, body, extra, reread) => {
+      h.auth.mockResolvedValue(makeAuth("admin"));
+      stubSession({
+        worker_records: (page) =>
+          page === 0 || reread === null ? { data: [row()] } : reread,
+        restrict_worker_publication: { data: commandAnswer(extra) },
+        lift_worker_restriction: { data: commandAnswer(extra) },
+      });
+      const response = await handler(
+        post(`/api/admin/workers/${WORKER}/x`, body),
+        params(),
+      );
+      expect(response.status).toBe(500);
+      const raw = (await response.clone().json()) as Record<string, unknown>;
+      expect(typeof raw.requestId).toBe("string");
+      const answer = await read(response);
+      expect(answer).toEqual({
+        error: OUTCOME_UNKNOWN,
+        code: "OUTCOME_UNKNOWN",
+      });
+      expect(JSON.stringify(answer)).not.toContain(FAILURE);
+      expect(JSON.stringify(answer)).not.toContain(SECRET);
     },
   );
 

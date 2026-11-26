@@ -7,6 +7,10 @@ import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 
 import { BLANK_ALIASES, REAL_ALIAS, codePoints } from "./blank-aliases";
 import { renderContributionReceiptSnapshotPdf } from "../../../../packages/api/src/admin/contribution-operations/receipt-pdf";
+import {
+  readWorkerRows,
+  rpcClient,
+} from "../../../../packages/api/src/admin/workers/contract";
 import { GET as getDonations } from "../../../../packages/api/src/donations";
 import { GET as getDonorPortal } from "../../../../packages/api/src/donor-portal";
 import * as partners from "../../../../packages/api/src/missionary-portal/donors";
@@ -1187,6 +1191,44 @@ describe.skipIf(!required && ![url, database, anon, service].some(Boolean))(
           )
         ).rows.map((r) => r.changed as boolean),
       ).toEqual(BLANK_ALIASES.map(() => false));
+    });
+
+    it("B1 (bot round): worker_records, as granted, accepts the directory's ordered and ranged pages through PostgREST; in pages of two it gives the organization's workers, each once, as one unpaged read does", async () => {
+      const client = createClient(url!, anon!, {
+        auth: { persistSession: false, autoRefreshToken: false },
+        global: {
+          headers: {
+            Authorization: `Bearer ${token.A}`,
+            "x-asym-tenant": TA,
+            "x-asym-assignment": id.mA!,
+          },
+        },
+      });
+      const ranges: [number, number][] = [];
+      const paged = {
+        rpc: (fn: string, args: Record<string, unknown>) => {
+          const query = client.rpc(fn, args);
+          const range = query.range.bind(query);
+          return Object.assign(query, {
+            range: (from: number, to: number) => {
+              ranges.push([from, to]);
+              return range(from, to);
+            },
+          });
+        },
+      };
+      const inPages = await readWorkerRows(rpcClient(paged), null, 2);
+      const whole = await readWorkerRows(rpcClient(client), null);
+      if (!inPages.ok || !whole.ok)
+        throw new Error(JSON.stringify({ inPages, whole }));
+      const ids = inPages.rows.map((row) => row.assignment_id);
+      expect(ranges[0]).toEqual([0, 1]);
+      expect(ranges.length).toBeGreaterThanOrEqual(3);
+      expect(new Set(ids).size).toBe(ids.length);
+      expect(ids).toEqual(whole.rows.map((row) => row.assignment_id));
+      expect([...ids].sort()).toEqual(
+        [id.wU, id.wK, id.wV, id.wR, id.wC].sort(),
+      );
     });
 
     it("T3 the revealed values reach no other response", () => {
