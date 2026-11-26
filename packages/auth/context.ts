@@ -39,12 +39,16 @@ import { listE2EAuthAssignments } from "./principal/e2e-assignments";
 import { createRpcAssignmentReader } from "./principal/reader";
 import {
   ASSIGNMENT_HEADER,
+  isNameGenerationRefused,
   isNameTenantRefused,
+  NAME_GENERATION_HEADER,
   NAME_TENANT_HEADER,
   nameTenantIdOf,
   parseRoleClass,
+  readNameGeneration,
   readNameTenantState,
   ROLE_CLASS_HEADER,
+  SCOPE_GENERATION_HEADER,
   SCOPE_REFUSED_HEADER,
   TENANT_HEADER,
   type NameTenantState,
@@ -68,7 +72,8 @@ export interface AuthContext {
   role: UserRole | null;
   memberships: AuthMembership[];
   assignment?: ActiveAssignment | null;
-  assignmentDenial?: AssignmentDenyReason | "no_role_class" | null;
+  assignmentDenial?:
+    AssignmentDenyReason | "no_role_class" | "generation_mismatch" | null;
   scopeRefused?: boolean;
   profileId: string | null;
   isAuthenticated: boolean;
@@ -89,6 +94,7 @@ export interface AuthContextOptions {
   proposedAssignmentId?: string;
   expectedTenantId?: string;
   nameTenant?: "ignore";
+  allowAbsentScopeGeneration?: true;
 }
 
 function getBearerToken(request?: Request): string | null {
@@ -252,6 +258,13 @@ async function getE2EAuthBypassContext(
       scopeRefused: true,
     };
   }
+  if (narrowing.generationConflict) {
+    return {
+      ...createUnauthenticatedContext(),
+      assignmentDenial: "generation_mismatch",
+      scopeRefused: true,
+    };
+  }
   const assignments = listE2EAuthAssignments(e2eSession);
   const { roleClass } = narrowing;
   let selected: ActiveAssignment | null;
@@ -328,6 +341,7 @@ interface AssignmentNarrowing {
   expectedTenantId?: string;
   claimsTenant: boolean;
   tenantConflict: boolean;
+  generationConflict: boolean;
   nameRefused: boolean;
   nameTenantId: string | null;
 }
@@ -379,6 +393,27 @@ function refusesProposedScope(
   return proposesScope(narrowing) && SCOPE_REFUSALS.has(reason);
 }
 
+async function readGenerationClaim(
+  request: Request | undefined,
+  options: AuthContextOptions,
+  name: NameTenantState,
+): Promise<{ refused: boolean; conflict: boolean }> {
+  const trusted = await readRequestHeader(request, NAME_GENERATION_HEADER);
+  const generation = readNameGeneration({
+    get: (header) => (header === NAME_GENERATION_HEADER ? trusted : null),
+  });
+  if (isNameGenerationRefused(name, generation)) {
+    return { refused: true, conflict: false };
+  }
+  if (generation.kind !== "valid") return { refused: false, conflict: false };
+  const claim = await readRequestHeader(request, SCOPE_GENERATION_HEADER);
+  const conflict =
+    claim === null
+      ? request !== undefined && options.allowAbsentScopeGeneration !== true
+      : claim !== String(generation.generation);
+  return { refused: false, conflict };
+}
+
 async function readAssignmentNarrowing(
   request: Request | undefined,
   options: AuthContextOptions,
@@ -403,6 +438,7 @@ async function readAssignmentNarrowing(
       ...(expectedTenantId ? { expectedTenantId } : {}),
       claimsTenant: Boolean(expectedTenantId),
       tenantConflict: false,
+      generationConflict: false,
       nameRefused: isNameTenantRefused(name),
       nameTenantId: null,
     };
@@ -410,13 +446,15 @@ async function readAssignmentNarrowing(
   const claims = [options.expectedTenantId, headerTenantId || undefined].filter(
     (claim): claim is string => claim !== undefined,
   );
+  const generation = await readGenerationClaim(request, options, name);
   return {
     roleClass,
     ...proposed,
     expectedTenantId: nameTenantId,
     claimsTenant: claims.length > 0,
     tenantConflict: claims.some((claim) => claim !== nameTenantId),
-    nameRefused: false,
+    generationConflict: generation.conflict,
+    nameRefused: generation.refused,
     nameTenantId,
   };
 }
@@ -486,6 +524,10 @@ export async function getAuthContext(
 
   if (narrowing.tenantConflict) {
     return { ...denied(profile.id, "tenant_mismatch"), scopeRefused: true };
+  }
+
+  if (narrowing.generationConflict) {
+    return { ...denied(profile.id, "generation_mismatch"), scopeRefused: true };
   }
 
   const result = await resolveActiveAssignment(

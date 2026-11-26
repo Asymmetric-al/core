@@ -1,6 +1,12 @@
 import { safeNextParam } from "@asym/auth/demo-login";
 import { createRpcAssignmentReader } from "@asym/auth/principal";
-import { parseRoleClass, ROLE_CLASS_HEADER } from "@asym/auth/request-headers";
+import {
+  isNameTenantRefused,
+  nameTenantIdOf,
+  parseRoleClass,
+  readNameTenantState,
+  ROLE_CLASS_HEADER,
+} from "@asym/auth/request-headers";
 import { ROLE_HOME, routeForRole } from "@asym/auth/roles";
 import { withAppBasePath } from "@asym/database/document-reload";
 import { createClient } from "@asym/database/supabase/server";
@@ -50,10 +56,19 @@ async function homeMembershipClass(
   supabase: Parameters<typeof createRpcAssignmentReader>[0],
   request: Request,
 ): Promise<string | null> {
+  const name = readNameTenantState(request.headers);
+  if (isNameTenantRefused(name)) return null;
+  const nameTenantId = nameTenantIdOf(name);
   try {
     const rows =
       await createRpcAssignmentReader(supabase).listActiveAssignments();
-    const held = new Set<string>(rows.map((row) => row.role));
+    const held = new Set<string>(
+      rows
+        .filter(
+          (row) => nameTenantId === null || row.tenant_id === nameTenantId,
+        )
+        .map((row) => row.role),
+    );
     const surface = parseRoleClass(request.headers.get(ROLE_CLASS_HEADER));
     if (surface && held.has(surface)) return surface;
     return CLASS_PRECEDENCE.find((roleClass) => held.has(roleClass)) ?? null;

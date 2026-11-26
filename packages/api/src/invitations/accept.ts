@@ -1,3 +1,8 @@
+import {
+  isNameTenantRefused,
+  nameTenantIdOf,
+  readNameTenantState,
+} from "@asym/auth/request-headers";
 import { type NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 
@@ -43,6 +48,25 @@ interface AcceptInvitationClient {
 }
 
 const NO_STORE_HEADERS = { "Cache-Control": "no-store" } as const;
+
+function invitationInvalid(): NextResponse {
+  return NextResponse.json(
+    {
+      error: "Invitation is invalid or no longer available",
+      code: "INVITATION_INVALID",
+    },
+    { status: 403, headers: NO_STORE_HEADERS },
+  );
+}
+
+function redirectPathFor(
+  tenantId: string,
+  nameTenantId: string | null,
+  off: boolean,
+): string {
+  if (off) return `/${tenantId}`;
+  return tenantId === nameTenantId ? "/" : "/no-access";
+}
 
 export async function POST(request: NextRequest) {
   let rawBody: unknown;
@@ -102,6 +126,9 @@ export async function POST(request: NextRequest) {
     );
   }
 
+  const name = readNameTenantState(request.headers);
+  if (isNameTenantRefused(name)) return invitationInvalid();
+
   const { data, error } = await sessionClient.rpc(
     "accept_membership_invitation",
     {
@@ -112,15 +139,7 @@ export async function POST(request: NextRequest) {
 
   if (error || !data) {
     const pgCode = error?.code;
-    if (pgCode === "42501") {
-      return NextResponse.json(
-        {
-          error: "Invitation is invalid or no longer available",
-          code: "INVITATION_INVALID",
-        },
-        { status: 403, headers: NO_STORE_HEADERS },
-      );
-    }
+    if (pgCode === "42501") return invitationInvalid();
     if (pgCode === "55000") {
       return NextResponse.json(
         {
@@ -155,7 +174,11 @@ export async function POST(request: NextRequest) {
   return NextResponse.json(
     {
       ...data,
-      redirectPath: `/${data.tenant_id}`,
+      redirectPath: redirectPathFor(
+        data.tenant_id,
+        nameTenantIdOf(name),
+        name.kind === "off",
+      ),
     },
     { status: 200, headers: NO_STORE_HEADERS },
   );
