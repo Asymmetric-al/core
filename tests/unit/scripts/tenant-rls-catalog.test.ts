@@ -40,6 +40,7 @@ import {
   stripParens,
   tenantBound,
 } from "../../../scripts/verify/tenant-rls-catalog.mjs";
+import { EXCLUDED_SCHEMA_PATTERN } from "../../../scripts/release/schema-fingerprint.mjs";
 import { preMembershipCommandRows } from "../../fixtures/pre-membership-commands";
 
 const table = (name: string, over: Record<string, unknown> = {}) => ({
@@ -379,6 +380,9 @@ const evaluate = (
     tenant_helpers?: object[];
     published?: string[];
     policyExceptions?: unknown;
+    serviceRole?: object[];
+    serviceRoleSchemas?: string[];
+    serviceRoleExceptions?: unknown;
   } = {},
 ) =>
   evaluateTenantRlsCatalog(
@@ -391,11 +395,14 @@ const evaluate = (
       policies: more.policies ?? [],
       tenant_helpers: more.tenant_helpers,
       published: more.published ?? [],
+      service_role_grants: more.serviceRole ?? [],
+      service_role_schemas: more.serviceRoleSchemas ?? [],
     },
     exceptions,
     anonAllowlist,
     more.policyExceptions ?? { entries: [] },
     [],
+    more.serviceRoleExceptions ?? { entries: [] },
   );
 const codes = (result: ReturnType<typeof evaluate>) =>
   result.failures.map(
@@ -1063,6 +1070,124 @@ describe("evaluateTenantRlsCatalog: table grants in public (AL-2674 council roun
     expect(result.failures[5]).toMatchObject({
       detail: expect.stringContaining("anon holds SELECT"),
     });
+  });
+});
+
+describe("evaluateTenantRlsCatalog: service_role's table privileges and schema CREATE (issue 2841, amending D-111)", () => {
+  const holding = (
+    relation: string,
+    privilege: string,
+    over: { kind?: string; column?: string | null } = {},
+  ) => ({ relation, column: null, kind: "r", privilege, ...over });
+  const reviewed = (entry: Record<string, unknown>) => ({
+    reason: "fixture",
+    reviewed_by: "x",
+    ...entry,
+  });
+
+  it("fails each of TRUNCATE, REFERENCES, TRIGGER and MAINTAIN that service_role holds on a relation in public or on a column of one, and CREATE on a schema of the chain, naming each", () => {
+    const result = evaluate([], listed(), [], [], allow(), {
+      serviceRole: [
+        holding("staged_gifts", "TRUNCATE"),
+        holding("staged_gift_allocations", "TRIGGER"),
+        holding("donations", "REFERENCES", { column: "amount" }),
+        holding("donor_view", "MAINTAIN", { kind: "v" }),
+      ],
+      serviceRoleSchemas: ["authz"],
+    });
+    expect(codes(result)).toEqual([
+      "SERVICE_ROLE_UNSAFE_PRIVILEGE staged_gifts",
+      "SERVICE_ROLE_UNSAFE_PRIVILEGE staged_gift_allocations",
+      "SERVICE_ROLE_UNSAFE_PRIVILEGE donations",
+      "SERVICE_ROLE_UNSAFE_PRIVILEGE donor_view",
+      "SERVICE_ROLE_SCHEMA_CREATE authz",
+    ]);
+    expect(result.failures[0]).toMatchObject({
+      detail: expect.stringContaining("service_role holds TRUNCATE:"),
+    });
+    expect(result.failures[2]).toMatchObject({
+      detail: expect.stringContaining(
+        "service_role holds REFERENCES on column amount",
+      ),
+    });
+    expect(result.failures[4]).toMatchObject({
+      detail: expect.stringContaining("service_role holds CREATE on schema"),
+    });
+    expect(result.ok).toBe(false);
+  });
+
+  it("passes a holding a reviewed exception names, and fails an exception that is stale, has no reason or reviewer, or names another privilege", () => {
+    const result = evaluate([], listed(), [], [], allow(), {
+      serviceRole: [
+        holding("donations", "TRIGGER"),
+        holding("funds", "REFERENCES", { column: "name" }),
+      ],
+      serviceRoleSchemas: ["authz"],
+      serviceRoleExceptions: {
+        entries: [
+          reviewed({ relation: "donations", privilege: "TRIGGER" }),
+          reviewed({
+            relation: "funds",
+            column: "name",
+            privilege: "REFERENCES",
+          }),
+          reviewed({ schema: "authz", privilege: "CREATE" }),
+          reviewed({ relation: "tenants", privilege: "TRUNCATE" }),
+          { relation: "profiles", privilege: "TRIGGER", reviewed_by: "x" },
+          { schema: "platform", privilege: "CREATE", reason: "fixture" },
+          reviewed({ relation: "missionaries", privilege: "SELECT" }),
+          reviewed({ schema: "private", privilege: "USAGE" }),
+        ],
+      },
+    });
+    expect(codes(result)).toEqual([
+      "SERVICE_ROLE_EXCEPTIONS_MALFORMED profiles",
+      "SERVICE_ROLE_EXCEPTIONS_MALFORMED platform",
+      "SERVICE_ROLE_EXCEPTIONS_MALFORMED missionaries",
+      "SERVICE_ROLE_EXCEPTIONS_MALFORMED private",
+      "SERVICE_ROLE_EXCEPTION_STALE tenants",
+    ]);
+  });
+
+  it("fails a malformed exception list, and an exception for one column that a table-wide holding does not match", () => {
+    expect(
+      codes(
+        evaluate([], listed(), [], [], allow(), {
+          serviceRoleExceptions: { entries: "none" },
+        }),
+      ),
+    ).toEqual(["SERVICE_ROLE_EXCEPTIONS_MALFORMED -"]);
+    expect(
+      codes(
+        evaluate([], listed(), [], [], allow(), {
+          serviceRole: [holding("funds", "REFERENCES")],
+          serviceRoleExceptions: {
+            entries: [
+              reviewed({
+                relation: "funds",
+                column: "name",
+                privilege: "REFERENCES",
+              }),
+            ],
+          },
+        }),
+      ),
+    ).toEqual([
+      "SERVICE_ROLE_UNSAFE_PRIVILEGE funds",
+      "SERVICE_ROLE_EXCEPTION_STALE funds",
+    ]);
+  });
+
+  it("reads what service_role holds in public, granted to it or to a role it belongs to, and its CREATE on every schema the release fingerprint covers", () => {
+    expect(TENANT_RLS_CATALOG_SQL).toContain("'service_role_grants'");
+    expect(TENANT_RLS_CATALOG_SQL).toContain("'service_role_schemas'");
+    expect(TENANT_RLS_CATALOG_SQL).toContain(
+      "pg_has_role('service_role', a.grantee, 'MEMBER')",
+    );
+    expect(TENANT_RLS_CATALOG_SQL).toContain(
+      "has_schema_privilege('service_role', n.oid, 'CREATE')",
+    );
+    expect(TENANT_RLS_CATALOG_SQL).toContain(EXCLUDED_SCHEMA_PATTERN);
   });
 });
 
