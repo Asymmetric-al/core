@@ -14,8 +14,13 @@ function fakeAdmin(donations: Row[], pledges: Row[] = []) {
         if (table === "profiles") {
           return { data: { id: "p-1", display_name: "Dana" }, error: null };
         }
+        // D-18 (AL-2678, WP5 rest): the donor is read through the person's
+        // account link and its Party, as a list of at most two.
+        if (table === "account_links") {
+          return { data: { party_id: "party-1" }, error: null };
+        }
         if (table === "donors") {
-          return { data: { id: "d-1", tenant_id: "t-1" }, error: null };
+          return { data: [{ id: "d-1", tenant_id: "t-1" }], error: null };
         }
         if (table === "donations") {
           return {

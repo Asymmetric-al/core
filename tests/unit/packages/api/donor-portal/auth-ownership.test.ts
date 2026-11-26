@@ -43,7 +43,9 @@ function createQueryMock<T>(result: QueryResult<T>) {
     gte: ReturnType<typeof vi.fn>;
     lt: ReturnType<typeof vi.fn>;
     order: ReturnType<typeof vi.fn>;
+    limit: ReturnType<typeof vi.fn>;
     single: ReturnType<typeof vi.fn>;
+    maybeSingle: ReturnType<typeof vi.fn>;
     then?: PromiseLike<QueryResult<T>>["then"];
   } = {
     select: vi.fn(() => query),
@@ -51,7 +53,9 @@ function createQueryMock<T>(result: QueryResult<T>) {
     gte: vi.fn(() => query),
     lt: vi.fn(() => query),
     order: vi.fn(() => query),
+    limit: vi.fn(() => query),
     single: vi.fn(() => Promise.resolve(result)),
+    maybeSingle: vi.fn(() => Promise.resolve(result)),
   };
 
   query.then = (onFulfilled, onRejected) =>
@@ -159,8 +163,14 @@ describe("donor portal auth and ownership", () => {
       data: { id: "profile-1", tenant_id: "tenant-1" },
       error: null,
     });
+    // D-18 (AL-2678, WP5 rest): the donor is read through the caller's
+    // account link and its Party, as a list of at most two.
+    const linkLookup = createQueryMock({
+      data: { party_id: "party-1" },
+      error: null,
+    });
     const donorLookup = createQueryMock({
-      data: { id: "donor-1", tenant_id: "tenant-1", profile_id: "profile-1" },
+      data: [{ id: "donor-1", tenant_id: "tenant-1", profile_id: "profile-1" }],
       error: null,
     });
     const profileUpdate = createUpdateMock({
@@ -172,6 +182,7 @@ describe("donor portal auth and ownership", () => {
     const supabase = {
       from: vi.fn((table: string) => {
         if (table === "profiles") return profileQueries.shift();
+        if (table === "account_links") return linkLookup;
         if (table === "donors") return donorQueries.shift();
         throw new Error(`Unexpected table ${table}`);
       }),

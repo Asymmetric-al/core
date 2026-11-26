@@ -130,6 +130,12 @@ vi.mock("@asym/database/supabase/admin", () => {
     const one = (new Headers(init?.headers).get("accept") ?? "").includes(
       "vnd.pgrst.object",
     );
+    // D-18 (AL-2678, WP5 rest): the donor is found through the caller's
+    // account link and its Party.
+    if (table === "account_links") {
+      const rows = [{ party_id: "party-1" }];
+      return Response.json(one ? rows[0] : rows);
+    }
     if (table === "donors") {
       const rows = [{ id: "donor-1" }];
       return Response.json(one ? rows[0] : rows);

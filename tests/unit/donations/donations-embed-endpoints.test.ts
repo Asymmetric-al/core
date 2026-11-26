@@ -179,6 +179,9 @@ function expectSingleGift(body: string) {
 describe("#2269 GraphQL donations reads (U)", () => {
   it("myDonations maps a profiled donor and returns null donor for a guest (C2)", async () => {
     s.auth = as("profile-d", "donor");
+    // D-18 (AL-2678, WP5 rest): the donor is found through the caller's
+    // account link and its Party.
+    s.tables.set("account_links", [{ party_id: "party-d" }]);
     s.tables.set("donors", [{ id: profiled.id }]);
     s.tables.set("donations", [
       donation("g1", profiled),
@@ -402,6 +405,8 @@ describe("#2269 GraphQL donations reads (U)", () => {
 describe("#2269 REST /api/donations (U)", () => {
   it("GET returns the nested donor shape for the donor's donations (C7)", async () => {
     s.auth = as("profile-d", "donor");
+    // D-18 (AL-2678, WP5 rest): through the caller's account link and Party.
+    s.tables.set("account_links", [{ party_id: "party-d" }]);
     s.tables.set("donors", [{ id: profiled.id }]);
     s.tables.set("donations", [donation("g1", profiled)]);
     const res = await GET(rest("GET"));

@@ -116,6 +116,19 @@ describe("the local Supabase workflow's path filter", () => {
   );
 
   it.each([
+    "tests/unit/acceptance/issue-2678/own-donor-reads.postgrest.acceptance.test.ts",
+    "packages/api/src/feed-preferences/**",
+    "packages/api/src/reads/**",
+    "packages/api/src/shared/queries.ts",
+    "packages/lib/hooks/use-donor-record.ts",
+  ])(
+    "starts the own-donor proof when %s, the suite or a reader it drives, changes (AL-2678 WP5 rest)",
+    (file) => {
+      expect(paths).toContain(file);
+    },
+  );
+
+  it.each([
     "packages/api/src/donor-portal/**",
     "packages/api/src/posts/**",
     "packages/api/src/donations/**",
