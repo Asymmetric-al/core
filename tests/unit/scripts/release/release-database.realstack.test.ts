@@ -505,5 +505,38 @@ describe.skipIf(!adminDatabaseUrl)(
       ).toEqual({ seeded_logins: 0, published: 0 });
       expect(countPublishedLogins({ settings })).toBe(0);
     });
+
+    it("AL-2679: refuses at preflight, naming each, a presentation with no Site and one under another tenant than its Site's, and changes nothing", () => {
+      const db = database("presentations");
+      applyLedgers(db.url, source.supabase, source.payload);
+      const t1 = "00000000-0000-0000-0000-000000000001";
+      const t2 = "00000000-0000-0000-0000-000000000002";
+      const s1 = "ffbeafc8-f85f-a2c9-5493-d62f5003e3b8";
+      const s2 = "5b53f899-8988-6455-fb3d-bb9fe896184c";
+      const loose = "0b0f4a52-38b4-4c55-a1d2-2b2a3e9f0c11";
+      psql(
+        db.url,
+        `CREATE TABLE public.sites (id uuid PRIMARY KEY, tenant_id uuid NOT NULL);
+         CREATE TABLE cms.site_presentations (id uuid PRIMARY KEY, tenant varchar NOT NULL);
+         INSERT INTO public.sites VALUES ('${s1}', '${t1}'), ('${s2}', '${t2}');
+         INSERT INTO cms.site_presentations VALUES ('${s1}', '${t1}'), ('${s2}', '${t1}'), ('${loose}', '${t2}');`,
+      );
+      const rows = () =>
+        psql(
+          db.url,
+          "SELECT string_agg(id || '=' || tenant, ',' ORDER BY id) FROM cms.site_presentations;",
+        );
+      const before = rows();
+      const refused = step("preflight", db.url);
+      expect(refused.status).toBe(1);
+      expect(refused.output).toContain(loose);
+      expect(refused.output).toMatch(new RegExp(`${s2}[^;]*${t1}[^;]*${t2}`));
+      expect(rows()).toBe(before);
+      psql(
+        db.url,
+        `DELETE FROM cms.site_presentations WHERE id IN ('${s2}', '${loose}');`,
+      );
+      expect(step("preflight", db.url).status).toBe(0);
+    });
   },
 );
