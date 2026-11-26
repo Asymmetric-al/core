@@ -6,7 +6,6 @@ import AxeBuilder from "@axe-core/playwright";
 import {
   expect,
   test,
-  type APIRequestContext,
   type BrowserContext,
   type Page,
   type Request,
@@ -24,6 +23,8 @@ import {
   warmUpRoutes,
   type AuthMailEnv,
 } from "./helpers/auth-mail";
+import { readBrowserStores } from "./helpers/browser-stores";
+import { readFailedRequest, type Read } from "./helpers/operator-reads";
 import { withOwner } from "./helpers/request-scope-reads";
 import { totp, totpStep } from "./helpers/totp";
 
@@ -199,61 +200,7 @@ async function operatorSessionCheck(stack: AuthMailEnv, token: string) {
 }
 
 async function storageSnapshot(page: Page): Promise<string> {
-  const inPage = await page.evaluate(async () => {
-    const entries = (storage: Storage) => {
-      const out: Array<[string, string | null]> = [];
-      for (let i = 0; i < storage.length; i += 1) {
-        const key = storage.key(i);
-        if (key !== null) out.push([key, storage.getItem(key)]);
-      }
-      return out;
-    };
-    const databases: unknown[] = [];
-    if (typeof indexedDB.databases === "function") {
-      for (const info of await indexedDB.databases()) {
-        if (!info.name) continue;
-        databases.push(
-          await new Promise<unknown>((resolve) => {
-            const opened = indexedDB.open(info.name!);
-            opened.onerror = () => resolve({ name: info.name, error: true });
-            opened.onsuccess = () => {
-              const db = opened.result;
-              const stores = Array.from(db.objectStoreNames);
-              if (stores.length === 0) {
-                db.close();
-                resolve({ name: info.name, stores: [] });
-                return;
-              }
-              const tx = db.transaction(stores, "readonly");
-              const result: Record<string, unknown> = {};
-              let remaining = stores.length;
-              for (const store of stores) {
-                const all = tx.objectStore(store).getAll();
-                const done = () => {
-                  remaining -= 1;
-                  if (remaining === 0) {
-                    db.close();
-                    resolve({ name: info.name, result });
-                  }
-                };
-                all.onsuccess = () => {
-                  result[store] = all.result;
-                  done();
-                };
-                all.onerror = done;
-              }
-            };
-          }),
-        );
-      }
-    }
-    return JSON.stringify({
-      local: entries(window.localStorage),
-      session: entries(window.sessionStorage),
-      cookie: document.cookie,
-      databases,
-    });
-  });
+  const inPage = JSON.stringify(await page.evaluate(readBrowserStores));
   const cookies = JSON.stringify(await page.context().cookies());
   return `${inPage}\n${cookies}`;
 }
@@ -347,58 +294,6 @@ function isExcludedByName(url: URL): boolean {
     url.pathname.startsWith("/__nextjs") ||
     url.pathname === "/api/auth/signout"
   );
-}
-
-type Read = {
-  where: string;
-  named: boolean;
-  text: string | null;
-  reason: string;
-  readAgain?: boolean;
-};
-
-const NOT_REPLAYED = new Set([
-  "accept-encoding",
-  "connection",
-  "content-length",
-  "cookie",
-  "host",
-]);
-
-async function readAbortedAgain(
-  api: APIRequestContext,
-  request: Request,
-  where: string,
-  failure: string,
-): Promise<Read> {
-  try {
-    const sent = await request.allHeaders();
-    const headers = Object.fromEntries(
-      Object.entries(sent).filter(
-        ([name]) => !name.startsWith(":") && !NOT_REPLAYED.has(name),
-      ),
-    );
-    const response = await api.get(request.url(), {
-      headers,
-      maxRedirects: 0,
-    });
-    const body = (await response.body()).toString("utf8");
-    return {
-      where,
-      named: true,
-      text: `${JSON.stringify(response.headers())}\n${body}`,
-      reason: "",
-      readAgain: true,
-    };
-  } catch (error) {
-    const message = error instanceof Error ? error.message.split("\n")[0]! : "";
-    return {
-      where,
-      named: true,
-      text: null,
-      reason: `${failure}; read again: ${message}`,
-    };
-  }
 }
 
 test.describe("AL-2675 WP2c part 2a, T6: the operator area in the browser", () => {
@@ -565,12 +460,13 @@ test.describe("AL-2675 WP2c part 2a, T6: the operator area in the browser", () =
       const where = openAdminRequests.get(request);
       if (where === undefined) return;
       openAdminRequests.delete(request);
-      const named = isOperatorRoute(new URL(request.url()));
-      const failure = request.failure()?.errorText ?? "failed";
       reads.push(
-        named && request.method() === "GET"
-          ? readAbortedAgain(page.context().request, request, where, failure)
-          : Promise.resolve({ where, named, text: null, reason: failure }),
+        readFailedRequest(
+          page.context().request,
+          request,
+          where,
+          isOperatorRoute(new URL(request.url())),
+        ),
       );
     });
     page.context().on("requestfinished", (request: Request) => {

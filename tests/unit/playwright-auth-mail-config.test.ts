@@ -1,4 +1,5 @@
-import { readdirSync } from "node:fs";
+import { spawnSync } from "node:child_process";
+import { readdirSync, readFileSync } from "node:fs";
 
 import { afterEach, describe, expect, it, vi } from "vitest";
 
@@ -40,6 +41,28 @@ function server(app: string, loaded: typeof config = config): Server {
   return found;
 }
 
+function uploadedPaths(): string[] {
+  const uploads: string[] = [];
+  for (const file of readdirSync(".github/workflows").filter((name) =>
+    /\.ya?ml$/.test(name),
+  )) {
+    const document = loadWorkflowDocument(`.github/workflows/${file}`) as {
+      jobs?: Record<string, { steps?: WorkflowStep[] }>;
+    };
+    for (const job of Object.values(document.jobs ?? {})) {
+      for (const step of job.steps ?? []) {
+        if (!String(step.uses ?? "").startsWith("actions/upload-artifact"))
+          continue;
+        for (const line of String(step.with?.path ?? "").split(/\r?\n/)) {
+          const entry = line.trim();
+          if (entry && !entry.startsWith("!")) uploads.push(entry);
+        }
+      }
+    }
+  }
+  return uploads;
+}
+
 describe("the auth email suite's dev servers", () => {
   it.each(["admin", "missionary"])(
     "binds %s, whose proxy rewrites the tenant address, by the loopback name resolved IPv4 first",
@@ -62,18 +85,22 @@ describe("the auth email suite's dev servers", () => {
 describe("AL-2675 WP2c part 2a, T7: the operator area journey", () => {
   const adminPort = Number(process.env.AUTH_MAIL_ADMIN_PORT || 3130);
 
-  it("runs auth-operator-area.spec.ts beside every earlier journey", () => {
-    expect(config.testMatch).toEqual([
-      "**/auth-password-recovery.spec.ts",
-      "**/auth-signup-confirmation.spec.ts",
-      "**/auth-two-organizations.spec.ts",
-      "**/auth-request-scope-reads.spec.ts",
-      "**/auth-crm-reads.spec.ts",
-      "**/auth-member-care.spec.ts",
-      "**/auth-members-invitations.spec.ts",
-      "**/auth-sites-settings.spec.ts",
-      "**/auth-operator-area.spec.ts",
-    ]);
+  it.each([
+    ["**/auth-password-recovery.spec.ts", "an earlier journey"],
+    ["**/auth-signup-confirmation.spec.ts", "an earlier journey"],
+    ["**/auth-two-organizations.spec.ts", "an earlier journey"],
+    ["**/auth-request-scope-reads.spec.ts", "an earlier journey"],
+    ["**/auth-crm-reads.spec.ts", "an earlier journey"],
+    ["**/auth-member-care.spec.ts", "an earlier journey"],
+    [
+      "**/auth-worker-record.spec.ts",
+      "AL-2678 r2b1, the worker record, from develop with pull request 2833",
+    ],
+    ["**/auth-members-invitations.spec.ts", "an earlier journey"],
+    ["**/auth-sites-settings.spec.ts", "an earlier journey"],
+    ["**/auth-operator-area.spec.ts", "AL-2675 WP2c part 2a, this journey"],
+  ])("runs %s beside the operator area journey (%s)", (pattern) => {
+    expect(config.testMatch).toContain(pattern);
   });
 
   afterEach(() => {
@@ -101,27 +128,32 @@ describe("AL-2675 WP2c part 2a, T7: the operator area journey", () => {
     expect(server("missionary", fresh).env?.OPERATIONS_NAMES).toBeUndefined();
   });
 
+  it("F5: gives each server process the operations list the config names, whatever the shell exports, in the environment Playwright 1.63 starts it with (process.env, then the server's env)", async () => {
+    vi.stubEnv("OPERATIONS_NAMES", "evil.example,127.0.0.1:3130");
+    vi.resetModules();
+    const { default: fresh } =
+      await import("../../playwright.auth-mail.config");
+    const seenBy = (app: string) =>
+      spawnSync(
+        process.execPath,
+        [
+          "-e",
+          "process.stdout.write(process.env.OPERATIONS_NAMES ?? '<unset>')",
+        ],
+        {
+          encoding: "utf8",
+          env: { ...process.env, ...server(app, fresh).env },
+        },
+      ).stdout;
+    expect(seenBy("admin")).toBe(`localhost:${adminPort}`);
+    expect(seenBy("donor")).toBe("<unset>");
+    expect(seenBy("missionary")).toBe("<unset>");
+  });
+
   it("R1: keeps the admin server's log, which can hold forwarded browser output, outside every path a workflow uploads", () => {
     const log = adminServerLogFile({} as NodeJS.ProcessEnv);
     expect(log).toBe(".e2e-logs/auth-mail-admin-server.log");
-    const uploads: string[] = [];
-    for (const file of readdirSync(".github/workflows").filter((name) =>
-      /\.ya?ml$/.test(name),
-    )) {
-      const document = loadWorkflowDocument(`.github/workflows/${file}`) as {
-        jobs?: Record<string, { steps?: WorkflowStep[] }>;
-      };
-      for (const job of Object.values(document.jobs ?? {})) {
-        for (const step of job.steps ?? []) {
-          if (!String(step.uses ?? "").startsWith("actions/upload-artifact"))
-            continue;
-          for (const line of String(step.with?.path ?? "").split(/\r?\n/)) {
-            const entry = line.trim();
-            if (entry && !entry.startsWith("!")) uploads.push(entry);
-          }
-        }
-      }
-    }
+    const uploads = uploadedPaths();
     expect(uploads).toContain("test-results/auth-mail/");
     for (const entry of uploads) {
       if (entry.startsWith("${{ runner.temp }}/")) continue;
@@ -129,6 +161,15 @@ describe("AL-2675 WP2c part 2a, T7: the operator area journey", () => {
       expect(prefix, entry).not.toBe("");
       expect(log.startsWith(prefix), entry).toBe(false);
     }
+  });
+
+  it("F6: leaves no page snapshot of the operator journey in the uploaded results, because the journey closes its pages after a failure", () => {
+    expect(config.outputDir).toBe("test-results/auth-mail");
+    expect(uploadedPaths()).toContain("test-results/auth-mail/");
+    const spec = readFileSync("tests/e2e/auth-operator-area.spec.ts", "utf8");
+    expect(spec).toMatch(
+      /test\.afterEach\(\s*async\s*\(\{\s*page\s*\},\s*testInfo\)\s*=>\s*closePagesAfterFailure\(testInfo,\s*page\.context\(\)\)/,
+    );
   });
 
   it("mirrors Mission Control's server output to the log file the journey reads, and starts it the same way", () => {

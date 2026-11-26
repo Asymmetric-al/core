@@ -325,13 +325,15 @@ describe("AL-2675 WP2c part 2a, T4: the fixed messages", () => {
       tooMany:
         "This account has the most authenticators allowed. Remove one first.",
       nameConflict: "Try again in a minute.",
+      rejected:
+        "A security check refused this code. Wait a few minutes, then enter a new code. If it happens again, ask the release owner.",
       generic: "Something went wrong. Try again.",
     });
   });
 
   it.each([
     [{ code: "mfa_verification_failed", status: 422 }, "mismatch", true],
-    [{ code: "mfa_verification_rejected", status: 422 }, "mismatch", true],
+    [{ code: "mfa_verification_rejected", status: 403 }, "rejected", false],
     [{ code: "mfa_challenge_expired", status: 422 }, "expired", false],
     [{ code: "mfa_ip_address_mismatch", status: 422 }, "network", false],
     [{ code: "over_request_rate_limit", status: 429 }, "rateLimited", false],
@@ -422,6 +424,42 @@ describe("AL-2675 WP2c part 2a, T4: verification, removal and the database's con
       mismatch: false,
     });
     expect(calls).toEqual(["unenroll:v2"]);
+  });
+
+  it("F2: asks for a fresh read when the factor went and the session refresh throws", async () => {
+    const { client, calls, raw } = fakeClient();
+    raw.auth.refreshSession.mockRejectedValueOnce(new Error("network down"));
+    expect(await removeFactor("v2", client)).toEqual({
+      ok: false,
+      message: OPERATOR_MFA_MESSAGES.generic,
+      reread: true,
+      mismatch: false,
+    });
+    expect(calls).toEqual(["unenroll:v2"]);
+  });
+
+  it("F2: keeps a removal that threw before Auth answered a plain failure, with no fresh read", async () => {
+    const { client, raw } = fakeClient();
+    raw.auth.mfa.unenroll.mockRejectedValueOnce(new Error("network down"));
+    expect(await removeFactor("v2", client)).toEqual({
+      ok: false,
+      message: OPERATOR_MFA_MESSAGES.generic,
+      reread: false,
+      mismatch: false,
+    });
+    expect(raw.auth.refreshSession).not.toHaveBeenCalled();
+  });
+
+  it("F3: treats a refusal by the MFA verification hook as its own refusal, never as a wrong code", async () => {
+    const { client } = fakeClient({
+      verify: { code: "mfa_verification_rejected", status: 403 },
+    });
+    expect(await verifyCode("v1", "123456", client)).toEqual({
+      ok: false,
+      message: OPERATOR_MFA_MESSAGES.rejected,
+      reread: false,
+      mismatch: false,
+    });
   });
 
   it("confirms the operator session only when the database returns the caller's own login", async () => {

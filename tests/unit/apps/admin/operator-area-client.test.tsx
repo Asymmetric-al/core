@@ -742,3 +742,165 @@ describe("AL-2675 WP2c part 2a, fix round: the operator area's screens", () => {
     ).toBe(false);
   });
 });
+
+const TWO_FACTORS = () => [factorRow("v1", "Phone"), factorRow("v2", "Laptop")];
+
+async function startRereadFromArea() {
+  const earlier = deferred<unknown>();
+  mfa.readFactorState.mockReturnValueOnce(earlier.promise);
+  mfa.startEnrolment.mockResolvedValueOnce({
+    ok: false,
+    message: "",
+    reread: true,
+    mismatch: false,
+  });
+  fireEvent.click(
+    screen.getByRole("button", { name: "Add another authenticator" }),
+  );
+  await waitFor(() => expect(mfa.readFactorState).toHaveBeenCalledTimes(2));
+  return earlier;
+}
+
+describe("AL-2675 WP2c part 2a, closing list: the operator area's screens", () => {
+  it("F1: offers and confirms no removal while one is pending, though an earlier read resolves in between", async () => {
+    await showArea(TWO_FACTORS());
+    const earlier = await startRereadFromArea();
+    const fresh = deferred<unknown>();
+    mfa.readFactorState.mockReturnValueOnce(fresh.promise);
+    const removal = deferred<unknown>();
+    mfa.removeFactor.mockReturnValueOnce(removal.promise);
+    await confirmRemovalOf("Phone");
+    await waitFor(() => expect(mfa.removeFactor).toHaveBeenCalledWith("v1"));
+    await act(async () =>
+      earlier.resolve({ kind: "area", factors: TWO_FACTORS() }),
+    );
+    expect(screen.queryAllByRole("button", { name: /^Remove / })).toEqual([]);
+    await act(async () => removal.resolve({ ok: true }));
+    await waitFor(() => expect(mfa.readFactorState).toHaveBeenCalledTimes(3));
+    expect(screen.queryAllByRole("button", { name: /^Remove / })).toEqual([]);
+    await act(async () =>
+      fresh.resolve({ kind: "area", factors: [factorRow("v2", "Laptop")] }),
+    );
+    expect(screen.queryByText("Phone")).toBeNull();
+    expect(mfa.removeFactor).toHaveBeenCalledTimes(1);
+  });
+
+  it.each([
+    ["accepts the code", { ok: true }],
+    [
+      "asks for a fresh read",
+      { ok: false, message: "", reread: true, mismatch: false },
+    ],
+  ])(
+    "F10: a challenge that %s after sign-out has begun does nothing more",
+    async (_label, answer) => {
+      mfa.readFactorState.mockResolvedValue({
+        kind: "challenge",
+        factorIds: ["v1"],
+      });
+      render(<OperatorAreaClient />);
+      await screen.findByText("Enter your code");
+      await typeCode(codeForm().field, "555555");
+      const verify = deferred<unknown>();
+      mfa.verifyCode.mockReturnValueOnce(verify.promise);
+      fireEvent.click(screen.getByRole("button", { name: "Verify" }));
+      session.signOutClientSession.mockReturnValueOnce(
+        new Promise(() => undefined),
+      );
+      fireEvent.click(screen.getByRole("button", { name: "Sign out" }));
+      await act(async () => verify.resolve(answer));
+      expect(mfa.readFactorState).toHaveBeenCalledTimes(1);
+    },
+  );
+
+  it("F10: an enrolment whose verification resolves after its panel is gone does nothing more", async () => {
+    await openEnrolment();
+    await typeCode(codeForm().field, "565656");
+    const verify = deferred<unknown>();
+    mfa.verifyCode.mockReturnValueOnce(verify.promise);
+    fireEvent.click(
+      screen.getByRole("button", { name: "Verify and continue" }),
+    );
+    session.signOutClientSession.mockReturnValueOnce(
+      new Promise(() => undefined),
+    );
+    fireEvent.click(screen.getByRole("button", { name: "Sign out" }));
+    await act(async () => verify.resolve({ ok: true }));
+    expect(mfa.readFactorState).toHaveBeenCalledTimes(1);
+  });
+
+  it("F10: after a failed sign-out, a challenge whose panel is gone goes on to no other authenticator", async () => {
+    mfa.readFactorState.mockResolvedValue({
+      kind: "challenge",
+      factorIds: ["v1", "v2"],
+    });
+    render(<OperatorAreaClient />);
+    await screen.findByText("Enter your code");
+    await typeCode(codeForm().field, "666666");
+    const firstVerify = deferred<unknown>();
+    mfa.verifyCode.mockReturnValueOnce(firstVerify.promise);
+    fireEvent.click(screen.getByRole("button", { name: "Verify" }));
+    session.signOutClientSession.mockResolvedValueOnce({
+      ok: false,
+      message: GENERIC,
+      redirected: false,
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Sign out" }));
+    expect(await screen.findByText("Enter your code")).toBeTruthy();
+    mfa.verifyCode.mockResolvedValue({
+      ok: false,
+      message: MISMATCH,
+      reread: false,
+      mismatch: true,
+    });
+    await act(async () =>
+      firstVerify.resolve({
+        ok: false,
+        message: MISMATCH,
+        reread: false,
+        mismatch: true,
+      }),
+    );
+    expect(mfa.verifyCode).toHaveBeenCalledTimes(1);
+  });
+
+  it("F11: keeps an open second enrolment's key and QR when the list is read again", async () => {
+    await showArea(TWO_FACTORS());
+    fireEvent.click(
+      screen.getByRole("button", { name: "Add another authenticator" }),
+    );
+    await screen.findByRole("img", {
+      name: "QR code for your authenticator app",
+    });
+    const fresh = deferred<unknown>();
+    mfa.readFactorState.mockReturnValueOnce(fresh.promise);
+    mfa.removeFactor.mockResolvedValueOnce({ ok: true });
+    await confirmRemovalOf("Phone");
+    await waitFor(() => expect(mfa.readFactorState).toHaveBeenCalledTimes(2));
+    await act(async () =>
+      fresh.resolve({ kind: "area", factors: [factorRow("v2", "Laptop")] }),
+    );
+    expect(screen.queryByText("Phone")).toBeNull();
+    expect(
+      screen.getByRole("img", { name: "QR code for your authenticator app" }),
+    ).toBeTruthy();
+    expect(document.body.innerHTML).toContain(secret.slice(0, 4));
+  });
+
+  it("F11: keeps a message just shown when an earlier read resolves", async () => {
+    await showArea(TWO_FACTORS());
+    const earlier = await startRereadFromArea();
+    mfa.removeFactor.mockResolvedValueOnce({
+      ok: false,
+      message: GENERIC,
+      reread: false,
+      mismatch: false,
+    });
+    await confirmRemovalOf("Phone");
+    expect(await screen.findByText(GENERIC)).toBeTruthy();
+    await act(async () =>
+      earlier.resolve({ kind: "area", factors: TWO_FACTORS() }),
+    );
+    expect(screen.getByText(GENERIC)).toBeTruthy();
+  });
+});
