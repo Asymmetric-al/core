@@ -115,21 +115,25 @@ export function PlatformHistoryPanel() {
   const titleId = useId();
   const reads = useRef(0);
 
-  const load = useCallback(() => {
+  const read = useCallback(() => {
     reads.current += 1;
     const turn = reads.current;
-    setView({ kind: "loading" });
     void readPlatformHistory().then((next) => {
       if (turn === reads.current) setView(next);
     });
   }, []);
 
+  const retry = useCallback(() => {
+    setView({ kind: "loading" });
+    read();
+  }, [read]);
+
   useEffect(() => {
-    load();
+    read();
     return () => {
       reads.current += 1;
     };
-  }, [load]);
+  }, [read]);
 
   return (
     <section aria-labelledby={titleId}>
@@ -143,7 +147,7 @@ export function PlatformHistoryPanel() {
           <CardDescription>{DESCRIPTION}</CardDescription>
         </CardHeader>
         <CardContent>
-          <HistoryBody view={view} titleId={titleId} onRetry={load} />
+          <HistoryBody view={view} titleId={titleId} onRetry={retry} />
         </CardContent>
       </Card>
     </section>
