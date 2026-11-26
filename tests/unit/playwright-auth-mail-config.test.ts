@@ -2,11 +2,11 @@ import { readdirSync } from "node:fs";
 
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { adminServerLogFile } from "../e2e/helpers/auth-mail";
 import {
   loadWorkflowDocument,
   type WorkflowStep,
 } from "./helpers/workflow-yaml";
+import { adminServerLogFile } from "../e2e/helpers/auth-mail";
 
 /**
  * The auth email journeys' dev servers (playwright.auth-mail.config.ts).
@@ -102,7 +102,7 @@ describe("AL-2675 WP2c part 2a, T7: the operator area journey", () => {
   });
 
   it("R1: keeps the admin server's log, which can hold forwarded browser output, outside every path a workflow uploads", () => {
-    const log = adminServerLogFile({});
+    const log = adminServerLogFile({} as NodeJS.ProcessEnv);
     expect(log).toBe(".e2e-logs/auth-mail-admin-server.log");
     const uploads: string[] = [];
     for (const file of readdirSync(".github/workflows").filter((name) =>
