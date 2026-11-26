@@ -55,7 +55,7 @@ function watchPrefetches(page: Page) {
   });
   page.on("response", (response) => {
     if (!inFlight.delete(response.request())) return;
-    prefetched.add(new URL(response.url()).pathname);
+    if (response.ok()) prefetched.add(new URL(response.url()).pathname);
     lastChange = Date.now();
   });
   page.on("requestfailed", (request) => {
@@ -171,7 +171,9 @@ test.describe("Instant navigation (donor public site)", () => {
       .first();
     await card.scrollIntoViewIfNeeded();
     await expect(card).toBeVisible();
-    await prefetchesSettled(String(await card.getAttribute("href")));
+    await prefetchesSettled(
+      new URL(String(await card.getAttribute("href")), page.url()).pathname,
+    );
 
     await instant(page, async () => {
       await card.click();
