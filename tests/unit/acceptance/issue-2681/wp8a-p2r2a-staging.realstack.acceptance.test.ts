@@ -19,6 +19,7 @@ import {
   role,
   seedTwoTenants,
   storeEvent,
+  work,
   type Fixture,
   type LineIntake,
 } from "./wp8a-p2r2a-harness";
@@ -59,7 +60,7 @@ describe.skipIf(!ADMIN_URL)(
 
     const atCommit = async (...steps: (() => Promise<unknown>)[]) => {
       await db.query("SAVEPOINT r2a_commit");
-      for (const step of steps) {
+      for (const [index, step] of steps.entries()) {
         try {
           await step();
           await role(db, null);
@@ -73,7 +74,8 @@ describe.skipIf(!ADMIN_URL)(
           await db.query("ROLLBACK TO SAVEPOINT r2a_commit");
           await db.query(`SET CONSTRAINTS ${STAGING_BALANCE} DEFERRED`);
           const e = error as { code?: string; message?: string };
-          return `${e.code} ${(e.message ?? "").replace(/^(\w+).*$/, "$1")}`;
+          const at = steps.length > 1 ? `at step ${index + 1}: ` : "";
+          return `${at}${e.code} ${(e.message ?? "").replace(/^(\w+).*$/, "$1")}`;
         }
         await db.query(`SET CONSTRAINTS ${STAGING_BALANCE} DEFERRED`);
       }
@@ -223,7 +225,7 @@ describe.skipIf(!ADMIN_URL)(
         ]);
       }));
 
-    it("A3: at commit, allocations one cent off, a changed or removed fee allocation, a fee allocation the intake has not, a donor allocation deleted, or no donor allocation is 23514; each change runs after the staged gift's own balance has fired (review finding 2), so the allocations' UPDATE and DELETE triggers are the ones that refuse; a sealed column of a line-based gift or allocation, a changed format and a deleted line-based gift are 23514", () =>
+    it("A3: at commit, allocations one cent off, a changed or removed fee allocation, a fee allocation the intake has not or a donor allocation deleted is 23514 at the change's own checkpoint, after the staging checkpoint passed (review finding 2; last step S5), so the allocations' UPDATE and DELETE triggers are the ones that refuse; a fee-only intake is refused when it is staged; a sealed column of a line-based gift or allocation, a changed format and a deleted line-based gift are 23514", () =>
       inTx(db, async () => {
         const fx = await seedTwoTenants(db);
         await grant(db, [
@@ -305,10 +307,10 @@ describe.skipIf(!ADMIN_URL)(
           ),
         );
         await tryCommit(
-          "no donor allocation",
-          update(
-            "UPDATE public.staged_gift_allocations SET fund_id = fund_id WHERE staged_gift_id = $1",
-          ),
+          "a fee-only intake staged",
+          async () => {
+            throw new Error("the staging checkpoint must refuse first");
+          },
           [{ fund: fee, fee: true, amount: 50 }],
         );
         await tryCommit(
@@ -319,12 +321,12 @@ describe.skipIf(!ADMIN_URL)(
         );
         expect(verdicts).toEqual([
           "as copied: ok",
-          "one cent off: 23514 staged_gift_allocations_unbalanced",
-          "fee changed: 23514 staged_gift_allocations_unbalanced",
-          "fee removed: 23514 staged_gift_allocations_unbalanced",
-          "fee the intake has not: 23514 staged_gift_allocations_unbalanced",
-          "a donor allocation deleted: 23514 staged_gift_allocations_unbalanced",
-          "no donor allocation: 23514 staged_gift_allocations_unbalanced",
+          "one cent off: at step 2: 23514 staged_gift_allocations_unbalanced",
+          "fee changed: at step 2: 23514 staged_gift_allocations_unbalanced",
+          "fee removed: at step 2: 23514 staged_gift_allocations_unbalanced",
+          "fee the intake has not: at step 2: 23514 staged_gift_allocations_unbalanced",
+          "a donor allocation deleted: at step 2: 23514 staged_gift_allocations_unbalanced",
+          "a fee-only intake staged: at step 1: 23514 staged_gift_allocations_unbalanced",
           "review moves a donor amount (W8-R14): ok",
         ]);
 
@@ -526,6 +528,99 @@ describe.skipIf(!ADMIN_URL)(
             lineGift,
           ),
         ]).toEqual(["23514", "23514", "23503", "23503"]);
+      }));
+
+    it("A3 (last step S1): a legacy staged gift never re-points at an intake of another generation or organization: as service_role (the one role besides the owner that holds UPDATE on staged_gifts.donation_id and tenant_id; authenticated holds neither), a legacy gift moved onto a line-based intake, or onto another organization's intake, is 42501 staged_gift_generation_owner, and the apply then stages the line-based intake; a move between two legacy intakes still succeeds", () =>
+      inTx(db, async () => {
+        const fx = await seedTwoTenants(db);
+        await grant(db, [
+          ...HOSTED_SERVICE_GRANTS,
+          "GRANT INSERT, UPDATE, DELETE ON TABLE public.staged_gifts, public.staged_gift_allocations TO service_role",
+        ]);
+        const legacyIntake = async (tenant: string) => {
+          await role(db, "service_role");
+          const id = (
+            await db.query(
+              "INSERT INTO public.donations (tenant_id, amount, currency) VALUES ($1, 500, 'usd') RETURNING id",
+              [tenant],
+            )
+          ).rows[0].id as string;
+          await role(db, null);
+          return id;
+        };
+        const first = await legacyIntake(fx.A.tenant);
+        const second = await legacyIntake(fx.A.tenant);
+        const theirs = await legacyIntake(fx.B.tenant);
+        await role(db, "service_role");
+        const gift = (
+          await db.query(
+            "INSERT INTO public.staged_gifts (tenant_id, donation_id, amount, currency) VALUES ($1, $2, 500, 'usd') RETURNING id",
+            [fx.A.tenant, first],
+          )
+        ).rows[0].id as string;
+        await role(db, null);
+        const intake = await lineIntake(db, fx.A);
+        const pi = paymentIntent();
+        await recordReference(db, intake.donationId, pi);
+
+        const repoint = (donation: string) =>
+          as(
+            "service_role",
+            fx,
+            "UPDATE public.staged_gifts SET donation_id = $2 WHERE id = $1 RETURNING donation_id, intake_format",
+            [gift, donation],
+          );
+        const onto = await repoint(intake.donationId);
+        const across = await repoint(theirs);
+        const between = await repoint(second);
+        expect([short(onto), short(across)]).toEqual([
+          "42501 staged_gift_generation_owner",
+          "42501 staged_gift_generation_owner",
+        ]);
+        expect(between.rows).toEqual([
+          { donation_id: second, intake_format: "legacy_header" },
+        ]);
+        const e = await storeEvent(db, fx.A, { pi, amount: intake.amount });
+        const applied = await work(db, e.id);
+        expect(applied).toMatchObject({
+          outcome: "applied",
+          status: "completed",
+        });
+        await role(db, null);
+        expect(
+          (
+            await db.query(
+              "SELECT id, intake_format FROM public.staged_gifts WHERE donation_id = $1",
+              [intake.donationId],
+            )
+          ).rows,
+        ).toEqual([
+          { id: applied.staged_gift_id, intake_format: "line_based" },
+        ]);
+      }));
+
+    it("A3 (last step S2): a line-based gift's id is sealed: staged, then its id changed in the same transaction before any allocation exists, it is 23514 staged_gift_line_sealed at the UPDATE", () =>
+      inTx(db, async () => {
+        const fx = await seedTwoTenants(db);
+        const intake = await lineIntake(db, fx.A);
+        const g = await as("tenant_guard", fx, GIFT, [
+          fx.A.tenant,
+          intake.donationId,
+          fx.A.entity,
+          intake.amount,
+          "usd",
+        ]);
+        expect(g.ok).toBe(true);
+        expect(
+          short(
+            await as(
+              "postgres",
+              fx,
+              "UPDATE public.staged_gifts SET id = gen_random_uuid() WHERE id = $1",
+              [g.rows[0]!.id],
+            ),
+          ),
+        ).toBe("23514 staged_gift_line_sealed");
       }));
 
     it("A4: an observation updated or deleted is 23514; a second terminal effect for one PaymentIntent is 23505; an event of the other tenant, or a payment that is not the intake's, is 23503", () =>
