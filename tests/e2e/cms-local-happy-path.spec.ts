@@ -559,7 +559,9 @@ test.describe("@cms-local strict local CMS happy path", () => {
     await page.waitForURL((url) =>
       url.pathname.endsWith("/web-studio/collections/media"),
     );
-    await expect(page.getByText(`${stamp} edited`)).toHaveCount(0);
+    await expect(
+      page.getByRole("link", { name: `${stamp} edited` }),
+    ).toHaveCount(0);
     const gone = await page.request.get(
       `${adminBaseURL}/api/media/${id}?variant=w320`,
     );
