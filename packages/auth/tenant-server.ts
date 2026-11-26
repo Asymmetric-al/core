@@ -7,9 +7,12 @@ import { permanentRedirect, redirect, unstable_rethrow } from "next/navigation";
 
 import {
   ADDRESS_PREFIX_HEADER,
+  isNameGenerationRefused,
   isNameTenantRefused,
   nameTenantIdOf,
+  readNameGeneration,
   readNameTenantState,
+  type NameGenerationState,
   type NameTenantState,
 } from "./request-headers";
 import { parseTenantAddress, withTenantAddress } from "./tenant-address";
@@ -34,12 +37,28 @@ export async function readServerNameTenantState(): Promise<NameTenantState> {
   }
 }
 
+export async function readServerNameGeneration(): Promise<NameGenerationState> {
+  if (!isServeUnderPathsEnabled()) return { kind: "off" };
+  try {
+    return readNameGeneration(await headers());
+  } catch (error) {
+    unstable_rethrow(error);
+    return { kind: "absent" };
+  }
+}
+
 export async function readDocumentScope(
   auth: AuthContext,
 ): Promise<DocumentScope | null> {
   const name = await readServerNameTenantState();
   if (isNameTenantRefused(name)) {
     throw new Error("The request carries no verified name for this dashboard.");
+  }
+  const generation = await readServerNameGeneration();
+  if (isNameGenerationRefused(name, generation)) {
+    throw new Error(
+      "The request carries no verified generation for this dashboard's name.",
+    );
   }
   const addressPrefix = await readAddressPrefix();
   if (!addressPrefix) return null;
@@ -64,6 +83,9 @@ export async function readDocumentScope(
     tenantId,
     assignmentId: assignment.assignmentId,
     addressPrefix,
+    ...(generation.kind === "valid"
+      ? { generation: generation.generation }
+      : {}),
   };
 }
 

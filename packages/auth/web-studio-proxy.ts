@@ -4,9 +4,12 @@ import { NextResponse, type NextRequest } from "next/server";
 
 import {
   ADDRESS_PREFIX_HEADER,
+  NAME_GENERATION_HEADER,
   NAME_TENANT_HEADER,
   ROLE_CLASS_HEADER,
+  setVerifiedNameHeaders,
   TENANT_REWRITE_HEADER,
+  type VerifiedNameFacts,
 } from "./request-headers";
 import {
   WEB_STUDIO_CHOOSER_PATH,
@@ -21,7 +24,7 @@ export async function refreshWebStudioApiSession(
   request: NextRequest,
   pathname: string,
   roleClass: string | null,
-  nameTenantId?: string,
+  name: VerifiedNameFacts = {},
 ): Promise<NextResponse> {
   const requestHeaders = new Headers(request.headers);
   requestHeaders.set("x-asym-pathname", pathname);
@@ -30,7 +33,8 @@ export async function refreshWebStudioApiSession(
   requestHeaders.delete(ADDRESS_PREFIX_HEADER);
   requestHeaders.delete(TENANT_REWRITE_HEADER);
   requestHeaders.delete(NAME_TENANT_HEADER);
-  if (nameTenantId) requestHeaders.set(NAME_TENANT_HEADER, nameTenantId);
+  requestHeaders.delete(NAME_GENERATION_HEADER);
+  setVerifiedNameHeaders(requestHeaders, name);
 
   let response = NextResponse.next({ request: { headers: requestHeaders } });
   const refreshHeaders = new Headers();

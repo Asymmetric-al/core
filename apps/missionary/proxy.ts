@@ -8,6 +8,7 @@ import {
   rebaseLocation,
   withoutFrontHeaders,
 } from "@asym/auth/front";
+import { answerAdmittedRedirect } from "@asym/auth/legacy-redirects";
 import { createAuthMiddleware } from "@asym/auth/middleware";
 import { resolveUserRoleFromDatabase } from "@asym/auth/resolve-user-role";
 import {
@@ -20,6 +21,7 @@ import {
 } from "@asym/database/document-reload";
 
 import { MISSIONARY_ALLOWED_ROLES } from "./app/access";
+import { legacyRedirects } from "./lib/legacy-redirects";
 import { MISSIONARY_PUBLIC_ROUTES } from "./lib/route-policy";
 
 import type { NextRequest } from "next/server";
@@ -66,10 +68,17 @@ export async function proxy(request: NextRequest) {
   );
   if (name.kind === "refused") return frontNotFound();
   if (name.kind === "unavailable") return verifiedNameUnavailable();
-  const response = await authProxy(
-    asStampedRequest(request, admission.origin),
-    { nameTenantId: name.tenantId },
-  );
+  const response =
+    answerAdmittedRedirect(
+      request,
+      legacyRedirects,
+      ({ params }) =>
+        params.prefix === undefined || params.prefix === name.tenantId,
+    ) ??
+    (await authProxy(asStampedRequest(request, admission.origin), {
+      nameTenantId: name.tenantId,
+      nameGeneration: name.generation,
+    }));
   return rebaseLocation(response, request.nextUrl.origin, admission.origin);
 }
 

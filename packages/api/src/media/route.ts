@@ -3,6 +3,7 @@ import {
   requireCapability,
   type AuthenticatedContext,
 } from "@asym/auth/context";
+import { isServeUnderPathsEnabled } from "@asym/database/app-base-path";
 import { getSupabasePublicConfig } from "@asym/database/supabase/config";
 import { createServerClient, parseCookieHeader } from "@supabase/ssr";
 import { unstable_rethrow } from "next/navigation";
@@ -152,6 +153,9 @@ export async function GET(
     roleClass: "staff",
     expectedTenantId: access.tenantId,
     proposedAssignmentId: access.assignmentId,
+    ...(isServeUnderPathsEnabled()
+      ? { allowAbsentScopeGeneration: true as const }
+      : {}),
   });
 
   try {

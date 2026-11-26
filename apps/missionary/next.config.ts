@@ -48,11 +48,10 @@ const nextConfig: NextConfig & {
       { source: "/invite/:path*", headers: protectedActionHeaders },
     ];
   },
-  // Retired addresses answer a real 308 before the proxy runs (council
-  // round 1, A11; lib/legacy-redirects.ts).
   async redirects() {
-    return legacyRedirects;
+    return underPaths.basePath ? [] : legacyRedirects;
   },
+  ...(underPaths.basePath ? { skipTrailingSlashRedirect: true } : {}),
   reactCompiler: {
     compilationMode: "annotation",
   },

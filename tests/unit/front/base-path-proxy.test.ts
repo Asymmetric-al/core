@@ -275,14 +275,14 @@ describe("proxy redirects under basePath /admin (on) and empty basePath (off)", 
 });
 
 describe("auth and password-recovery callbacks under basePath (on and off)", () => {
-  it("prefixes same-app callback targets when on and keeps /donor-dashboard unprefixed", async () => {
+  it("prefixes same-app callback targets when on and keeps /donor-dashboard unprefixed (D-18, N2 part 2a: on, the callback counts only the name's organization's rows, so each request carries the name the proxy sets)", async () => {
     vi.stubEnv("CORE_SERVE_UNDER_PATHS", "1");
     vi.stubEnv("CORE_APP_BASE_PATH", "/admin");
 
     state.rows = [row(ROW_A, TA, "staff", "development")];
     const staffRes = await authCallbackGet(
       new Request("http://localhost:25051/admin/auth/callback?code=abc", {
-        headers: { "x-asym-role-class": "staff" },
+        headers: { "x-asym-role-class": "staff", "x-asym-name-tenant": TA },
       }),
     );
     expect(staffRes.status).toBe(307);
@@ -291,7 +291,7 @@ describe("auth and password-recovery callbacks under basePath (on and off)", () 
     state.rows = [row(ROW_A, TA, "donor")];
     const donorRes = await authCallbackGet(
       new Request("http://localhost:25051/admin/auth/callback?code=abc", {
-        headers: { "x-asym-role-class": "staff" },
+        headers: { "x-asym-role-class": "staff", "x-asym-name-tenant": TA },
       }),
     );
     expect(donorRes.status).toBe(307);

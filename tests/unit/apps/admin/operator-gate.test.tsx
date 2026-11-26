@@ -165,6 +165,8 @@ describe("AL-2675 WP2c part 2a, T3: the operator page's own check", () => {
     "x-asym-address-prefix",
     "x-asym-tenant-rewrite",
     "x-asym-name-tenant",
+    "x-asym-name-generation",
+    "x-asym-scope-generation",
   ])(
     "refuses with notFound() when the request carries the page scope header %s, before any session read",
     async (header) => {
