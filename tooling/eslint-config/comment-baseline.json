@@ -1595,7 +1595,7 @@
   "tests/unit/acceptance/issue-2675/membership-core.realstack.acceptance.test.ts": 40,
   "tests/unit/acceptance/issue-2675/membership-role-commands.realstack.acceptance.test.ts": 38,
   "tests/unit/acceptance/issue-2675/missionary-handler-authority.postgrest.acceptance.test.ts": 5,
-  "tests/unit/acceptance/issue-2675/operator-mfa.localstack.test.ts": 16,
+  "tests/unit/acceptance/issue-2675/operator-mfa.localstack.test.ts": 14,
   "tests/unit/acceptance/issue-2675/organization-names.realstack.acceptance.test.ts": 6,
   "tests/unit/acceptance/issue-2675/own-api-request-scope.acceptance.test.ts": 6,
   "tests/unit/acceptance/issue-2675/platform-operator-script.realstack.acceptance.test.ts": 4,

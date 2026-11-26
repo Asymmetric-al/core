@@ -2,6 +2,7 @@ import { createEnv } from "@t3-oss/env-nextjs";
 import { z } from "zod";
 
 import { canonicalUpstreamOrigin } from "./front-origin";
+import { isValidOperationsNamesEnv } from "./operations-names";
 import {
   isProtectedDeployment,
   resolveDeploymentEnvironment,
@@ -270,6 +271,13 @@ export const env = createEnv({
       )
       .optional(),
     FRONT_NAMES: z.string().optional(),
+    OPERATIONS_NAMES: z
+      .string()
+      .refine(
+        isValidOperationsNamesEnv,
+        "OPERATIONS_NAMES must be a comma-separated list of bare host[:port] entries.",
+      )
+      .optional(),
   },
   client: {
     NEXT_PUBLIC_SUPABASE_URL: z.string().url(),
@@ -412,6 +420,7 @@ export const env = createEnv({
     FRONT_ADMIN_ORIGIN: process.env.FRONT_ADMIN_ORIGIN,
     FRONT_MISSIONARY_ORIGIN: process.env.FRONT_MISSIONARY_ORIGIN,
     FRONT_NAMES: process.env.FRONT_NAMES,
+    OPERATIONS_NAMES: process.env.OPERATIONS_NAMES,
     NEXT_PUBLIC_SITE_URL: process.env.NEXT_PUBLIC_SITE_URL,
     NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL,
     NEXT_PUBLIC_MAIN_DOMAIN: process.env.NEXT_PUBLIC_MAIN_DOMAIN,

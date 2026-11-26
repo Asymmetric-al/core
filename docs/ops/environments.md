@@ -616,6 +616,23 @@ build's own refusal before any Vercel or HTTP call
 `register-jobs` has; `plan` turns any failed read of a live commit into "live
 commit unknown" and rebuilds that app (`vercel-release.mjs:471-474`).
 
+### 5.9 The operator area's operations address (`OPERATIONS_NAMES`)
+
+The operator area (`/operator` in Mission Control, AL-2675 WP2c part 2a)
+answers only on an operations address: a request with no front header whose
+`host`, and `x-forwarded-host` when present, equals an entry of this list
+after stripping ASCII spaces and tabs at both ends and lower-casing ASCII
+`A-Z` only. Read at run time by the staff proxy and the operator page, never
+at build; not in any build hash. Never expose it with a `NEXT_PUBLIC_` prefix.
+
+| Variable           | Scope   | Admin                                     | Donor | Missionary | Notes                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
+| ------------------ | ------- | ----------------------------------------- | ----- | ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `OPERATIONS_NAMES` | Runtime | Production and development; Preview unset | No    | No         | Server-only comma-separated bare `host[:port]` entries (ASCII letters, digits, `-` and `.`, no leading, trailing or doubled dot, optional `:` and 1-5 digits; no scheme, path, wildcard or space inside). Unset, empty or with no valid entry: the area answers `404` on every host (`403` to a request without a front header while `CORE_SERVE_UNDER_PATHS=1`). An invalid entry is ignored and `[operator] OPERATIONS_NAMES is invalid` is logged once, with no value; the schema refuses it at start-up. |
+
+Set it on the staff Vercel project for Production and for the development
+environment, leave Preview unset, and redeploy; the release owner's runbook is
+[platform operators](platform-operators.md#hosted-prerequisites-for-the-operator-area).
+
 ## 6. Deploy Flows
 
 Production is branch-triggered; preview and development deploys are explicit.

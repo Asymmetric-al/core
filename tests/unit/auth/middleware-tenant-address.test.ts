@@ -616,3 +616,32 @@ describe("an E2E bypass identity is judged by the rows its signed cookie names",
     expect(state.rpcCalls).toBe(0);
   });
 });
+
+describe("AL-2675 WP2c part 2a, T7: the operator area lies outside the tenant segment", () => {
+  it("lists /operator in OUTSIDE_TENANT_SEGMENT_ROOTS, so no link or redirect gives it a tenant", async () => {
+    const {
+      OUTSIDE_TENANT_SEGMENT_ROOTS,
+      isOutsideTenantSegment,
+      withTenantAddress,
+    } = await import("../../../packages/auth/tenant-address");
+    expect(OUTSIDE_TENANT_SEGMENT_ROOTS).toContain("/operator");
+    expect(isOutsideTenantSegment("/operator")).toBe(true);
+    expect(isOutsideTenantSegment("/operator/x")).toBe(true);
+    expect(isOutsideTenantSegment("/operators")).toBe(false);
+    expect(withTenantAddress(`/${TA}`, "/operator")).toBe("/operator");
+  });
+
+  it("in the missionary workspace, sends /<tenant>/operator out of the segment and lands no one there", async () => {
+    state.rows = [row(TA, "missionary")];
+    expect(location(await missionaryProxy()(request(`/${TA}/operator`)))).toBe(
+      "/operator",
+    );
+    const outside = await missionaryProxy()(request("/operator"));
+    expect(location(outside)).toBeNull();
+    expect(rewriteTarget(outside)).toBeNull();
+    state.userId = null;
+    expect(location(await missionaryProxy()(request("/operator")))).toBe(
+      "/login?next=%2Foperator",
+    );
+  });
+});
