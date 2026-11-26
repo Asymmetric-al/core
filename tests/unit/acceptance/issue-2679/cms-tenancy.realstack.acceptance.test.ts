@@ -1334,6 +1334,8 @@ describe.skipIf(!ADMIN_URL)(
       });
 
       it("registerMediaRecord refuses a media id another organization holds", async () => {
+        const before = await row("media", mediaA.id);
+        expect(before?.tenant).toBe(A);
         const outcome = await s.settle(
           s.service.registerMediaRecord(s.payload as never, {
             id: mediaA.id,
@@ -1342,10 +1344,7 @@ describe.skipIf(!ADMIN_URL)(
           }),
         );
         expect(outcome.ok).toBe(false);
-        expect(await row("media", mediaA.id)).toMatchObject({
-          tenant: A,
-          alt: "Alt",
-        });
+        expect(await row("media", mediaA.id)).toEqual(before);
       });
 
       it("two concurrent first creations of one presentation return the one row", async () => {
