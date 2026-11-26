@@ -195,13 +195,18 @@ const SERVICE_ROLE_PRIVILEGES = `(case when current_setting('server_version_num'
              then array[${quoted(UNSAFE_TABLE_PRIVILEGES)}]
              else array[${quoted(UNSAFE_TABLE_PRIVILEGES.filter((p) => p !== "MAINTAIN"))}] end)`;
 
+const SERVICE_ROLE_REACH = `pg_has_role('service_role', r.oid, 'USAGE') or pg_has_role('service_role', r.oid, 'SET')`;
+
+const reachedBy = (check) =>
+  `exists (select 1 from pg_roles r where (${SERVICE_ROLE_REACH}) and ${check})`;
+
 export const SERVICE_ROLE_GRANTS_SQL = `select c.relname as relation, null::text as "column", c.relkind::text as kind, p.privilege
     from pg_class c
     join pg_namespace n on n.oid = c.relnamespace
     cross join unnest(${SERVICE_ROLE_PRIVILEGES}) as p(privilege)
    where n.nspname = 'public'
      and c.relkind in ('r', 'p', 'v', 'm', 'f')
-     and has_table_privilege('service_role', c.oid, p.privilege)
+     and ${reachedBy("has_table_privilege(r.oid, c.oid, p.privilege)")}
   union all
   select c.relname, att.attname::text, c.relkind::text, 'REFERENCES'
     from pg_class c
@@ -209,8 +214,8 @@ export const SERVICE_ROLE_GRANTS_SQL = `select c.relname as relation, null::text
     join pg_attribute att on att.attrelid = c.oid and att.attnum > 0 and not att.attisdropped
    where n.nspname = 'public'
      and c.relkind in ('r', 'p', 'v', 'm', 'f')
-     and not has_table_privilege('service_role', c.oid, 'REFERENCES')
-     and has_column_privilege('service_role', c.oid, att.attnum, 'REFERENCES')`;
+     and not ${reachedBy("has_table_privilege(r.oid, c.oid, 'REFERENCES')")}
+     and ${reachedBy("has_column_privilege(r.oid, c.oid, att.attnum, 'REFERENCES')")}`;
 
 export const TENANT_RLS_CATALOG_SQL = `-- tenant-rls-catalog-gate:v1
 select jsonb_build_object(
@@ -309,7 +314,7 @@ select jsonb_build_object(
     select jsonb_agg(n.nspname order by n.nspname)
     from pg_namespace n
     where n.nspname !~ '${EXCLUDED_SCHEMA_PATTERN}'
-      and has_schema_privilege('service_role', n.oid, 'CREATE')), '[]'::jsonb),
+      and ${reachedBy("has_schema_privilege(r.oid, n.oid, 'CREATE')")}), '[]'::jsonb),
   -- AL-2675 (WP2b, second release): every policy signed-in users reach in
   -- public, as Postgres deparses it, the bodies of the request-tenant
   -- helpers, and the public tables in the Realtime publication. 'granted'
@@ -888,9 +893,13 @@ function readServiceRoleExceptions(list) {
     malformed("expected an object with an entries array");
   else
     for (const [i, entry] of list.entries.entries()) {
-      const onSchema = named(entry?.schema);
-      const onRelation = named(entry?.relation);
-      const name = onSchema ? entry.schema : entry?.relation;
+      if (entry === null || typeof entry !== "object" || Array.isArray(entry)) {
+        malformed(`entry ${i} is not an object`);
+        continue;
+      }
+      const onSchema = named(entry.schema);
+      const onRelation = named(entry.relation);
+      const name = onSchema ? entry.schema : entry.relation;
       const key = onSchema ? `schema ${entry.schema}` : serviceRoleKey(entry);
       if (onSchema === onRelation)
         malformed(
