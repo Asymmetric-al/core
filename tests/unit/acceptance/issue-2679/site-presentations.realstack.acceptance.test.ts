@@ -84,7 +84,39 @@ describe.skipIf(!ADMIN_URL)(
           [made.tenants, made.sites],
         ],
         [
+          "delete from platform.tenant_provisioning where tenant_id = any($1::uuid[])",
+          [made.tenants],
+        ],
+        [
+          "delete from public.membership_invitations where tenant_id = any($1::uuid[])",
+          [made.tenants],
+        ],
+        [
+          "delete from public.donor_account_brands where tenant_id = any($1::uuid[])",
+          [made.tenants],
+        ],
+        [
+          "delete from public.donor_portal_hosts where tenant_id = any($1::uuid[])",
+          [made.tenants],
+        ],
+        [
           "delete from public.sites where tenant_id = any($1::uuid[])",
+          [made.tenants],
+        ],
+        [
+          "delete from public.contribution_approval_policies where tenant_id = any($1::uuid[])",
+          [made.tenants],
+        ],
+        [
+          "delete from public.funds where tenant_id = any($1::uuid[])",
+          [made.tenants],
+        ],
+        [
+          "delete from public.legal_entities where tenant_id = any($1::uuid[])",
+          [made.tenants],
+        ],
+        [
+          "delete from public.audit_logs where tenant_id = any($1::uuid[])",
           [made.tenants],
         ],
         [
