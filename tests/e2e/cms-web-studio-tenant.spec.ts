@@ -1973,7 +1973,10 @@ test("@cms an address under the chooser lands on the chooser in one document loa
 const CLIPBOARD = "_payloadClipboard";
 
 async function clipboardOf(page: Page) {
-  return page.evaluate((key) => localStorage.getItem(key), CLIPBOARD);
+  await page.waitForLoadState("load");
+  return page
+    .evaluate((key) => localStorage.getItem(key), CLIPBOARD)
+    .catch(() => "a document still loading");
 }
 
 async function draftPreviewPage(page: Page) {
@@ -2161,7 +2164,7 @@ test("@cms Payload's copy-and-paste store is empty after a change of organizatio
     await page.keyboard.press("Escape");
 
     await switchOrganization(page, base, DEMO);
-    expect(await clipboardOf(page)).toBeNull();
+    await expect.poll(() => clipboardOf(page)).toBeNull();
     await page.goto(
       `${base}/web-studio/collections/pages/${await draftPreviewPage(page)}`,
     );
@@ -2175,7 +2178,7 @@ test("@cms Payload's copy-and-paste store is empty after a change of organizatio
     await page.getByRole("button", { name: /account menu/ }).click();
     await page.getByRole("menuitem", { name: "Log out" }).click();
     await page.waitForURL((url) => url.pathname === "/login");
-    expect(await clipboardOf(page)).toBeNull();
+    await expect.poll(() => clipboardOf(page)).toBeNull();
 
     await page.evaluate((key) => localStorage.setItem(key, "{}"), CLIPBOARD);
     await page.goto(`${base}/login`);
