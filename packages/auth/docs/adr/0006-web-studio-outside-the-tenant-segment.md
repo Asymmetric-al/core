@@ -283,6 +283,44 @@ is scoped to a document, so changing organization means loading a new one.
     name, form, path and signature do not change. See
     [0015](0015-organization-from-the-verified-name.md).
 
+20. **With the switch on, an entry link carries the sub-role only (N2 part
+    2b, R7).** `webStudioEntryQuery` gives `role=<sub-role>` for a
+    `/~<sub-role>` document and nothing for one with an empty prefix; the
+    organization and row never appear in an address, so a signed-out entry's
+    `/login?next=` carries none either. With a verified name,
+    `webStudioEntryRedirect` reads `role` only: exactly one value, equal byte
+    for byte to the sub-role of the row the cookie selects, with access
+    allowed, redirects to the same address without it; anything else goes to
+    the chooser with `next` kept, with `refused=1` when the cookie's choice was
+    refused and never with `from`. `organization`, `assignment` and `from` are
+    neither read by the proxy nor by the chooser page; a link still never sets
+    the cookie (decision 13). A choice in the chooser enters Web Studio by a
+    document load: on, `chooseWebStudioOrganizationToLoad` sets the cookie
+    and answers the address to load, which the chooser's
+    `OrganizationChoiceForm` loads; a post without JavaScript is answered with
+    a redirect, as before. Off, the chooser, the action and the links are as
+    before.
+
+21. **With the switch on, Web Studio's calls carry the name's generation (N2
+    part 2d).** The document's fetch sends the scope's generation on every
+    call to `/web-studio/api/**` (`x-asym-scope-generation`) and on Payload's
+    server functions under `x-asym-web-studio-generation`, which is not in
+    `PAGE_SCOPE_HEADERS`, so the page proxy keeps it; a caller's value is
+    replaced. Payload's strategy, live and in the E2E bypass, answers
+    `no_selection` when the name's trusted generation is absent or invalid,
+    and refuses `scope_mismatch` any REST or GraphQL call with a request that
+    lacks the generation byte for byte (never trimmed or case-folded) or the
+    tenant and row of the cookie's choice, a read included, before it signs
+    anyone in; a page render, with no request, needs none.
+    `webStudioServerFunctionRefusal` compares the generation of the cookie's
+    selection the same way before any of Payload's handlers runs. Payload's
+    stock API view links its REST address in a new tab, which cannot carry a
+    document's claims, and no call to Web Studio's REST is served without
+    them; so the document marks itself with its generation
+    (`data-web-studio-generation`) and Web Studio's stock-view stylesheet does
+    not offer that link while the mark is present. The view's own JSON panel
+    goes through the document's fetch. Off, nothing is sent or read.
+
 ## Accepted records this code implements
 
 - `WEB_STUDIO_PATH` and `webStudioCookie` in `packages/auth/web-studio.ts` (the
