@@ -376,6 +376,7 @@ const REAL_DATABASE_FILES = [
     "issue-2679/cms-clean-baseline.realstack",
     "issue-2679/cms-tenancy.realstack",
     "issue-2681/wp8a-part1.realstack",
+    "issue-2681/wp8a-p2-service-role.realstack",
     "issue-2681/wp8a-p2r1a-intake.realstack",
     "issue-2681/wp8a-p2r1a-legacy.realstack",
     "issue-2681/wp8a-p2r1a-machine-claims.realstack",
