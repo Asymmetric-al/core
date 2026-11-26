@@ -227,13 +227,20 @@ export async function serviceFind(
     where,
     depth = 0,
     draft,
+    req,
   }: {
     collection: CollectionSlug;
     where?: Where;
     depth?: number;
     draft?: boolean;
+    req?: PayloadRequest;
   },
 ): Promise<Doc[]> {
+  if (req !== undefined && !isServicePortRequest(req)) {
+    throw new Error(
+      "The service port joins only a request it made; a person's request never becomes a service read.",
+    );
+  }
   const { docs } = await payload.find({
     collection,
     context: serviceContext(),
@@ -242,6 +249,7 @@ export async function serviceFind(
     limit: 0,
     overrideAccess: true,
     pagination: false,
+    req,
     where,
   });
   return docs as unknown as Doc[];

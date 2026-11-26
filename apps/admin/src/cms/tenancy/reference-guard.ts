@@ -1,5 +1,7 @@
+import { isServicePortRequest, serviceFind } from "../ports/service-port";
+
 import type { FieldRefusal } from "./refusal";
-import type { CollectionSlug, Field, PayloadRequest } from "payload";
+import type { CollectionSlug, Field, PayloadRequest, Where } from "payload";
 
 export const CANONICAL_UUID =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
@@ -149,6 +151,17 @@ function collectFields(
       case "group":
         collectFields(field.fields ?? [], value, `${path}.`, out, configBlocks);
         break;
+      case "richText":
+        if (value === null || value === undefined) break;
+        if (!isLexicalState(value)) {
+          out.refusals.push({
+            path,
+            message: "This rich text is not in a format Web Studio can check.",
+          });
+          break;
+        }
+        visitNode(value.root, `${path}.root`, out);
+        break;
       case "blocks":
         if (Array.isArray(value)) {
           value.forEach((row, index) => {
@@ -247,6 +260,7 @@ function visitNode(node: unknown, path: string, out: Collected) {
       }
       break;
   }
+  if (fields) walkData(fields, `${path}.fields`, out);
   if (Array.isArray(node.children)) {
     node.children.forEach((child, index) =>
       visitNode(child, `${path}.children.${index}`, out),
@@ -262,13 +276,22 @@ function walkData(value: unknown, path: string, out: Collected) {
     return;
   }
   if (!isRecord(value)) return;
-  if (isLexicalState(value)) {
-    visitNode(value.root, path ? `${path}.root` : "root", out);
-    return;
-  }
+  const lexical = isLexicalState(value);
+  if (lexical) visitNode(value.root, path ? `${path}.root` : "root", out);
   for (const [key, item] of Object.entries(value)) {
+    if (lexical && key === "root") continue;
     walkData(item, path ? `${path}.${key}` : key, out);
   }
+}
+
+function unique<T>(items: readonly T[], keyOf: (item: T) => string): T[] {
+  const seen = new Set<string>();
+  return items.filter((item) => {
+    const key = keyOf(item);
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
 }
 
 export function collectReferences(
@@ -280,7 +303,16 @@ export function collectReferences(
   collectFields(fields, document, "", out, configBlocks);
   const { createdBy: _createdBy, updatedBy: _updatedBy, ...content } = document;
   walkData(content, "", out);
-  return out;
+  return {
+    references: unique(
+      out.references,
+      (item) => `${item.path}\u0000${item.relationTo}\u0000${item.id}`,
+    ),
+    refusals: unique(
+      out.refusals,
+      (item) => `${item.path}\u0000${item.message}`,
+    ),
+  };
 }
 
 type Target = { id: string; tenant: unknown; site: unknown };
@@ -294,16 +326,29 @@ async function readTargets(
   const found = new Map<string, Target>();
   const valid = [...new Set(ids)].filter((id) => CANONICAL_UUID.test(id));
   if (valid.length === 0) return found;
-  const { docs } = await req.payload.find({
-    collection: relationTo as CollectionSlug,
-    depth: 0,
-    limit: 0,
-    overrideAccess: !asActor,
-    pagination: false,
-    req,
-    where: { id: { in: valid } },
-  });
-  for (const doc of docs as unknown as Array<Record<string, unknown>>) {
+  const collection = relationTo as CollectionSlug;
+  const where: Where = { id: { in: valid } };
+  let docs: unknown[];
+  if (asActor) {
+    ({ docs } = await req.payload.find({
+      collection,
+      depth: 0,
+      limit: 0,
+      overrideAccess: false,
+      pagination: false,
+      req,
+      user: req.user,
+      where,
+    }));
+  } else {
+    if (!isServicePortRequest(req)) {
+      throw new Error(
+        "The reference guard reads as the service only for a request the service port made.",
+      );
+    }
+    docs = await serviceFind(req.payload, { collection, depth: 0, req, where });
+  }
+  for (const doc of docs as Array<Record<string, unknown>>) {
     found.set(String(doc.id), {
       id: String(doc.id),
       tenant: doc.tenant,
