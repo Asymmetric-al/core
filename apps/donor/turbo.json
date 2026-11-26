@@ -3,6 +3,11 @@
   "extends": ["//", "@asym/eslint-config"],
   "tasks": {
     "build": {
+      "env": [
+        "$TURBO_EXTENDS$",
+        "FRONT_ADMIN_ORIGIN",
+        "FRONT_MISSIONARY_ORIGIN"
+      ],
       "inputs": [
         "$TURBO_EXTENDS$",
         "$TURBO_ROOT$/supabase/migrations/*.sql",

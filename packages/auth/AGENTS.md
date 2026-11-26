@@ -6,7 +6,7 @@
 - Follow `docs/ai/rules/backend.md`. Session and cookie work is version-sensitive — read current `@supabase/ssr` and Next.js request-API docs, not memory.
 - Fail closed. Do not weaken auth, RLS, or service-role usage from UI or instruction-system work.
 - App auth callback routes should re-export package contracts rather than embedding a second client.
-- `front.ts` owns the signed front stamp, dashboard admission allowlists, and donor front routing behind `CORE_SERVE_UNDER_PATHS`.
+- `front-stamp.ts` (`@asym/auth/front-stamp`) owns the signed front stamp: the one implementation, free of Next.js, that `front.ts` re-exports and the assistant's service imports directly. `front.ts` owns dashboard admission allowlists and donor front routing behind `CORE_SERVE_UNDER_PATHS`, including the five assistant routes it forwards under `/admin/eve/v1/` (`docs/adr/0017-front-stamp-module-and-narrow-front-paths.md`).
 - `verified-name.ts` owns the dashboards' lookup of the stamped host and the per-surface admission rule; with the switch on, `x-asym-name-tenant` bounds every tenant claim (`docs/adr/0015-organization-from-the-verified-name.md`).
 - In `apps/donor`, with the switch on, `lookUpVerifiedNameSurfaces` admits `donor_account` (`active`, home) and `website` (`active`) in one lookup per request, ends the single-organization donor fallback, and refuses absent/invalid names in every app (`docs/adr/0016-donor-organization-from-the-verified-name.md`).
 - `home-name.ts` owns the one anonymous home read (`resolve_home_host`) behind the donor proxy's redirect of a Site name's four account roots to home; the target, scheme and port come only from that read, never from a request header (ADR 0016, decision 7).
