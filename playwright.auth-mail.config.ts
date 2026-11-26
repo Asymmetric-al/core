@@ -103,6 +103,7 @@ export default defineConfig({
     "**/auth-member-care.spec.ts",
     "**/auth-worker-record.spec.ts",
     "**/auth-members-invitations.spec.ts",
+    "**/auth-sites-settings.spec.ts",
   ],
   outputDir: "test-results/auth-mail",
   fullyParallel: false,

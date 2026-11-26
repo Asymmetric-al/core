@@ -4,6 +4,7 @@ import {
   EveRouteAuthError,
   toEveSessionAuthSnapshot,
 } from "@asym/api/eve/session-ownership";
+import { verifiedStampedOriginForRequest } from "@asym/auth/front-stamp";
 import {
   mutationMediaType,
   trustedMutationSource,
@@ -40,11 +41,26 @@ function isLoopbackVerificationRequest(request: Request): boolean {
 // included, so a cookie-carrying write needs no empty-write exception.
 const WRITE_METHODS = new Set(["POST", "PUT", "PATCH", "DELETE"]);
 
+async function sameOriginSubject(request: Request): Promise<Request> {
+  const stampedOrigin = await verifiedStampedOriginForRequest(
+    request,
+    "/admin",
+    {
+      key: process.env.FRONT_STAMP_KEY,
+      previousKey: process.env.FRONT_STAMP_KEY_PREVIOUS,
+    },
+  );
+  if (!stampedOrigin) return request;
+  const headers = new Headers(request.headers);
+  headers.set("host", new URL(stampedOrigin).host);
+  return new Request(request.url, { method: request.method, headers });
+}
+
 export const adminEveRouteAuth: AuthFn<Request> = async (request) => {
   if (
     WRITE_METHODS.has(request.method) &&
     request.headers.has("cookie") &&
-    (!trustedMutationSource(request) ||
+    (!trustedMutationSource(await sameOriginSubject(request)) ||
       mutationMediaType(request) !== "application/json")
   ) {
     throw new ForbiddenError({

@@ -533,16 +533,16 @@ The build switch and front-routing runtime variables remain **unset everywhere**
 (Local, Preview, `core-development`, and Production) until later parts of N3
 turn them on. Never expose any of these with a `NEXT_PUBLIC_` prefix.
 
-| Variable                     | Scope   | Admin                     | Donor | Missionary                | Notes                                                                                                                                                        |
-| ---------------------------- | ------- | ------------------------- | ----- | ------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `CORE_SERVE_UNDER_PATHS`     | Build   | Unset everywhere          | Unset | Unset                     | `0` or unset off; `1` enables `/admin` and `/missionary` base paths and front routing; any other value or `1` on Vercel `production` fails the build.        |
-| `FRONT_STAMP_KEY_ADMIN`      | Runtime | No                        | Unset | No                        | Server-only >=32 UTF-8 byte HMAC signing key used by the donor front when stamping requests to `apps/admin`.                                                 |
-| `FRONT_STAMP_KEY_MISSIONARY` | Runtime | No                        | Unset | No                        | Server-only >=32 UTF-8 byte HMAC signing key used by the donor front when stamping requests to `apps/missionary`.                                            |
-| `FRONT_STAMP_KEY`            | Runtime | Unset                     | No    | Unset                     | Server-only >=32 UTF-8 byte HMAC verification key on each dashboard matching its front signing key; absent or short refuses all stamped traffic.             |
-| `FRONT_STAMP_KEY_PREVIOUS`   | Runtime | Unset (optional rotation) | No    | Unset (optional rotation) | Server-only >=32 UTF-8 byte previous verification key for rotation; verifies only, never signs, and never rescues an absent or short `FRONT_STAMP_KEY`.      |
-| `FRONT_ADMIN_ORIGIN`         | Runtime | No                        | Unset | No                        | Server-only canonical upstream origin of the staff dashboard (`https://...` or loopback `http://localhost:...`, `http://127.x.x.x:...`, `http://[::1]:...`). |
-| `FRONT_MISSIONARY_ORIGIN`    | Runtime | No                        | Unset | No                        | Server-only canonical upstream origin of the missionary dashboard (`https://...` or loopback `http://...`).                                                  |
-| `FRONT_NAMES`                | Runtime | No                        | Unset | No                        | Server-only comma-separated lower-case `host[:port]` list accepted by the donor front when `CORE_SERVE_UNDER_PATHS=1`; unlisted hosts receive `404`.         |
+| Variable                     | Scope             | Admin                     | Donor | Missionary                | Notes                                                                                                                                                                                                                                                                                                            |
+| ---------------------------- | ----------------- | ------------------------- | ----- | ------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `CORE_SERVE_UNDER_PATHS`     | Build             | Unset everywhere          | Unset | Unset                     | `0` or unset off; `1` enables `/admin` and `/missionary` base paths and front routing; any other value or `1` on Vercel `production` fails the build.                                                                                                                                                            |
+| `FRONT_STAMP_KEY_ADMIN`      | Runtime           | No                        | Unset | No                        | Server-only >=32 UTF-8 byte HMAC signing key used by the donor front when stamping requests to `apps/admin`.                                                                                                                                                                                                     |
+| `FRONT_STAMP_KEY_MISSIONARY` | Runtime           | No                        | Unset | No                        | Server-only >=32 UTF-8 byte HMAC signing key used by the donor front when stamping requests to `apps/missionary`.                                                                                                                                                                                                |
+| `FRONT_STAMP_KEY`            | Runtime           | Unset                     | No    | Unset                     | Server-only >=32 UTF-8 byte HMAC verification key on each dashboard matching its front signing key; absent or short refuses all stamped traffic. On the staff project it also verifies the front's `/admin` stamp for the assistant's cookie-carrying writes (`packages/eve-runtime/src/admin-session-auth.ts`). |
+| `FRONT_STAMP_KEY_PREVIOUS`   | Runtime           | Unset (optional rotation) | No    | Unset (optional rotation) | Server-only >=32 UTF-8 byte previous verification key for rotation; verifies only, never signs, and never rescues an absent or short `FRONT_STAMP_KEY`. The assistant's service accepts it the same way.                                                                                                         |
+| `FRONT_ADMIN_ORIGIN`         | Build and runtime | No                        | Unset | No                        | Server-only canonical upstream origin of the staff dashboard (`https://...` or loopback `http://localhost:...`, `http://127.x.x.x:...`, `http://[::1]:...`). With `CORE_SERVE_UNDER_PATHS=1` the donor build needs it too; a change needs a donor rebuild.                                                       |
+| `FRONT_MISSIONARY_ORIGIN`    | Build and runtime | No                        | Unset | No                        | Server-only canonical upstream origin of the missionary dashboard (`https://...` or loopback `http://...`). With `CORE_SERVE_UNDER_PATHS=1` the donor build needs it too; a change needs a donor rebuild.                                                                                                        |
+| `FRONT_NAMES`                | Runtime           | No                        | Unset | No                        | Server-only comma-separated lower-case `host[:port]` list accepted by the donor front when `CORE_SERVE_UNDER_PATHS=1`; unlisted hosts receive `404`.                                                                                                                                                             |
 
 The production refusal (`CORE_SERVE_UNDER_PATHS=1` throwing when
 `VERCEL_TARGET_ENV` or `VERCEL_ENV` is `production`) is enforced at build time
@@ -561,7 +561,28 @@ a path, a trailing `/`, upper case or the default port is refused
 (`schema.ts:454`), and `SKIP_ENV_VALIDATION=1` or `true` skips the check
 (`schema.ts:451-453`). With the switch on, the front also answers `404` on a
 dashboard's paths while its origin is missing or refused
-(`packages/auth/front.ts:259-264,343-344`).
+(`packages/auth/front.ts:184-185,264-266`).
+
+With the switch on, the donor app's build also reads both origins, for the two
+`beforeFiles` rewrites that send the dashboards' static files
+(`/admin/_next/…` and `/missionary/_next/…` made of plain segments only, never
+an empty, `.` or `..` one) to them (`serveUnderPathsDonorRewrites` in
+`scripts/release/serve-under-paths.mjs`). A
+missing or invalid origin fails the donor build, naming the variable and never
+its value, by the same rule as the schema (copied as `frontUpstreamOrigin` and
+pinned equal by `tests/unit/front/serve-under-paths.test.ts`). The rewrites are
+fixed at build, so a change of either origin needs a donor rebuild; both names
+are part of the donor's build hash (`apps/donor/turbo.json`). With the switch
+off the build reads neither and adds no rewrite.
+
+On the staff project, `FRONT_STAMP_KEY` and `FRONT_STAMP_KEY_PREVIOUS` also
+serve the assistant's service, which does not run the staff proxy: a
+cookie-carrying write whose `/admin` stamp verifies, with the stamped scheme
+equal to the request's and `x-forwarded-host` absent or naming the stamped host
+or the request's own host, is judged same-origin against the stamped host
+instead of the staff address (`verifiedStampedOriginForRequest` in
+`packages/auth/front-stamp.ts`). With the key unset, as everywhere today, no
+stamp verifies and the service's rule is unchanged.
 
 A front and its two upstreams use one scheme. A dashboard judges a write
 against `requestOrigin`, its own request's scheme joined to the stamped `host`
@@ -579,7 +600,7 @@ The release script's `check` step reads the migration health route under the
 app's base path (`/admin/api/health/migrations`,
 `/missionary/api/health/migrations`) only when its own environment carries
 `CORE_SERVE_UNDER_PATHS=1`, read as the build reads it; the donor reads the
-root either way (`scripts/release/serve-under-paths.mjs:54-56`,
+root either way (`scripts/release/serve-under-paths.mjs:101-103`,
 `scripts/release/vercel-release.mjs:724-728`). For a preview built on:
 `CORE_SERVE_UNDER_PATHS=1 VERCEL_ADMIN_AUTOMATION_BYPASS_SECRET=<secret> node scripts/release/vercel-release.mjs check --app admin --url https://<preview>`,
 with the project's own bypass secret in place of `<secret>`
