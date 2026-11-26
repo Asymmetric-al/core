@@ -37,6 +37,7 @@ function fakeAdmin(donations: Row[], pledges: Row[] = []) {
       const query: Row = {
         select: () => query,
         eq: () => query,
+        or: () => query,
         order: () => query,
         limit: (count: number) => {
           limit = count;
@@ -65,7 +66,7 @@ function gifts(count: number): Row[] {
   }));
 }
 
-describe("donor portal snapshot gift list (D-18, AL-2678 WP5 rest: the fake answers the person's account link and a list of at most two donors on its Party)", () => {
+describe("donor portal snapshot gift list (D-18, AL-2678 WP5 rest: the fake answers the person's account link and a list of at most two donors on its Party; D-18, AL-2681: the fake answers .or, the filter that keeps the person's own and counted gifts)", () => {
   it("carries the newest 250 gifts and says when older gifts were left out", async () => {
     const { client } = fakeAdmin(gifts(300));
 
@@ -93,7 +94,7 @@ describe("donor portal snapshot gift list (D-18, AL-2678 WP5 rest: the fake answ
   });
 });
 
-describe("donor portal snapshot recurring gifts", () => {
+describe("donor portal snapshot recurring gifts (D-18, AL-2681: the fake answers .or, the filter that keeps the person's own and counted gifts)", () => {
   it("says when recurring gifts past the newest 100 were left out", async () => {
     const pledges = Array.from({ length: 120 }, (_, index) => ({
       id: `p-${index}`,
@@ -126,7 +127,7 @@ describe("donor portal snapshot recurring gifts", () => {
   });
 });
 
-describe("donor portal snapshot refunds", () => {
+describe("donor portal snapshot refunds (D-18, AL-2681: the fake answers .or, the filter that keeps the person's own and counted gifts)", () => {
   it("carries each gift's refunded amount", async () => {
     const { client } = fakeAdmin([
       { ...gifts(1)[0], id: "g-r", amount: 10000, refund_amount: 4000 },

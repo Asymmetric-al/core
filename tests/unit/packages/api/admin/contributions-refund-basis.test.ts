@@ -62,6 +62,7 @@ function makeDatabase(amount: number, refunded: number) {
       const query = {
         select: () => query,
         eq: () => query,
+        or: () => query,
         in: () => query,
         order: () => query,
         limit: () => Promise.resolve(result),
@@ -74,7 +75,7 @@ function makeDatabase(amount: number, refunded: number) {
   return { database, donation };
 }
 
-describe("Contributions Hub refund basis", () => {
+describe("Contributions Hub refund basis (D-18, AL-2681: the fake answers .or, the filter that leaves unpaid line-based intakes out of the list)", () => {
   it.each([
     [7_500, 7_500, "partial_refund", "completed"],
     [7_500, 8_000, "partial_refund", "completed"],
