@@ -6,7 +6,10 @@ import { useMediaQuery } from "@asym/lib/hooks/use-mobile";
 import { motion, AnimatePresence } from "@asym/lib/motion";
 import { TaskDialog } from "@asym/missionary/components/task-dialog";
 import { TaskKanbanBoard } from "@asym/missionary/components/task-kanban-board";
-import { TaskRow } from "@asym/missionary/components/task-row";
+import {
+  TaskRow,
+  type TaskCompletionControl,
+} from "@asym/missionary/components/task-row";
 import { BoneyardSkeleton } from "@asym/ui/components/boneyard-skeleton";
 import { PageHeader } from "@asym/ui/components/page-header";
 import { FilterBar } from "@asym/ui/components/primitives/filter-bar";
@@ -204,6 +207,7 @@ function SummaryFigure({
 type ViewFilter =
   "all" | "active" | "completed" | "overdue" | "today" | "deferred";
 type ViewMode = "list" | "board";
+type TaskCompletionOrigin = TaskCompletionControl | "board";
 type TasksPageState = {
   viewFilter: ViewFilter;
   /** Null until the missionary picks a view; until then it follows the screen. */
@@ -465,7 +469,10 @@ type TasksContentProps = {
   refresh: () => void | Promise<void>;
   moveTask: React.ComponentProps<typeof TaskKanbanBoard>["onMoveTask"];
   handleEdit: (task: Task) => void;
-  handleComplete: (task: Task) => void | Promise<boolean>;
+  handleComplete: (
+    task: Task,
+    from: TaskCompletionOrigin,
+  ) => void | Promise<boolean>;
   handleDeleteClick: (task: Task) => void;
   rememberTaskAction: (event: React.SyntheticEvent<HTMLDivElement>) => void;
   listRef: React.RefObject<HTMLDivElement | null>;
@@ -582,7 +589,7 @@ function TasksContent({
             tasks={displayedTasks}
             onMoveTask={moveTask}
             onEditTask={handleEdit}
-            onCompleteTask={handleComplete}
+            onCompleteTask={(task) => handleComplete(task, "board")}
             onDeleteTask={handleDeleteClick}
             onCreateTask={handleCreateInStatus}
           />
@@ -604,7 +611,7 @@ function TasksContent({
             <TaskRow
               key={task.id}
               task={task}
-              onComplete={() => handleComplete(task)}
+              onComplete={(control) => handleComplete(task, control)}
               onEdit={() => handleEdit(task)}
               onDelete={() => handleDeleteClick(task)}
               index={index}
@@ -928,7 +935,7 @@ function useTasksPageController() {
     [tasks, displayedTasks, moveTaskInFullColumn],
   );
 
-  const handleComplete = async (task: Task) => {
+  const handleComplete = async (task: Task, from: TaskCompletionOrigin) => {
     const index = displayedTasks.findIndex(({ id }) => id === task.id);
     if (viewMode === "list" && index !== -1) {
       completionFocus.current = {
@@ -937,9 +944,10 @@ function useTasksPageController() {
         index,
         row: listRef.current?.children[index] ?? null,
         // The row menu returns focus to its trigger, so the next row's trigger.
-        control: document.activeElement?.closest('[role="menuitem"]')
-          ? '[data-slot="dropdown-menu-trigger"]'
-          : '[data-slot="checkbox"]',
+        control:
+          from === "menu"
+            ? '[data-slot="dropdown-menu-trigger"]'
+            : '[data-slot="checkbox"]',
       };
     }
     const saved =
