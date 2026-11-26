@@ -140,3 +140,16 @@ describe("the local Supabase workflow's path filter", () => {
     expect(paths).toContain("docs/security/*.json");
   });
 });
+
+describe("AL-2675 WP2c part 2a, T7: the operator area journey starts the stack", () => {
+  it.each([
+    "apps/admin/app/(operator)/**",
+    "tests/e2e/auth-operator-area.spec.ts",
+    "tests/e2e/helpers/totp.ts",
+    "scripts/e2e/tee-dev-server.mjs",
+    "packages/auth/**",
+    "apps/*/proxy.ts",
+  ])("starts the journeys when %s changes", (file) => {
+    expect(paths).toContain(file);
+  });
+});
