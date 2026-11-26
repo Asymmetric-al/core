@@ -1,6 +1,8 @@
 "use client";
 
 import { NativeCollectionListView } from "../../collections/shared/list-workspace/NativeCollectionListView";
+import { useRouter } from "../../routing";
+import { MediaUploadButton, mediaThumbnail } from "../media-library-controls";
 
 import type { NativeCollectionListViewProps } from "../../collections/shared/list-workspace/NativeCollectionListView";
 
@@ -10,5 +12,13 @@ type MediaNativeListViewProps = Omit<
 >;
 
 export function MediaNativeListView(props: MediaNativeListViewProps) {
-  return <NativeCollectionListView {...props} collectionSlug="media" />;
+  const router = useRouter();
+  return (
+    <NativeCollectionListView
+      {...props}
+      collectionSlug="media"
+      thumbnail={mediaThumbnail}
+      studioActions={<MediaUploadButton onUploaded={() => router.refresh()} />}
+    />
+  );
 }

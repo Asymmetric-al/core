@@ -4,8 +4,6 @@ import { cn } from "@asym/ui/lib/utils";
 import {
   DeleteMany,
   EditMany,
-  PublishMany,
-  UnpublishMany,
   useListQuery,
   useSelection,
 } from "@payloadcms/ui";
@@ -16,7 +14,7 @@ import type { ClientCollectionConfig, Where } from "payload";
 
 /**
  * What Payload's list view allows for bulk work on this collection (from its
- * list view props): edit, publish and unpublish many unless bulk edit is off;
+ * list view props): edit many unless bulk edit is off (publishing is WP7's);
  * delete many with the viewer's delete or trash permission unless bulk delete
  * is off.
  */
@@ -91,13 +89,7 @@ export function GridBulkActions({
         "flex flex-wrap items-center gap-0.5 sm:gap-2",
       )}
     >
-      {bulk.disableBulkEdit ? null : (
-        <>
-          <EditMany {...shared} />
-          <PublishMany {...shared} />
-          <UnpublishMany {...shared} />
-        </>
-      )}
+      {bulk.disableBulkEdit ? null : <EditMany {...shared} />}
       {!bulk.disableBulkDelete && canDelete ? (
         // Delete reads as the shared Button's destructive variant (the
         // stylesheet restyles only Payload's toggle, not its dialog buttons).

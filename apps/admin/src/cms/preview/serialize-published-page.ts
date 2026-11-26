@@ -192,6 +192,15 @@ function serializeStat(value: unknown) {
   };
 }
 
+const HEX_UUID =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+function mediaRoute(id: unknown, variant?: "w320" | "w960") {
+  if (typeof id !== "string" || !HEX_UUID.test(id)) return null;
+  const path = `/api/media/${id.toLowerCase()}`;
+  return variant ? `${path}?variant=${variant}` : path;
+}
+
 function serializePublicMedia(value: unknown) {
   if (
     typeof value === "string" ||
@@ -213,9 +222,9 @@ function serializePublicMedia(value: unknown) {
         ? String(media.id)
         : null,
     alt: readOptionalString(media.alt),
-    url: null,
-    thumbnailURL: null,
-    cardURL: null,
+    url: mediaRoute(media.id),
+    thumbnailURL: mediaRoute(media.id, "w320"),
+    cardURL: mediaRoute(media.id, "w960"),
     width: null,
     height: null,
     mimeType: null,

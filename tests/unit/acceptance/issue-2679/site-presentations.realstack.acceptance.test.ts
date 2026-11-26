@@ -45,7 +45,7 @@ it.runIf(IN_MIGRATE_JOB && !ADMIN_URL)(
 );
 
 describe.skipIf(!ADMIN_URL)(
-  "AL-2679 WP6 rest: every Site has exactly one presentation (real stack)",
+  "AL-2679 WP6 rest: every Site has exactly one presentation (real stack; it sets a cluster-wide role password, so it runs only on a local cluster of its own)",
   { timeout: 240_000 },
   () => {
     let s: CmsStack;

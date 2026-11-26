@@ -44,7 +44,15 @@ import {
 } from "@payloadcms/ui";
 import { FileSearch, ListFilter, Plus, SearchX, Trash2 } from "lucide-react";
 import Image from "next/image";
-import { useEffect, useId, useMemo, useRef, useState } from "react";
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useId,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 
 import { GridBulkActions, type GridBulkOptions } from "./grid-bulk-actions";
 import { GridGroupByMenu } from "./grid-group-by-menu";
@@ -174,8 +182,12 @@ function DocumentStatusBadge({ doc }: { doc: Record<string, unknown> }) {
   return <Badge variant={badge.variant}>{badge.label}</Badge>;
 }
 
+export const DocumentThumbnailSource = createContext<
+  (doc: Record<string, unknown>) => string | null
+>(resolveDocumentThumbnail);
+
 function DocumentThumbnail({ doc }: { doc: Record<string, unknown> }) {
-  const src = resolveDocumentThumbnail(doc);
+  const src = useContext(DocumentThumbnailSource)(doc);
   if (!src) return null;
   return (
     <Image
@@ -466,7 +478,7 @@ function MobileRow({
   useAsTitle: string;
 }) {
   const { doc, id } = row.original;
-  const thumbnail = resolveDocumentThumbnail(doc);
+  const thumbnail = useContext(DocumentThumbnailSource)(doc);
   return (
     <Item variant="outline" size="sm" render={<div />}>
       {selectable ? (

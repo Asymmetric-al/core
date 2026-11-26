@@ -128,11 +128,16 @@ export async function ensurePrincipalLink(
 async function createOwnedRow(
   payload: PayloadStore,
   collection: CollectionSlug,
-  data: Record<string, unknown> & { id: string; tenant: string },
+  input: Record<string, unknown> & { id: string; tenant: string },
 ): Promise<Doc> {
+  const data = {
+    ...input,
+    id: input.id.toLowerCase(),
+    tenant: input.tenant.toLowerCase(),
+  };
   const where: Where = { id: { equals: data.id } };
   const owned = (row: Doc | null): Doc | null => {
-    if (row && row.tenant !== data.tenant) {
+    if (row && String(row.tenant).toLowerCase() !== data.tenant) {
       throw new Error(
         `The ${collection} row ${data.id} belongs to another organization.`,
       );
@@ -188,16 +193,33 @@ export async function registerMediaRecord(
   });
 }
 
+function isNotFound(error: unknown): boolean {
+  const value = error as { status?: unknown; name?: unknown } | null;
+  return value?.status === 404 || value?.name === "NotFound";
+}
+
 export async function deleteMediaRecord(
   payload: PayloadStore,
   id: string,
+  tenantId: string,
 ): Promise<void> {
-  await payload.delete({
-    id,
-    collection: "media",
-    context: serviceContext(),
-    overrideAccess: true,
-  });
+  const key = id.toLowerCase();
+  const tenant = tenantId.toLowerCase();
+  const row = await findOne(payload, "media", { id: { equals: key } });
+  if (!row) return;
+  if (String(row.tenant).toLowerCase() !== tenant) {
+    throw new Error(`The media row ${key} belongs to another organization.`);
+  }
+  try {
+    await payload.delete({
+      id: key,
+      collection: "media",
+      context: serviceContext(),
+      overrideAccess: true,
+    });
+  } catch (error) {
+    if (!isNotFound(error)) throw error;
+  }
 }
 
 export type ServiceWrite = {

@@ -1,3 +1,5 @@
+import { Locked } from "payload";
+
 import { openCoreSession, readFund, readMissionary } from "./core-session";
 import { CANONICAL_UUID, idOf } from "./reference-guard";
 import { isServicePortRequest } from "../ports/service-port";
@@ -37,6 +39,84 @@ export const recordPageWriteMode: CollectionBeforeOperationHook = ({
     (req.context as Record<PropertyKey, unknown>)[DRAFT_WRITE] =
       (draft === true || draft === "true") &&
       !payloadFlagIsSet(unpublishAllLocales);
+  }
+  return args;
+};
+
+const LOCK_SECONDS_DEFAULT = 300;
+
+function lockSeconds(req: PayloadRequest): number {
+  const setting = (
+    req.payload.collections as Record<
+      string,
+      { config?: { lockDocuments?: unknown } } | undefined
+    >
+  ).pages?.config?.lockDocuments;
+  const duration =
+    setting && typeof setting === "object"
+      ? (setting as { duration?: unknown }).duration
+      : undefined;
+  return typeof duration === "number" ? duration : LOCK_SECONDS_DEFAULT;
+}
+
+async function versionParent(
+  req: PayloadRequest,
+  id: string | number,
+): Promise<string | null> {
+  try {
+    const version = await req.payload.findVersionByID({
+      collection: "pages",
+      context: req.context,
+      depth: 0,
+      id: String(id),
+      overrideAccess: false,
+      req,
+    });
+    return idOf((version as { parent?: unknown } | null)?.parent);
+  } catch (error) {
+    if ((error as { status?: unknown } | null)?.status === 404) return null;
+    throw error;
+  }
+}
+
+export const refuseRestoreUnderLock: CollectionBeforeOperationHook = async ({
+  args,
+  operation,
+  req,
+}) => {
+  if (operation !== "restoreVersion" || isServicePortRequest(req)) return args;
+  const versionId = (args as { id?: unknown }).id;
+  if (typeof versionId !== "string" && typeof versionId !== "number") {
+    return args;
+  }
+  const parent = await versionParent(req, versionId);
+  if (!parent) return args;
+  const { docs } = await req.payload.find({
+    collection: "payload-locked-documents",
+    context: req.context,
+    depth: 0,
+    limit: 1,
+    overrideAccess: false,
+    pagination: false,
+    req,
+    sort: "-updatedAt",
+    where: {
+      and: [
+        { "document.relationTo": { equals: "pages" } },
+        { "document.value": { equals: parent } },
+      ],
+    },
+  });
+  const lock = docs[0] as
+    { updatedAt?: unknown; user?: { value?: unknown } } | undefined;
+  if (!lock) return args;
+  const updatedAt = new Date(String(lock.updatedAt)).getTime();
+  const fresh = Date.now() - updatedAt <= lockSeconds(req) * 1000;
+  const holder = idOf(lock.user?.value);
+  if (fresh && holder !== idOf(req.user?.id)) {
+    throw new Locked(
+      `Document with ID ${parent} is locked by another editor, so none of its versions can be restored until they leave it.`,
+    );
   }
   return args;
 };

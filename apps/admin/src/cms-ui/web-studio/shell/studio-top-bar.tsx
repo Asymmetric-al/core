@@ -39,6 +39,7 @@ import { formatAdminURL } from "payload/shared";
 import { getEnabledWebStudioCollections } from "../collections/config";
 import { Link } from "../routing";
 import { MissionControlLink } from "./mission-control-link";
+import { clearPayloadClipboard } from "./payload-clipboard";
 import { useWebStudioOrganization } from "./web-studio-document";
 
 type StudioTopBarProps = {
@@ -141,7 +142,12 @@ function StudioUserMenu() {
               loads as a new document. Payload's logout page, with its local
               strategy off, ends only Payload's side and would leave the
               person signed in (coordinator's ruling on the joined release). */}
-          <DropdownMenuItem onClick={() => void signOutClientSession()}>
+          <DropdownMenuItem
+            onClick={() => {
+              clearPayloadClipboard();
+              void signOutClientSession();
+            }}
+          >
             <LogOut aria-hidden="true" />
             Log out
           </DropdownMenuItem>
