@@ -73,6 +73,14 @@ interface PendingEnrolment {
   secret: string;
 }
 
+const RAW_SVG_PREFIX = "data:image/svg+xml;utf-8,";
+
+function qrImageSource(qrCode: string): string {
+  if (!qrCode.startsWith(RAW_SVG_PREFIX)) return qrCode.trim();
+  const svg = qrCode.slice(RAW_SVG_PREFIX.length).trim();
+  return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
+}
+
 function groupsOfFour(secret: string): string {
   return (secret.match(/.{1,4}/g) ?? []).join(" ");
 }
@@ -241,7 +249,7 @@ function EnrolmentPanel({
           <form className="flex flex-col gap-6" onSubmit={submit}>
             <div className="flex flex-col gap-4 sm:flex-row sm:items-start">
               <Image
-                src={enrolment.qrCode}
+                src={qrImageSource(enrolment.qrCode)}
                 alt="QR code for your authenticator app"
                 width={176}
                 height={176}
