@@ -1,18 +1,14 @@
 "use client";
 
-import { Pause, Play } from "lucide-react";
 import * as React from "react";
+import { preload } from "react-dom";
 
 import { cn } from "../../lib/utils";
-import { Button } from "../shadcn/button";
-import { Tooltip, TooltipContent, TooltipTrigger } from "../shadcn/tooltip";
 
-import type { SignInShaderHandle } from "./sign-in-shader";
-
-const PAUSED_STORAGE_KEY = "asym:sign-in-backdrop:paused";
 const REDUCED_MOTION_QUERY = "(prefers-reduced-motion: reduce)";
+const WIDE_STILL_QUERY = "(min-aspect-ratio: 3/4)";
 
-export type SignInBackdropPhase = "still" | "playing" | "paused" | "failed";
+export type SignInBackdropPhase = "still" | "animating" | "settled" | "failed";
 
 export interface SignInBackdropStills {
   narrow: string;
@@ -24,107 +20,86 @@ export interface SignInBackdropProps {
   children: React.ReactNode;
 }
 
-function readPausedPreference() {
-  try {
-    return window.localStorage.getItem(PAUSED_STORAGE_KEY) === "true";
-  } catch {
-    return false;
-  }
-}
-
-function writePausedPreference(paused: boolean) {
-  try {
-    if (paused) window.localStorage.setItem(PAUSED_STORAGE_KEY, "true");
-    else window.localStorage.removeItem(PAUSED_STORAGE_KEY);
-  } catch {
-    return;
-  }
-}
-
 export function SignInBackdrop({ stills, children }: SignInBackdropProps) {
   const layerRef = React.useRef<HTMLDivElement>(null);
   const canvasRef = React.useRef<HTMLCanvasElement>(null);
-  const shaderRef = React.useRef<SignInShaderHandle | null>(null);
-  const failedRef = React.useRef(false);
+  const doneRef = React.useRef(false);
   const [phase, setPhase] = React.useState<SignInBackdropPhase>("still");
+  preload(stills.narrow, {
+    as: "image",
+    fetchPriority: "high",
+    media: `not all and ${WIDE_STILL_QUERY}`,
+  });
+  preload(stills.wide, {
+    as: "image",
+    fetchPriority: "high",
+    media: WIDE_STILL_QUERY,
+  });
 
   React.useEffect(() => {
     const layer = layerRef.current;
     const canvas = canvasRef.current;
     if (!layer || !canvas) return;
     const motionQuery = window.matchMedia(REDUCED_MOTION_QUERY);
-    let attempt = 0;
+    let controller: AbortController | null = null;
 
-    function stop() {
-      attempt += 1;
-      shaderRef.current?.destroy();
-      shaderRef.current = null;
-    }
-
-    function fail() {
-      failedRef.current = true;
-      stop();
-      setPhase("failed");
+    function finish(owner: AbortController, next: SignInBackdropPhase) {
+      if (owner !== controller) return;
+      doneRef.current = true;
+      controller = null;
+      owner.abort();
+      setPhase(next);
     }
 
     function start(
       layerElement: HTMLDivElement,
       canvasElement: HTMLCanvasElement,
     ) {
-      if (failedRef.current || motionQuery.matches || shaderRef.current) return;
-      attempt += 1;
-      const current = attempt;
-      const paused = readPausedPreference();
+      if (doneRef.current || controller || motionQuery.matches) return;
+      const owner = new AbortController();
+      controller = owner;
       import("./sign-in-shader")
-        .then((shader) => {
-          if (current !== attempt) return;
-          const background = shader.resolveCssColor(
+        .then(({ createShader, resolveCssColorHex }) => {
+          owner.signal.throwIfAborted();
+          const background = resolveCssColorHex(
             getComputedStyle(layerElement).backgroundColor,
           );
           if (!background)
             throw new Error("The backdrop colour is unreadable.");
-          shaderRef.current = shader.createSignInShader(canvasElement, {
-            background,
-            paused,
-            onReady: () => setPhase(paused ? "paused" : "playing"),
-            onFailure: fail,
+          return createShader(canvasElement, {
+            theme: document.documentElement.classList.contains("dark")
+              ? "dark"
+              : "light",
+            background: { dark: background, light: background },
+            signal: owner.signal,
+            onReady: () => setPhase("animating"),
+            onSettled: () => finish(owner, "settled"),
+            onError: () => finish(owner, "failed"),
           });
         })
-        .catch(() => {
-          if (current === attempt) fail();
-        });
+        .catch(() => finish(owner, "failed"));
     }
 
     function onMotionPreferenceChange() {
       if (!motionQuery.matches) {
         if (layer && canvas) start(layer, canvas);
-        return;
+      } else if (controller) {
+        finish(controller, "still");
       }
-      stop();
-      setPhase((previous) => (previous === "failed" ? previous : "still"));
     }
 
     start(layer, canvas);
     motionQuery.addEventListener("change", onMotionPreferenceChange);
     return () => {
       motionQuery.removeEventListener("change", onMotionPreferenceChange);
-      stop();
-      setPhase((previous) => (previous === "failed" ? previous : "still"));
+      const owner = controller;
+      controller = null;
+      owner?.abort();
+      setPhase((previous) => (previous === "animating" ? "still" : previous));
     };
   }, []);
 
-  const animated = phase === "playing" || phase === "paused";
-  const paused = phase === "paused";
-  const toggleLabel = paused
-    ? "Play background animation"
-    : "Pause background animation";
-
-  function togglePaused() {
-    const next = !paused;
-    shaderRef.current?.setPaused(next);
-    writePausedPreference(next);
-    setPhase(next ? "paused" : "playing");
-  }
+  const revealed = phase === "animating";
 
   return (
     <div className="relative isolate min-h-dvh bg-muted *:data-[slot=auth-shell]:bg-transparent">
@@ -145,42 +120,12 @@ export function SignInBackdrop({ stills, children }: SignInBackdropProps) {
           ref={canvasRef}
           className={cn(
             "absolute inset-0 size-full opacity-0 transition-opacity duration-(--duration-drawer) ease-(--ease-out-soft)",
-            animated && "opacity-100",
+            revealed && "opacity-100",
           )}
         />
-        <div className="absolute inset-0 bg-muted/30 bg-radial from-muted/75 to-transparent to-70%" />
+        <div className="absolute inset-0 bg-muted/30 bg-radial from-muted/75 to-transparent to-70% max-sm:bg-muted/45" />
       </div>
       {children}
-      {animated ? (
-        <aside
-          aria-label="Background animation"
-          className={cn(
-            "fixed right-4 z-10",
-            process.env.NODE_ENV === "development" ? "bottom-20" : "bottom-4",
-          )}
-        >
-          <Tooltip>
-            <TooltipTrigger
-              render={
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="icon"
-                  aria-label={toggleLabel}
-                  onClick={togglePaused}
-                />
-              }
-            >
-              {paused ? (
-                <Play aria-hidden="true" />
-              ) : (
-                <Pause aria-hidden="true" />
-              )}
-            </TooltipTrigger>
-            <TooltipContent side="left">{toggleLabel}</TooltipContent>
-          </Tooltip>
-        </aside>
-      ) : null}
     </div>
   );
 }
