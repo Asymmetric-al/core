@@ -216,7 +216,7 @@ describe.skipIf(!ADMIN_URL)(
         ]);
       }));
 
-    it("A3: at commit, allocations one cent off, a changed or removed fee allocation, a fee allocation the intake has not, or no donor allocation is 23514; a sealed column of a line-based gift or allocation, a changed format and a deleted line-based gift are 23514", () =>
+    it("A3: at commit, allocations one cent off, a changed or removed fee allocation, a fee allocation the intake has not, a donor allocation deleted, or no donor allocation is 23514; each change runs after the staged gift's own balance has fired (review finding 2), so the allocations' UPDATE and DELETE triggers are the ones that refuse; a sealed column of a line-based gift or allocation, a changed format and a deleted line-based gift are 23514", () =>
       inTx(db, async () => {
         const fx = await seedTwoTenants(db);
         await grant(db, [
@@ -238,6 +238,9 @@ describe.skipIf(!ADMIN_URL)(
             `${label}: ${await atCommit(async () => {
               const intake = await lineIntake(db, fx.A, { lines: intakeLines });
               const giftId = await stage(fx, intake);
+              await role(db, null);
+              await db.query(`SET CONSTRAINTS ${STAGING_BALANCE} IMMEDIATE`);
+              await db.query(`SET CONSTRAINTS ${STAGING_BALANCE} DEFERRED`);
               await make(giftId);
             })}`,
           );
@@ -288,6 +291,12 @@ describe.skipIf(!ADMIN_URL)(
           [{ amount: 600 }, { amount: 400 }],
         );
         await tryCommit(
+          "a donor allocation deleted",
+          update(
+            "DELETE FROM public.staged_gift_allocations WHERE staged_gift_id = $1 AND line_number = 2",
+          ),
+        );
+        await tryCommit(
           "no donor allocation",
           update(
             "UPDATE public.staged_gift_allocations SET fund_id = fund_id WHERE staged_gift_id = $1",
@@ -306,6 +315,7 @@ describe.skipIf(!ADMIN_URL)(
           "fee changed: 23514 staged_gift_allocations_unbalanced",
           "fee removed: 23514 staged_gift_allocations_unbalanced",
           "fee the intake has not: 23514 staged_gift_allocations_unbalanced",
+          "a donor allocation deleted: 23514 staged_gift_allocations_unbalanced",
           "no donor allocation: 23514 staged_gift_allocations_unbalanced",
           "review moves a donor amount (W8-R14): ok",
         ]);
