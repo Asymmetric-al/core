@@ -31,7 +31,7 @@ export const navigationItemsRule: DocumentRule = ({ merged }) => {
   items.forEach((item: unknown, index: number) => {
     const row = (item ?? {}) as Record<string, unknown>;
     const hasPage = row.page !== null && row.page !== undefined;
-    const hasHref = typeof row.href === "string";
+    const hasHref = row.href !== null && row.href !== undefined;
     const path = `items.${index}`;
     if (hasPage === hasHref) {
       refusals.push({
@@ -41,7 +41,10 @@ export const navigationItemsRule: DocumentRule = ({ merged }) => {
       });
       return;
     }
-    if (hasHref && !isSafeExternalHref(row.href as string)) {
+    if (
+      hasHref &&
+      (typeof row.href !== "string" || !isSafeExternalHref(row.href))
+    ) {
       refusals.push({
         path: `${path}.href`,
         message: "Enter a full web address starting with https:// or http://.",
