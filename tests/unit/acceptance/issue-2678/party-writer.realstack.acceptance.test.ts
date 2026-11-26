@@ -414,6 +414,22 @@ describe.skipIf(!ADMIN_URL)(
         expect(await count("account_links", id.TA)).toBe(linksBefore + 1);
       }));
 
+    it("a login with an account link cannot be deleted (23503), so the demo clean-up's delete of a linked demo login is refused and recorded, its link and Party kept (Q7 guard, passes on the base; the loop going on is tests/unit/packages/api/cleanup-demo-users)", () =>
+      tx(db, async () => {
+        await db.query(fixtureSql(id));
+        expect(
+          await failure(db, "delete from auth.users where id = $1", [id.UDC]),
+        ).toBe("23503");
+        expect(
+          (
+            await db.query(
+              "select party_id from public.account_links where tenant_id = $1 and user_id = $2",
+              [id.TA, id.UDC],
+            )
+          ).rows,
+        ).toEqual([{ party_id: id.pDC }]);
+      }));
+
     it("two first gifts of one signed-in person at once, with the fill trigger off, leave one donor and one Party: the second waits on the Party writer's lock (red: it waits on the donor key and no Party is written)", async () => {
       const tenant = randomUUID();
       const person = randomUUID();

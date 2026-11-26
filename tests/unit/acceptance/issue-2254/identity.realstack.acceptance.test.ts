@@ -462,7 +462,7 @@ describe.skipIf(!local)(
     afterAll(() => {
       q(CLEAN_C);
     });
-    it(`criterion 15: two overlapping first gifts for one profile, different idempotency keys, both succeed on one donor (x${ROUNDS}); D-18, AL-2678: the donor's Party, which the temporary donor trigger adds, is removed with it before its tenant`, async () => {
+    it(`criterion 15: two overlapping first gifts for one profile, different idempotency keys, both succeed on one donor (x${ROUNDS}); D-18, AL-2678: the donor's Party is removed with it before its tenant; D-18, AL-2678 WP5 rest: the Party writer now adds that Party, and both gifts still queue on the donors lock this case holds, after which the second first gift queues on the Party writer's lock until the first commits`, async () => {
       q(
         `${CLEAN_C} INSERT INTO public.tenants(id,name,slug) VALUES ('${TC}','acc2254 c','acc2254-c');
         INSERT INTO auth.users(id) SELECT ('22540000-0000-4000-8000-' || lpad(to_hex(3072 + n), 12, '0'))::uuid FROM generate_series(1, ${ROUNDS}) n;`,
