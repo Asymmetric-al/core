@@ -14,12 +14,18 @@
 --    amount, currency) to donations_staged_amount_key, NOT VALID then
 --    validated. Trigger staged_gifts_generation (BEFORE INSERT OR UPDATE OR
 --    DELETE; by name before staged_gifts_normalize_currency): an insert takes
---    its intake's format, read as the inserting role, and is 42501
---    staged_gift_generation_owner when that intake is invisible, line-based
---    and the role is not tenant_guard, legacy and the role is tenant_guard, or
---    the supplied format differs; a changed format, or on a line-based gift a
---    changed tenant, intake, entity, amount or currency, is 23514; a
---    line-based gift is never deleted (23514).
+--    its intake's format, read as the inserting role in the gift's own
+--    organization, and is 42501 staged_gift_generation_owner when that intake
+--    is invisible or of another organization, line-based and the role is not
+--    tenant_guard, legacy and the role is tenant_guard, or the supplied
+--    format differs; on update, a changed format is 23514, a line-based gift
+--    keeps its id, tenant, intake, entity, amount and currency (23514
+--    staged_gift_line_sealed), every gift keeps its organization (23514
+--    staged_gift_tenant_frozen), and a gift re-pointed at another intake
+--    reads it as the insert does and is 42501 unless it passes the insert's
+--    rule and is of the gift's format (no live statement re-points a gift
+--    or changes its organization); a line-based gift is never deleted
+--    (23514).
 -- 2. public.staged_gift_allocations: intake_format, legal_entity_id,
 --    line_number (1 to 100) and is_fee_cover; checks (legacy: the three new
 --    columns NULL; line-based: all set, one target, a fee line on a fund, a
@@ -31,20 +37,23 @@
 --    staged_gift_allocations_generation (BEFORE INSERT OR UPDATE): an insert
 --    takes its gift's format, read as the inserting role, and is 42501
 --    staged_gift_allocation_generation_owner when the gift is invisible or
---    the supplied format differs; on a line-based allocation the tenant,
---    gift, format, entity, line number and fee flag never change (23514);
---    an update that moves any other allocation to another gift or
---    organization reads the destination gift the same way and is 42501
---    unless that gift is visible, of the allocation's organization and of its
---    format, so no allocation crosses generations. A donor allocation's
---    amount and target, and its deletion, stay open to review (W8-R14) under
---    the balance rule below.
+--    the supplied format differs; on update, a changed format is 23514, a
+--    line-based allocation keeps its tenant, gift, entity, line number and
+--    fee flag (23514 staged_gift_allocation_line_sealed), every allocation
+--    keeps its organization (23514 staged_gift_allocation_tenant_frozen),
+--    and an allocation moved to another gift reads it the same way and is
+--    42501 unless that gift is visible, of the allocation's organization and
+--    of its format, so no allocation crosses generations or organizations. A
+--    donor allocation's amount and target, and its deletion, stay open to
+--    review (W8-R14) under the balance rule below.
 -- 3. Balance, deferred to commit: constraint triggers on a line-based gift
 --    (AFTER INSERT) and on its allocations (AFTER INSERT OR UPDATE, AFTER
 --    DELETE) run private.staged_gift_allocations_balance(): under the gift's
---    lock, 23514 staged_gift_allocations_unbalanced unless it has a donor
---    allocation, its allocations sum to its amount, and its fee allocations
---    equal its intake's fee line (none, or one with the same fund and amount).
+--    lock, 23514 staged_gift_allocations_unbalanced unless it finds the gift
+--    (a line-based gift is never deleted and never changes its id), it has
+--    a donor allocation, its allocations sum to its amount, and its fee
+--    allocations equal its intake's fee line (none, or one with the same
+--    fund and amount).
 -- 4. tenant_guard: SELECT and INSERT of named columns on both tables behind a
 --    tenant_guard_isolation policy that admits line-based rows of the entered
 --    tenant only; EXECUTE on public.normalize_currency_code(text), which the
@@ -235,7 +244,8 @@ BEGIN
     SELECT d.intake_format
       INTO v_format
       FROM public.donations AS d
-     WHERE d.id = NEW.donation_id;
+     WHERE d.id = NEW.donation_id
+       AND d.tenant_id = NEW.tenant_id;
 
     IF (v_format IS NOT NULL
         AND (v_format = 'line_based') = (current_user = 'tenant_guard')
@@ -268,14 +278,40 @@ BEGIN
   END IF;
 
   IF OLD.intake_format = 'line_based'
-     AND (NEW.tenant_id IS NOT DISTINCT FROM OLD.tenant_id
+     AND (NEW.id IS NOT DISTINCT FROM OLD.id
+          AND NEW.tenant_id IS NOT DISTINCT FROM OLD.tenant_id
           AND NEW.donation_id IS NOT DISTINCT FROM OLD.donation_id
           AND NEW.legal_entity_id IS NOT DISTINCT FROM OLD.legal_entity_id
           AND NEW.amount IS NOT DISTINCT FROM OLD.amount
           AND NEW.currency IS NOT DISTINCT FROM OLD.currency) IS NOT TRUE THEN
     RAISE EXCEPTION 'staged_gift_line_sealed'
       USING ERRCODE = '23514',
-            DETAIL = 'A line-based staged gift keeps its tenant, intake, entity, amount and currency.';
+            DETAIL = 'A line-based staged gift keeps its id, tenant, intake, entity, amount and currency.';
+  END IF;
+
+  IF (NEW.tenant_id IS NOT DISTINCT FROM OLD.tenant_id) IS NOT TRUE THEN
+    RAISE EXCEPTION 'staged_gift_tenant_frozen'
+      USING ERRCODE = '23514',
+            DETAIL = 'A staged gift keeps the organization it was created in.';
+  END IF;
+
+  IF (NEW.donation_id IS NOT DISTINCT FROM OLD.donation_id) IS NOT TRUE THEN
+    SELECT d.intake_format
+      INTO v_format
+      FROM public.donations AS d
+     WHERE d.id = NEW.donation_id
+       AND d.tenant_id = NEW.tenant_id;
+
+    IF (v_format IS NOT NULL
+        AND (v_format = 'line_based') = (current_user = 'tenant_guard')
+        AND v_format = NEW.intake_format) IS NOT TRUE THEN
+      RAISE EXCEPTION 'staged_gift_generation_owner'
+        USING ERRCODE = '42501',
+              DETAIL = pg_catalog.format(
+                '%s may re-point a staged gift only at an intake it may see, of the gift''s organization and format (intake format %s, gift %s).',
+                current_user, COALESCE(v_format, 'unseen'), NEW.intake_format
+              );
+    END IF;
   END IF;
 
   RETURN NEW;
@@ -337,8 +373,13 @@ BEGIN
             DETAIL = 'A line-based allocation keeps its tenant, gift, format, entity, line number and fee flag.';
   END IF;
 
-  IF (NEW.staged_gift_id IS NOT DISTINCT FROM OLD.staged_gift_id
-      AND NEW.tenant_id IS NOT DISTINCT FROM OLD.tenant_id) IS NOT TRUE THEN
+  IF (NEW.tenant_id IS NOT DISTINCT FROM OLD.tenant_id) IS NOT TRUE THEN
+    RAISE EXCEPTION 'staged_gift_allocation_tenant_frozen'
+      USING ERRCODE = '23514',
+            DETAIL = 'An allocation keeps the organization it was created in.';
+  END IF;
+
+  IF (NEW.staged_gift_id IS NOT DISTINCT FROM OLD.staged_gift_id) IS NOT TRUE THEN
     SELECT g.intake_format
       INTO v_format
       FROM public.staged_gifts AS g
@@ -403,7 +444,12 @@ BEGIN
   v_found := FOUND;
 
   IF NOT v_found THEN
-    RETURN NULL;
+    RAISE EXCEPTION 'staged_gift_allocations_unbalanced'
+      USING ERRCODE = '23514',
+            DETAIL = pg_catalog.format(
+              'The line-based staged gift %s of this check no longer exists; such a gift is never deleted and never changes its id.',
+              v_gift_id
+            );
   END IF;
 
   SELECT pg_catalog.count(*) FILTER (WHERE NOT a.is_fee_cover),

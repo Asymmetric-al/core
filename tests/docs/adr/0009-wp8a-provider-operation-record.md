@@ -117,8 +117,16 @@ writes a line-based intake, a provider request or a connected payment event.
 12. **R2a's eight suites under `tests/unit/acceptance/issue-2681/wp8a-p2r2a-*`**
     (`schema`, `staging`, `enqueue`, `apply-order`, `apply-match`, `fences`,
     `sessions`, `live`) read only `TENANT_GUARD_IT_ADMIN_DATABASE_URL`, fail
-    and never skip in `migrate`, and roll every test back but C7 (b), which
-    commits two tenants and removes them in replica mode. Their helpers are
+    and never skip in `migrate`, and roll every test back but four in
+    `sessions`: C7 (b), the two C14 races and B2, each of which commits two
+    tenants with their fixtures and removes them in replica mode in its
+    `finally`. The test grants are revoked in the same transaction that
+    commits the fixtures, so none outlives it. A run stopped before the
+    `finally` leaves those two tenants and the rows keyed to them (legal
+    entities, accounts, bindings, funds, intakes and lines, requests,
+    events, observations, staged gifts and allocations, tasks, links and
+    audit rows) in the database; `removeTwoTenants` with their ids, or a
+    fresh database, removes them. Their helpers are
     `wp8a-p2r2a-harness.ts` (it re-exports R1a's harness; an event is stored
     as 2b's route will store it, a `service_role` insert into
     `stripe_connect_events`, claimed with `public.claim_provider_event` and

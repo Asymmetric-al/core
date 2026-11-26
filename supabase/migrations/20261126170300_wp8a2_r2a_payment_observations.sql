@@ -6,8 +6,10 @@
 --
 -- 1. stripe_connect_events_tenant_account_key UNIQUE (tenant_id, id,
 --    provider_account_id, livemode): the observations' event key.
--- 2. public.payment_observations: one row per applied, stale or no-change
---    payment event (event_key), at most one terminal effect (succeeded or
+-- 2. public.payment_observations: one row per applied or stale payment
+--    event (event_key; an event whose payment already holds that terminal
+--    effect, or that is already observed, is no_change and writes nothing),
+--    at most one terminal effect (succeeded or
 --    canceled) per account, mode and PaymentIntent
 --    (payment_observations_terminal_key; Stripe: a canceled PaymentIntent
 --    "can't be undone", a succeeded one's "payment flow is complete"); keys to
