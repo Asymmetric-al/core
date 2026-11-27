@@ -1,6 +1,7 @@
 "use client";
 
 import { loadDocument, withAppBasePath } from "@asym/database/document-reload";
+import { ownApiFetch } from "@asym/database/own-api";
 import { getQueryClient } from "@asym/database/providers";
 import { createBrowserClient } from "@asym/database/supabase";
 
@@ -24,10 +25,13 @@ export interface ClientAuthState {
   loading: boolean;
 }
 
+export type ReadSessionUser = () => Promise<User | null>;
+
 export interface SubscribeToClientAuthStateOptions {
   supabase?: ClientSessionSupabase;
   includeProfile?: boolean;
   logger?: Pick<Console, "warn">;
+  readUser?: ReadSessionUser;
 }
 
 export interface SignOutClientSessionOptions {
@@ -137,17 +141,26 @@ async function createAuthStateForUser(
   return { user, profile, loading: false };
 }
 
+export async function readSessionUser(): Promise<User | null> {
+  const response = await ownApiFetch("/api/auth/session", { method: "GET" });
+  if (!response.ok) return null;
+  const body = (await response.json()) as { user?: User | null } | null;
+  return body?.user ?? null;
+}
+
 export async function loadClientAuthState(
   supabase = getClientSessionSupabase(),
-  options: { includeProfile?: boolean } = {},
+  options: { includeProfile?: boolean; readUser?: ReadSessionUser } = {},
 ): Promise<ClientAuthState> {
   const includeProfile = options.includeProfile ?? true;
-  const {
-    data: { user },
-    error,
-  } = await supabase.auth.getUser();
+  let user: User | null;
+  try {
+    user = await (options.readUser ?? readSessionUser)();
+  } catch {
+    return createSignedOutState();
+  }
 
-  if (error || !user) {
+  if (!user) {
     return createSignedOutState();
   }
 
@@ -195,7 +208,10 @@ export function subscribeToClientAuthState(
   }
 
   const initialVersion = ++authStateLoadVersion;
-  void loadClientAuthState(supabase, { includeProfile })
+  void loadClientAuthState(supabase, {
+    includeProfile,
+    readUser: options.readUser,
+  })
     .then((state) => publishIfCurrent(initialVersion, state))
     .catch((error) => handleClientAuthLoadFailure(initialVersion, error));
 

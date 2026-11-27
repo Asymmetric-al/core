@@ -1,6 +1,7 @@
 "use client";
 
-import { createBrowserClient } from "@asym/database/supabase";
+import { ownApiFetch } from "@asym/database/own-api";
+import { readJsonBody } from "@asym/lib/http/fetch-result";
 import { CircleCheck } from "lucide-react";
 import * as React from "react";
 
@@ -34,11 +35,50 @@ function validate(values: Record<Field, string>): Errors {
   return errors;
 }
 
-/**
- * Change the signed-in person's password. The current password is checked
- * first (by signing in with it), so a borrowed, unlocked session can't
- * replace it. Errors sit next to the field they belong to.
- */
+const SAVE_FALLBACK = "Your password couldn’t be changed. Try again.";
+
+const FIELD_REFUSALS: Record<string, Field> = {
+  CURRENT_PASSWORD_REFUSED: "current",
+  CURRENT_PASSWORD_REQUIRED: "current",
+  PASSWORD_UNCHANGED: "next",
+  PASSWORD_TOO_SHORT: "next",
+};
+
+type Outcome =
+  | { kind: "saved" }
+  | { kind: "field"; field: Field; message: string }
+  | { kind: "form"; message: string };
+
+async function changePasswordThroughCore(
+  currentPassword: string,
+  newPassword: string,
+): Promise<Outcome> {
+  try {
+    const response = await ownApiFetch("/api/auth/password", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ currentPassword, newPassword }),
+    });
+    const { ok, body } = await readJsonBody<{
+      ok?: boolean;
+      code?: unknown;
+      error?: unknown;
+    }>(response);
+    if (ok && body?.ok === true) return { kind: "saved" };
+    const message =
+      typeof body?.error === "string" && body.error.trim()
+        ? body.error
+        : SAVE_FALLBACK;
+    const field =
+      typeof body?.code === "string" ? FIELD_REFUSALS[body.code] : undefined;
+    return field
+      ? { kind: "field", field, message }
+      : { kind: "form", message };
+  } catch {
+    return { kind: "form", message: SAVE_FALLBACK };
+  }
+}
+
 export function ChangePasswordForm({ className }: { className?: string }) {
   const [values, setValues] = React.useState<Record<Field, string>>({
     current: "",
@@ -91,31 +131,17 @@ export function ChangePasswordForm({ className }: { className?: string }) {
     }
     setIsSaving(true);
     try {
-      const supabase = createBrowserClient();
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      if (!user?.email) {
-        setFormError("Sign in again, then change your password.");
+      const outcome = await changePasswordThroughCore(
+        values.current,
+        values.next,
+      );
+      if (outcome.kind === "field") {
+        setErrors({ [outcome.field]: outcome.message });
+        focusField(outcome.field);
         return;
       }
-
-      const check = await supabase.auth.signInWithPassword({
-        email: user.email,
-        password: values.current,
-      });
-      if (check.error) {
-        setErrors({ current: "That isn’t your current password." });
-        focusField("current");
-        return;
-      }
-
-      const result = await supabase.auth.updateUser({ password: values.next });
-      if (result.error) {
-        setFormError(
-          result.error.message ||
-            "Your password couldn’t be changed. Try again.",
-        );
+      if (outcome.kind === "form") {
+        setFormError(outcome.message);
         return;
       }
 
