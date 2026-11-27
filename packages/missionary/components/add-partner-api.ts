@@ -53,7 +53,9 @@ async function submit(
   const payload = (await response.json()) as Partial<AddedPartner> | null;
   if (
     typeof payload?.donorId !== "string" ||
-    typeof payload.partyId !== "string"
+    typeof payload.partyId !== "string" ||
+    payload.donorId.length === 0 ||
+    payload.partyId.length === 0
   ) {
     throw new TypeError("Add Partner answered without the stored partner");
   }
