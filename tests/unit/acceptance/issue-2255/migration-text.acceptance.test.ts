@@ -174,7 +174,7 @@ describe("#2255 forward migration text", () => {
     expect(c).toMatch(/raw/i);
   });
 
-  it("no other forward migration creates or alters these tables (redefinition scan, all forward files) (D-18, AL-2678: the account claim migration of WP5, which builds the claim, adds the token's proof columns and the claim commands to account_claim_requests and ends its requester read; it creates and drops neither table and leaves legacy_account_invitations alone)", () => {
+  it("no other forward migration creates or alters these tables (redefinition scan, all forward files) (D-18, AL-2678: the account claim migration of WP5, which builds the claim, adds the token's proof columns and the claim commands to account_claim_requests and ends its requester read; it creates and drops neither table and leaves legacy_account_invitations alone; D-18, AL-2675: WP2c rest B's migration moves the same two staff reads to the staff-read helper, by ALTER POLICY, and touches nothing else of these tables)", () => {
     const re = new RegExp(`\\b(${TABLES.join("|")})\\b`, "i");
     const CLAIM_MIGRATION = /^\d{14}_account_claim_commands\.sql$/;
     const claimMigration = readdirSync(DIR).find((f) =>
@@ -188,9 +188,6 @@ describe("#2255 forward migration text", () => {
     // and touches nothing else of these tables. Any other statement there,
     // and any other migration, still fails.
     const POLICY_MIGRATION = /^\d{14}_request_tenant_policies\.sql$/;
-    // Amended by WP2c's rest (AL-2675, pull request B; record D-18): its
-    // migration moves the same two staff reads to the staff-read helper, by
-    // ALTER POLICY, and touches nothing else of these tables.
     const HELPER_MIGRATION = /^\d{14}_wp2c_rest_no_super_admin\.sql$/;
     const hits = readdirSync(DIR)
       .filter((f) => /^\d{14}_.*\.sql$/.test(f) && f !== OWN)

@@ -29,7 +29,7 @@ function authContext(overrides: Partial<AuthContext> = {}): AuthContext {
 }
 
 describe("CRM authorization bridge", () => {
-  it("creates an actor context from the authenticated Supabase staff user", () => {
+  it("creates an actor context from the authenticated Supabase staff user (D-18, AL-2675: the actor no longer carries a super-admin flag; no membership ever set it)", () => {
     expect(
       requireCrmAccess(authContext(), {
         action: "crm.record.read",
@@ -38,8 +38,6 @@ describe("CRM authorization bridge", () => {
     ).toEqual({
       action: "crm.record.read",
       authTenantId: "tenant-1",
-      // AL-2675 (WP2c rest B, D-18): the actor no longer carries a
-      // super-admin flag; no membership ever set it.
       isTenantAdministrator: false,
       profileId: "profile-1",
       role: "staff",
@@ -120,14 +118,7 @@ describe("CRM authorization bridge", () => {
     ).toThrow(/tenant/);
   });
 
-  // AL-2675 (WP2c rest B; brief part B, invariant 5): no CRM actor reaches
-  // another organization's record. The membership label super_admin never
-  // yielded the flag (hasRole knows four classes only): a guard. The tenant
-  // check the notes and relationships services run admitted an actor that
-  // carried the flag (red until the flag goes).
-  it("refuses another organization's record to an actor whose memberships carry the label super_admin, and to an actor carrying the old flag", () => {
-    // A context holds the one membership its request acts under; labelled
-    // super_admin, it resolves no capability at all.
+  it("refuses another organization's record to an actor whose memberships carry the label super_admin, which resolves no capability (a guard), and to an actor carrying the old flag, which the notes and relationships services' tenant check admitted", () => {
     const labelled = authContext({
       memberships: [
         {

@@ -1,15 +1,3 @@
-/**
- * AL-2675 (WP2c rest, pull request B; brief stage5/wp2c-rest.md, invariants
- * 1, 3 and 6 of part B; plan 5.4 and WP2's exit line; record D-65, D-82 and
- * D-109; ADR-0228 decision 1): the catalog gate refuses any super-admin
- * branch, a write policy that calls the staff-read helper, a staff-wide read
- * on the bare staff check, and the blind spots (b), (c) and (e) that the
- * evaluator judges. The blind spots the catalog query itself must see, (d),
- * (f) and (g), and the query's half of the rules here, are planted on a real
- * database in tests/unit/acceptance/issue-2675/no-super-admin-gate.realstack.acceptance.test.ts.
- *
- * Policy text below is as Postgres deparses it.
- */
 import { describe, expect, it } from "vitest";
 
 import {
@@ -45,8 +33,6 @@ const TABLES = [
   table("member_care_goals"),
   table("support_saved_views"),
   table("currency_metadata", { tenant: false }),
-  // A table with no tenant column whose rows reach a tenant through a parent
-  // row, as the catalog query derives it from the foreign keys (finding (e)).
   table("thread_notes", { tenant: false, parent_scoped: true }),
 ];
 
@@ -71,7 +57,6 @@ const policy = (
   ...{ permissive: true, writable: true },
   ...over,
 });
-/** The same policy as the catalog's list of every policy in every schema shows it. */
 const everyRow = (
   p: Policy,
   schema = "public",
@@ -97,7 +82,6 @@ const HELPERS = [
   search_path: '""',
   root: true,
 }));
-/** auth.uid() as hosted Supabase and the compat bootstrap define it: it reads the subject only and sets no search path. */
 const UID = {
   function: "auth.uid()",
   body: "SELECT COALESCE( NULLIF(current_setting('request.jwt.claim.sub', true), ''), (NULLIF(current_setting('request.jwt.claims', true), '')::jsonb ->> 'sub') )::uuid",
@@ -131,7 +115,6 @@ function run(
     every_policy: [...policies.map((p) => everyRow(p)), ...(more.every ?? [])],
     policy_functions: more.functions ?? [],
   };
-  // No command in the fixture, so no pre-membership exception either.
   return evaluateTenantRlsCatalog(
     snapshot,
     { entries: [] },
@@ -210,7 +193,7 @@ describe("evaluateTenantRlsCatalog: no super-admin branch (AL-2675, WP2c rest B)
 });
 
 describe("evaluateTenantRlsCatalog: the staff-read helper (AL-2675, WP2c rest B; plan 5.4)", () => {
-  it("names the helper and the nine reads that keep the bare staff check, the member-care reads among them", () => {
+  it("names the helper and the nine reads that keep the bare staff check, the member-care reads among them: each narrows the staff it admits, so a support grant must not reach it through the helper", () => {
     expect(STAFF_READ_HELPER).toBe("authz.staff_read");
     expect([...STAFF_NARROWED_READS].sort()).toEqual([
       "crm_notes|crm_notes_tenant_select",
@@ -258,7 +241,6 @@ describe("evaluateTenantRlsCatalog: the staff-read helper (AL-2675, WP2c rest B;
         codes(run([policy("donors", using, { policy: "w", cmd, check })])),
         cmd,
       ).toEqual(["STAFF_READ_HELPER_IN_WRITE donors"]);
-    // A write on the bare staff check stays as it is.
     expect(
       run([
         policy("crm_notes", null, {
@@ -301,7 +283,6 @@ describe("evaluateTenantRlsCatalog: the staff-read helper (AL-2675, WP2c rest B;
         ]),
       ),
     ).toEqual(["STAFF_READ_HELPER_ON_NARROWED_READ member_care_goals"]);
-    // The same narrowed text under any other name is a staff-wide read.
     expect(
       codes(run([policy("support_saved_views", views, { policy: "another" })])),
     ).toEqual(["STAFF_READ_ON_BARE_STAFF_CHECK support_saved_views"]);
@@ -376,7 +357,6 @@ describe("evaluateTenantRlsCatalog: blind spots (b), (c) and (e) (record D-82, D
     expect(codes(run([], { published: ["thread_notes"] }))).toEqual([
       "TENANT_TABLE_PUBLISHED thread_notes",
     ]);
-    // A table with no tenant column and no parent is outside the rule.
     expect(run([policy("currency_metadata", "true")]).failures).toEqual([]);
   });
 });

@@ -1591,9 +1591,6 @@ describe("evaluateTenantRlsCatalog: the request's tenant on every signed-in poli
   const DONOR_OWN =
     "(( SELECT authz.assignment_is('donor'::authz.membership_role) AS assignment_is) AND (profile_id IN ( SELECT authz.caller_profile_ids() AS caller_profile_ids)))";
   const SUPER = "( SELECT authz.is_super_admin() AS is_super_admin)";
-  // AL-2675 (WP2c rest B; record D-18): a staff-wide read calls the
-  // staff-read helper; the bare staff check stays on writes and on the
-  // reviewed narrowed reads, and fails on any other read.
   const HELPER = "( SELECT authz.staff_read() AS staff_read)";
   const policy = (
     tableName: string,
@@ -1669,13 +1666,7 @@ describe("evaluateTenantRlsCatalog: the request's tenant on every signed-in poli
     expect(splitTopLevel(`((name = ' OR x') AND ${T})`, "OR")).toHaveLength(1);
   });
 
-  // Amended by council R2 (record D-18): a policy that is the super-admin
-  // branch alone no longer passes. Ruling 6 allows the branch only beside the
-  // tenant condition, and no such policy remains after the migration; the
-  // case now asserts that it fails. Amended again by WP2c's rest (AL-2675,
-  // pull request B; record D-18): the branch beside the tenant condition
-  // fails too, and the read's class term is the staff-read helper.
-  it("passes the tenant condition with a class term and a deny-all policy, and fails a super-admin branch beside it and the branch alone", () => {
+  it("passes the tenant condition with a class term and a deny-all policy, and fails a super-admin branch beside it and the branch alone (D-18: council R2: the branch alone fails; AL-2675, WP2c rest B: the branch beside the tenant condition fails too, and the read's class term is the staff-read helper)", () => {
     const result = run([
       policy("donors", `(${T} AND ${HELPER})`),
       policy("donors", `(${T} AND (${HELPER} OR ${DONOR_OWN}))`, {
@@ -1714,7 +1705,7 @@ describe("evaluateTenantRlsCatalog: the request's tenant on every signed-in poli
   // Council R2: Postgres reads a missing USING as true for every row, and a
   // missing WITH CHECK as the USING; the gate judges what each command
   // effectively admits, not only the text that is there.
-  it("judges each command's effective predicate: a missing USING admits every row, a missing WITH CHECK is the USING", () => {
+  it("judges each command's effective predicate: a missing USING admits every row, a missing WITH CHECK is the USING (D-18, AL-2675: the read stands on the staff-read helper, the writes keep the bare staff check)", () => {
     const T_STAFF = `(${T} AND ${STAFF})`;
     for (const [cmd, using, check] of [
       ["SELECT", null, null],
@@ -1729,8 +1720,6 @@ describe("evaluateTenantRlsCatalog: the request's tenant on every signed-in poli
         "TENANT_CONDITION_MISSING donors",
       );
     }
-    // Amended by WP2c's rest (AL-2675, pull request B; record D-18): the read
-    // stands on the staff-read helper, the writes keep the bare staff check.
     for (const [cmd, using, check] of [
       ["UPDATE", T_STAFF, null],
       ["ALL", T_STAFF, null],
@@ -1758,9 +1747,7 @@ describe("evaluateTenantRlsCatalog: the request's tenant on every signed-in poli
     }
   });
 
-  // Amended by WP2c's rest (AL-2675, pull request B; record D-18): Q6's one
-  // super-admin disjunct no longer passes beside the tenant condition.
-  it("Q6, since WP2c's rest: accepts no super-admin disjunct beside the tenant condition and fails any other disjunct", () => {
+  it("Q6, since WP2c's rest: accepts no super-admin disjunct beside the tenant condition and fails any other disjunct (D-18, AL-2675: Q6's one super-admin disjunct no longer passes)", () => {
     expect(tenantBound(`(${SUPER} OR (${T} AND ${HELPER}))`)).toBe(false);
     expect(tenantBound(`(${SUPER} OR ${SUPER} OR (${T} AND ${HELPER}))`)).toBe(
       false,
@@ -2015,7 +2002,7 @@ describe("evaluateTenantRlsCatalog: the request's tenant on every signed-in poli
   // The coordinator's follow-up on activation review Q7: no signed-in write
   // policy on a table where signed-in users hold no write grant, so a grant
   // that comes back by accident fails CI instead of being admitted.
-  it("fails an INSERT, UPDATE or DELETE policy whose command no signed-in role holds a privilege for", () => {
+  it("fails an INSERT, UPDATE or DELETE policy whose command no signed-in role holds a privilege for (D-18, AL-2675: the staff-wide read beside it calls the staff-read helper)", () => {
     const T_STAFF = `(${T} AND ${STAFF})`;
     for (const cmd of ["INSERT", "UPDATE", "DELETE"]) {
       const write = policy("donors", cmd === "INSERT" ? null : T_STAFF, {
@@ -2038,8 +2025,6 @@ describe("evaluateTenantRlsCatalog: the request's tenant on every signed-in poli
           check: "false",
           granted: false,
         }),
-        // Amended by WP2c's rest (AL-2675, pull request B; record D-18): a
-        // staff-wide read calls the staff-read helper.
         policy("donors", `(${T} AND ${HELPER})`, {
           policy: "read",
           granted: false,
@@ -2083,7 +2068,7 @@ describe("evaluateTenantRlsCatalog: the request's tenant on every signed-in poli
     ).toEqual([]);
   });
 
-  it("selects every signed-in policy of public, the request-tenant helpers and the published tables", () => {
+  it("selects every signed-in policy of public, the request-tenant helpers and the published tables (D-18, AL-2675, record D-109 (g): a role reaches a policy as Postgres applies it, by USAGE; issue 2675's real-stack gate case plants a role held WITH INHERIT FALSE)", () => {
     expect(TENANT_RLS_CATALOG_SQL).toContain("'policies'");
     // Amended by fixcheck F4 (record D-18): the selection named PUBLIC and
     // authenticated only; it is now every policy that names PUBLIC or a role
@@ -2095,9 +2080,6 @@ describe("evaluateTenantRlsCatalog: the request's tenant on every signed-in poli
     expect(TENANT_RLS_CATALOG_SQL).toContain(
       "unnest(array['authenticated', 'anon']) g(r)",
     );
-    // Amended by WP2c's rest (AL-2675, pull request B; record D-109 (g),
-    // D-18): a role reaches a policy as Postgres applies it, by USAGE; the
-    // real-stack case of issue 2675 plants a role held WITH INHERIT FALSE.
     expect(TENANT_RLS_CATALOG_SQL).toContain(
       "pg_has_role(g.r, x.rid, 'USAGE')",
     );

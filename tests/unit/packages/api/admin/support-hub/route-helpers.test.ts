@@ -74,8 +74,6 @@ describe("requireSupportHubAccess", () => {
     });
   });
 
-  // AL-2675 (WP2c rest B; brief part B, invariant 5): the context carries no
-  // super-admin flag, whatever the role label says.
   it("carries no super-admin flag in the context, even for a context labelled super_admin", async () => {
     getAuthContextMock.mockResolvedValue({
       isAuthenticated: true,

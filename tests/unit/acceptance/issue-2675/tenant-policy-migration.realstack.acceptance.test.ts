@@ -492,7 +492,7 @@ describe.skipIf(!ADMIN_URL)(
           expect(r.code).toBe("22P02");
         }));
 
-      it("the helpers are STABLE and PARALLEL SAFE; the one definer resolves the row and only signed-in users may call the helpers", () =>
+      it("the helpers are STABLE and PARALLEL SAFE; the one definer resolves the row and only signed-in users may call the helpers (D-18, AL-2675: the super-admin branch is gone with its function; the staff-read helper the staff-wide reads call in its place must not deny caller-token reads a parallel plan either)", () =>
         tx(async () => {
           const fns = await rows(
             `select p.oid::regprocedure::text fn, p.provolatile v, p.proparallel par, p.prosecdef def,
@@ -531,14 +531,10 @@ describe.skipIf(!ADMIN_URL)(
             if (f.fn !== "authz.current_tenant_id()")
               expect(f.anon, f.fn as string).toBe(false);
           }
-          // Amended by WP2c's rest (AL-2675, pull request B; record D-18):
-          // the super-admin branch is gone with its function; the staff-read
-          // helper that the staff-wide reads call in its place must not deny
-          // caller-token reads a parallel plan either.
-          const superAdmin = await rows(
+          const staffRead = await rows(
             "select provolatile v, proparallel par from pg_proc where oid = 'authz.staff_read()'::regprocedure",
           );
-          expect(superAdmin).toEqual([{ v: "s", par: "s" }]);
+          expect(staffRead).toEqual([{ v: "s", par: "s" }]);
           const anon = await as(
             "anon",
             {},

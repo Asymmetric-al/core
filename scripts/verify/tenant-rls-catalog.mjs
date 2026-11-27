@@ -23,11 +23,7 @@
 // authenticated or service_role, anon and authenticated hold nothing on a view,
 // and their SELECT, INSERT, UPDATE and DELETE grants are each admitted by a
 // policy (the end state of 20261117034926, widened to views and columns);
-// service_role holds CREATE on no schema of the chain (issue 2841). Since
-// WP2c's rest (AL-2675, pull request B), no policy of any schema names the
-// super_admin role, in its text or through a function it calls; every
-// staff-wide read of a tenant table calls the staff-read helper,
-// authz.staff_read(), and no write policy does. Run by
+// service_role holds CREATE on no schema of the chain (issue 2841). Run by
 // supabase-migrations.mjs after the census; #516 reuses it. See tenant-guard.md.
 import { readFileSync } from "node:fs";
 import path from "node:path";
@@ -69,21 +65,9 @@ export const TENANT_HELPERS = [
 /** The tenant condition every signed-in policy of a tenant table carries, as deparsed. */
 export const TENANT_CONDITION =
   "tenant_id = ( SELECT authz.current_tenant_id() AS current_tenant_id)";
-/**
- * The super-admin branch WP2c's rest removed (AL-2675, pull request B). No
- * policy of any schema may name the role any more (POLICY_SUPER_ADMIN_BRANCH).
- */
 export const SUPER_ADMIN_BRANCH =
   "SELECT authz.is_super_admin() AS is_super_admin";
-/** The staff-read helper every staff-wide read calls (plan 5.4; WP10 adds the support grant to it). */
 export const STAFF_READ_HELPER = "authz.staff_read";
-/**
- * The signed-in reads of tenant tables that keep the bare staff check or the
- * sub-role check rather than the helper, as `table|policy`: each narrows the
- * staff it admits (a sub-role, the administrator flag, the reader's own
- * rows), so a support grant must not reach it through the helper (brief
- * stage5/wp2c-rest.md, part B, invariant 3; record D-82 for the notes).
- */
 export const STAFF_NARROWED_READS = Object.freeze([
   "crm_notes|crm_notes_tenant_select",
   "crm_table_named_views|crm staff read",
@@ -142,19 +126,7 @@ export const PARENT_SCOPED_TABLES = [
 ];
 
 const quoted = (names) => names.map((s) => `'${s}'`).join(", ");
-/**
- * What may stand between the parts of a qualified call in a function's text:
- * white space and comments, a block comment taken whole even when it nests
- * (AL-2675, WP2c rest B; record D-109, finding (f)). A wider match only makes
- * the gate read more functions.
- */
 const CALL_GAP = `(\\s|/\\*.*\\*/|--[^\\n]*\\n)*`;
-/**
- * The tables with no tenant column whose rows reach a tenant through a parent:
- * a foreign key to a table with a tenant column, or to another such table
- * (finding (e)). Every signed-in policy on one is a reviewed pin, as on the
- * tables of PARENT_SCOPED_TABLES.
- */
 const PARENT_SCOPED_SQL = `with recursive scoped(oid) as (
       select fk.conrelid
         from pg_constraint fk
@@ -182,26 +154,12 @@ const SEARCH_PATH = `(select substr(c, 13) from unnest(p.proconfig) c where c li
  * `tenant_guard` and `platform` are never on that session's search path.
  */
 const BODY = `(p.prosrc || coalesce(E'\\n' || pg_get_function_sqlbody(p.oid), ''))`;
-/**
- * The Data API roles, as rows g(r), and whether policy `p` reaches g.r: it
- * names PUBLIC, or a role whose privileges g.r has, itself included
- * (fixcheck F4). Postgres applies a policy to a role that has the privileges
- * of one it names (has_privs_of_role), which is USAGE, not MEMBER: a role held
- * WITH INHERIT FALSE does not bring its policies along (AL-2675, WP2c rest B;
- * record D-109, finding (g)).
- */
 const API_ROLES = `unnest(array['authenticated', 'anon']) g(r)`;
 const POLICY_REACHES = `(p.polroles @> array[0::oid]
              or exists (select 1 from unnest(p.polroles) x(rid)
                         where pg_has_role(g.r, x.rid, 'USAGE')))`;
 const COMMAND_SCHEMA_PATTERN = COMMAND_SCHEMAS.join("|");
 
-/**
- * A row-security policy admits role `a.grantee` for the command of
- * `a.privilege_type` on relation `c`. Only a permissive policy admits: a
- * restrictive one only narrows what a permissive one admitted (AL-2675, WP2c
- * rest B; record D-109, finding (d)).
- */
 const POLICY_ADMITS = `exists (
          select 1 from pg_policy p
           where c.relrowsecurity
@@ -773,13 +731,6 @@ export function splitTopLevel(text, op) {
   return parts.map((p) => p.trim());
 }
 
-/**
- * Whether a deparsed policy expression admits a row only under the request's
- * tenant: the tenant condition itself, a conjunction with a tenant-bound
- * operand, or a disjunction whose every operand is tenant-bound. Since WP2c's
- * rest (AL-2675, pull request B) no super-admin branch may stand beside it:
- * any disjunct that is not tenant-bound fails (activation review Q6).
- */
 export function tenantBound(expr) {
   const s = stripParens(expr);
   if (s === TENANT_CONDITION) return true;
@@ -789,14 +740,8 @@ export function tenantBound(expr) {
   return ands.length > 1 && ands.some(tenantBound);
 }
 
-/** Whether a text names the super-admin role, in any case: `is_super_admin()` or `'super_admin'`. */
 const namesSuperAdmin = (text) => /super_admin/i.test(text ?? "");
-/** A call of the staff-read helper in deparsed text. */
 const STAFF_READ_CALL = /\bauthz\.staff_read\s*\(/i;
-/**
- * The bare staff check in deparsed text: `authz.assignment_is('staff')` with
- * no sub-role list, or with a NULL one, which admits every staff row.
- */
 const BARE_STAFF_CHECK =
   /\bauthz\.assignment_is\(\s*'staff'::authz\.membership_role\s*(?:,\s*NULL(?:::authz\.staff_role\[\])?\s*)?\)/i;
 
@@ -842,33 +787,14 @@ export function perRowLookups(expr) {
   return found;
 }
 
-/**
- * Whether a deparsed expression or a function body reads the token's claims
- * for authority: `auth.jwt()`, `app_metadata`, the claims settings, or the
- * guard's own reader of them, `tenant_guard.request_claims()` (AL-2675, WP2c
- * rest B; record D-109, finding (c)).
- */
 const readsTokenClaim = (text) =>
   /auth\.jwt\s*\(|app_metadata|request\.jwt\.claims?\b|request_claims\s*\(/i.test(
     text ?? "",
   );
 
-/**
- * The one read of the claims value that reads the subject alone, as
- * `auth.uid()` writes it: the claims setting, cast to JSON, with `->> 'sub'`
- * applied to that value itself (council R12 (a); finding (c): a key is tied
- * to the claims value it is read from, never to some other JSON in the text).
- */
 const SUBJECT_FROM_CLAIMS =
   /\(?\s*(?:nullif\s*\(\s*)?current_setting\s*\(\s*'request\.jwt\.claims'\s*(?:,\s*(?:true|false)\s*)?\)\s*(?:,\s*''\s*\)\s*)?\)?\s*::\s*jsonb?\s*->>\s*'sub'/gi;
 
-/**
- * Whether a function a request-tenant helper calls reads anything of the
- * token but its subject (council R12 (a)): `auth.uid()` reads the subject,
- * the caller's identity, and nothing else may be read. Each read of the
- * subject from the claims value is set aside; any other mention of the claims
- * setting, in any JSON form, is a read beyond it.
- */
 function readsClaimBeyondSubject(text) {
   const t = text ?? "";
   if (/auth\.jwt\s*\(|app_metadata|user_metadata|request_claims\s*\(/i.test(t))
@@ -1433,9 +1359,6 @@ export function evaluateTenantRlsCatalog(
   // no tenant table in the Realtime publication (plan 5.2).
   const policyExceptions = readPolicyExceptions(policyExceptionList);
   failures.push(...policyExceptions.failures);
-  // A table that reaches its tenant through a parent: one of the reviewed
-  // list, or one the catalog finds by its foreign keys (AL-2675, WP2c rest
-  // B; record D-109, finding (e)).
   const isParentScoped = (name) =>
     PARENT_SCOPED_TABLES.includes(name) ||
     (tables.get(name)?.tenant === false &&
@@ -1479,8 +1402,6 @@ export function evaluateTenantRlsCatalog(
     // every signed-in policy is a pin (council R3).
     const listedEntry = policyExceptions.listed.get(key);
     const parentScoped = isParentScoped(p.table);
-    // AL-2675 (WP2c rest B; plan 5.4): a read that narrows the staff it
-    // admits keeps its own check; the helper would let a support grant in.
     if (
       STAFF_NARROWED_READS.includes(key) &&
       exprs.some((e) => STAFF_READ_CALL.test(e))
@@ -1519,9 +1440,6 @@ export function evaluateTenantRlsCatalog(
       );
       continue;
     }
-    // AL-2675 (WP2c rest B; plan 5.4 and 12, WP2's exit): a staff-wide read
-    // of a tenant table stands on the staff-read helper, never on the bare
-    // staff check, unless it is one of the reviewed narrowed reads.
     if (
       p.cmd === "SELECT" &&
       !STAFF_NARROWED_READS.includes(key) &&
@@ -1533,8 +1451,7 @@ export function evaluateTenantRlsCatalog(
         `policy "${p.policy}" admits staff through authz.assignment_is('staff'): a staff-wide read calls (SELECT ${STAFF_READ_HELPER}()); a read that narrows the staff it admits is named in STAFF_NARROWED_READS (${CATALOG_GATE_PATH}) after review`,
       );
     // Council R2: the effective predicate of each command, with a missing
-    // USING as true and a missing WITH CHECK as the USING. No super-admin
-    // branch passes (tenantBound; AL-2675, WP2c rest B).
+    // USING as true and a missing WITH CHECK as the USING.
     for (const e of effectivePredicates(p)) {
       if (stripParens(e) === "false") continue;
       if (!tenantBound(e))
@@ -1546,11 +1463,6 @@ export function evaluateTenantRlsCatalog(
       lookups(e);
     }
   }
-  // AL-2675 (WP2c rest B; ADR-0228, decision 1; plan 5.4): every policy of
-  // every schema. None names the super-admin role, in its text or in the
-  // text of a function it depends on, comments aside; no write policy calls
-  // the staff-read helper. A snapshot without the list (a unit fixture) is
-  // read from its public policies.
   const functionBodies = new Map(
     (snapshot.policy_functions ?? []).map((f) => [f.function, f.body]),
   );
@@ -1616,11 +1528,6 @@ export function evaluateTenantRlsCatalog(
           h.function,
           "a request-tenant helper sets an empty search path (SET search_path = ''), so a call without a schema cannot reach a function the gate does not read",
         );
-      // AL-2675 (WP2c rest B; record D-82, D-109, finding (b)): a function
-      // a helper reaches runs under the helper's empty search path unless it
-      // sets its own; one that sets any other path could resolve a call
-      // without a schema to a function the gate does not read. auth.uid()
-      // sets none.
       if (
         h.root === false &&
         typeof h.search_path === "string" &&

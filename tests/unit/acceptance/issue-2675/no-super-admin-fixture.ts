@@ -1,15 +1,7 @@
-/**
- * AL-2675 (WP2c rest, pull request B): the committed fixture of
- * ./no-super-admin.realstack.acceptance.test.ts and
- * ./no-super-admin.postgrest.acceptance.test.ts. Rows are inserted by the
- * superuser in replica mode (no trigger, no foreign-key check), and removed
- * the same way.
- */
 import { randomUUID } from "node:crypto";
 
 import type pg from "pg";
 
-/** Values a generated row needs where a column's check constraint asks for one. */
 export const OVERRIDES: Record<string, Record<string, string>> = {
   donations: { intake_format: "'legacy_header'" },
   crm_notes: { visibility: "'standard'", title: "'t'", body: "'b'" },
@@ -23,11 +15,6 @@ export const OVERRIDES: Record<string, Record<string, string>> = {
   support_saved_views: { scope: "'personal'", filter: "'{}'::jsonb" },
 };
 
-/**
- * Inserts one row of `public.<table>`: the given columns, every NOT NULL
- * column without a default filled by its type, and the table's overrides.
- * The caller has set session_replication_role = replica.
- */
 export async function insertRow(
   db: pg.Client,
   table: string,
@@ -78,13 +65,6 @@ export async function insertRow(
   );
 }
 
-/**
- * Removes every row of `tenants` from each table with a tenant column in
- * public, authz and private, then the people (`users`: their operator rows,
- * memberships, profiles and, unless `logins` is false, their logins) and the
- * organizations, in replica mode. On a Supabase stack the caller removes the
- * logins through the Auth admin API instead.
- */
 export async function removeTenants(
   db: pg.Client,
   tenants: string[],

@@ -1,20 +1,3 @@
-/**
- * AL-2675 (WP2c rest, pull request B; brief stage5/wp2c-rest.md, part B,
- * invariants 1 to 4 and its tests; plan 5.4; ADR-0228 decision 1): no login
- * reads an organization's rows through a profile whose role says
- * `super_admin`, an operator gains nothing, and every person who can exist
- * reads exactly the rows they read before, through each kind of policy the
- * change touches or keeps.
- *
- * Two sessions. Session 1 (`postgres`) commits the fixture, with fresh ids,
- * and the profile role; session 2, a separate connection, reads as PostgREST
- * does (SET LOCAL ROLE authenticated, request.jwt.claims, request.headers),
- * each read in a transaction of its own. The fixture is removed in afterAll.
- * The same reads run once through PostgREST in
- * ./no-super-admin.postgrest.acceptance.test.ts.
- *
- * Runs against TENANT_GUARD_IT_ADMIN_DATABASE_URL (see ./harness.ts).
- */
 import { randomUUID } from "node:crypto";
 
 import pg from "pg";
@@ -31,22 +14,21 @@ it.runIf(IN_MIGRATE_JOB && !ADMIN_URL)(
   () => expect(ADMIN_URL).not.toBe(""),
 );
 
-/** People. Each holds exactly the membership rows of ROWS. */
 const USERS = [
-  "UP", // development staff in TA, finance staff in TB
-  "USG", // finance staff and donor in TA
-  "UMG", // missionary and donor in TA
-  "UFC", // finance and member-care staff in TA
-  "UADM", // the tenant administrator of TA (development)
-  "UDEV", // development staff in TA, an agent with a personal view
-  "UMOB", // mobilizer staff in TA
-  "UHR", // hr staff in TA
-  "UDON", // donor in TA
-  "UMIS", // missionary in TA
-  "UB", // finance staff in TB
-  "UX", // signed in, no membership
-  "UZ", // development staff in TA; profile role super_admin
-  "UO", // development staff in TA, on the operator list; profile role super_admin
+  "UP",
+  "USG",
+  "UMG",
+  "UFC",
+  "UADM",
+  "UDEV",
+  "UMOB",
+  "UHR",
+  "UDON",
+  "UMIS",
+  "UB",
+  "UX",
+  "UZ",
+  "UO",
 ] as const;
 type User = (typeof USERS)[number];
 
@@ -69,7 +51,6 @@ const ROWS: [string, User, "TA" | "TB", string, string | null, boolean][] = [
   ["mZ", "UZ", "TA", "staff", "development", false],
   ["mO", "UO", "TA", "staff", "development", false],
 ];
-/** Every row but the two whose profile says super_admin: the people whose reads must not change. */
 const PEOPLE_ROWS = ROWS.filter(([m]) => m !== "mZ" && m !== "mO");
 const TA_STAFF = [
   "mPA",
@@ -83,7 +64,6 @@ const TA_STAFF = [
 ];
 const TB_STAFF = ["mPB", "mB"];
 
-/** The fixture rows each read looks for, by table, and the column that names them. */
 const READ_KEYS: Record<string, { column: string; keys: string[] }> = {
   audit_logs: { column: "id", keys: ["aA", "aB"] },
   donors: { column: "id", keys: ["dSG", "dMG", "dDON", "dOther", "dB"] },
@@ -115,7 +95,6 @@ describe.skipIf(!ADMIN_URL)(
       ),
     ])
       id[k] = randomUUID();
-    // Text keys: Support Hub ids and field-policy keys.
     for (const k of "agAdm agDev vWork vAdm vDev vNull vB fpA fpB".split(" "))
       id[k] = `acc2675b-${k}-${id.TA!.slice(0, 8)}`;
     const q = (k: string) => `'${id[k]}'`;
@@ -126,7 +105,6 @@ describe.skipIf(!ADMIN_URL)(
     const insertRow = (table: string, given: Record<string, string>) =>
       insertFixtureRow(db, table, given);
 
-    /** Session 1 commits two organizations, the people of ROWS, and one row of each kind the reads look for. */
     async function fixture() {
       await db.query("begin");
       try {
@@ -284,8 +262,6 @@ describe.skipIf(!ADMIN_URL)(
         await db.query("rollback");
         throw error;
       }
-      // Session 1, a statement of its own: a database edit makes two profiles
-      // say super_admin, which no product path does (brief 2B).
       await db.query("begin");
       await db.query("set local session_replication_role = replica");
       await db.query(
@@ -313,7 +289,6 @@ describe.skipIf(!ADMIN_URL)(
     }, 120_000);
 
     type Read = { keys: string[]; code: string | null };
-    /** Session 2: one statement as `who`, as PostgREST runs it, in its own transaction. */
     async function as(
       who: User,
       headers: Record<string, string>,
@@ -339,7 +314,6 @@ describe.skipIf(!ADMIN_URL)(
         await reader.query("rollback");
       }
     }
-    /** The fixture rows of `table` that `who` reads under `headers`, by key. */
     async function reads(
       who: User,
       headers: Record<string, string>,
@@ -360,7 +334,6 @@ describe.skipIf(!ADMIN_URL)(
     }
     const tenantOf = (m: string) => ROWS.find((r) => r[0] === m)![2];
     const userOf = (m: string) => ROWS.find((r) => r[0] === m)![1];
-    /** The headers of a request acting under membership row `m`. */
     const under = (m: string) => ({
       "x-asym-tenant": id[tenantOf(m)]!,
       "x-asym-assignment": id[m]!,
@@ -429,8 +402,10 @@ describe.skipIf(!ADMIN_URL)(
           ).toEqual(read([]));
           const staff = await reads("UDEV", under("mDev"), table);
           const operator = await reads("UO", under("mO"), table, "aal2");
-          // The operator holds no agent, so no personal view of UDEV's.
-          expect(operator, `${table}, A`).toEqual(
+          expect(
+            operator,
+            `${table}, A (the operator holds no agent, so no personal view of UDEV's)`,
+          ).toEqual(
             table === "support_saved_views"
               ? read(staff.keys.filter((k) => k !== "vDev"))
               : staff,
@@ -441,10 +416,8 @@ describe.skipIf(!ADMIN_URL)(
 
     describe("no read gained or lost: one policy of each kind, two organizations, every class and staff sub-role (guard: the base gives the same rows)", () => {
       const expected: Record<string, (m: string) => string[]> = {
-        // A pure staff-wide read moved to the helper.
         funds: (m) =>
           TA_STAFF.includes(m) ? ["fA"] : TB_STAFF.includes(m) ? ["fB"] : [],
-        // A staff-or-own read: staff all, a donor their own gifts, a missionary the gifts to them.
         donations: (m) =>
           TA_STAFF.includes(m)
             ? ["g1", "g2", "g3", "g4"]
@@ -459,7 +432,6 @@ describe.skipIf(!ADMIN_URL)(
                     mMis: ["g1", "g2", "g4"],
                   } as Record<string, string[]>
                 )[m] ?? []),
-        // A narrowed read kept: personal views only to their owner or the administrator.
         support_saved_views: (m) =>
           m === "mAdm"
             ? ["vWork", "vAdm", "vDev", "vNull"]
@@ -470,7 +442,6 @@ describe.skipIf(!ADMIN_URL)(
                 : TB_STAFF.includes(m)
                   ? ["vB"]
                   : [],
-        // D-82: a restricted note only under the administrator flag.
         crm_notes: (m) =>
           m === "mAdm"
             ? ["nStd", "nRes"]
@@ -479,15 +450,25 @@ describe.skipIf(!ADMIN_URL)(
               : TB_STAFF.includes(m)
                 ? ["nB"]
                 : [],
-        // An own-row read kept.
         donor_feed_preferences: (m) =>
           ({ mDon: ["pDON"], mSGd: ["pSG"] })[m] ?? [],
-        // field_policies_read: every member with a resolved assignment, donor and missionary rows too.
         field_policies: (m) => (tenantOf(m) === "TA" ? ["fpA"] : ["fpB"]),
       };
 
+      const kind: Record<string, string> = {
+        funds: "a pure staff-wide read moved to the helper",
+        donations:
+          "a staff-or-own read: staff all, a donor their own gifts, a missionary the gifts to them",
+        support_saved_views:
+          "a narrowed read kept: personal views only to their owner or the administrator",
+        crm_notes: "D-82: a restricted note only under the administrator flag",
+        donor_feed_preferences: "an own-row read kept",
+        field_policies:
+          "field_policies_read: every member with a resolved assignment, donor and missionary rows too",
+      };
+
       for (const table of Object.keys(expected))
-        it(`${table}: each membership row reads exactly its rows; no header reads none`, async () => {
+        it(`${table}, ${kind[table]}: each membership row reads exactly its rows; no header reads none`, async () => {
           for (const [m] of PEOPLE_ROWS)
             expect(
               await reads(userOf(m), under(m), table),

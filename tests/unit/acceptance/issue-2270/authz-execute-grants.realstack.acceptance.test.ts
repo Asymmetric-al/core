@@ -115,17 +115,6 @@ describe.skipIf(!ADMIN_URL)("#2270 authz EXECUTE grants (R)", () => {
   beforeAll(() => db.connect());
   afterAll(() => db.end());
 
-  /**
-   * One check = one transaction, always rolled back.
-   *
-   * Amended by WP2c's rest (AL-2675, pull request B; record D-18):
-   * 20261127040000 dropped authz.is_super_admin() with the last policy that
-   * called it. Every case but C1 recreates it inside its rolled-back
-   * transaction, as it stood (a SQL DEFINER owned by postgres reading
-   * profiles.role, EXECUTE for authenticated and service_role), so that this
-   * issue's migration body and its grant contract still run as written. C1
-   * reads the migrated chain itself.
-   */
   async function tx(fn: () => Promise<void>, { restore = true } = {}) {
     await db.query("begin");
     try {
@@ -232,10 +221,7 @@ describe.skipIf(!ADMIN_URL)("#2270 authz EXECUTE grants (R)", () => {
     }
   }
 
-  // Amended by WP2c's rest (AL-2675, pull request B; record D-18): the
-  // migrated chain no longer has authz.is_super_admin(); every other §1.2
-  // function keeps exactly the listed grantees.
-  it("C1: on the migrated database each §1.2 function that stands has exactly the listed grantees (no PUBLIC, no anon), and authz.is_super_admin() is gone", () =>
+  it("C1: on the migrated database each §1.2 function that stands has exactly the listed grantees (no PUBLIC, no anon), and authz.is_super_admin() is gone (D-18, AL-2675: WP2c rest B dropped it with the last policy that called it; every other case recreates it as it stood, a SQL definer owned by postgres reading profiles.role with EXECUTE for authenticated and service_role, inside its rolled-back transaction, so that this issue's migration body and grant contract still run as written)", () =>
     tx(
       async () => {
         const got = await acl();

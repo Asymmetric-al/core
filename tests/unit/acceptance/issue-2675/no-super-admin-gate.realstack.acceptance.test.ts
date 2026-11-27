@@ -1,15 +1,3 @@
-/**
- * AL-2675 (WP2c rest, pull request B; brief stage5/wp2c-rest.md, invariant 6
- * of part B and its gate findings; record D-82, D-109 and section 9, "WP2c
- * part 3"): what the catalog gate's query must see on a real database. Each
- * case plants one violation in the migrated database, inside the gate's own
- * psql session, wrapped in BEGIN ... ROLLBACK by a psqlBin shim (the method of
- * ../issue-2253/rls-catalog-gate.realstack.acceptance.test.ts), so nothing
- * persists, and the gate must name exactly that violation. The evaluator's
- * half of each rule is tests/unit/scripts/tenant-rls-catalog-no-super-admin.test.ts.
- *
- * Runs against TENANT_GUARD_IT_ADMIN_DATABASE_URL (see ./harness.ts).
- */
 import { spawnSync } from "node:child_process";
 import { writeFileSync } from "node:fs";
 import path from "node:path";
@@ -28,7 +16,6 @@ it.runIf(IN_MIGRATE_JOB && !ADMIN_URL)(
 const dir = tempDir("psql-wp2cb-");
 afterAll(removeTempDirs);
 let shims = 0;
-/** A psqlBin that runs `sql` then the gate's command in one rolled-back transaction. */
 function shim(sql: string) {
   const f = path.join(dir, `psql-${++shims}`);
   writeFileSync(path.join(dir, `fx-${shims}.sql`), sql);
@@ -41,7 +28,6 @@ function shim(sql: string) {
 }
 type Failure = { code: string; table?: string; function?: string };
 type Result = { ok?: boolean; failures?: Failure[]; thrown?: string };
-/** Calls runTenantRlsCatalogGate in a child process, as the verifier does. */
 function gate(sql: string): Result {
   const url = pathToFileURL(path.join(process.cwd(), CATALOG)).href;
   const code = `const m = await import(${JSON.stringify(url)});
@@ -63,9 +49,7 @@ const named = (r: Result) =>
         .map((f) => `${f.code} ${f.table ?? f.function}`)
         .sort();
 
-/** A tenant-bound read of a planted table, so that only the case's own violation is named. */
 const TENANT = "tenant_id = (select authz.current_tenant_id())";
-/** An overload of a request-tenant helper: the gate reads every overload as a root. */
 const ROOT = (body: string) =>
   `create function authz.current_tenant_id(p uuid) returns uuid language sql stable set search_path = '' as $f$ ${body} $f$;`;
 const READS_TENANT_CLAIM = `create function private.acc2675b_token_tenant() returns uuid language sql stable as $f$ select (current_setting('request.jwt.claims', true)::jsonb ->> 'tenant_id')::uuid $f$;`;
@@ -116,7 +100,6 @@ describe.skipIf(!ADMIN_URL)(
         grant select on public.acc2675b_r to authenticated;
         create policy acc2675b on public.acc2675b_r as restrictive for select to authenticated using (${TENANT});`;
       expect(named(gate(planted))).toEqual(["GRANT_WITHOUT_POLICY acc2675b_r"]);
-      // With a permissive policy beside it, the grant is admitted.
       expect(
         named(
           gate(
@@ -134,7 +117,6 @@ describe.skipIf(!ADMIN_URL)(
       expect(named(gate(child))).toEqual([
         "PARENT_SCOPED_POLICY_NOT_PINNED acc2675b_child",
       ]);
-      // A grandchild through a table with no tenant column is scoped too.
       expect(
         named(
           gate(`create table public.acc2675b_mid (id uuid primary key, donor_id uuid references public.donors (id));

@@ -1,17 +1,3 @@
-/**
- * AL-2675 (WP2c rest, pull request B): the reads of
- * ./no-super-admin.realstack.acceptance.test.ts once through PostgREST, on
- * real logins and a local Supabase stack. Session 1 (`postgres`, through the
- * stack's database) commits the fixture and makes two profiles say
- * super_admin; each person then reads through the Data API with their own
- * token and the request headers Mission Control sends. The operator's
- * session is aal1 here: no row-security policy reads the assurance level
- * (only platform commands do), so it changes no read; the claims run of the
- * real-stack suite reads it at aal2.
- *
- * Env (CI's local-supabase job): WP2C_REST_IT_URL, WP2C_REST_IT_DATABASE_URL,
- * WP2C_REST_IT_ANON_KEY, WP2C_REST_IT_SERVICE_KEY.
- */
 import { randomUUID } from "node:crypto";
 
 import pg from "pg";
@@ -33,7 +19,6 @@ it.runIf(required && !ready)(
 
 const PEOPLE = ["Z", "O", "DEV", "ADM", "DON", "MIS", "B"] as const;
 type Person = (typeof PEOPLE)[number];
-/** Each person's one membership row: tenant, class, staff sub-role, administrator flag. */
 const SEAT: Record<
   Person,
   ["TA" | "TB", "staff" | "donor" | "missionary", string | null, boolean]
@@ -254,7 +239,6 @@ describe.skipIf(!ready)(
           tenant_id: q("TA"),
           donor_id: q("dDON"),
         });
-        // A database edit, which no product path makes (brief 2B).
         await db.query(
           `update public.profiles set role = 'super_admin' where user_id in (${u("Z")}, ${u("O")})`,
         );
@@ -282,7 +266,6 @@ describe.skipIf(!ready)(
     }, 120_000);
 
     type Read = { keys: string[]; status: number };
-    /** The fixture rows of `table` that `who` reads through the Data API under `headers`. */
     async function reads(
       who: Person,
       headers: Record<string, string>,

@@ -1,15 +1,3 @@
-/**
- * AL-2675 (WP2c rest, pull request B; brief stage5/wp2c-rest.md, part B,
- * invariants 1 to 3 and "Migration", "Down"; docs/ops/release-job.md, the
- * recovery header): the one migration that removes every super-admin branch.
- * Its form is read from the file: the lock limit first, the helper before the
- * first ALTER POLICY, the policies in a fixed order by table name, the
- * function dropped last and never with CASCADE, the recovery header and an
- * executable Down. On the migrated database (TENANT_GUARD_IT_ADMIN_DATABASE_URL,
- * see ./harness.ts): the helper's form and grants, no policy of any schema
- * naming the role, and the Down, run in a transaction that is rolled back,
- * restoring the function with its grants and every branch.
- */
 import pg from "pg";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
@@ -23,14 +11,12 @@ it.runIf(IN_MIGRATE_JOB && !ADMIN_URL)(
 const SUFFIX = "_wp2c_rest_no_super_admin";
 const file = () => migration(SUFFIX);
 const version = () => /(\d{14})_/.exec(file())![1]!;
-/** The file without its comments. */
 const code = () =>
   read(file())
     .split("\n")
     .filter((line) => !/^\s*--/.test(line))
     .map((line) => line.replace(/\s--.*$/, ""))
     .join("\n");
-/** The header's Down: the lines between its two markers, without their "-- ". */
 function downOf(text: string) {
   const lines = text.split("\n");
   const start = lines.indexOf("-- Down begins");
@@ -63,11 +49,9 @@ describe("AL-2675 WP2c rest B: the migration's form", () => {
     const drop = body.indexOf("DROP FUNCTION authz.is_super_admin();");
     expect(drop).toBeGreaterThan(alters.at(-1)!.index);
     expect(body.indexOf("DROP FUNCTION")).toBe(drop);
-    // After the drop, only the post-assert and COMMIT.
     expect(
       body.slice(drop + "DROP FUNCTION authz.is_super_admin();".length),
     ).toMatch(/^\s*(DO \$\$[\s\S]*?\$\$;\s*)*COMMIT;\s*$/);
-    // No statement cascades (the header's prose names the word).
     expect(body).not.toMatch(/\bCASCADE\b/i);
   });
 

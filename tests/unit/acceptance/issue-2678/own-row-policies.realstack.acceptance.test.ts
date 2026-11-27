@@ -20,10 +20,6 @@ const OLD_OWN_DONOR =
 const OLD_OWN_MISSIONARY =
   "missionary_id IN (SELECT m.id FROM public.missionaries AS m WHERE m.profile_id IN (SELECT authz.caller_profile_ids()))";
 
-// Amended by WP2c's rest (AL-2675, pull request B; record D-18): the old
-// texts lose their super-admin branch. 20261127040000 dropped the function,
-// and no fixture caller's profile says super_admin, so every comparison of
-// the account-link move reads the same rows with or without it.
 const OLD_POLICIES: Record<string, [string, string, string | null]> = {
   donors: [
     "donors owner or staff select",
@@ -275,7 +271,7 @@ describe.skipIf(!ADMIN_URL)(
       }
     });
 
-    it("compared with the policies of the base, every caller but the claimed donor reads exactly the same rows, and the claimed donor gains only their own", async () => {
+    it("compared with the policies of the base, every caller but the claimed donor reads exactly the same rows, and the claimed donor gains only their own (D-18, AL-2675: the base's texts lose their super-admin branch, whose function WP2c rest B dropped; no fixture caller's profile says super_admin, so each comparison reads the same rows with or without it)", async () => {
       for (const [table, [policy, using]] of Object.entries(OLD_POLICIES)) {
         const people = Object.keys(who) as Who[];
         const now: Record<string, string[]> = {};
@@ -305,7 +301,7 @@ describe.skipIf(!ADMIN_URL)(
       }
     });
 
-    it("for every seeded membership, each own-row table reads the same rows under the base's policy and the new one, except the seeded donor record linked without a profile, which only its own login gains", async () => {
+    it("for every seeded membership, each own-row table reads the same rows under the base's policy and the new one, except the seeded donor record linked without a profile, which only its own login gains (D-18, AL-2675: the base's texts lose their super-admin branch, as above)", async () => {
       const seeded = {
         owner: "11111111-1111-1111-1111-111111111111",
         morgan: "33333333-3333-3333-3333-333333333333",
