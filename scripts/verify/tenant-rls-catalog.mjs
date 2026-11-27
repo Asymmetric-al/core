@@ -35,6 +35,7 @@ import {
   isAssignmentReader,
   preMembershipExceptions,
   protectedEntry,
+  WORKER_WRAPPER_ANCHOR_LOOKUPS,
   workerWrapperHasWrite,
   workerWrapperPassesTenantArg,
 } from "./command-entry-boundaries.mjs";
@@ -1244,8 +1245,23 @@ export function evaluateTenantRlsCatalog(
         failFn(
           "WORKER_WRAPPER_TENANT_ARGUMENT",
           w.function,
-          "A service_role wrapper calling a tenant_guard worker entry point takes no tenant argument and passes, as the tenant, only a value it read from a stored row in one whole statement of one schema-qualified relation (SELECT <qualifier>.<column> INTO <variable> FROM <schema>.<relation> [[AS] <alias>] WHERE <predicate> [row lock], where the qualifier is the relation's alias, or its name when it has none, or that SELECT as a scalar subquery; no JOIN, comma source, set operation, subquery, ORDER BY or LIMIT); anything the gate cannot verify fails",
+          "A service_role wrapper calling a tenant_guard worker entry point takes no tenant argument and passes, as the tenant, only a value it read from a stored row in one whole statement of one schema-qualified relation (SELECT <qualifier>.<column> INTO <variable> FROM <schema>.<relation> [[AS] <alias>] WHERE <predicate> [row lock], where the qualifier is the relation's alias, or its name when it has none, or that SELECT as a scalar subquery; no JOIN, comma source, set operation, subquery, ORDER BY or LIMIT), or from one reviewed lookup of WORKER_WRAPPER_ANCHOR_LOOKUPS called with one of its own non-tenant parameters (SELECT <alias>.<column> INTO <variable> FROM <schema>.<lookup>(<parameter>) [[AS] <alias>] [WHERE <predicate>]); anything the gate cannot verify fails",
         );
+      for (const lookup of WORKER_WRAPPER_ANCHOR_LOOKUPS) {
+        const called = new RegExp(
+          `\\b${lookup.replace(".", "\\s*\\.\\s*")}\\s*\\(`,
+          "i",
+        ).test(stripComments(String(w.body ?? ""), { blankStrings: true }));
+        if (
+          called &&
+          ![...anon.allowed].some((fn) => fn.startsWith(`${lookup}(`))
+        )
+          failFn(
+            "WORKER_WRAPPER_ANCHOR_LOOKUP_UNREVIEWED",
+            w.function,
+            `${lookup} anchors a wrapper's tenant only while ${ANON_DEFINER_ALLOWLIST_PATH} lists it, where the gate holds it to a STABLE SECURITY DEFINER with an empty search path (ruling W8-R41)`,
+          );
+      }
       if (
         workerWrapperHasWrite(w.body, stripComments, w.language, w.search_path)
       )

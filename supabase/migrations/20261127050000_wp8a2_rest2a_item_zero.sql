@@ -30,9 +30,13 @@
 --    correction and kind exist, and changes nothing; it never deletes one.
 -- 5. public.field_policies: donor and missionary see donations.is_anonymous
 --    and donations.abandoned_by, as the whole-table grant to authenticated
---    already lets them (item 13). They hold no login and no address. The
---    grant stays whole because packages/database's donationsCollection
---    reads select=*; narrowing it is WP8b's contract.
+--    already lets them (item 13). They hold no login and no address. Both
+--    move from internal to financial, the category of the gift's other
+--    attributes its giver sees (donation_type, payment_method), because an
+--    internal column is never shown off Mission Control (the foundation's
+--    rule C6, supabase/tests/field_policies_foundation.sql). The grant stays
+--    whole because packages/database's donationsCollection reads select=*;
+--    narrowing it is WP8b's contract.
 -- 6. public.donor_portal_lifetime(tenant, donor, gift ids) (item 8): a
 --    postgres-owned STABLE definer, EXECUTE for service_role only: the sum
 --    and count of the person's settled gifts (their donor's, and the gifts
@@ -65,8 +69,8 @@
 --     from 20261126170400 as CREATE OR REPLACE;
 --   ALTER TABLE public.payment_event_cases DROP CONSTRAINT payment_event_cases_kind_check,
 --     ADD CONSTRAINT payment_event_cases_kind_check CHECK (kind IN ('unmatched_payment', 'paid_after_abandon'));
---   UPDATE public.field_policies SET visible = false WHERE record_type = 'donations'
---     AND field_key IN ('is_anonymous', 'abandoned_by') AND surface IN ('donor', 'missionary');
+--   UPDATE public.field_policies SET visible = (surface = 'mission_control'), sensitivity_category = 'internal'
+--     WHERE record_type = 'donations' AND field_key IN ('is_anonymous', 'abandoned_by');
 --   DROP FUNCTION public.donor_portal_lifetime(uuid, uuid, uuid[]);
 
 BEGIN;
@@ -107,10 +111,10 @@ CREATE UNIQUE INDEX contribution_receipt_snapshots_adjustment_kind_key
   WHERE adjustment_id IS NOT NULL;
 
 UPDATE public.field_policies
-   SET visible = true
+   SET visible = (surface IN ('mission_control', 'donor', 'missionary')),
+       sensitivity_category = 'financial'
  WHERE record_type = 'donations'
-   AND field_key IN ('is_anonymous', 'abandoned_by')
-   AND surface IN ('donor', 'missionary');
+   AND field_key IN ('is_anonymous', 'abandoned_by');
 
 CREATE OR REPLACE FUNCTION tenant_guard.money_apply_payment_event(p_event_id UUID)
 RETURNS JSONB

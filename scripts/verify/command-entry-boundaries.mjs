@@ -106,6 +106,10 @@ export function protectedEntry(command, frame, outerBlockHasHandler) {
   return capabilities.has(capability);
 }
 
+export const WORKER_WRAPPER_ANCHOR_LOOKUPS = Object.freeze([
+  "public.resolve_verified_host",
+]);
+
 export const WORKER_WRAPPER_TENANT_ARG_EXCEPTIONS = Object.freeze([
   "public.acquire_workflow_work_claim(p_tenant_id uuid, p_subject_type text, p_subject_id text, p_claimed_by text, p_ttl_seconds integer)",
   "public.release_workflow_work_claim(p_tenant_id uuid, p_claim_id uuid, p_status text)",
@@ -311,7 +315,53 @@ function isPlainPredicate(text) {
   return depth === 0 && !ANCHOR_PREDICATE_FORBIDDEN.test(text);
 }
 
+function isLookupAnchorStatement(statement, variable, scope) {
+  const into = variable
+    ? `\\s+INTO\\s+(?:STRICT\\s+)?${escapeRegExp(variable)}`
+    : "";
+  const match = new RegExp(
+    `^SELECT\\s+(${IDENT})\\s*\\.\\s*(${IDENT})${into}\\s+FROM\\s+(${IDENT})\\s*\\.\\s*(${IDENT})\\s*\\(\\s*(${IDENT})\\s*\\)(?:\\s+(?:AS\\s+)?(${IDENT}))?(?:\\s+WHERE\\s+([\\s\\S]+?))?\\s*$`,
+    "i",
+  ).exec(statement.trim());
+  if (!match) return false;
+  const [
+    ,
+    qualifierRef,
+    columnRef,
+    schemaRef,
+    nameRef,
+    argRef,
+    aliasRef,
+    predicate,
+  ] = match;
+  const lookup = `${schemaRef.toLowerCase()}.${nameRef.toLowerCase()}`;
+  if (!WORKER_WRAPPER_ANCHOR_LOOKUPS.includes(lookup)) return false;
+  const alias = aliasRef?.toLowerCase();
+  if (alias && ANCHOR_ALIAS_KEYWORDS.has(alias)) return false;
+  const qualifier = qualifierRef.toLowerCase();
+  if (qualifier !== (alias ?? nameRef.toLowerCase())) return false;
+  const argument = argRef.toLowerCase();
+  if (!scope.namedParams.has(argument) || argument.includes("tenant"))
+    return false;
+  if (
+    scope.namedParams.has(qualifier) ||
+    scope.locals.has(qualifier) ||
+    qualifier === scope.functionName
+  )
+    return false;
+  const column = columnRef.toLowerCase();
+  if (
+    ["null", "true", "false"].includes(column) ||
+    scope.namedParams.has(column) ||
+    scope.locals.has(column) ||
+    column === scope.functionName
+  )
+    return false;
+  return predicate === undefined || isPlainPredicate(predicate);
+}
+
 function isAnchorStatement(statement, variable, scope) {
+  if (isLookupAnchorStatement(statement, variable, scope)) return true;
   const into = variable
     ? `\\s+INTO\\s+(?:STRICT\\s+)?${escapeRegExp(variable)}`
     : "";
@@ -529,6 +579,11 @@ export function workerWrapperHasWrite(
     const schema = match[1]?.toLowerCase() ?? null;
     const name = match[2].toLowerCase();
     if (schema === "tenant_guard") continue;
+    if (
+      schema !== null &&
+      WORKER_WRAPPER_ANCHOR_LOOKUPS.includes(`${schema}.${name}`)
+    )
+      continue;
     if (schema === null && WRAPPER_NON_CALL_WORDS.has(name)) continue;
     if (
       ((schema === null && searchPath === '""') || schema === "pg_catalog") &&
