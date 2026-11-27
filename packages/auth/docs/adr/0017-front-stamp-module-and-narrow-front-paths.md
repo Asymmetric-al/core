@@ -128,5 +128,4 @@ under `/admin/` alike.
   through one name (the service ignores the name, see
   [0015](0015-organization-from-the-verified-name.md) decision 9); the public
   `/eve/v1/health`; the unchanged `/_next/` and `/maplibre/` skips.
-- **N3 part 3d:** upload limits. **N3 part 4:** the front's own name lookup in
-  place of `FRONT_NAMES`, and lifting the production refusal.
+  The front consults the verified-name lookup once before stamping a dashboard request (ADR 0015). Production builds accept the path switch. Operations owns activation and requires convergence across the three builds (environment runbook section 5.8).

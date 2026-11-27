@@ -61,7 +61,7 @@ surface)` in `verified-name.ts` calls `resolve_verified_host` with the
    switch off, each proxy hands the request to the auth middleware on today's
    direct path, with no stamp, so no name proves anything there: the proxies
    make no lookup and build no lookup client, and the dashboards admit direct
-   requests as before. Production cannot be on until N3 part 4.
+   requests as before. Production activation follows the switch-on checklist in environment runbook section 5.8.
 
 ### The name's organization on the request
 
@@ -324,9 +324,7 @@ surface)` in `verified-name.ts` calls `resolve_verified_host` with the
     single-organization fallback while the switch is on (see
     [0016](0016-donor-organization-from-the-verified-name.md)); WP3b parts 2 to
     5 own the home lookup and redirect to home, Sites and brand settings, demo
-    constants, and deleting the off-mode fallback. N3 part 4 owns the front's
-    own
-    lookup, replacing `FRONT_NAMES`; WP7 the donor redirects behind admission;
+    constants, and deleting the off-mode fallback. The front now consults the same per-surface verified-name rule for the host of the origin it signs. WP7 owns the donor redirects behind admission;
     N6 framing and the browser's direct Data API calls; N3 part 3 the
     assistant's routes under the switch; N4 invitations, including a
     missionary invited before activation; N5 the first designation of home.

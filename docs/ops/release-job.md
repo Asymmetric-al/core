@@ -107,16 +107,22 @@ file applied and not recorded, and the next run applies it again (see
 6. **Deploy** (`scripts/release/vercel-release.mjs`). The job picks the apps
    whose files or shared inputs changed since the commit each production domain
    serves, or all three apps when a dispatched `release` sets `apps` to `all`.
-   For
-   each it creates a production-target deployment of the exact SHA through
+   The production job passes each project's existing bypass secret to `plan`.
+   In both modes it reads and logs the live deployment ID and built switch
+   state from each project's own protected migration-health endpoint. On, a
+   false, absent or unreadable state builds all three. Off, any observed true
+   state builds all three, an absent field counts as off and an unreadable app
+   is built. An off-mode plan without credentials retains the public
+   `/api/health` commit reads for changed selection and skips network reads for
+   `apps: all`. For each selected app it creates a production-target deployment of the exact SHA through
    Vercel's API. The build runs on Vercel, so application secrets stay there.
    With custom-domain auto-assignment off, the deployment is staged: it
    serves no production domain. The job then calls each staged deployment's
-   `/api/health/migrations`, and only when every one answers `ok`, built from
-   this commit, against the expected Supabase project, does it promote them.
+   `<prefix>/api/health/migrations`. Every staged deployment must answer
+   `ok` for this commit, the expected Supabase project and the exact release
+   switch state before the first promotion. A missing state stops promotion.
    Promotion does not rebuild. A failed build or check promotes nothing.
-   Promotion is one call per app, one after the other, so it is not all or
-   nothing: see [If a promotion fails part way](#if-a-promotion-fails-part-way).
+   Promotion is one call per app, one after the other, so it is not all or nothing. The order follows the release's `CORE_SERVE_UNDER_PATHS`: on, donor, admin, missionary; off, admin, missionary, donor, so a dashboard is never live as on behind a donor that is off. See [If a promotion fails part way](#if-a-promotion-fails-part-way).
    Finally each production domain must serve the promoted deployment ID, commit
    and expected Supabase project ref and pass `/api/health/migrations`. This
    live check is bounded by attempts (18 attempts, with a 10-second pause
@@ -129,6 +135,20 @@ file applied and not recorded, and the next run applies it again (see
 7. **Register job functions** (optional, `RELEASE_REGISTER_JOB_FUNCTIONS`):
    a `PUT` to the admin app's Inngest serve route, because Git deployment no
    longer triggers a sync (council reservation 7).
+
+### Serving under paths
+
+The build switch is unset by default. With it on, use `/admin` and
+`/missionary` before each dashboard's health path on its project address. The
+donor prefix is empty in either mode. Supply the same switch to the release
+`check --app <app> --url <deployment-url>` command and the project's existing
+bypass through its environment. Job registration uses the staff project at
+`/admin/api/inngest` when enabled and `/api/inngest` otherwise.
+
+**Rollback floor.** Hosted observation 8 (cross-commit rollback with a page
+open) is unobserved. The earlier same-commit observation sets no cross-commit
+floor. Keep the database compatibility floors below and roll forward by a
+new Release dispatch if a switch transition stops.
 
 ### The migration health route
 
@@ -152,7 +172,7 @@ ceiling are unchanged, and #2308 pins the file's bytes.
 
 The route is public and uncached. Any caller gets the status alone, with its
 `200` or `503`. The detail (the Supabase project ref the app reads, the
-environment marker, the heads, the commit and the deployment ID from
+environment marker, the heads, the commit, the built `release.serveUnderPaths` and the deployment ID from
 `VERCEL_DEPLOYMENT_ID`) goes only to a caller whose
 `x-vercel-protection-bypass` header equals the deployment's
 `VERCEL_AUTOMATION_BYPASS_SECRET`, the system variable Vercel sets at build and
@@ -166,7 +186,7 @@ verification if the promoted deployment ID never answers.
 
 ### If a promotion fails part way
 
-The job promotes the apps one after the other. If the promotion of a later
+The job promotes the apps one after the other. A failed promotion promotes nothing more; the job exits with 'promotion stopped part way:' naming the apps promoted (with deployment IDs), the app that failed ('not promoted', or 'outcome unknown' after a timeout or transport failure) and the apps not attempted. If the promotion of a later
 app fails, the apps promoted before it serve the new commit and the rest the
 previous one. The database is already migrated, and every migration is safe
 for the release still running (plan 7.4: expand, then contract), so each app
@@ -187,17 +207,18 @@ deployment ID the failed run logged for it, and that its
 ref and commit; if that check cannot be made, fix the cause and dispatch with
 `apps: all`, which builds, promotes and live-checks every app. Before every release,
 note for each app the deployment ID its production domain currently serves
-(read it from `https://<domain>/api/health/migrations` with that project's
-`x-vercel-protection-bypass` header, or from the project's **Deployments**
-page in Vercel; the job's `plan` step does not log live deployment IDs). If
+(the `plan` step logs the deployment ID each production domain serves; or read it from `https://<domain><prefix>/api/health/migrations` with that project's `x-vercel-protection-bypass` header). If
 the second dispatch fails too, do not blindly roll back to "the previous
 production deployment": for an app promoted by both runs of the same commit,
 its previous deployment is the first failed attempt, not what served before
 the release. Either return each app to the pre-release deployment ID you noted
 before the first dispatch, or go forward (fix the cause and release again) if
 the pre-release deployment's credentials no longer work — after a credential
-rotation, revoked credentials on the pre-release deployment will not work. The
-job has no rollback of its own.
+rotation, revoked credentials on the pre-release deployment will not work.
+
+Serving under paths: while the switch is being turned on or off, a stop leaves at most the donor in the new state and a dashboard in the old one; the organization's domain then does not serve that dashboard's path, while an off dashboard still answers on its own address. Dispatch again with the same `apps` value: `plan` builds all three in the release's state whenever any app differs, so the skip check above applies only when every app already reports that state. To abandon a switch-on, set `CORE_SERVE_UNDER_PATHS` to `0` (the GitHub variable and the three projects) and dispatch; `plan` reads the donor as on and builds all three off, dashboards first. Never roll back one app by hand to a deployment of the other switch state.
+
+The job has no rollback of its own.
 
 ### Rollback note after WP4b part 1 (Member Care)
 
@@ -1227,8 +1248,7 @@ output and times:
 4. `curl -s -o /dev/null -w '%{http_code}' https://admin.asymmetric.al/api/cms/public/navigation`
    prints `404`.
 5. A `403` counts only if production's admin was built with
-   `CORE_SERVE_UNDER_PATHS=1`, which production builds refuse today
-   (`scripts/release/serve-under-paths.mjs`). If that refusal is gone, also
+   `CORE_SERVE_UNDER_PATHS=1`. In that case also
    record `git ls-tree -r <commit> -- apps/admin/app/api/cms/public`
    printing nothing. Any other `403`, or any other status: the gate is not
    met. A `403` never restores ruling W6-R14.

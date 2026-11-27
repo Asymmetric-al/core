@@ -131,6 +131,13 @@ carries with the heads the release job recorded, read through
 database holds them. The release job promotes a staged deployment only on that
 answer; see [the release job runbook](../../ops/release-job.md).
 
+When built under paths, prefix the admin and missionary rows below with
+`/admin` and `/missionary` on the admitted home. Donor routes have no prefix.
+Release health uses the projects’ own addresses with those same prefixes.
+The assistant service and the explicit provider routes follow the exceptions
+in the [architecture overview](overview.md). Function image uploads accept
+a 4,000,000-byte file and at most 65,536 more bytes for multipart framing.
+
 ## Route Inventory
 
 > **Note (2026-08-18):** Twenty CRM is retired

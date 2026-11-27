@@ -530,26 +530,23 @@ exists and whether `bun run verify:sentry-release` passed.
 ### 5.8 Dashboards under paths (`CORE_SERVE_UNDER_PATHS`)
 
 The build switch and front-routing runtime variables remain **unset everywhere**
-(Local, Preview, `core-development`, and Production) until later parts of N3
-turn them on. Never expose any of these with a `NEXT_PUBLIC_` prefix.
+(Local, Preview, `core-development`, and Production) until the coordinator dispatches the switch-on release. Never expose any of these with a `NEXT_PUBLIC_` prefix.
 
 | Variable                     | Scope             | Admin                     | Donor | Missionary                | Notes                                                                                                                                                                                                                                                                                                            |
 | ---------------------------- | ----------------- | ------------------------- | ----- | ------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `CORE_SERVE_UNDER_PATHS`     | Build             | Unset everywhere          | Unset | Unset                     | `0` or unset off; `1` enables `/admin` and `/missionary` base paths and front routing; any other value or `1` on Vercel `production` fails the build.                                                                                                                                                            |
+| `CORE_SERVE_UNDER_PATHS`     | Build             | Unset everywhere          | Unset | Unset                     | `0` or unset off; `1` enables `/admin` and `/missionary` base paths and front routing; any other nonempty value fails the build, including on Production.                                                                                                                                                        |
 | `FRONT_STAMP_KEY_ADMIN`      | Runtime           | No                        | Unset | No                        | Server-only >=32 UTF-8 byte HMAC signing key used by the donor front when stamping requests to `apps/admin`.                                                                                                                                                                                                     |
 | `FRONT_STAMP_KEY_MISSIONARY` | Runtime           | No                        | Unset | No                        | Server-only >=32 UTF-8 byte HMAC signing key used by the donor front when stamping requests to `apps/missionary`.                                                                                                                                                                                                |
 | `FRONT_STAMP_KEY`            | Runtime           | Unset                     | No    | Unset                     | Server-only >=32 UTF-8 byte HMAC verification key on each dashboard matching its front signing key; absent or short refuses all stamped traffic. On the staff project it also verifies the front's `/admin` stamp for the assistant's cookie-carrying writes (`packages/eve-runtime/src/admin-session-auth.ts`). |
 | `FRONT_STAMP_KEY_PREVIOUS`   | Runtime           | Unset (optional rotation) | No    | Unset (optional rotation) | Server-only >=32 UTF-8 byte previous verification key for rotation; verifies only, never signs, and never rescues an absent or short `FRONT_STAMP_KEY`. The assistant's service accepts it the same way.                                                                                                         |
 | `FRONT_ADMIN_ORIGIN`         | Build and runtime | No                        | Unset | No                        | Server-only canonical upstream origin of the staff dashboard (`https://...` or loopback `http://localhost:...`, `http://127.x.x.x:...`, `http://[::1]:...`). With `CORE_SERVE_UNDER_PATHS=1` the donor build needs it too; a change needs a donor rebuild.                                                       |
 | `FRONT_MISSIONARY_ORIGIN`    | Build and runtime | No                        | Unset | No                        | Server-only canonical upstream origin of the missionary dashboard (`https://...` or loopback `http://...`). With `CORE_SERVE_UNDER_PATHS=1` the donor build needs it too; a change needs a donor rebuild.                                                                                                        |
-| `FRONT_NAMES`                | Runtime           | No                        | Unset | No                        | Server-only comma-separated lower-case `host[:port]` list accepted by the donor front when `CORE_SERVE_UNDER_PATHS=1`; unlisted hosts receive `404`.                                                                                                                                                             |
 
-The production refusal (`CORE_SERVE_UNDER_PATHS=1` throwing when
-`VERCEL_TARGET_ENV` or `VERCEL_ENV` is `production`) is enforced at build time
-only and has no run-time guard (part 4 lifts the production refusal). A build
-made with `CORE_SERVE_UNDER_PATHS=1` must never be promoted or deployed
-prebuilt to production; only the Release workflow's staged production builds
-may reach production.
+The donor front checks the signed origin’s host in the verified-name lookup once.
+Staff require a ready or active home admitted for staff. Missionaries require
+an active home admitted for missionaries. A refusal returns 404 with no store,
+and a lookup failure returns 503 with no store. Production accepts the build
+switch. Only deployments staged and checked together by Release may be promoted.
 
 `FRONT_ADMIN_ORIGIN` and `FRONT_MISSIONARY_ORIGIN` are checked whenever they
 hold a non-empty value, whether or not `CORE_SERVE_UNDER_PATHS` is on. When the
@@ -609,12 +606,17 @@ with the project's own bypass secret in place of `<secret>`
 `vercel-release.mjs:31-35`); without it the check fails closed.
 For the two dashboards a wrong statement fails closed: the check passes only
 on the migration handler's own answer and follows no redirect
-(`vercel-release.mjs:353,409`). The release job's production steps
-(`preflight`, `plan`, `deploy`, `register-jobs`) refuse that value with the
-build's own refusal before any Vercel or HTTP call
-(`vercel-release.mjs:69-79,686,719,743`). That refusal is the only guard
-`register-jobs` has; `plan` turns any failed read of a live commit into "live
-commit unknown" and rebuilds that app (`vercel-release.mjs:471-474`).
+(`vercel-release.mjs:353,409`). The protected migration-health detail reports the built
+switch state even on the donor project, whose health URL never changes.
+
+#### Switch-on checklist
+
+1. Confirm WP3b admission and N3 PR 2 (operator sign-in on the operations address) have merged. Verify the operator enrollment step in the operator runbook.
+2. Confirm the demonstration organization's verified home row. Keep each dashboard project's own address for provider traffic and release checks. Prove both on a preview before moving any Asym name.
+3. Verify both front signing keys and both upstream origins on donor, and the matching verification key on each dashboard. Run production readiness, using `--skip-health` until the projects serve the new paths. Check protected migration health on each staged build.
+4. On the shared origin verify that a sign-in or sign-out in each app clears the prior person's Web Studio clipboard when admin opens.
+5. Record hosted observations 0–13, including upload, provider paths and the rollback floor, as passed or unobserved. The N3 implementation has no hosted observations from this window.
+6. The switch-on release, and any later switch-off, is dispatched by hand by the coordinator and watched to its end: after a stop or a cancelled run, dispatch again until `plan` logs every app in the release's state and the run passes. Follow [Release job](release-job.md#if-a-promotion-fails-part-way).
 
 ### 5.9 The operator area's operations address (`OPERATIONS_NAMES`)
 
