@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs";
 import path from "node:path";
 
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import defaultConfig, {
   getDefaultProjectTestIgnore,
@@ -9,13 +9,20 @@ import defaultConfig, {
 import proofConfig from "../../../playwright.n2-on.config";
 import {
   appEnvironment,
+  emptyRestore,
+  finish,
   freshSecrets,
   parseOptions,
+  prepareRows,
   proofEnvironment,
   proofPorts,
+  readProofSeed,
+  restoreRows,
   scratchRowsSql,
   serverEnvironment,
   stackValuesFromStatus,
+  type ProofDatabase,
+  type ProofSeed,
 } from "../../../scripts/e2e/run-n2-on-proof.mts";
 import {
   ADMIN_SURFACE,
@@ -125,13 +132,144 @@ describe("the runner", () => {
   });
 
   it("adds only the person's own rows, and parses its options", () => {
-    expect(scratchRowsSql()).toMatch(/^INSERT INTO authz\.memberships /);
-    expect(scratchRowsSql()).toContain("ON CONFLICT DO NOTHING RETURNING id");
+    expect(scratchRowsSql(SEED)).toMatch(/^INSERT INTO authz\.memberships /);
+    expect(scratchRowsSql(SEED)).toContain(
+      "ON CONFLICT DO NOTHING RETURNING id",
+    );
     expect(parseOptions(["--skip-build", "--", "--grep", "Q"])).toEqual({
       build: false,
       serveOnly: false,
       playwrightArgs: ["--grep", "Q"],
     });
     expect(() => parseOptions(["--fast"])).toThrow(/unknown option/);
+  });
+});
+
+const SEED: ProofSeed = {
+  tenantA: "a0000000-0000-4000-8000-00000000000a",
+  tenantB: "b0000000-0000-4000-8000-00000000000b",
+  personP: "c0000000-0000-4000-8000-00000000000c",
+  personQ: "d0000000-0000-4000-8000-00000000000d",
+};
+
+describe("the runner names the seed's organizations and people by their slugs and e-mails, never by an ID", () => {
+  it("holds no organization or person ID of its own", () => {
+    const source = readFileSync(
+      path.join(process.cwd(), "scripts/e2e/run-n2-on-proof.mts"),
+      "utf8",
+    );
+    expect(source).not.toMatch(
+      /[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/i,
+    );
+  });
+
+  it("reads the two organizations by slug and the two people by e-mail from the scratch database", () => {
+    const asked: string[] = [];
+    const seed = readProofSeed((statement) => {
+      asked.push(statement);
+      return [SEED.tenantA, SEED.tenantB, SEED.personP, SEED.personQ].join("|");
+    });
+    expect(seed).toEqual(SEED);
+    expect(asked.join("\n")).toContain("slug = 'give-hope-demo'");
+    expect(asked.join("\n")).toContain("slug = 'harbor-light-mission'");
+    expect(asked.join("\n")).toContain("email = 'demo-owner@givehope.test'");
+    expect(asked.join("\n")).toContain("email = 'member-care@givehope.test'");
+  });
+
+  it("stops before any change when the scratch database lacks one of them", () => {
+    expect(() =>
+      readProofSeed(() =>
+        [SEED.tenantA, "", SEED.personP, SEED.personQ].join("|"),
+      ),
+    ).toThrow(/harbor-light-mission/);
+  });
+
+  it("writes P's scratch rows for the organizations it read", () => {
+    const statement = scratchRowsSql(SEED);
+    expect(statement).toContain(
+      `'${SEED.personP}', '${SEED.tenantA}', 'staff', 'finance'`,
+    );
+    expect(statement).toContain(
+      `'${SEED.personP}', '${SEED.tenantB}', 'staff', 'development'`,
+    );
+    expect(statement).toContain(
+      `'${SEED.personP}', '${SEED.tenantB}', 'missionary', NULL`,
+    );
+  });
+});
+
+function fakeDatabase(failPasswordFor: string | null) {
+  const statements: string[] = [];
+  const passwordsSet: string[] = [];
+  const database: ProofDatabase = {
+    query(statement) {
+      statements.push(statement);
+      if (statement.startsWith("SELECT id || '|' || encrypted_password")) {
+        return `${SEED.personP}|hash-p\n${SEED.personQ}|hash-q`;
+      }
+      if (statement.startsWith("INSERT INTO authz.memberships")) {
+        return "row-1\nrow-2\nrow-3";
+      }
+      return "";
+    },
+    async setPassword(userId) {
+      if (userId === failPasswordFor) {
+        throw new Error("could not set the proof's password (500)");
+      }
+      passwordsSet.push(userId);
+    },
+  };
+  return { database, statements, passwordsSet };
+}
+
+describe("the runner can always put back what it changed", () => {
+  it("holds the passwords and rows to restore before its first change, so a setup that fails half way is restored", async () => {
+    const { database, statements, passwordsSet } = fakeDatabase(SEED.personQ);
+    const restore = emptyRestore();
+    await expect(
+      prepareRows(database, SEED, "N2on-test", restore),
+    ).rejects.toThrow(/password/);
+    expect(passwordsSet).toEqual([SEED.personP]);
+    expect(restore).toEqual({
+      scratchRowIds: ["row-1", "row-2", "row-3"],
+      passwordHashes: [
+        [SEED.personP, "hash-p"],
+        [SEED.personQ, "hash-q"],
+      ],
+    });
+    expect(statements[0]).toMatch(
+      /^SELECT id \|\| '\|' \|\| encrypted_password/,
+    );
+
+    restoreRows(database, restore);
+    const restored = statements.slice(2).join("\n");
+    expect(restored).toContain(
+      "DELETE FROM authz.memberships WHERE id IN ('row-1', 'row-2', 'row-3')",
+    );
+    expect(restored).toContain(
+      `SET encrypted_password = 'hash-p' WHERE id = '${SEED.personP}'`,
+    );
+    expect(restored).toContain(
+      `SET encrypted_password = 'hash-q' WHERE id = '${SEED.personQ}'`,
+    );
+  });
+
+  it("stops its servers when restoring throws, and still fails", () => {
+    const stop = vi.fn();
+    expect(() =>
+      finish(() => {
+        throw new Error("restore failed");
+      }, stop),
+    ).toThrow("restore failed");
+    expect(stop).toHaveBeenCalledOnce();
+  });
+
+  it("stops its servers after restoring when nothing throws", () => {
+    const order: string[] = [];
+    finish(
+      () => order.push("restore"),
+      () => order.push("stop"),
+    );
+    expect(order).toEqual(["restore", "stop"]);
   });
 });
