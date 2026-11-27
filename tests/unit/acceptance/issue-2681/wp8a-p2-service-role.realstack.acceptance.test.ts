@@ -685,10 +685,16 @@ describe.skipIf(!ADMIN_URL)(
       }
     });
 
-    it("the catalog gate passes it: the gate reads no default privileges, the relations of public only, and CREATE on the schemas the release fingerprint covers", () => {
+    it("the catalog gate passes it: the gate reads no default privileges, the relations of public only, and CREATE on the schemas the release fingerprint covers (D-18, AL-2678 WP5 rest 2 item zero (b): but for the claim redemption's review, which 20261127060000, later in the chain than this replay, moves)", () => {
       const gate = runTenantRlsCatalogGate({ databaseUrl: replay.url });
-      expect(gate.failures).toEqual([]);
-      expect(gate.ok).toBe(true);
+      const redeemReviewedLater = (f: { code: string; function?: string }) =>
+        f.function ===
+          "tenant_guard.redeem_account_claim(p_tenant_id uuid, p_token text)" &&
+        ["COMMAND_EXCEPTION_UNREVIEWED", "COMMAND_HUMAN_NO_PREAMBLE"].includes(
+          f.code,
+        );
+      expect(gate.failures.filter((f) => !redeemReviewedLater(f))).toEqual([]);
+      expect(gate.failures.filter(redeemReviewedLater)).toHaveLength(2);
     });
   },
 );

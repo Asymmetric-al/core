@@ -101,7 +101,7 @@ describe.skipIf(!ADMIN_URL)(
       }
     });
 
-    it("10. the committed check is false before the file and true after; a second run stops at its first ADD COLUMN (42701) and changes nothing; the Down, in the header's order, restores the task functions and search_crm_donors byte for byte, removes the key's five field-policy rows (which the schema fingerprint does not see) so the table's contents are the base's again, and the catalog gate passes but for service_role's table privileges and CREATE on authz, which 20261126190000, later in the chain than this scratch database, closes (D-18, issue 2841: the gate holds service_role since then)", async () => {
+    it("10. the committed check is false before the file and true after; a second run stops at its first ADD COLUMN (42701) and changes nothing; the Down, in the header's order, restores the task functions and search_crm_donors byte for byte, removes the key's five field-policy rows (which the schema fingerprint does not see) so the table's contents are the base's again, and the catalog gate passes but for service_role's table privileges and CREATE on authz, which 20261126190000, later in the chain than this scratch database, closes (D-18, issue 2841: the gate holds service_role since then), and for the claim redemption's review, which 20261127060000 moves (D-18, AL-2678 WP5 rest 2 item zero (b))", async () => {
       const sources = await definitions();
       const base = captureFingerprint({ databaseUrl: url });
       const basePolicies = await policies();
@@ -161,11 +161,20 @@ console.log(JSON.stringify(await m.runTenantRlsCatalogGate({ databaseUrl: proces
       );
       const verdict = JSON.parse(
         gate.stdout.trim().split("\n").pop() || "{}",
-      ) as { ok?: boolean; failures?: { code: string; table?: string }[] };
+      ) as {
+        ok?: boolean;
+        failures?: { code: string; table?: string; function?: string }[];
+      };
       expect(verdict.failures, gate.stderr).toBeInstanceOf(Array);
-      const later = (f: { code: string; table?: string }) =>
+      const later = (f: { code: string; table?: string; function?: string }) =>
         f.code === "SERVICE_ROLE_UNSAFE_PRIVILEGE" ||
-        (f.code === "SERVICE_ROLE_SCHEMA_CREATE" && f.table === "authz");
+        (f.code === "SERVICE_ROLE_SCHEMA_CREATE" && f.table === "authz") ||
+        (f.function ===
+          "tenant_guard.redeem_account_claim(p_tenant_id uuid, p_token text)" &&
+          [
+            "COMMAND_EXCEPTION_UNREVIEWED",
+            "COMMAND_HUMAN_NO_PREAMBLE",
+          ].includes(f.code));
       expect(
         verdict.failures!.filter((f) => !later(f)),
         gate.stderr,
