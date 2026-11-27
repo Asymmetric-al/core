@@ -40,7 +40,13 @@ export type BeginGiftIntakeInput = {
 };
 
 export type BeginGiftIntakeResult =
-  | { ok: true; donationId: string; outboxId: string; replayed: boolean }
+  | {
+      ok: true;
+      donationId: string;
+      outboxId: string;
+      replayed: boolean;
+      donorId?: string;
+    }
   | { ok: false; code: "not_found" }
   | { ok: false; code: "conflict" }
   | { ok: false; code: "multiple_donors" }
@@ -52,6 +58,7 @@ type BeginDonationSagaPayload = {
   donation_id?: unknown;
   outbox_id?: unknown;
   replayed?: unknown;
+  donor_id?: unknown;
 };
 
 function readRequiredId(value: unknown): string | null {
@@ -105,6 +112,10 @@ export async function beginGiftIntake(
       return { ok: false, code: "conflict" };
     }
     if (error.code === "21000") {
+      console.error(
+        "[gift-intake] Gift refused: the login's Party has several donors, or none while the login holds a donor on another Party",
+        { tenantId: input.tenantId, loginId: input.actorUserId },
+      );
       return { ok: false, code: "multiple_donors" };
     }
     if (error.code === "22023") {
@@ -120,10 +131,13 @@ export async function beginGiftIntake(
     return { ok: false, code: "incomplete" };
   }
 
+  const replayed = parsed?.replayed === true;
+  const donorId = replayed ? null : readRequiredId(parsed?.donor_id);
   return {
     ok: true,
     donationId,
     outboxId,
-    replayed: parsed?.replayed === true,
+    replayed,
+    ...(donorId ? { donorId } : {}),
   };
 }

@@ -34,8 +34,8 @@ describeLive("the Data API row cap", (stack) => {
     b = await createTenantFixture(db);
     // The fixture's donor plus maxRows more: one row over the cap.
     await db.query(
-      `insert into public.donors (tenant_id, name)
-       select $1::uuid, 'Row cap donor ' || g from generate_series(1, $2::int) g`,
+      `insert into public.donors (tenant_id, party_id, name)
+       select $1::uuid, public.donor_party_for_insert($1::uuid, null, 'Row cap donor ' || g, null), 'Row cap donor ' || g from generate_series(1, $2::int) g`,
       [b.tenantId, maxRows],
     );
   });

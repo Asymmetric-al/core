@@ -143,6 +143,7 @@ export function EditDonorDialog({
                   <field.SelectField
                     label="Preferred contact"
                     options={PREFERRED_CONTACT_OPTIONS}
+                    placeholder="No preference"
                   />
                 )}
               </form.AppField>

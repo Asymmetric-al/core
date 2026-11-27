@@ -189,6 +189,12 @@ export const POST = withPlatformOperation(
         },
         { userId: ctx.userId, tenantId: ctx.tenantId },
       );
+      if (mismatches === null) {
+        throw new ApiHttpError(
+          500,
+          "Failed to load the existing donation for this idempotency key.",
+        );
+      }
       if (mismatches.some((field) => field !== "amount")) {
         return NextResponse.json(
           { error: "Idempotency key already used" },

@@ -39,6 +39,7 @@ export async function beginGraphQLGiftIntake(
       donationId: result.donationId,
       outboxId: result.outboxId,
       replayed: result.replayed,
+      donorId: result.donorId,
     };
   }
 

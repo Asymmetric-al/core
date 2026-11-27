@@ -259,7 +259,8 @@ describe.skipIf(!ADMIN_URL)(`#2269 C3 real catalog (R) (${D18})`, () => {
        insert into public.legal_entities(id,tenant_id,name,country_code,currency,legal_name) values ($1,$1,'A','US','usd','A'),($2,$2,'B','US','usd','B');
        insert into public.parties (id, tenant_id, display_name) values ($5, $1, 'Fixture'), ($6, $2, 'Fixture');
        insert into public.missionaries (id, tenant_id, profile_id,legal_entity_id,party_id) values ($5, $1, $4,$1,$5), ($6, $2, $4,$2,$6);
-       insert into public.donors (id, tenant_id, profile_id) values ($7, $1, $3), ($8, $1, null), ($9, $2, $3);
+       -- D-18, AL-2678 WP5 rest 2a. each fixture donor names its Party through the Party writer, as every donor writer must before party_id becomes NOT NULL (r5b).
+       insert into public.donors (id, tenant_id, party_id, profile_id) values ($7, $1, public.donor_party_for_insert($1, $3, null, null), $3), ($8, $1, public.donor_party_for_insert($1, null, null, null), null), ($9, $2, public.donor_party_for_insert($2, $3, null, null), $3);
        insert into public.account_links (tenant_id, user_id, party_id, linked_via) select tenant_id, profile_id, party_id, 'profile_backfill' from public.donors where id in ($7, $9) union all select tenant_id, profile_id, party_id, 'profile_backfill' from public.missionaries where id in ($5, $6);
        insert into public.donations (id, tenant_id, donor_id, missionary_id, amount) values ($10, $1, $7, $5, 1000), ($11, $1, $8, $5, 2000), ($12, $2, $9, $6, 3000);`.replace(
         /\$(\d+)/g,

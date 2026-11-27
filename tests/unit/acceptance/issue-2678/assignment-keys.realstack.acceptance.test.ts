@@ -1,112 +1,25 @@
 import { spawnSync } from "node:child_process";
 import { randomUUID } from "node:crypto";
-import { readFileSync, readdirSync } from "node:fs";
-import path from "node:path";
-import { pathToFileURL } from "node:url";
 
 import pg from "pg";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
 import {
-  ADMIN_URL,
-  IN_MIGRATE_JOB,
-  MIG,
-  fixtureIds,
-  fixtureSql,
-  migration,
-} from "./harness";
-import {
-  captureFingerprint,
-  diffFingerprints,
-} from "../../../../scripts/release/schema-fingerprint.mjs";
+  delta,
+  FUNCTIONS,
+  lines,
+  PARTITION,
+  readReport,
+  REPAIR_REFUSAL,
+  REPORT_REFUSAL,
+  TABLES,
+  type Table,
+} from "./assignment-keys.helpers";
+import { ADMIN_URL, IN_MIGRATE_JOB, fixtureIds, fixtureSql } from "./harness";
 
 it.runIf(IN_MIGRATE_JOB && !ADMIN_URL)("migrate supplies its database", () =>
   expect(ADMIN_URL).toBeTruthy(),
 );
-
-const SUFFIX = "_wp5_2r3_assignment_keys";
-const TABLES = [
-  "donors",
-  "posts",
-  "follows",
-  "follower_requests",
-  "missionary_tasks",
-] as const;
-type Table = (typeof TABLES)[number];
-const PARTITION = [
-  "unowned",
-  "null_tenant",
-  "absent",
-  "ambiguous",
-  "pending",
-  "valid",
-  "invalid",
-] as const;
-const FUNCTIONS = [
-  "private.derive_ministry_assignment_id()",
-  "private.rederive_ministry_assignment_children()",
-  "private.repair_ministry_assignment_ids()",
-  "private.ministry_assignment_key_report()",
-];
-const REPAIR_REFUSAL =
-  "repair_ministry_assignment_ids needs a superuser or a role with BYPASSRLS: every table it reads forces row security, so any other caller would change nothing";
-const REPORT_REFUSAL =
-  "ministry_assignment_key_report needs a superuser or a role with BYPASSRLS: every table it reads forces row security, so any other caller would count nothing";
-const COMMITTED =
-  "select to_regprocedure('private.repair_ministry_assignment_ids()') is not null as committed";
-
-type Report = Record<string, Record<string, number>>;
-
-async function readReport(client: pg.Client): Promise<Report> {
-  const result = await client.query(
-    "select * from private.ministry_assignment_key_report()",
-  );
-  return Object.fromEntries(
-    result.rows.map((row: Record<string, unknown>) => [
-      String(row.table_name),
-      Object.fromEntries(
-        Object.entries(row)
-          .filter(([key]) => key !== "table_name")
-          .map(([key, value]) => [key, Number(value)]),
-      ),
-    ]),
-  );
-}
-
-function delta(after: Report, before: Report, table: string) {
-  return Object.fromEntries(
-    Object.keys(after[table]!).map((key) => [
-      key,
-      after[table]![key]! - before[table]![key]!,
-    ]),
-  );
-}
-
-function lines(file: string, from: number, to: number) {
-  return readFileSync(`${MIG}/${file}`, "utf8")
-    .split(/\r?\n/)
-    .slice(from - 1, to)
-    .join("\n");
-}
-
-function downSql(file: string) {
-  const text = readFileSync(file, "utf8");
-  const start = text.indexOf("-- Down begins\n");
-  const end = text.indexOf("-- Down ends\n");
-  if (start < 0 || end < start) throw new Error(`${file} has no Down block`);
-  return text
-    .slice(start, end)
-    .split("\n")
-    .filter((line) => line.startsWith("--   "))
-    .map((line) => line.slice("--   ".length))
-    .map((line) => {
-      const include = /^\\lines (\d+)-(\d+) of (\S+)$/.exec(line);
-      return include
-        ? lines(include[3]!, Number(include[1]), Number(include[2]))
-        : line;
-    })
-    .join("\n");
-}
 
 describe.skipIf(!ADMIN_URL)(
   "AL-2678 WP5 part 2-r3: the assignment key on donors, posts, follows, follower_requests and missionary_tasks (plan line 997; Q1 conditions 1-2; Q3; rulings Q-r3-1 to Q-r3-4)",
@@ -167,7 +80,7 @@ describe.skipIf(!ADMIN_URL)(
 
     const INSERT: Record<Table, string> = {
       donors:
-        "insert into public.donors (id, tenant_id, missionary_id, name) values ($1, $2, $3, 'acc2678r3')",
+        "insert into public.donors (id, tenant_id, party_id, missionary_id, name) values ($1, $2, case when $2::uuid is null then null else public.donor_party_for_insert($2::uuid, null, 'acc2678r3', null) end, $3, 'acc2678r3')",
       posts:
         "insert into public.posts (id, tenant_id, missionary_id, content) values ($1, $2, $3, 'acc2678r3')",
       follows:
@@ -267,7 +180,7 @@ describe.skipIf(!ADMIN_URL)(
 
     const INSERT_WITH_KEY: Record<Table, string> = {
       donors:
-        "insert into public.donors (id, tenant_id, missionary_id, ministry_assignment_id, name) values ($1, $2, $3, $4, 'acc2678r3')",
+        "insert into public.donors (id, tenant_id, party_id, missionary_id, ministry_assignment_id, name) values ($1, $2, case when $2::uuid is null then null else public.donor_party_for_insert($2::uuid, null, 'acc2678r3', null) end, $3, $4, 'acc2678r3')",
       posts:
         "insert into public.posts (id, tenant_id, missionary_id, ministry_assignment_id, content) values ($1, $2, $3, $4, 'acc2678r3')",
       follows:
@@ -485,7 +398,7 @@ describe.skipIf(!ADMIN_URL)(
             out.push(
               ...(
                 await db.query(
-                  `select id::text || ':' || xmin::text as v from public.${table} where ministry_assignment_id is not null or missionary_id is not null order by id`,
+                  `select id::text || ':' || xmin::text || ':' || ctid::text as v from public.${table} where ministry_assignment_id is not null or missionary_id is not null order by id`,
                 )
               ).rows.map((row: { v: string }) => `${table}:${row.v}`),
             );
@@ -763,6 +676,47 @@ describe.skipIf(!ADMIN_URL)(
       });
     });
 
+    it("13. issue 2834 item 2: missionary_task_write ignores a malformed ministry_assignment_id in a create or an update patch, as before r3, and the task's key is still the derived one (red: 22P02)", async () => {
+      await within(async () => {
+        const created = await db.query(
+          "select id, ministry_assignment_id from public.missionary_task_write($1, $2, $3, 'create', null, $4::jsonb)",
+          [
+            id.UM,
+            id.TA,
+            id.mM,
+            JSON.stringify({
+              title: "acc2678r3 malformed key",
+              ministry_assignment_id: "not-a-uuid",
+            }),
+          ],
+        );
+        expect(created.rows).toEqual([
+          { id: expect.any(String), ministry_assignment_id: id.mA },
+        ]);
+        const task = created.rows[0].id as string;
+        const updated = await db.query(
+          "select id, title, ministry_assignment_id from public.missionary_task_write($1, $2, $3, 'update', $4, $5::jsonb)",
+          [
+            id.UM,
+            id.TA,
+            id.mM,
+            task,
+            JSON.stringify({
+              title: "acc2678r3 malformed key 2",
+              ministry_assignment_id: "{nope",
+            }),
+          ],
+        );
+        expect(updated.rows).toEqual([
+          {
+            id: task,
+            title: "acc2678r3 malformed key 2",
+            ministry_assignment_id: id.mA,
+          },
+        ]);
+      });
+    });
+
     it("12. catalog: the four functions are owned by postgres and executable by nobody else, the two trigger functions are definers with an empty search path; ours are the last BEFORE ROW triggers of each table; no unique index or foreign key includes the key; the field-policy census passes (red: 42883)", async () => {
       for (const fn of FUNCTIONS)
         for (const role of ["anon", "authenticated", "service_role"])
@@ -875,347 +829,5 @@ describe.skipIf(!ADMIN_URL)(
         ),
       );
     });
-  },
-);
-
-describe.skipIf(!ADMIN_URL)(
-  "AL-2678 WP5 part 2-r3, the ruler's interleaving on two connections",
-  () => {
-    const T = randomUUID();
-    const P = randomUUID();
-    const R = randomUUID();
-    const M = randomUUID();
-    const admin = new pg.Client({ connectionString: ADMIN_URL });
-    const c1 = new pg.Client({ connectionString: ADMIN_URL });
-    const c2 = new pg.Client({ connectionString: ADMIN_URL });
-
-    beforeAll(async () => {
-      for (const client of [admin, c1, c2]) await client.connect();
-      await admin.query("begin");
-      await admin.query(
-        "insert into public.tenants (id, name, slug) values ($1::uuid, 'acc2678r3 C', 'acc2678r3-' || $1::text)",
-        [T],
-      );
-      await admin.query(
-        "insert into public.legal_entities (id, tenant_id, name, country_code, currency, legal_name) values ($1, $1, 'C', 'US', 'usd', 'C')",
-        [T],
-      );
-      await admin.query(
-        `insert into auth.users (id, email, email_confirmed_at) select u, 'acc2678r3-c-' || u || '@example.test', now() from unnest($1::uuid[]) u`,
-        [[P, R]],
-      );
-      await admin.query(
-        "delete from authz.memberships where user_id = any($1::uuid[])",
-        [[P, R]],
-      );
-      await admin.query(
-        "insert into public.parties (id, tenant_id, display_name) values ($1, $2, 'Worker C')",
-        [M, T],
-      );
-      await admin.query(
-        "insert into public.missionaries (id, tenant_id, party_id, profile_id, legal_entity_id) values ($1, $2, $1, $3, $2)",
-        [M, T, P],
-      );
-      await admin.query("commit");
-    });
-
-    afterAll(async () => {
-      const failures: string[] = [];
-      for (const client of [c1, c2])
-        try {
-          await client.query("rollback");
-        } catch (e) {
-          failures.push(String(e));
-        }
-      for (const [sql, params] of [
-        ["delete from public.audit_logs where tenant_id = $1", [T]],
-        ["delete from public.posts where tenant_id = $1", [T]],
-        ["delete from public.missionaries where tenant_id = $1", [T]],
-        ["delete from public.parties where tenant_id = $1", [T]],
-        ["delete from public.legal_entities where tenant_id = $1", [T]],
-        [
-          "delete from authz.memberships where tenant_id = $1 or user_id = any($2::uuid[])",
-          [T, [P, R]],
-        ],
-        ["delete from public.tenants where id = $1", [T]],
-        ["delete from auth.users where id = any($1::uuid[])", [[P, R]]],
-      ] as const)
-        try {
-          await admin.query(sql, [...params]);
-        } catch (e) {
-          failures.push(`${sql}: ${String(e)}`);
-        }
-      for (const client of [admin, c1, c2]) await client.end();
-      expect(failures, "the interleaving fixture's cleanup").toEqual([]);
-    });
-
-    it("8. C1 writes a post for (TC, P) and holds it; C2, as owner, re-links MC to R and commits without waiting; C1 commits a key that no longer names P's sole worker. The count shows it invalid, the repair returns that one change (to NULL), then nothing (red: 42703)", async () => {
-      await c2.query("set lock_timeout = '2s'");
-      await c1.query("begin");
-      const created = await c1.query(
-        "select public.atomic_create_post_with_audit(p_tenant_id => $1, p_missionary_id => $2, p_content => 'acc2678r3 interleaved') as r",
-        [T, P],
-      );
-      const post = created.rows[0].r.post_id as string;
-      expect(
-        (
-          await c1.query(
-            "select ministry_assignment_id as a from public.posts where id = $1",
-            [post],
-          )
-        ).rows[0].a,
-      ).toBe(M);
-      const before = await readReport(admin);
-      await c2.query("begin");
-      await c2.query(
-        "update public.missionaries set profile_id = $2 where id = $1",
-        [M, R],
-      );
-      await c2.query("commit");
-      await c1.query("commit");
-      expect(delta(await readReport(admin), before, "posts")).toMatchObject({
-        total: 1,
-        invalid: 1,
-        valid: 0,
-      });
-      expect(
-        (
-          await admin.query(
-            "select * from private.repair_ministry_assignment_ids()",
-          )
-        ).rows,
-      ).toEqual([
-        {
-          table_name: "posts",
-          row_id: post,
-          tenant_id: T,
-          old_assignment_id: M,
-          new_assignment_id: null,
-        },
-      ]);
-      expect(
-        (
-          await admin.query(
-            "select * from private.repair_ministry_assignment_ids()",
-          )
-        ).rows,
-      ).toEqual([]);
-    });
-  },
-);
-
-describe.skipIf(!ADMIN_URL)(
-  "AL-2678 WP5 part 2-r3, the migration on a scratch database: twice, the committed check and the Down",
-  () => {
-    const name = `acc2678r3_${randomUUID().replaceAll("-", "")}`;
-    const admin = new pg.Client({ connectionString: ADMIN_URL });
-    let db: pg.Client;
-    let url = "";
-    let created = false;
-    let file = "";
-    const psql = (target: string) =>
-      spawnSync(
-        process.env.PSQL_BIN?.trim() || "psql",
-        [
-          url,
-          "-X",
-          "-q",
-          "-v",
-          "ON_ERROR_STOP=1",
-          ...(target.endsWith("/20260214090000_foundation_1_schema.sql")
-            ? ["--single-transaction"]
-            : []),
-          "-f",
-          target,
-        ],
-        { encoding: "utf8", timeout: 120_000 },
-      );
-    const definitions = async () =>
-      (
-        await db.query(
-          `select p.oid::regprocedure::text as fn, pg_get_functiondef(p.oid) as def, p.proacl::text as acl,
-                  obj_description(p.oid, 'pg_proc') as comment, p.proowner::regrole::text as owner
-             from pg_proc p where p.oid = any(array['public.missionary_owned_tasks(uuid,uuid,uuid)',
-               'public.missionary_task_write(uuid,uuid,uuid,text,uuid,jsonb)', 'public.search_crm_donors(uuid,text)']::regprocedure[])
-            order by 1`,
-        )
-      ).rows;
-    const committed = async () =>
-      (await db.query(COMMITTED)).rows[0].committed as boolean;
-    const policies = async () =>
-      (
-        await db.query(
-          `select count(*) filter (where p.record_type = 'donors' and p.field_key = 'ministry_assignment_id')::int as key_rows,
-                  count(*)::int as total,
-                  md5(string_agg(p::text, E'\\n' order by p::text)) as digest
-             from public.field_policies p`,
-        )
-      ).rows[0] as { key_rows: number; total: number; digest: string };
-
-    beforeAll(async () => {
-      file = migration(SUFFIX);
-      const version = path.basename(file).slice(0, 14);
-      const target = new URL(ADMIN_URL);
-      target.pathname = `/${name}`;
-      url = target.toString();
-      await admin.connect();
-      await admin.query(`create database ${name} template template0`);
-      created = true;
-      for (const step of [
-        "scripts/sql/supabase-compat-bootstrap.sql",
-        ...readdirSync(MIG)
-          .filter((f) => /^\d{14}_.+\.sql$/.test(f) && f.slice(0, 14) < version)
-          .sort()
-          .map((f) => `${MIG}/${f}`),
-      ]) {
-        const run = psql(step);
-        expect(run.status, `replay stopped at ${step}: ${run.stderr}`).toBe(0);
-      }
-      db = new pg.Client({ connectionString: url });
-      await db.connect();
-    }, 900_000);
-
-    afterAll(async () => {
-      try {
-        await db?.end();
-      } finally {
-        try {
-          if (created) await admin.query(`drop database ${name} with (force)`);
-        } finally {
-          await admin.end();
-        }
-      }
-    });
-
-    it("10. the committed check is false before the file and true after; a second run stops at its first ADD COLUMN (42701) and changes nothing; the Down, in the header's order, restores the task functions and search_crm_donors byte for byte, removes the key's five field-policy rows (which the schema fingerprint does not see) so the table's contents are the base's again, and the catalog gate passes but for service_role's table privileges and CREATE on authz, which 20261126190000, later in the chain than this scratch database, closes (D-18, issue 2841: the gate holds service_role since then; D-18, AL-2675: and the super-admin branches, bare staff reads and field_policies_read pin, which 20261127040000, later in the chain, closes; D-18, AL-2681 PR 2a: and the anonymous checkout config read, which 20261127050200 creates later still, the allowlist naming it)", async () => {
-      const sources = await definitions();
-      const base = captureFingerprint({ databaseUrl: url });
-      const basePolicies = await policies();
-      expect(basePolicies.key_rows, "no key rows before the file").toBe(0);
-      expect(await committed(), "before the file").toBe(false);
-
-      const first = psql(file);
-      expect(first.status, first.stderr).toBe(0);
-      expect(await committed(), "after the file").toBe(true);
-      const applied = captureFingerprint({ databaseUrl: url });
-      expect(await policies()).toMatchObject({
-        key_rows: 5,
-        total: basePolicies.total + 5,
-      });
-
-      const again = await db.query(readFileSync(file, "utf8")).then(
-        () => null,
-        (e: { code?: string; message?: string }) => e,
-      );
-      await db.query("rollback");
-      expect(again).toMatchObject({
-        code: "42701",
-        message:
-          'column "ministry_assignment_id" of relation "donors" already exists',
-      });
-      expect(
-        diffFingerprints(applied, captureFingerprint({ databaseUrl: url })),
-      ).toMatchObject({ equal: true });
-
-      await db.query(downSql(file));
-      expect(await committed(), "after the Down").toBe(false);
-      expect(await definitions()).toEqual(sources);
-      expect(await policies(), "field_policies after the Down").toEqual(
-        basePolicies,
-      );
-      expect(
-        diffFingerprints(base, captureFingerprint({ databaseUrl: url })),
-      ).toMatchObject({
-        equal: true,
-        missing: [],
-        unexpected: [],
-        changed: [],
-      });
-      const gate = spawnSync(
-        process.execPath,
-        [
-          "--input-type=module",
-          "-e",
-          `const m = await import(${JSON.stringify(pathToFileURL(path.resolve("scripts/verify/tenant-rls-catalog.mjs")).href)});
-console.log(JSON.stringify(await m.runTenantRlsCatalogGate({ databaseUrl: process.env.ACC_URL, psqlBin: process.env.PSQL_BIN?.trim() || "psql" })));`,
-        ],
-        {
-          encoding: "utf8",
-          env: { ...process.env, ACC_URL: url },
-          timeout: 120_000,
-        },
-      );
-      const verdict = JSON.parse(
-        gate.stdout.trim().split("\n").pop() || "{}",
-      ) as {
-        ok?: boolean;
-        failures?: { code: string; table?: string; detail?: string }[];
-      };
-      expect(verdict.failures, gate.stderr).toBeInstanceOf(Array);
-      const noSuperAdminBody = readFileSync(
-        migration("_wp2c_rest_no_super_admin"),
-        "utf8",
-      )
-        .split("\n")
-        .filter((line) => !/^\s*--/.test(line))
-        .join("\n");
-      const alteredByWp2cB = new Set(
-        [
-          ...noSuperAdminBody.matchAll(
-            /^ALTER POLICY "([^"]+)" ON public\.([a-z_]+)$/gm,
-          ),
-        ].map((m) => `${m[2]}|${m[1]}`),
-      );
-      expect(alteredByWp2cB.size).toBe(62);
-      const isAltered = (f: { table?: string; detail?: string }) => {
-        const policy = /^policy "([^"]+)"/.exec(f.detail ?? "")?.[1];
-        return (
-          policy !== undefined && alteredByWp2cB.has(`${f.table}|${policy}`)
-        );
-      };
-      const later = (f: {
-        code: string;
-        table?: string;
-        detail?: string;
-        function?: string;
-      }) =>
-        f.code === "SERVICE_ROLE_UNSAFE_PRIVILEGE" ||
-        (f.code === "SERVICE_ROLE_SCHEMA_CREATE" && f.table === "authz") ||
-        (f.code === "ANON_ALLOWLIST_STALE" &&
-          f.function ===
-            "public.checkout_giving_config(p_host text, p_targets jsonb)") ||
-        ((f.code === "POLICY_SUPER_ADMIN_BRANCH" ||
-          f.code === "TENANT_CONDITION_MISSING" ||
-          f.code === "STAFF_READ_ON_BARE_STAFF_CHECK") &&
-          isAltered(f)) ||
-        (f.code === "POLICY_EXCEPTION_CHANGED" &&
-          f.table === "field_policies" &&
-          /^policy "field_policies_read"/.test(f.detail ?? ""));
-      expect(
-        later({
-          code: "TENANT_CONDITION_MISSING",
-          table: "donations",
-          detail: 'policy "planted" (SELECT) admits a row without tenant',
-        }),
-      ).toBe(false);
-      expect(
-        later({
-          code: "STAFF_READ_ON_BARE_STAFF_CHECK",
-          table: "profiles",
-          detail: 'policy "planted" admits staff',
-        }),
-      ).toBe(false);
-      expect(
-        later({
-          code: "POLICY_EXCEPTION_CHANGED",
-          table: "field_policies",
-          detail: 'policy "planted" differs',
-        }),
-      ).toBe(false);
-      expect(
-        verdict.failures!.filter((f) => !later(f)),
-        gate.stderr,
-      ).toEqual([]);
-    }, 300_000);
   },
 );

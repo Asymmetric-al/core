@@ -29,6 +29,7 @@ const s = vi.hoisted(() => ({
   methods: [] as string[],
   /** Makes every donations request fail with develop's real PGRST200 body. */
   failDonations: false,
+  failLinks: false,
   intake: vi.fn(() => ({
     donationId: "gift-1",
     outboxId: "outbox-1",
@@ -53,6 +54,16 @@ vi.mock("@asym/database/supabase/admin", () => {
       return Response.json(
         { code: "PGRST200", message, details: null },
         { status: 400 },
+      );
+    }
+    if (s.failLinks && url.pathname.endsWith("/account_links")) {
+      return Response.json(
+        {
+          code: "57014",
+          message: "canceling statement due to statement timeout",
+          details: null,
+        },
+        { status: 500 },
       );
     }
     const rows = s.tables.get(url.pathname.split("/").pop()!) ?? [];
@@ -169,6 +180,7 @@ beforeEach(() => {
   s.requests.length = 0;
   s.methods.length = 0;
   s.failDonations = false;
+  s.failLinks = false;
 });
 /** One intake, no write besides it, and the PostgREST error text never sent. */
 function expectSingleGift(body: string) {
@@ -542,6 +554,60 @@ describe("#2269 C8: a replayed key whose gift is not the caller's request (U)", 
       }
       expect(body).not.toMatch(/gift-1|donor-|profile-|@example/);
       expect(donationsRequest().searchParams.get("tenant_id")).toBe(`eq.${T}`);
+    },
+  );
+});
+
+describe("WP5 rest 2 item zero (e): a failed ownership lookup is an outcome not known, never a key conflict (U)", () => {
+  const claimedGift = () => {
+    s.auth = as("profile-c", "donor");
+    s.tables.set("donations", [donation("gift-1", claimed)]);
+    s.failLinks = true;
+  };
+
+  it.each([false, true])(
+    "REST POST (replayed: %s) by a claimed donor whose lookup fails answers 201 with the read-back-failed shape, the id only when not replayed (red: 409 Idempotency key already used)",
+    async (replayed) => {
+      claimedGift();
+      s.intake.mockReturnValueOnce({
+        donationId: "gift-1",
+        outboxId: "outbox-1",
+        replayed,
+      });
+      const res = await POST(
+        rest("POST", { missionaryId: missionary.id, amount: 2500 }),
+      );
+      const body = await res.text();
+      expect([res.status, JSON.parse(body)]).toEqual([
+        201,
+        replayed
+          ? { donation: null, readBack: "failed" }
+          : { donation: null, donationId: "gift-1", readBack: "failed" },
+      ]);
+      expect(body).not.toMatch(/already used|timeout|57014/);
+      expect(s.saga).toHaveBeenCalledTimes(replayed ? 0 : 1);
+    },
+  );
+
+  it.each([false, true])(
+    "GraphQL createDonation (replayed: %s) by a claimed donor whose lookup fails raises DONATION_READBACK_FAILED, the id only when not replayed (red: IDEMPOTENCY_KEY_REUSED)",
+    async (replayed) => {
+      claimedGift();
+      s.intake.mockReturnValueOnce({
+        donationId: "gift-1",
+        outboxId: "outbox-1",
+        replayed,
+      });
+      const r = await gql(
+        `mutation { createDonation(input: { missionaryId: "${missionary.id}", amount: 2500 }) { id } }`,
+      );
+      expect(r.data).toBeNull();
+      expect(r.errors?.[0]?.extensions).toEqual(
+        replayed
+          ? { code: "DONATION_READBACK_FAILED" }
+          : { code: "DONATION_READBACK_FAILED", donationId: "gift-1" },
+      );
+      expect(JSON.stringify(r)).not.toMatch(/already used|timeout|57014/);
     },
   );
 });

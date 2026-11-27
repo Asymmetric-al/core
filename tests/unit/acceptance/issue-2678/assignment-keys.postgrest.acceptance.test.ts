@@ -186,8 +186,8 @@ describe.skipIf(!required && ![url, database, anon, service].some(Boolean))(
           [ids.MA, ids.MB, ids.MQ1, ids.MQ2, TA, TB, user.P, user.Q],
         );
         await db.query(
-          `insert into public.donors (id, tenant_id, missionary_id, name) values
-             ($1, $5, $7, $10 || ' A'), ($2, $6, $7, $10 || ' B'), ($3, $5, $8, $10 || ' Q'), ($4, $5, $9, $10 || ' R')`,
+          `insert into public.donors (id, tenant_id, party_id, missionary_id, name) values
+             ($1, $5, public.donor_party_for_insert($5, null, $10 || ' A', null), $7, $10 || ' A'), ($2, $6, public.donor_party_for_insert($6, null, $10 || ' B', null), $7, $10 || ' B'), ($3, $5, public.donor_party_for_insert($5, null, $10 || ' Q', null), $8, $10 || ' Q'), ($4, $5, public.donor_party_for_insert($5, null, $10 || ' R', null), $9, $10 || ' R')`,
           [
             ids.DA,
             ids.DB,

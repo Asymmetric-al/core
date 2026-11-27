@@ -488,8 +488,8 @@ describe.skipIf(!url && process.env.MEMBER_CARE_IT_REQUIRED !== "1")(
       );
 
       await db.query(
-        `insert into public.donors (id, tenant_id, name, email)
-         values ($1, $2, $3, $4)`,
+        `insert into public.donors (id, tenant_id, party_id, name, email)
+         values ($1, $2, public.donor_party_for_insert($2, null, $3, $4), $3, $4)`,
         [
           donorA1,
           tenantA,
