@@ -18,6 +18,7 @@ import {
   BYPASS_SECRETS,
   checkDeploymentHealth,
   deployRelease,
+  readLiveCommit,
   readLiveRelease,
   registerJobFunctions,
   runCli,
@@ -418,12 +419,12 @@ describe("with the switch off the production steps read today's addresses", () =
   ];
 
   it.each(OFF)(
-    "plan reads authenticated migration health at each production host (D-18, recovery in either mode, switch %s)",
+    "plan reads /api/health at each production host (switch %s)",
     async (_label, switchEnv) => {
       const request = vi.fn(
         async (_input: URL | RequestInfo, _init?: RequestInit) =>
           new Response(
-            JSON.stringify({ release: { commit: sha }, status: "ok" }),
+            JSON.stringify({ observability: { release: { commit: sha } } }),
             { status: 200 },
           ),
       );
@@ -432,9 +433,9 @@ describe("with the switch off the production steps read today's addresses", () =
         listChangedFiles: () => [],
       });
       expect(request.mock.calls.map(([input]) => String(input))).toEqual([
-        "https://admin.asymmetric.al/api/health/migrations",
-        "https://donor.asymmetric.al/api/health/migrations",
-        "https://missionary.asymmetric.al/api/health/migrations",
+        "https://admin.asymmetric.al/api/health",
+        "https://donor.asymmetric.al/api/health",
+        "https://missionary.asymmetric.al/api/health",
       ]);
     },
   );
@@ -522,6 +523,38 @@ describe("each caller puts the prefix it is given between the host and the path"
     });
     expect(urlsOf(request)).toEqual([
       "https://admin.asymmetric.al/admin/api/health/migrations",
+    ]);
+  });
+
+  it("readLiveCommit reads <host><prefix>/api/health, and a miss there is only 'live commit unknown'", async () => {
+    const answered = vi.fn(
+      async (_input: URL | RequestInfo, _init?: RequestInit) =>
+        new Response(
+          JSON.stringify({ observability: { release: { commit: sha } } }),
+          { status: 200 },
+        ),
+    );
+    await expect(
+      readLiveCommit({
+        app: "admin",
+        pathPrefix: "/admin",
+        request: asFetch(answered),
+      }),
+    ).resolves.toBe(sha);
+    expect(answered.mock.calls.map(([input]) => String(input))).toEqual([
+      "https://admin.asymmetric.al/admin/api/health",
+    ]);
+
+    const missed = answersAt({});
+    await expect(
+      readLiveCommit({
+        app: "missionary",
+        pathPrefix: "/missionary",
+        request: asFetch(missed),
+      }),
+    ).resolves.toBeNull();
+    expect(urlsOf(missed)).toEqual([
+      "https://missionary.asymmetric.al/missionary/api/health",
     ]);
   });
 

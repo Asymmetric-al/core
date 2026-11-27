@@ -322,14 +322,14 @@ describe("release job: Vercel steps", () => {
     expect(withFalse).toEqual(withoutFlag);
   });
 
-  it("plan CLI reads RELEASE_APPS_MODE=all and writes all three apps to GITHUB_OUTPUT and records the live deployment state", async () => {
+  it("plan CLI reads RELEASE_APPS_MODE=all and writes all three apps to GITHUB_OUTPUT without reading live commits", async () => {
     const dir = mkdtempSync(path.join(os.tmpdir(), "vercel-release-plan-"));
     try {
       const outputFile = path.join(dir, "github-output");
       const logs: string[] = [];
       const request = vi.fn(async () => ({
         status: 200,
-        json: async () => ({ status: "ok", release: { commit: sha } }),
+        json: async () => ({ observability: { release: { commit: sha } } }),
       }));
       await runCli(
         ["plan"],
@@ -344,14 +344,14 @@ describe("release job: Vercel steps", () => {
           listChangedFiles: () => [],
         },
       );
-      expect(request).toHaveBeenCalledTimes(3);
+      expect(request).not.toHaveBeenCalled();
       expect(readFileSync(outputFile, "utf8")).toBe(
         "apps=admin,donor,missionary\n",
       );
       expect(logs).toEqual([
-        "admin: build - release input requested all apps [deploymentId=unreported serveUnderPaths=absent]",
-        "donor: build - release input requested all apps [deploymentId=unreported serveUnderPaths=absent]",
-        "missionary: build - release input requested all apps [deploymentId=unreported serveUnderPaths=absent]",
+        "admin: build - release input requested all apps",
+        "donor: build - release input requested all apps",
+        "missionary: build - release input requested all apps",
       ]);
 
       const subOut = path.join(dir, "sub-output");
@@ -378,13 +378,13 @@ describe("release job: Vercel steps", () => {
         "apps=admin,donor,missionary\n",
       );
       expect(result.stdout).toContain(
-        "admin: build - release input requested all apps [deploymentId=unreported serveUnderPaths=unreadable]",
+        "admin: build - release input requested all apps",
       );
       expect(result.stdout).toContain(
-        "donor: build - release input requested all apps [deploymentId=unreported serveUnderPaths=unreadable]",
+        "donor: build - release input requested all apps",
       );
       expect(result.stdout).toContain(
-        "missionary: build - release input requested all apps [deploymentId=unreported serveUnderPaths=unreadable]",
+        "missionary: build - release input requested all apps",
       );
     } finally {
       rmSync(dir, { recursive: true, force: true });
@@ -412,8 +412,7 @@ describe("release job: Vercel steps", () => {
           return {
             status: 200,
             json: async () => ({
-              status: "ok",
-              release: { commit: liveByHost[host] },
+              observability: { release: { commit: liveByHost[host] } },
             }),
           } as Response;
         });
@@ -431,9 +430,9 @@ describe("release job: Vercel steps", () => {
         });
         expect(readFileSync(outputFile, "utf8")).toBe("apps=admin\n");
         expect(logs).toEqual([
-          "admin: build - changed app file: apps/admin/app/page.tsx [deploymentId=unreported serveUnderPaths=absent]",
-          "donor: skip - already serving this commit [deploymentId=unreported serveUnderPaths=absent]",
-          "missionary: skip - changed files do not affect this Vercel app [deploymentId=unreported serveUnderPaths=absent]",
+          "admin: build - changed app file: apps/admin/app/page.tsx",
+          "donor: skip - already serving this commit",
+          "missionary: skip - changed files do not affect this Vercel app",
         ]);
       } finally {
         rmSync(dir, { recursive: true, force: true });
@@ -610,8 +609,7 @@ describe("release job: Vercel steps", () => {
         return {
           status: 200,
           json: async () => ({
-            status: "ok",
-            release: { commit: liveByHost[host] },
+            observability: { release: { commit: liveByHost[host] } },
           }),
         } as Response;
       });
@@ -631,9 +629,9 @@ describe("release job: Vercel steps", () => {
         "apps=admin,donor,missionary\n",
       );
       expect(logs).toEqual([
-        "admin: build - could not read git diff from live commit [deploymentId=unreported serveUnderPaths=absent]",
-        "donor: build - live commit is not an ancestor [deploymentId=unreported serveUnderPaths=absent]",
-        "missionary: build - could not read git diff from live commit [deploymentId=unreported serveUnderPaths=absent]",
+        "admin: build - could not read git diff from live commit",
+        "donor: build - live commit is not an ancestor",
+        "missionary: build - could not read git diff from live commit",
       ]);
     } finally {
       rmSync(dir, { recursive: true, force: true });
