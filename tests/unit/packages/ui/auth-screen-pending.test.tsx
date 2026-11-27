@@ -5,6 +5,7 @@ import {
   fireEvent,
   render,
   screen,
+  waitFor,
 } from "@testing-library/react";
 import { AuthApiError } from "@supabase/supabase-js";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
@@ -73,6 +74,21 @@ afterEach(() => {
 });
 
 describe("auth form pending submissions", () => {
+  it("marks the shared browser when registration immediately establishes a session", async () => {
+    vi.stubEnv("CORE_SERVE_UNDER_PATHS", "1");
+    try {
+      auth.signUp.mockResolvedValueOnce({ data: { session: {} }, error: null });
+      renderRegistration();
+      fireEvent.click(screen.getByRole("button", { name: "Create account" }));
+      await waitFor(() =>
+        expect(document.cookie).toContain("asym_clipboard_reset=1"),
+      );
+    } finally {
+      document.cookie = "asym_clipboard_reset=; Path=/; Max-Age=0";
+      vi.unstubAllEnvs();
+    }
+  });
+
   it("locks login with a natively disabled submit button and unlocks after failure", async () => {
     const pending = deferred<{ error: { message: string } }>();
     auth.signInWithPassword.mockReturnValueOnce(pending.promise);
