@@ -1253,6 +1253,65 @@ describe.skipIf(!ADMIN_URL)(
       });
     });
 
+    describe("reserved public page addresses", () => {
+      it.each([
+        "admin",
+        "/admin",
+        "Admin/x",
+        "api/x",
+        "login",
+        "workers",
+        "donate",
+        "give/monthly",
+        "lang/en",
+      ])(
+        "refuses %s on create, update and historical version restore at the slug field",
+        async (slug) => {
+          const page = await s.page(A, siteA.id);
+          const version = await s.admin.query(
+            "update cms._pages_v set version_slug = $1 where parent_id = $2 returning id",
+            [slug, page.id],
+          );
+          const refused = { ok: false, status: 400, paths: ["slug"] };
+          expect
+            .soft(await s.settle(s.page(A, siteA.id, { slug })))
+            .toMatchObject(refused);
+          expect
+            .soft(
+              await s.settle(
+                s.payload.update(
+                  asA({
+                    collection: "pages",
+                    draft: true,
+                    id: page.id,
+                    data: { slug },
+                  }),
+                ),
+              ),
+            )
+            .toMatchObject(refused);
+          expect(
+            await s.settle(
+              s.payload.restoreVersion(
+                asA({
+                  collection: "pages",
+                  draft: true,
+                  id: version.rows[0].id,
+                }),
+              ),
+            ),
+          ).toMatchObject(refused);
+        },
+      );
+
+      it.each(["about-us", "administration", "admins"])(
+        "accepts the ordinary slug %s",
+        async (slug) => {
+          expect((await s.page(A, siteA.id, { slug })).slug).toBe(slug);
+        },
+      );
+    });
+
     describe("F7 (fix round): a person changes no page's published state; only the service port does", () => {
       const published = async () => {
         const live = await s.page(A, siteA.id, { title: "Live title" });
