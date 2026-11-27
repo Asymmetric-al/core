@@ -205,7 +205,7 @@ describe("on: a reserved first segment no donor route serves answers 404 before 
     for (const [path, origin] of [
       ["/admin/x", "http://localhost:25161/admin/x"],
       ["/missionary/x", "http://localhost:25162/missionary/x"],
-    ]) {
+    ] as const) {
       const response = await donorModule.proxy(donorRequest(HOME_A, path));
       expect(response.headers.get("x-middleware-rewrite"), path).toBe(origin);
     }
