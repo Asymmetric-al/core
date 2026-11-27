@@ -17,7 +17,10 @@ import { fileURLToPath } from "node:url";
 
 import { APPS, resolveBuildDecision } from "../vercel/should-ignore-build.mjs";
 import { EXPECTED_PROJECTS } from "../verify/vercel-build-controls.mjs";
-import { deploymentPathPrefix } from "./serve-under-paths.mjs";
+import {
+  deploymentPathPrefix,
+  resolveServeUnderPaths,
+} from "./serve-under-paths.mjs";
 
 export const TEAM = "team_YrLB8jJARcRH0jnF1HPpPGTB";
 export const REPOSITORY_ID = "1132484374";
@@ -52,6 +55,7 @@ export class ReleaseStop extends Error {
     super(message);
     this.fatal = options?.fatal ?? false;
     this.seenId = options?.seenId ?? null;
+    this.providerRejected = options?.providerRejected ?? false;
   }
 }
 const stop = (message, options) => {
@@ -103,6 +107,7 @@ export function createVercelClient({ token, request = fetch }) {
         : "unknown";
       stop(
         `Vercel API ${method} failed (HTTP ${status}); provider details withheld.`,
+        { providerRejected: true },
       );
     }
     try {
@@ -335,6 +340,7 @@ export async function checkDeploymentHealth({
   deploymentId,
   phase = "staged",
   pathPrefix = "",
+  serveUnderPaths = false,
   request = fetch,
   sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms)),
   attempts = 6,
@@ -426,6 +432,12 @@ export async function checkDeploymentHealth({
           { fatal: true, seenId },
         );
       }
+      if (body.release.serveUnderPaths !== serveUnderPaths) {
+        stop(
+          `The deployment did not report the release's serveUnderPaths=${serveUnderPaths}${suffix}`,
+          { fatal: true, seenId },
+        );
+      }
       return body;
     }
     last = `HTTP ${response.status}, status ${status ?? "unknown"}${body?.error?.code ? ` (${body.error.code})` : ""}`;
@@ -451,24 +463,43 @@ export async function promoteDeployment({ call, app, deploymentId }) {
   );
 }
 
-/** Reads the commit an app's production domain serves, from /api/health. */
-export async function readLiveCommit({
+/** Reads only the protected migration-health metadata from the project's own origin. */
+export async function readLiveRelease({
   app,
   request = fetch,
   pathPrefix = "",
+  bypassSecret = undefined,
 }) {
   try {
     const response = await request(
-      `https://${PRODUCTION_HOSTS[app]}${pathPrefix}/api/health`,
+      `https://${PRODUCTION_HOSTS[app]}${pathPrefix}${MIGRATION_HEALTH_PATH}`,
       {
         redirect: "error",
         cache: "no-store",
         signal: AbortSignal.timeout(15_000),
+        headers: bypassSecret
+          ? { "x-vercel-protection-bypass": bypassSecret }
+          : {},
       },
     );
+    if (response.status !== 200) return null;
     const body = await response.json();
-    const commit = body?.observability?.release?.commit;
-    return SHA.test(commit ?? "") ? commit : null;
+    if (
+      body?.status !== "ok" ||
+      !body.release ||
+      typeof body.release !== "object"
+    )
+      return null;
+    const { commit, deploymentId, serveUnderPaths } = body.release;
+    if (serveUnderPaths !== undefined && typeof serveUnderPaths !== "boolean")
+      return null;
+    return {
+      commit: SHA.test(commit ?? "") ? commit : null,
+      deploymentId: /^dpl_[A-Za-z0-9]+$/.test(deploymentId ?? "")
+        ? deploymentId
+        : null,
+      serveUnderPaths,
+    };
   } catch {
     return null;
   }
@@ -486,6 +517,7 @@ export async function verifyLive({
   deploymentId,
   bypassSecret,
   pathPrefix = "",
+  serveUnderPaths = false,
   request = fetch,
   sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms)),
   attempts = 18,
@@ -505,6 +537,7 @@ export async function verifyLive({
         projectRef,
         deploymentId,
         phase: "live",
+        serveUnderPaths,
         pathPrefix,
         request,
         sleep,
@@ -532,12 +565,10 @@ export async function verifyLive({
 }
 
 /**
- * The whole deployment phase: stage every app the release builds, check every
- * staged deployment, and only then promote them and confirm each production
- * domain. A failed build or health check promotes nothing. Promotion itself
- * is one API call per app, one after the other, so it is not all or nothing:
- * if a later promotion fails, the apps serve different commits until the
- * recovery in docs/ops/release-job.md ("If a promotion fails part way").
+ * Check every staged deployment's built state before promoting any. The donor
+ * goes first when enabling paths and last when disabling them. A failed call
+ * stops promotion and live verification. Dispatching anew reconciles all
+ * projects whose live states disagree with the release.
  */
 export async function deployRelease({
   apps,
@@ -556,6 +587,7 @@ export async function deployRelease({
   if (!PROJECT_REF.test(projectRef ?? "")) {
     stop("RELEASE_SUPABASE_PROJECT_REF is not a valid Supabase project ref.");
   }
+  const serveUnderPaths = resolveServeUnderPaths(env);
   const staged = [];
   for (const app of apps) {
     await assertStagingEnabled({ call, app });
@@ -570,17 +602,43 @@ export async function deployRelease({
       projectRef,
       deploymentId: deployment.id,
       pathPrefix: pathPrefixes[deployment.app],
+      serveUnderPaths,
       request,
       sleep,
     });
     log(`${deployment.app}: migration health check passed.`);
   }
-  for (const deployment of staged) {
-    await promoteDeployment({
-      call,
-      app: deployment.app,
-      deploymentId: deployment.id,
-    });
+  const order = serveUnderPaths
+    ? ["donor", "admin", "missionary"]
+    : ["admin", "missionary", "donor"];
+  const promotions = order.flatMap((app) =>
+    staged.filter((deployment) => deployment.app === app),
+  );
+  for (const [index, deployment] of promotions.entries()) {
+    try {
+      await promoteDeployment({
+        call,
+        app: deployment.app,
+        deploymentId: deployment.id,
+      });
+    } catch (error) {
+      const outcome =
+        error instanceof ReleaseStop && error.providerRejected
+          ? "not promoted"
+          : "outcome unknown";
+      const report = [
+        ...promotions
+          .slice(0, index)
+          .map(({ app, id }) => `${app}: promoted ${id}`),
+        `${deployment.app}: ${outcome}`,
+        ...promotions
+          .slice(index + 1)
+          .map(({ app }) => `${app}: not attempted`),
+      ];
+      stop(
+        `promotion stopped part way: ${report.join("; ")}. Dispatch Release anew from production, operation release, the same apps value; plan builds all three if their switch states differ. Do not roll back. See docs/ops/release-job.md, If a promotion fails part way.`,
+      );
+    }
     log(`${deployment.app}: promoted ${deployment.id} without a rebuild.`);
   }
   for (const deployment of staged) {
@@ -591,6 +649,7 @@ export async function deployRelease({
       deploymentId: deployment.id,
       bypassSecret: env[BYPASS_SECRETS[deployment.app]],
       pathPrefix: pathPrefixes[deployment.app],
+      serveUnderPaths,
       request,
       sleep,
     });
@@ -682,22 +741,29 @@ export async function runCli(
   if (step === "plan") {
     const mode = readAppsMode(env);
     const sha = releaseSha(env);
-    const buildAll = mode === "all";
+    const serveUnderPaths = resolveServeUnderPaths(env);
     const pathPrefixes = productionPathPrefixes(Object.keys(APPS), env);
+    const liveStates = {};
     const liveCommits = {};
-    if (!buildAll) {
-      for (const name of Object.keys(APPS)) {
-        liveCommits[name] = await readLiveCommit({
-          app: name,
-          request,
-          pathPrefix: pathPrefixes[name],
-        });
-      }
+    for (const app of Object.keys(APPS)) {
+      const live = await readLiveRelease({
+        app,
+        request,
+        pathPrefix: pathPrefixes[app],
+        bypassSecret: env[BYPASS_SECRETS[app]],
+      });
+      liveStates[app] = live;
+      liveCommits[app] = live?.commit;
     }
+    const reconcile = Object.values(liveStates).some((live) =>
+      serveUnderPaths
+        ? live?.serveUnderPaths !== true || !live.commit
+        : live?.serveUnderPaths === true,
+    );
     const useDefaultGit = !listChangedFiles;
     const plan = selectReleaseApps({
       liveCommits,
-      buildAll,
+      buildAll: mode === "all" || reconcile,
       isAncestor:
         isAncestor ??
         (useDefaultGit ? (live) => isGitAncestor(live, sha) : undefined),
@@ -705,7 +771,14 @@ export async function runCli(
         listChangedFiles ?? ((live) => listGitChangedFiles(live, sha)),
     });
     for (const item of plan) {
-      log(`${item.app}: ${item.build ? "build" : "skip"} - ${item.reason}`);
+      const live = liveStates[item.app];
+      const state = live ? (live.serveUnderPaths ?? "absent") : "unreadable";
+      const reason = reconcile
+        ? "reconcile the three apps to the release switch state"
+        : item.reason;
+      log(
+        `${item.app}: ${item.build ? "build" : "skip"} - ${reason} [deploymentId=${live?.deploymentId ?? "unreported"} serveUnderPaths=${state}]`,
+      );
     }
     output(env, {
       apps: plan
@@ -731,6 +804,7 @@ export async function runCli(
       bypassSecret: env[BYPASS_SECRETS[app]],
       sha: env.RELEASE_SHA?.trim() || undefined,
       projectRef: env.RELEASE_SUPABASE_PROJECT_REF,
+      serveUnderPaths: resolveServeUnderPaths(env),
       pathPrefix,
       request,
       sleep,
