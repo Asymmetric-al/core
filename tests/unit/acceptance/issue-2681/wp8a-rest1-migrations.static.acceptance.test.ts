@@ -101,3 +101,39 @@ describe("AL-2681 WP8a part 2 rest, PR 2a, the confirmation's finding 4: the Dow
     },
   );
 });
+
+function named(suffix: string) {
+  const name = readdirSync(MIGRATIONS).find((n) => n.endsWith(`${suffix}.sql`));
+  if (!name) throw new Error(`no migration ${suffix}`);
+  return readFileSync(join(MIGRATIONS, name), "utf8");
+}
+
+describe("AL-2681 WP8a part 2 rest, PR 2b: its two migrations on a hosted database", () => {
+  it.each(["_wp8a2_rest2b_item_zero", "_wp8a2_rest2b_limit_and_config"])(
+    "%s says in its header that GUEST_GIVING_ENABLED is never turned on in a deployment whose build is older than this pull request, and its Down sets its lock timeout first",
+    (suffix) => {
+      const text = named(suffix);
+      const header = text
+        .slice(0, text.indexOf("\nBEGIN;\n"))
+        .replace(/\n-- /g, " ");
+      expect(header).toContain(
+        "GUEST_GIVING_ENABLED is never turned on in a deployment whose build is older than this pull request",
+      );
+      const steps = down(text)
+        .split("\n")
+        .filter((line) => /^-- {3}\S/.test(line));
+      expect(steps[0]).toBe("--   SET LOCAL lock_timeout = '5s';");
+    },
+  );
+
+  it("the limit's Down restores what the file dropped: the rate token, its table and the two-argument config read", () => {
+    const text = down(named("_wp8a2_rest2b_limit_and_config"));
+    for (const restored of [
+      "private.intake_rate_windows",
+      "public.take_intake_rate_token",
+      "public.checkout_giving_config with its ALTER",
+      "public.checkout_giving_config(p_host text, p_targets jsonb)",
+    ])
+      expect(text).toContain(restored);
+  });
+});

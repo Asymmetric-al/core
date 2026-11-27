@@ -7,7 +7,11 @@ import {
   ADMIN_URL,
   BEGIN_SQL,
   IN_MIGRATE_JOB,
-  admitHosts,
+  blockedBy,
+  launch,
+  pidOf,
+  said,
+  twoSessions,
   begin,
   beginArgs,
   begun,
@@ -16,9 +20,7 @@ import {
   guestContact,
   intakeCounts,
   paymentIntent,
-  removeRest2aTenants,
   report,
-  seedTwoTenants,
   storeEvent,
   verifiedActor,
   work,
@@ -27,28 +29,7 @@ import {
   type Hosts,
 } from "./wp8a-rest2a-harness";
 
-type Answer =
-  | { ok: true; rows: Array<Record<string, unknown>> }
-  | { ok: false; code?: string; message?: string };
-
-function launch(
-  client: pg.Client,
-  sql: string,
-  params: unknown[] = [],
-): Promise<Answer> {
-  return client.query(sql, params).then(
-    (res) => ({ ok: true as const, rows: res.rows }),
-    (e: { code?: string; message?: string }) => ({
-      ok: false as const,
-      code: e.code,
-      message: e.message,
-    }),
-  );
-}
-
-const said = (a: Answer) => (a.ok ? "committed" : `${a.code} ${a.message}`);
-
-const outcomeOf = (a: Answer) =>
+const outcomeOf = (a: Awaited<ReturnType<typeof launch>>) =>
   a.ok ? (a.rows[0]!.r as { outcome: string }).outcome : said(a);
 
 it.runIf(IN_MIGRATE_JOB && !ADMIN_URL)(
@@ -63,50 +44,6 @@ describe.skipIf(!ADMIN_URL)(
     beforeAll(() => db.connect());
     afterAll(() => db.end());
 
-    async function blockedBy(pid: number) {
-      for (let i = 0; i < 100; i += 1) {
-        const blockers = (
-          await db.query("SELECT pg_blocking_pids($1) AS b", [pid])
-        ).rows[0].b as number[];
-        if (blockers.length > 0) return true;
-        await new Promise((r) => setTimeout(r, 50));
-      }
-      return false;
-    }
-
-    const pidOf = async (client: pg.Client) =>
-      (await client.query("SELECT pg_backend_pid() AS p")).rows[0].p as number;
-
-    async function sessions<T>(
-      fn: (
-        s1: pg.Client,
-        s2: pg.Client,
-        fx: Fixture,
-        hosts: Hosts,
-      ) => Promise<T>,
-    ): Promise<T> {
-      const s1 = new pg.Client({ connectionString: ADMIN_URL });
-      const s2 = new pg.Client({ connectionString: ADMIN_URL });
-      const opened: pg.Client[] = [];
-      let fx: Fixture | undefined;
-      try {
-        await s1.connect();
-        opened.push(s1);
-        await s2.connect();
-        opened.push(s2);
-        fx = await seedTwoTenants(db);
-        const hosts = await admitHosts(db, fx.A);
-        return await fn(s1, s2, fx, hosts);
-      } finally {
-        for (const client of opened) {
-          await client.query("ROLLBACK").catch(() => undefined);
-          await client.end().catch(() => undefined);
-        }
-        await db.query("ROLLBACK").catch(() => undefined);
-        if (fx) await removeRest2aTenants(db, fx);
-      }
-    }
-
     describe("a change committed while the command waits on its lock", () => {
       function race(
         change: (fx: Fixture, hosts: Hosts, s1: pg.Client) => Promise<void>,
@@ -115,14 +52,14 @@ describe.skipIf(!ADMIN_URL)(
           lines: [{ fund: fx.A.fund, amount: 1000 }],
         }),
       ) {
-        return sessions(async (s1, s2, fx, hosts) => {
+        return twoSessions(db, ADMIN_URL, async (s1, s2, fx, hosts) => {
           const pid2 = await pidOf(s2);
           await s1.query("BEGIN");
           await change(fx, hosts, s1);
           await s2.query("BEGIN");
           await s2.query("SET LOCAL ROLE service_role");
           const pending = launch(s2, BEGIN_SQL, beginArgs(request(fx, hosts)));
-          const waited = await blockedBy(pid2);
+          const waited = await blockedBy(db, pid2);
           await s1.query("COMMIT");
           const outcome = said(await pending);
           await s2.query("ROLLBACK");
@@ -240,7 +177,7 @@ describe.skipIf(!ADMIN_URL)(
     });
 
     it("two sessions posting one key: the second waits for the first and answers its intake; one intake, one request", () =>
-      sessions(async (s1, s2, fx, hosts) => {
+      twoSessions(db, ADMIN_URL, async (s1, s2, fx, hosts) => {
         const request: GiftRequest = {
           host: hosts.site,
           key: randomUUID(),
@@ -255,7 +192,7 @@ describe.skipIf(!ADMIN_URL)(
         await s2.query("BEGIN");
         await s2.query("SET LOCAL ROLE service_role");
         const second = launch(s2, BEGIN_SQL, beginArgs(request));
-        const waited = await blockedBy(pid2);
+        const waited = await blockedBy(db, pid2);
         await s1.query("COMMIT");
         const answer = await second;
         expect({ waited, answer: said(answer) }).toEqual({
@@ -275,7 +212,7 @@ describe.skipIf(!ADMIN_URL)(
       }));
 
     it("F2: a deferral and an apply that holds the account and then wants the gift end with no deadlock: the deferral waits for the account, then defers", () =>
-      sessions(async (s1, s2, fx, hosts) => {
+      twoSessions(db, ADMIN_URL, async (s1, s2, fx, hosts) => {
         await db.query("BEGIN");
         const r = begun(
           await begin(db, {
@@ -336,7 +273,7 @@ describe.skipIf(!ADMIN_URL)(
           "SELECT public.defer_payment_event($1, $2) AS r",
           [refund.id, refundClaim.attempt],
         );
-        const waited = await blockedBy(pid1);
+        const waited = await blockedBy(db, pid1);
         const gift = await launch(
           s2,
           "SELECT 1 FROM public.donations WHERE id = $1 FOR NO KEY UPDATE",
@@ -352,7 +289,7 @@ describe.skipIf(!ADMIN_URL)(
       }));
 
     it("F5: two reconciliations of one drifted account open one drift task; the second waits and finds it", () =>
-      sessions(async (s1, s2, fx) => {
+      twoSessions(db, ADMIN_URL, async (s1, s2, fx) => {
         const account = (
           await db.query(
             "SELECT id FROM public.payment_provider_accounts WHERE tenant_id = $1 AND livemode = false",
@@ -373,7 +310,7 @@ describe.skipIf(!ADMIN_URL)(
         const first = await launch(s1, sql, [account, closed]);
         await s2.query("BEGIN");
         const second = launch(s2, sql, [account, closed]);
-        const waited = await blockedBy(pid2);
+        const waited = await blockedBy(db, pid2);
         await s1.query("COMMIT");
         const answer = await second;
         await s2.query(answer.ok ? "COMMIT" : "ROLLBACK");

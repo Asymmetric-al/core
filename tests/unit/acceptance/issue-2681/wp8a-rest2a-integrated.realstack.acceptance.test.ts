@@ -5,6 +5,7 @@ import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
 import { runWorker } from "./wp8a-p2r2a-worker";
 import {
+  committedWorld,
   ADMIN_URL,
   HOSTED_SERVICE_GRANTS,
   IN_MIGRATE_JOB,
@@ -341,8 +342,9 @@ describe.skipIf(!ADMIN_URL)(
           await s2.connect();
           opened.push(s2);
           for (const s of opened) await s.query("SET ROLE service_role");
-          fx = await seedTwoTenants(db);
-          const hosts = await admitHosts(db, fx.A);
+          const world = await committedWorld(db);
+          fx = world.fx;
+          const hosts = world.hosts;
           await db.query("BEGIN");
           const r = begun(
             await begin(db, {

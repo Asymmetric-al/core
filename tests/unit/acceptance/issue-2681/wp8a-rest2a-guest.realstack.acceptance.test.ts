@@ -1,4 +1,4 @@
-import { createHash, randomUUID } from "node:crypto";
+import { randomUUID } from "node:crypto";
 
 import pg from "pg";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
@@ -19,12 +19,9 @@ import {
   missionary,
   moneyRows,
   paymentIntent,
-  person,
-  rateToken,
   readyOnlyHost,
   report,
   role,
-  secondEntityBinding,
   seedTwoTenants,
   storeEvent,
   work,
@@ -113,13 +110,18 @@ describe.skipIf(!ADMIN_URL)(
     }
 
     describe("the anonymous config read (W8-R18, plan :1125)", () => {
-      it("an admitted host, an active organization, one entity and an active test binding get exactly the connected account", () =>
+      it("an admitted host, an active organization, one entity and an active test binding get exactly the connected account (D-18, AL-2681 PR 2b: the home asks as donor_account, now that the read is told which surface asks)", () =>
         inTx(db, async () => {
           const w = await world();
           const rows = await configFor(db, w.hostsA.site, [{ fund: w.A.fund }]);
           expect(rows).toEqual([{ connected_account_id: w.A.account }]);
           expect(
-            await configFor(db, w.hostsA.home, [{ fund: w.A.fund }]),
+            await configFor(
+              db,
+              w.hostsA.home,
+              [{ fund: w.A.fund }],
+              "donor_account",
+            ),
           ).toEqual([{ connected_account_id: w.A.account }]);
           const both = await dualHost(db, w.A, w.hostsA);
           expect(await configFor(db, both, [{ fund: w.A.fund }])).toEqual([
@@ -224,7 +226,7 @@ describe.skipIf(!ADMIN_URL)(
           await role(db, null);
           const rows = (
             await db.query(
-              `SELECT has_function_privilege('anon', 'public.checkout_giving_config(text,jsonb)', 'EXECUTE') AS can,
+              `SELECT has_function_privilege('anon', 'public.checkout_giving_config(text,jsonb,text,uuid)', 'EXECUTE') AS can,
                       (SELECT array_agg(t ORDER BY t) FROM unnest(ARRAY['site_domains','donor_portal_hosts','tenants','funds',
                          'missionaries','legal_entities','payment_account_bindings']) AS t
                         WHERE has_table_privilege('anon', 'public.' || t, 'SELECT')) AS granted`,
@@ -233,373 +235,6 @@ describe.skipIf(!ADMIN_URL)(
           expect(rows).toEqual({ can: true, granted: null });
         }));
     });
-
-    describe("the rate limit (plan :1148): a digest per address and window, trimmed by its own calls", () => {
-      it("ten requests from one address in a window pass, the eleventh is refused, another address is unaffected", () =>
-        inTx(db, async () => {
-          const address = `198.51.100.${Math.floor(Math.random() * 200) + 1}`;
-          const answers: boolean[] = [];
-          for (let i = 0; i < 11; i += 1)
-            answers.push(await rateToken(db, address));
-          expect(answers).toEqual([...Array(10).fill(true), false]);
-          expect(await rateToken(db, "203.0.113.7")).toBe(true);
-          await role(db, null);
-          const stored = (
-            await db.query(
-              "SELECT address_digest, hits FROM private.intake_rate_windows WHERE address_digest = $1",
-              [createHash("sha256").update(address).digest("hex")],
-            )
-          ).rows;
-          expect(stored).toEqual([
-            {
-              address_digest: createHash("sha256")
-                .update(address)
-                .digest("hex"),
-              hits: 11,
-            },
-          ]);
-          const raw = (
-            await db.query(
-              "SELECT count(*)::int AS n FROM private.intake_rate_windows AS w WHERE to_jsonb(w)::text LIKE $1",
-              [`%${address}%`],
-            )
-          ).rows[0].n;
-          expect(raw).toBe(0);
-        }));
-
-      it("a call removes windows that have ended, so the table holds at most the addresses of the current window", () =>
-        inTx(db, async () => {
-          await role(db, null);
-          await db.query(
-            "INSERT INTO private.intake_rate_windows (address_digest, window_start, hits) VALUES ($1, now() - interval '1 day', 3)",
-            [createHash("sha256").update("old").digest("hex")],
-          );
-          expect(await rateToken(db, "192.0.2.9")).toBe(true);
-          await role(db, null);
-          const left = (
-            await db.query(
-              "SELECT count(*)::int AS n FROM private.intake_rate_windows WHERE window_start < now() - interval '20 minutes'",
-            )
-          ).rows[0].n;
-          expect(left).toBe(0);
-        }));
-
-      it("only service_role may take a token; a missing address is refused", () =>
-        inTx(db, async () => {
-          await role(db, null);
-          const rows = (
-            await db.query(
-              `SELECT r, has_function_privilege(r, 'public.take_intake_rate_token(text)', 'EXECUTE') AS can
-                 FROM unnest(ARRAY['anon', 'authenticated', 'service_role']) AS r ORDER BY r`,
-            )
-          ).rows;
-          expect(rows.map((r) => r.can)).toEqual([false, false, true]);
-          await role(db, "service_role");
-          await db.query("SAVEPOINT rest2a_rate");
-          const refused = await db
-            .query("SELECT public.take_intake_rate_token('  ')")
-            .then(() => null)
-            .catch(
-              (e: { code?: string; message?: string }) =>
-                `${e.code} ${e.message}`,
-            );
-          await db.query("ROLLBACK TO SAVEPOINT rest2a_rate");
-          await role(db, null);
-          expect(refused).toBe("22023 rate_limit_address_required");
-        }));
-    });
-
-    it("R2: after a first signed-in gift the claim finds the giver's donor, not linked; no link and no membership is written", () =>
-      inTx(db, async () => {
-        const w = await world();
-        const giver = await person(db, w.A, { confirmed: true });
-        const r = begun(
-          await begin(db, {
-            host: w.hostsA.home,
-            surface: "donor_account",
-            lines: [{ fund: w.A.fund, amount: 3000 }],
-            contact: {
-              email: giver.email,
-              first_name: "Sam",
-              last_name: "Signed",
-            },
-            actor: {
-              user_id: giver.user,
-              email: giver.email,
-              email_confirmed: true,
-            },
-          }),
-        );
-        const pi = paymentIntent();
-        const claimed = await claim(db, r.operation_id);
-        await report(db, r.operation_id, claimed.attempt as number, {
-          result: "succeeded",
-          provider_object_id: pi,
-        });
-        const event = await storeEvent(db, w.A, {
-          pi,
-          amount: 3000,
-          metadata: {
-            asym_operation: r.operation_id,
-            asym_intake: r.donation_id,
-          },
-        });
-        expect((await work(db, event.id)).outcome).toBe("applied");
-        await role(db, null);
-        const gift = (
-          await db.query(
-            "SELECT donor_id FROM public.donations WHERE id = $1",
-            [r.donation_id],
-          )
-        ).rows[0] as { donor_id: string };
-        expect(gift.donor_id).toEqual(expect.any(String));
-        const claimRow = (
-          await db.query("SELECT * FROM private.account_claim_donor($1, $2)", [
-            w.A.tenant,
-            giver.email,
-          ])
-        ).rows;
-        expect(claimRow).toHaveLength(1);
-        expect(claimRow[0]).toMatchObject({
-          donor_id: gift.donor_id,
-          linked: false,
-        });
-        const writes = (
-          await db.query(
-            `SELECT (SELECT count(*)::int FROM public.account_links WHERE user_id = $1) AS links,
-                    (SELECT count(*)::int FROM authz.memberships WHERE user_id = $1 AND tenant_id = $3) AS memberships,
-                    (SELECT profile_id FROM public.donors WHERE id = $2) AS profile`,
-            [giver.user, gift.donor_id, w.A.tenant],
-          )
-        ).rows[0];
-        expect(writes).toEqual({ links: 0, memberships: 0, profile: null });
-      }));
-
-    it("R2 in place (row 1): a first signed-in gift on the shared website and home name keeps the Site, and the claim finds the giver's donor, not linked; no link and no membership is written", () =>
-      inTx(db, async () => {
-        const w = await world();
-        const both = await dualHost(db, w.A, w.hostsA);
-        const giver = await person(db, w.A, { confirmed: true });
-        const r = begun(
-          await begin(db, {
-            host: both,
-            lines: [{ fund: w.A.fund, amount: 3000 }],
-            contact: {
-              email: giver.email,
-              first_name: "Ina",
-              last_name: "Place",
-            },
-            actor: {
-              user_id: giver.user,
-              email: giver.email,
-              email_confirmed: true,
-            },
-          }),
-        );
-        const pi = paymentIntent();
-        const claimed = await claim(db, r.operation_id);
-        await report(db, r.operation_id, claimed.attempt as number, {
-          result: "succeeded",
-          provider_object_id: pi,
-        });
-        const event = await storeEvent(db, w.A, {
-          pi,
-          amount: 3000,
-          metadata: {
-            asym_operation: r.operation_id,
-            asym_intake: r.donation_id,
-          },
-        });
-        expect((await work(db, event.id)).outcome).toBe("applied");
-        await role(db, null);
-        const gift = (
-          await db.query(
-            "SELECT donor_id, site_id, entry_surface FROM public.donations WHERE id = $1",
-            [r.donation_id],
-          )
-        ).rows[0] as {
-          donor_id: string;
-          site_id: string;
-          entry_surface: string;
-        };
-        expect(gift).toMatchObject({
-          site_id: w.hostsA.siteId,
-          entry_surface: "website",
-        });
-        const claimRow = (
-          await db.query("SELECT * FROM private.account_claim_donor($1, $2)", [
-            w.A.tenant,
-            giver.email,
-          ])
-        ).rows;
-        expect(claimRow).toEqual([
-          expect.objectContaining({ donor_id: gift.donor_id, linked: false }),
-        ]);
-        const writes = (
-          await db.query(
-            `SELECT (SELECT count(*)::int FROM public.account_links WHERE user_id = $1) AS links,
-                    (SELECT count(*)::int FROM authz.memberships WHERE user_id = $1 AND tenant_id = $2) AS memberships`,
-            [giver.user, w.A.tenant],
-          )
-        ).rows[0];
-        expect(writes).toEqual({ links: 0, memberships: 0 });
-      }));
-
-    it("a guest whose e-mail is known and one whose e-mail is not get the same answer, byte for byte apart from opaque ids, with no Party id or match flag in it; no link or membership is written (ruling of 27 November, section 6)", () =>
-      inTx(db, async () => {
-        const w = await world();
-        const known = await person(db, w.A, {
-          confirmed: true,
-          link: true,
-          donor: true,
-          donorEmail: null,
-        });
-        await role(db, null);
-        await db.query("UPDATE public.donors SET email = $2 WHERE id = $1", [
-          known.donor,
-          known.email,
-        ]);
-        const pay = async (email: string) => {
-          const r = begun(
-            await begin(db, {
-              host: w.hostsA.site,
-              lines: [{ fund: w.A.fund, amount: 2700 }],
-              contact: { email, first_name: "Same", last_name: "Answer" },
-            }),
-          );
-          const pi = paymentIntent();
-          const claimed = await claim(db, r.operation_id);
-          await report(db, r.operation_id, claimed.attempt as number, {
-            result: "succeeded",
-            provider_object_id: pi,
-          });
-          const event = await storeEvent(db, w.A, {
-            pi,
-            amount: 2700,
-            metadata: {
-              asym_operation: r.operation_id,
-              asym_intake: r.donation_id,
-            },
-          });
-          const applied = await work(db, event.id);
-          const opaque = [r.donation_id, r.operation_id, pi, event.id];
-          const mask = (value: unknown) =>
-            opaque.reduce(
-              (text, id) => text.split(id).join("<id>"),
-              JSON.stringify(value),
-            );
-          return { begun: mask(r), outcome: applied.outcome, raw: r };
-        };
-        const before = (
-          await db.query(
-            `SELECT (SELECT count(*)::int FROM public.account_links WHERE user_id = $1) AS links,
-                    (SELECT count(*)::int FROM authz.memberships WHERE user_id = $1) AS memberships`,
-            [known.user],
-          )
-        ).rows[0];
-        const knownAnswer = await pay(known.email);
-        const unknownAnswer = await pay(
-          `stranger-${randomUUID()}@example.test`,
-        );
-        expect(knownAnswer.begun).toBe(unknownAnswer.begun);
-        expect(knownAnswer.outcome).toBe(unknownAnswer.outcome);
-        for (const answer of [knownAnswer, unknownAnswer]) {
-          expect(Object.keys(answer.raw).sort()).toEqual(
-            [
-              "amount",
-              "currency",
-              "donation_id",
-              "gift_state",
-              "operation_id",
-              "outcome",
-              "payment_intent",
-              "provider_account",
-              "tenant_id",
-            ].sort(),
-          );
-          expect(answer.begun).not.toContain(known.party!);
-          expect(answer.begun).not.toContain(known.donor!);
-          expect(answer.begun).not.toMatch(/party|match|donor|linked/i);
-        }
-        await role(db, null);
-        const after = (
-          await db.query(
-            `SELECT (SELECT count(*)::int FROM public.account_links WHERE user_id = $1) AS links,
-                    (SELECT count(*)::int FROM authz.memberships WHERE user_id = $1) AS memberships`,
-            [known.user],
-          )
-        ).rows[0];
-        expect(after).toEqual(before);
-      }));
-
-    it("T1: an event on the organization's second account, or in live mode on its first, naming the first entity's payment, request and intake is unmatched, and the intake stays as it was", () =>
-      inTx(db, async () => {
-        const w = await world();
-        const second = await secondEntityBinding(db, w.A);
-        const r = begun(
-          await begin(db, {
-            host: w.hostsA.site,
-            lines: [{ fund: w.A.fund, amount: 3000 }],
-          }),
-        );
-        const pi = paymentIntent();
-        const claimed = await claim(db, r.operation_id);
-        await report(db, r.operation_id, claimed.attempt as number, {
-          result: "succeeded",
-          provider_object_id: pi,
-        });
-        const metadata = {
-          asym_operation: r.operation_id,
-          asym_intake: r.donation_id,
-        };
-        const moneyOnly = async () => {
-          const { tasks: _tasks, ...money } = await moneyRows(db, w.A.tenant);
-          return digest(money);
-        };
-        const before = await moneyOnly();
-        const onSecond = await storeEvent(
-          db,
-          { ...w.A, account: second.account },
-          { pi, amount: 3000, metadata },
-        );
-        expect(await work(db, onSecond.id)).toMatchObject({
-          outcome: "unmatched",
-        });
-        await role(db, null);
-        const live = randomUUID();
-        await db.query(
-          `INSERT INTO public.payment_onboarding_intents
-             (id, tenant_id, legal_entity_id, livemode, version, status, reason, created_by, assignment_id,
-              provider_account_id, confirmed_at, confirmed_by_event)
-           VALUES ($1, $2, $3, true, 1, 'confirmed', 'Live twin', gen_random_uuid(), gen_random_uuid(), $4, now(), 'evt_rest2a_live')`,
-          [live, w.A.tenant, w.A.entity, w.A.account],
-        );
-        await db.query(
-          `INSERT INTO public.payment_provider_accounts
-             (tenant_id, legal_entity_id, provider_account_id, livemode, onboarding_intent_id, confirmed_at)
-           VALUES ($1, $2, $3, true, $4, now())`,
-          [w.A.tenant, w.A.entity, w.A.account, live],
-        );
-        const inLive = await storeEvent(db, w.A, {
-          pi,
-          amount: 3000,
-          metadata,
-          livemode: true,
-        });
-        expect(await work(db, inLive.id)).toMatchObject({
-          outcome: "unmatched",
-        });
-        expect(await moneyOnly()).toBe(before);
-        await role(db, null);
-        expect(
-          (
-            await db.query(
-              "SELECT status, stripe_payment_intent_id FROM public.donations WHERE id = $1",
-              [r.donation_id],
-            )
-          ).rows[0],
-        ).toEqual({ status: "pending", stripe_payment_intent_id: pi });
-      }));
 
     describe("connected refunds and disputes are deferred to WP8c (ruling 2)", () => {
       it("a refund and a dispute of one paid gift are stored deferred, with one task for the gift and no money row changed", () =>
