@@ -4,6 +4,7 @@ import {
   scopeRefusedHeaders,
 } from "@asym/auth/context";
 import { type NextRequest, NextResponse } from "next/server";
+import { z } from "zod";
 
 import { CommentAuthorsReadError, readCommentAuthors } from "./comment-authors";
 import { createRequestSessionClient } from "../shared/request-session-client";
@@ -55,6 +56,29 @@ export async function GET(
   );
 
   const { postId } = await params;
+  if (!z.guid().safeParse(postId).success || !auth.tenantId) {
+    return NextResponse.json({ error: "Post not found" }, { status: 404 });
+  }
+
+  const { data: post, error: postError } = await supabase
+    .from("posts")
+    .select("id")
+    .eq("id", postId)
+    .eq("tenant_id", auth.tenantId)
+    .maybeSingle();
+  if (postError) {
+    console.error(
+      "[posts] reading an update before its comments failed",
+      postError,
+    );
+    return NextResponse.json(
+      { error: "Couldn’t read that update’s comments." },
+      { status: 500 },
+    );
+  }
+  if (!post) {
+    return NextResponse.json({ error: "Post not found" }, { status: 404 });
+  }
 
   // No embed of `profiles`: no foreign key joins `post_comments.user_id` to
   // it, so PostgREST refused the whole read (PGRST200), and other people's
