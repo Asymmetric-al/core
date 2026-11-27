@@ -236,13 +236,13 @@ describe("on: the callback on an operations address", () => {
     expect(fixture.rowReads).toBe(0);
   });
 
-  it("lands a request that carries the name by class, as today (guard)", async () => {
+  it("lands a request that carries the name by class in the class home, at its safe next (N4; guard against the operations landing)", async () => {
     fixture.rows = Q;
     const response = await operationsCallback("/donors", {
       "x-asym-name-tenant": TA,
       "x-asym-role-class": "staff",
     });
-    expect(response.headers.get("location")).toBe("/admin");
+    expect(response.headers.get("location")).toBe("/admin/donors");
   });
 
   it("keeps next on another host, as today (guard)", async () => {
