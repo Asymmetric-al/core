@@ -17,7 +17,7 @@ const redeemAccountClaim =
 const startAccountClaimReason =
   "AL-2678 W5-R5, findings B2, B3 and B5, ruling on B4: a signed-in person with no membership in the tenant starts a donor account claim; the caller is the session's login, the request's x-asym-tenant must name the tenant (42501), the tenant must be active, a platform operator never matches, the confirmed non-deleted Auth email is the only match key, locks run tenant, the caller's memberships, then the Party without waiting (a Party another caller holds is recorded as claim_already_open), then the claim, nothing is linked or granted, and every outcome answers the same at once";
 const redeemAccountClaimReason =
-  "AL-2678 W5-R5, findings B2, B3 and B5, WP5 rest 2 item zero (b): a signed-in person with no membership in the tenant redeems a mailed claim token; the request's x-asym-tenant must name the tenant (42501), the token's SHA-256 under the tenant, the donor writer's lock on (tenant, caller), membership, Party and claim locks is the authority, it is single-use, expires, is bound to the requester and the donor's email at issue, a platform operator, a login without a confirmed address or a login already tied to another Party of the tenant is refused, the link insert cannot raise a unique violation, and every failure answers the same";
+  "AL-2678 W5-R5, findings B2, B3 and B5, WP5 rest 2 item zero (b): a signed-in person with no membership in the tenant redeems a mailed claim token; the request's x-asym-tenant must name the tenant (42501), the token's SHA-256 under the tenant, the donor writer's lock on (tenant, caller), membership, Party and claim locks is the authority, it is single-use, expires, is bound to the requester and the donor's email at issue, a platform operator, a login without a confirmed address or a login already tied to another Party of the tenant is refused, the link insert cannot raise a unique violation, every failure answers the same, and it runs only at READ COMMITTED (25001 before any read; issue 2835, 28 November)";
 export const reviewedPreMembership = Object.freeze({
   [acceptInvitationFunction]: Object.freeze({
     reason: acceptInvitationReason,
@@ -29,7 +29,7 @@ export const reviewedPreMembership = Object.freeze({
   }),
   [redeemAccountClaim]: Object.freeze({
     reason: redeemAccountClaimReason,
-    digest: "2301f4352670a831c860d15f197bfef5faffcab71dc61af8395ac9e3d37c0bed",
+    digest: "ca4da5c9dae4b4b23b21d2c82b008b141d3c887129b579699709904bbf396533",
   }),
 });
 export const preMembershipEntries = Object.freeze([

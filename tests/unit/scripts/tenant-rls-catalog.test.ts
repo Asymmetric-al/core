@@ -130,7 +130,7 @@ const allow = (...fns: string[]) => ({
 });
 
 describe("WP4 command boundaries", () => {
-  it("pins the complete pre-membership list and its independent review (D-18, AL-2678 WP5 rest 2a: the claim redemption's reviewed digest moves with item zero (b) and fix round F4 of pull request 2859, which take the donor writer's lock and offer a linked login's pair to staff)", () => {
+  it("pins the complete pre-membership list and its independent review (D-18, AL-2678 WP5 rest 2a: the claim redemption's reviewed digest moves with item zero (b) and fix round F4 of pull request 2859, which take the donor writer's lock and offer a linked login's pair to staff; WP5 rest 2b: it moves again with issue 2835's first item of 28 November, READ COMMITTED only)", () => {
     expect(preMembershipEntries.map((entry) => entry.function)).toEqual([
       "tenant_guard.accept_membership_invitation(p_selector text, p_verifier text)",
       "tenant_guard.start_account_claim(p_tenant_id uuid)",
@@ -149,7 +149,7 @@ describe("WP4 command boundaries", () => {
       "tenant_guard.start_account_claim(p_tenant_id uuid)":
         "bca3eaeb1cf4059144d502daf37a9050eee2918085fd8494438651d7b064544c",
       "tenant_guard.redeem_account_claim(p_tenant_id uuid, p_token text)":
-        "2301f4352670a831c860d15f197bfef5faffcab71dc61af8395ac9e3d37c0bed",
+        "ca4da5c9dae4b4b23b21d2c82b008b141d3c887129b579699709904bbf396533",
     });
     expect(
       reviewedPreMembership[
