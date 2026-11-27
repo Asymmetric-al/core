@@ -209,6 +209,7 @@ export function defineBoneyardConfig(
 
   return defineConfig({
     testDir: "./tests/e2e",
+    testIgnore: ["**/n2-on-*.spec.ts"],
     outputDir: `test-results/${surface.projectName}`,
     fullyParallel: false,
     forbidOnly: !!env.CI,

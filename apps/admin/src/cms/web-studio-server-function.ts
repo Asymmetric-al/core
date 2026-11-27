@@ -2,6 +2,7 @@ import { headers } from "next/headers";
 
 import {
   WEB_STUDIO_CLAIM_ASSIGNMENT_HEADER,
+  WEB_STUDIO_CLAIM_GENERATION_HEADER,
   WEB_STUDIO_CLAIM_TENANT_HEADER,
   WEB_STUDIO_REFUSAL_MESSAGES,
   webStudioRefusalDigest,
@@ -64,8 +65,13 @@ export function webStudioServerFunctionRefusal(
   if (selection.kind === "none") return "no_selection";
   const tenantId = claims.get(WEB_STUDIO_CLAIM_TENANT_HEADER)?.trim();
   const assignmentId = claims.get(WEB_STUDIO_CLAIM_ASSIGNMENT_HEADER)?.trim();
+  const generationHolds =
+    selection.generation === undefined ||
+    claims.get(WEB_STUDIO_CLAIM_GENERATION_HEADER) ===
+      String(selection.generation);
   return tenantId === selection.tenantId &&
-    assignmentId === selection.assignmentId
+    assignmentId === selection.assignmentId &&
+    generationHolds
     ? null
     : "scope_mismatch";
 }

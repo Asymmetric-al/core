@@ -2,7 +2,7 @@
 
 import {
   TenantLink as Link,
-  useTenantHref,
+  useCopiedLinkHref,
 } from "@asym/auth/tenant-navigation";
 import { withAppBasePath } from "@asym/database/document-reload";
 import { Badge } from "@asym/ui/components/shadcn/badge";
@@ -49,7 +49,7 @@ export function SavedViewsList() {
     agents.find((agent) => agent.id === agentId)?.name;
 
   const confirm = useConfirm();
-  const tenantHref = useTenantHref();
+  const copiedLinkHref = useCopiedLinkHref();
   const handleDelete = async (view: SupportSavedView) => {
     await confirm({
       title: `Delete the ${view.name} view?`,
@@ -75,7 +75,7 @@ export function SavedViewsList() {
     try {
       await navigator.clipboard.writeText(
         savedViewCopyUrl(
-          tenantHref(savedViewHref(view.filter)),
+          copiedLinkHref(savedViewHref(view.filter)),
           window.location.origin,
         ),
       );

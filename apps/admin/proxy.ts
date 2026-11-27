@@ -13,6 +13,7 @@ import { answerAdmittedRedirect } from "@asym/auth/legacy-redirects";
 import { createAuthMiddleware } from "@asym/auth/middleware";
 import { admitOperatorArea } from "@asym/auth/operator-area";
 import { resolveUserRoleFromDatabase } from "@asym/auth/resolve-user-role";
+import { refusesAddressOnName } from "@asym/auth/tenant-address";
 import {
   lookUpVerifiedName,
   verifiedNameUnavailable,
@@ -84,6 +85,9 @@ export async function proxy(request: NextRequest) {
   );
   if (name.kind === "refused") return frontNotFound();
   if (name.kind === "unavailable") return verifiedNameUnavailable();
+  if (refusesAddressOnName(request.nextUrl.pathname, "staff")) {
+    return frontNotFound();
+  }
   const response =
     answerAdmittedRedirect(request, legacyRedirects) ??
     (await authProxy(asStampedRequest(request, admission.origin), {
