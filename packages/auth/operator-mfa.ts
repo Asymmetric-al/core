@@ -45,6 +45,10 @@ export interface OperatorMfaClient {
     };
   };
   rpc(fn: "platform_operator_session"): PromiseLike<Answer<unknown>>;
+  rpc(
+    fn: "platform_eve_history",
+    args: { p_limit: number },
+  ): PromiseLike<Answer<unknown>>;
 }
 
 export const OPERATOR_MFA_MESSAGES = {
@@ -184,6 +188,81 @@ export async function confirmOperatorSession(
     return (data as { operator_id?: unknown }).operator_id === user.id;
   } catch {
     return false;
+  }
+}
+
+export interface PlatformHistoryRow {
+  id: string;
+  createdAt: string;
+  action: string;
+  result: string;
+  identityMode: string;
+  actorId: string;
+  policyId: string;
+  changeSummary: string;
+  decisionSummary: string;
+}
+
+export type PlatformHistory =
+  | { kind: "rows"; rows: PlatformHistoryRow[] }
+  | { kind: "refused" }
+  | { kind: "failed" };
+
+export const PLATFORM_HISTORY_COLUMNS = {
+  id: "id",
+  createdAt: "created_at",
+  action: "action",
+  result: "result",
+  identityMode: "identity_mode",
+  actorId: "actor_id",
+  policyId: "policy_id",
+  changeSummary: "change_summary",
+  decisionSummary: "decision_summary",
+} as const satisfies Record<keyof PlatformHistoryRow, string>;
+
+type HistoryField = keyof typeof PLATFORM_HISTORY_COLUMNS;
+
+const HISTORY_FIELDS = Object.keys(PLATFORM_HISTORY_COLUMNS) as HistoryField[];
+
+function isWholeRow(
+  row: Partial<Record<HistoryField, string>>,
+): row is PlatformHistoryRow {
+  return HISTORY_FIELDS.every((field) => typeof row[field] === "string");
+}
+
+function historyRow(value: unknown): PlatformHistoryRow | null {
+  if (value === null || typeof value !== "object") return null;
+  const record = value as Record<string, unknown>;
+  if (record.tenant_id !== null) return null;
+  const row: Partial<Record<HistoryField, string>> = {};
+  for (const field of HISTORY_FIELDS) {
+    const text = record[PLATFORM_HISTORY_COLUMNS[field]];
+    if (typeof text === "string") row[field] = text;
+  }
+  return isWholeRow(row) ? row : null;
+}
+
+export async function readPlatformHistory(
+  client: OperatorMfaClient = defaultClient(),
+  limit = 50,
+): Promise<PlatformHistory> {
+  try {
+    const { data, error } = await client.rpc("platform_eve_history", {
+      p_limit: limit,
+    });
+    if (error) {
+      return error.code === "42501" ? { kind: "refused" } : { kind: "failed" };
+    }
+    if (!Array.isArray(data)) return { kind: "failed" };
+    const rows: PlatformHistoryRow[] = [];
+    for (const value of data) {
+      const row = historyRow(value);
+      if (!row) return { kind: "failed" };
+      rows.push(row);
+    }
+    return { kind: "rows", rows };
+  } catch {
+    return { kind: "failed" };
   }
 }
 
