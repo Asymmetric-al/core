@@ -4,6 +4,7 @@ import {
   isDeferredEventType,
 } from "../stripe/payment-event-types";
 import {
+  MIN_CALLER_BUDGET_MS,
   runProviderOperation,
   type PaymentProviderAdapter,
   type ProviderOperationRpc,
@@ -92,6 +93,10 @@ export async function runMoneySchedule(
     clock() - started + reserveMs < budget;
   const readerReserve = deps.readerDeadlineMs ?? ACCOUNT_READ_DEADLINE_MS;
   const runOperation = deps.runOperation ?? runProviderOperation;
+
+  await Promise.resolve()
+    .then(() => deps.rpc("purge_intake_attempts", {}))
+    .catch(() => undefined);
 
   let due: Due[] | null = null;
   let readError: string | undefined;
@@ -202,6 +207,7 @@ export async function runMoneySchedule(
           rpc: deps.rpc as unknown as ProviderOperationRpc,
           adapter: adapter!,
           operationId: row.id,
+          budgetMs: budget - (clock() - started),
         });
         if (run.claim.error) return false;
         return !("report" in run && run.report.error);
@@ -209,6 +215,7 @@ export async function runMoneySchedule(
       () => {
         adapter = deps.paymentAdapter();
       },
+      () => MIN_CALLER_BUDGET_MS,
     ),
   );
 

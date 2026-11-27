@@ -4,6 +4,7 @@ export const LEASE_SECONDS = 120;
 export const CALL_TIMEOUT_MS = 60_000;
 export const REPORT_RESERVE_MS = 30_000;
 export const MIN_SEND_MS = 10_000;
+export const CALLER_REPORT_RESERVE_MS = 5_000;
 
 export const LOWER_UUID =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;

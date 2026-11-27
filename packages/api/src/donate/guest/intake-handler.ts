@@ -10,7 +10,7 @@ import {
 export type GuestRpcError = { code?: string; message: string };
 
 export type GuestIntakeRpc = (
-  fn: "take_intake_rate_token" | "begin_line_gift",
+  fn: "take_intake_attempt" | "begin_line_gift",
   args: Record<string, unknown>,
 ) => Promise<{ data: unknown; error: GuestRpcError | null }>;
 
@@ -64,7 +64,16 @@ const bodySchema = z.object({
     address: z.record(z.string(), z.string().max(500)).nullish(),
   }),
   challengeToken: z.string().nullish(),
+  sourceSiteId: z.string().max(100).nullish(),
 });
+
+const attemptSchema = z.union([
+  z.object({ admitted: z.literal(true) }),
+  z.object({
+    admitted: z.literal(false),
+    retry_after_seconds: z.number().int().min(1).max(600),
+  }),
+]);
 
 const intakeSchema = z.object({
   outcome: z.enum(["created", "replayed"]),
@@ -92,6 +101,7 @@ const INPUT_REFUSALS = new Set([
   "client_key_invalid",
   "amount_out_of_range",
   "fee_cover_out_of_range",
+  "source_site_not_admitted",
 ]);
 
 const json = (status: number, body: unknown) => Response.json(body, { status });
@@ -151,7 +161,7 @@ async function signedInActor(
 
 async function call(
   rpc: GuestIntakeRpc,
-  fn: "take_intake_rate_token" | "begin_line_gift",
+  fn: "take_intake_attempt" | "begin_line_gift",
   args: Record<string, unknown>,
 ) {
   try {
@@ -207,11 +217,31 @@ export function createGuestIntakeHandler(deps: GuestIntakeDeps) {
       actor = found;
     }
 
-    const token = await call(rpc, "take_intake_rate_token", {
+    const attempted = await call(rpc, "take_intake_attempt", {
+      p_host: host,
+      p_surface: body.surface,
       p_address: address,
+      p_client_key: body.key,
+      p_user_id: actor?.user_id ?? null,
     });
-    if (token.error) return notStarted();
-    if (token.data !== true) return json(429, { error: "too_many_requests" });
+    if (attempted.error) {
+      if (attempted.error.code === "42501") return unavailable();
+      if (attempted.error.code === "22023") return refusal(attempted.error);
+      return notStarted();
+    }
+    const limit = attemptSchema.safeParse(attempted.data);
+    if (!limit.success) return notStarted();
+    if (!limit.data.admitted)
+      return Response.json(
+        {
+          error: "too_many_requests",
+          retryAfterSeconds: limit.data.retry_after_seconds,
+        },
+        {
+          status: 429,
+          headers: { "Retry-After": String(limit.data.retry_after_seconds) },
+        },
+      );
 
     const giftCents = body.lines.reduce(
       (sum, line) => sum + line.amountCents,
@@ -245,7 +275,10 @@ export function createGuestIntakeHandler(deps: GuestIntakeDeps) {
         address: body.contact.address ?? null,
       },
       p_actor: actor,
-      p_site_id: null,
+      p_site_id:
+        body.sourceSiteId && UUID.test(body.sourceSiteId)
+          ? body.sourceSiteId
+          : null,
     });
     if (begun.error) return refusal(begun.error);
     const intake = intakeSchema.safeParse(begun.data);

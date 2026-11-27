@@ -8,7 +8,7 @@ const doubles = vi.hoisted(() => ({
     }),
   })),
   anonymousRpc: vi.fn(async () => ({
-    data: [{ connected_account_id: "acct_alpha1" }],
+    data: [{ connected_account_id: "acct_alpha1", way_back_host: null }],
     error: null,
   })),
 }));
@@ -57,7 +57,12 @@ describe("AL-2681 part 2a fix round F4: the config read is anonymous", () => {
     expect(doubles.cookieBound).not.toHaveBeenCalled();
     expect(doubles.anonymousRpc).toHaveBeenCalledWith(
       "checkout_giving_config",
-      { p_host: "give.example.test", p_targets: [{ fund_id: FUND }] },
+      {
+        p_host: "give.example.test",
+        p_targets: [{ fund_id: FUND }],
+        p_surface: "website",
+        p_source_site: null,
+      },
     );
   });
 });

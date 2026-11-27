@@ -5,6 +5,7 @@ import {
   CONNECTED_ACCOUNT,
   ERROR_CODE,
   LEASE_SECONDS,
+  CALLER_REPORT_RESERVE_MS,
   LOWER_UUID,
   MIN_SEND_MS,
   PAYMENT_INTENT_ID,
@@ -91,12 +92,15 @@ export type ProviderOperationRun =
       report: RpcResponse;
     };
 
+export const MIN_CALLER_BUDGET_MS = MIN_SEND_MS + CALLER_REPORT_RESERVE_MS;
+
 export type RunProviderOperationInput = {
   rpc: ProviderOperationRpc;
   adapter: PaymentProviderAdapter;
   operationId: string;
   clock?: ProviderOperationClock;
   log?: (entry: ProviderOperationLogEntry) => void;
+  budgetMs?: number;
 };
 
 const answerSchema = z.union([
@@ -195,6 +199,7 @@ export async function runProviderOperation({
   operationId,
   clock = systemClock,
   log,
+  budgetMs,
 }: RunProviderOperationInput): Promise<ProviderOperationRun> {
   if (typeof operationId !== "string" || !LOWER_UUID.test(operationId))
     throw new TypeError("operationId must be a lower-case UUID.");
@@ -249,8 +254,13 @@ export async function runProviderOperation({
       errorCode: "pre_send_refused",
     });
 
+  const callerEnd =
+    budgetMs === undefined
+      ? Number.POSITIVE_INFINITY
+      : started + budgetMs - CALLER_REPORT_RESERVE_MS;
   const remainingMs = () =>
-    started + LEASE_SECONDS * 1000 - REPORT_RESERVE_MS - clock.monotonicMs();
+    Math.min(started + LEASE_SECONDS * 1000 - REPORT_RESERVE_MS, callerEnd) -
+    clock.monotonicMs();
   const remaining = remainingMs();
   if (!(remaining >= MIN_SEND_MS)) return finish(false, { ...BUDGET_SPENT });
 

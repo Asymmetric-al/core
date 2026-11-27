@@ -256,8 +256,8 @@ type PortalReads = {
     args: { p_tenant_id: string; p_user_id: string },
   ): PromiseLike<SupabaseResult<unknown>>;
   rpc(
-    fn: "donor_portal_lifetime",
-    args: { p_tenant_id: string; p_donor_id: string; p_gift_ids: string[] },
+    fn: "donor_portal_login_lifetime",
+    args: { p_tenant_id: string; p_donor_id: string; p_login_id: string },
   ): PromiseLike<SupabaseResult<unknown>>;
 };
 
@@ -289,11 +289,11 @@ async function settledLifetime(
   supabaseAdmin: AdminSupabaseClient,
   tenantId: string,
   donorId: string,
-  giftIds: string[],
+  loginId: string,
 ): Promise<SettledLifetime> {
   const { data, error } = await portalReads(supabaseAdmin).rpc(
-    "donor_portal_lifetime",
-    { p_tenant_id: tenantId, p_donor_id: donorId, p_gift_ids: giftIds },
+    "donor_portal_login_lifetime",
+    { p_tenant_id: tenantId, p_donor_id: donorId, p_login_id: loginId },
   );
   if (error) {
     throw new ApiHttpError(
@@ -351,7 +351,7 @@ export async function getDonorPortalSnapshot(input: {
     input.supabaseAdmin,
     input.tenantId,
     donor.id,
-    actorGifts,
+    loginId,
   );
   const ownGifts =
     actorGifts.length > 0
