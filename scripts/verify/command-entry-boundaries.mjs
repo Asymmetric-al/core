@@ -76,6 +76,23 @@ export const ownMinistryEntries = Object.freeze([
   }),
 ]);
 
+const lockLiveAssignment =
+  "tenant_guard.lock_live_assignment(p_ctx tenant_guard.command_context, p_capability text)";
+const ownMinistryHelper =
+  "tenant_guard.own_ministry(p_ctx tenant_guard.command_context)";
+export const reviewedOwnMinistryHelpers = Object.freeze({
+  [lockLiveAssignment]: Object.freeze({
+    reason:
+      "AL-2680 WP7 PR 1, fix round C3: the lane's assignment check. It takes the tenant FOR SHARE through private.share_lock_tenant and the selected membership FOR SHARE, and refuses (42501) unless that row is the caller's live assignment in an active tenant, a missionary row when no capability is named, or one holding the named capability",
+    digest: "012bf2cdb9fef2d480726faedf02a20bfa1b3689d82ea6b54b671aabecbf94ed",
+  }),
+  [ownMinistryHelper]: Object.freeze({
+    reason:
+      "AL-2680 WP7 PR 1, fix round C3: the lane's ministry. It names the caller's own worker row through account_links and its Party and refuses (42501) when there is none",
+    digest: "25f84905ef294d8a4247a4c70e30b702545bdccd0335f9c84a2e0b6285f35e6b",
+  }),
+});
+
 const OWN_MINISTRY_OPENING =
   /^\s*(?:PERFORM\s+|[a-z_][\w$]*\s*:=\s*)tenant_guard\.begin_human_command\s*\(\s*(?:[a-z_][\w$]*|\$[1-9]\d*)\s*,\s*NULL\s*\)\s*;/i;
 
@@ -94,9 +111,34 @@ export function ownMinistryExceptions(
   entries = ownMinistryEntries,
   reviewed = reviewedOwnMinistry,
   opens = () => true,
+  helpers = {},
 ) {
   const allowed = new Set();
   const failures = [];
+  for (const [signature, pinned] of Object.entries(helpers)) {
+    const target = commands.find(
+      (command) =>
+        command.function === signature && command.schema === "tenant_guard",
+    );
+    if (
+      !target ||
+      target.owner !== "postgres" ||
+      target.definer ||
+      target.language !== "plpgsql" ||
+      target.authenticated ||
+      target.service_role ||
+      target.anon ||
+      target.public_execute ||
+      !pinned?.reason?.trim() ||
+      pinned.digest !== digest(target.body)
+    )
+      failures.push({
+        code: "COMMAND_EXCEPTION_UNREVIEWED",
+        function: signature,
+        detail:
+          "Missing or changed own-ministry helper: a postgres-owned SECURITY INVOKER plpgsql function that no API role may execute, with its reviewed body",
+      });
+  }
   for (const entry of entries) {
     const target = commands.find(
       (command) =>

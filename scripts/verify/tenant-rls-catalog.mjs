@@ -35,6 +35,7 @@ import {
   isAssignmentReader,
   ownMinistryEntry,
   ownMinistryExceptions,
+  reviewedOwnMinistryHelpers,
   preMembershipExceptions,
   protectedEntry,
   workerWrapperHasWrite,
@@ -1094,6 +1095,9 @@ export function evaluateTenantRlsCatalog(
     ownMinistryList?.entries,
     ownMinistryList?.reviewed,
     (c) => ownMinistryEntry(c, entryStatement(c.body), outerBlockHasHandler),
+    ownMinistryList === undefined
+      ? reviewedOwnMinistryHelpers
+      : (ownMinistryList.helpers ?? {}),
   );
   failures.push(...ownMinistry.failures);
   for (const c of commands) {
