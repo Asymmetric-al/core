@@ -35,32 +35,32 @@
 --    the tenant first and refuses any isolation level but READ COMMITTED
 --    (25001). It locks the organization FOR SHARE (private.share_lock_tenant)
 --    without judging it yet, normalises the host as resolve_verified_host
---    does, and admits it again under locks (ruling W8-R41): for 'website'
---    the claimed name (private.share_lock_site_domain) active, serving
---    'website', with its Site locked FOR SHARE and active, and no source
---    Site (22023 source_site_not_admitted). An actor there is refused 22023
---    actor_not_admitted while private.site_checkout_serves_guests() answers
---    true: the plan's "A Site's checkout serves guests" (line 179), under the
---    owner's review of 27 November (outcome 3), so it is one named check.
---    Without it, an actor is admitted only where the Site's name is also the
---    organization's home record, with the account area's own checks (the
---    home record FOR SHARE, the name serving 'donor_account', the verified
---    actor), and the Site stays frozen from the host; for 'donor_account' the organization's home
---    record (donor_portal_hosts FOR SHARE), then the claimed name active
---    and serving 'donor_account', and the verified actor (22023
+--    does, and admits it again under locks (ruling W8-R41), with the six
+--    admission cases of the ruling on signed-in giving of 27 November
+--    (section 3). For 'website': the claimed name
+--    (private.share_lock_site_domain) active, serving 'website', with its
+--    Site locked FOR SHARE and active; the gift's Site is the host's, and a
+--    source Site there is 22023 source_site_not_admitted. A guest gives
+--    there with no actor. An actor is admitted in place only where that
+--    name is also the organization's home (donor_portal_hosts FOR SHARE,
+--    the name serving 'donor_account'), else 22023 actor_not_admitted; it
+--    must name a user id and whether Auth confirmed the e-mail, else 22023
+--    actor_required. For 'donor_account': the organization's home record
+--    (donor_portal_hosts FOR SHARE), then the claimed name active and
+--    serving 'donor_account', and the verified actor (22023
 --    actor_required). A signed-in gift handed off from a Site's checkout
 --    names that Site (the last argument): it is kept, locked FOR SHARE, only
 --    when it is a current (active) Site of this organization; otherwise the
 --    gift carries no Site, with no error and nothing in the answer saying
---    why; the entry surface is the donor portal's either way (amendment of
---    27 November to W8-R41; plan lines 179, 1152, 1179). Any other surface
---    or failed admission is 42501
+--    why; the entry surface is the donor portal's either way (plan lines
+--    179, 1152, 1179). Any other surface or failed admission is 42501
 --    host_not_admitted, raised before the organization's status is judged
 --    (55000 organization_inactive), so no answer tells a caller whether
 --    another organization's name exists. Then it answers a replay of a
 --    known key with its first intake and refuses the key with another
 --    request (23505 idempotency_key_reused); checks the payment method is
---    card or wallet (never ach) and the contact has an address to write
+--    a card (never ach or a wallet: ruling of 27 November on intent
+--    conflicts, section 3) and the contact has an address to write
 --    to; takes the entity from the lines (one entity, no donor line on the
 --    reserved fund), the binding from the entity's active test-mode binding
 --    (FOR SHARE, before the intake: the documented order), the fee line
@@ -68,11 +68,7 @@
 --    key, the intake, its lines, its contact row, one audit row and,
 --    through money_enqueue_payment_request, one queued create_payment
 --    request with no donor. Each refusal changes nothing.
--- 7. private.site_checkout_serves_guests(): the one named check above, a
---    postgres-owned IMMUTABLE function answering true, EXECUTE for
---    tenant_guard only; replacing it to answer false lets a signed-in giver
---    give in place on a home domain that serves a Site.
--- 8. public.begin_line_gift(host, ..., source Site): the wrapper takes the
+-- 7. public.begin_line_gift(host, ..., source Site): the wrapper takes the
 --    host (and, for a hand-off, the source Site) and no organization. It reads the organization from the reviewed single-host
 --    lookup public.resolve_verified_host(p_host) (state active), refuses
 --    42501 host_not_admitted when there is none, and hands both to the
@@ -99,7 +95,6 @@
 -- no line-based intake:
 --   SET LOCAL lock_timeout = '5s';
 --   DROP FUNCTION public.begin_line_gift(text, text, text, jsonb, bigint, text, boolean, text, jsonb, jsonb, uuid);
---   DROP FUNCTION private.site_checkout_serves_guests();
 --   DROP FUNCTION tenant_guard.begin_line_gift(uuid, text, text, text, jsonb, bigint, text, boolean, text, jsonb, jsonb, uuid);
 --   DROP TABLE public.donation_intake_requests;
 --   DROP FUNCTION private.donation_intake_requests_sealed();
@@ -347,19 +342,6 @@ GRANT SELECT (tenant_id, key_digest, request_digest, donation_id, created_at),
       INSERT (tenant_id, key_digest, request_digest, donation_id)
   ON TABLE public.donation_intake_requests TO tenant_guard;
 
-CREATE FUNCTION private.site_checkout_serves_guests()
-RETURNS BOOLEAN
-LANGUAGE sql
-IMMUTABLE
-SET search_path = ''
-AS $$
-  SELECT true;
-$$;
-
-ALTER FUNCTION private.site_checkout_serves_guests() OWNER TO postgres;
-REVOKE ALL ON FUNCTION private.site_checkout_serves_guests() FROM PUBLIC, anon, authenticated, service_role;
-GRANT EXECUTE ON FUNCTION private.site_checkout_serves_guests() TO tenant_guard;
-
 CREATE FUNCTION tenant_guard.begin_line_gift(
   p_tenant_id UUID,
   p_host TEXT,
@@ -465,11 +447,6 @@ BEGIN
               DETAIL = 'A guest gives only on an active Site.';
     END IF;
     IF p_actor IS NOT NULL THEN
-      IF private.site_checkout_serves_guests() THEN
-        RAISE EXCEPTION 'actor_not_admitted'
-          USING ERRCODE = '22023',
-                DETAIL = 'A Site''s checkout serves guests (plan line 179); a signed-in giver gives from the home domain.';
-      END IF;
       PERFORM 1
          FROM public.donor_portal_hosts AS h
         WHERE h.tenant_id = p_tenant_id
@@ -577,10 +554,10 @@ BEGIN
      AND r.key_digest = v_key_digest;
 
   IF NOT FOUND THEN
-    IF (p_payment_method IN ('card', 'wallet')) IS NOT TRUE THEN
+    IF (p_payment_method = 'card') IS NOT TRUE THEN
       RAISE EXCEPTION 'payment_method_refused'
         USING ERRCODE = '22023',
-              DETAIL = 'A gift is paid by card or wallet.';
+              DETAIL = 'A gift is paid by card.';
     END IF;
 
     IF p_is_anonymous IS NULL THEN

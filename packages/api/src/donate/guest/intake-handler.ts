@@ -25,6 +25,7 @@ export type GuestIntakeDeps = {
   challengeSecret: () => string | undefined;
   verifyChallenge?: (input: VerifyChallengeInput) => Promise<ChallengeVerdict>;
   rpc: () => GuestIntakeRpc | null;
+  isHomeHost: (host: string) => Promise<boolean>;
   resolveActor?: (request: Request) => Promise<GuestActor | null>;
   sendFirst: (
     operationId: string,
@@ -50,9 +51,10 @@ const lineSchema = z
 const bodySchema = z.object({
   key: z.string().min(1).max(200),
   surface: z.enum(["website", "donor_account"]).default("website"),
+  asGuest: z.boolean().default(false),
   lines: z.array(lineSchema).min(1).max(99),
   coverFees: z.boolean(),
-  paymentMethod: z.enum(["card", "wallet"]),
+  paymentMethod: z.literal("card"),
   isAnonymous: z.boolean(),
   sourceCode: z.string().max(200).nullish(),
   contact: z.object({
@@ -147,11 +149,7 @@ export function createGuestIntakeHandler(deps: GuestIntakeDeps) {
     if (!parsed.success) return invalid();
     const body = parsed.data;
 
-    let actor: GuestActor | null = null;
-    if (body.surface === "donor_account") {
-      actor = (await deps.resolveActor?.(request)) ?? null;
-      if (!actor) return json(401, { error: "sign_in_required" });
-    }
+    if (body.asGuest && body.surface === "donor_account") return invalid();
 
     if (!body.challengeToken?.trim())
       return json(400, { error: "challenge_required" });
@@ -164,6 +162,19 @@ export function createGuestIntakeHandler(deps: GuestIntakeDeps) {
       return verdict.reason === "unavailable"
         ? notStarted()
         : json(400, { error: "challenge_failed" });
+
+    let actor: GuestActor | null = null;
+    if (!body.asGuest) {
+      try {
+        if (await deps.isHomeHost(host))
+          actor = (await deps.resolveActor?.(request)) ?? null;
+        else if (body.surface === "donor_account") return unavailable();
+      } catch {
+        return notStarted();
+      }
+    }
+    if (body.surface === "donor_account" && !actor)
+      return json(401, { error: "sign_in_required" });
 
     const token = await call(rpc, "take_intake_rate_token", {
       p_address: address,
