@@ -22,7 +22,7 @@ const CREATED = {
   currency: "usd",
   provider_account: "acct_alpha1",
   payment_intent: null,
-  payable: true,
+  gift_state: "open",
 };
 
 function body(overrides: Record<string, unknown> = {}) {
@@ -81,7 +81,7 @@ function setup(
           currency: "usd",
           provider_account: "acct_alpha1",
           payment_intent: null,
-          payable: true,
+          gift_state: "open",
         },
         error: null,
       }
@@ -275,7 +275,7 @@ describe("AL-2681 PR 2a: the guest intake handler (tested directly; not mounted 
           currency: "usd",
           provider_account: "acct_alpha1",
           payment_intent: "pi_first1",
-          payable: true,
+          gift_state: "open",
         },
         error: null,
       },
@@ -553,25 +553,35 @@ describe("AL-2681 PR 2a: the guest intake handler (tested directly; not mounted 
     });
   });
 
-  it("F6 (b): a key replayed for a gift that can no longer be paid answers 409 gift_closed with no retry flag and no provider call; a declined card's gift answers its PaymentIntent again", async () => {
-    const closed = setup({
-      begin: {
-        data: { ...CREATED, outcome: "replayed", payable: false },
-        error: null,
-      },
-    });
-    const res = await closed.handler(request(body()));
-    expect(res.status).toBe(409);
-    expect(await res.json()).toEqual({ error: "gift_closed" });
-    expect(closed.sendFirst).not.toHaveBeenCalled();
-    expect(closed.clientSecret).not.toHaveBeenCalled();
+  it("F6 (b), as clarified (and T5's answer states): a replay of a gift that ended unpaid is 409 gift_closed; of a paid gift 409 gift_already_completed, never gift_closed; neither has a retry flag or calls the provider; a declined card's gift answers its PaymentIntent again", async () => {
+    for (const [state, error] of [
+      ["closed", "gift_closed"],
+      ["paid", "gift_already_completed"],
+    ] as const) {
+      const s = setup({
+        begin: {
+          data: {
+            ...CREATED,
+            outcome: "replayed",
+            gift_state: state,
+            payment_intent: state === "paid" ? "pi_paid1" : null,
+          },
+          error: null,
+        },
+      });
+      const res = await s.handler(request(body()));
+      expect(res.status, state).toBe(409);
+      expect(await res.json(), state).toEqual({ error });
+      expect(s.sendFirst).not.toHaveBeenCalled();
+      expect(s.clientSecret).not.toHaveBeenCalled();
+    }
 
     const declined = setup({
       begin: {
         data: {
           ...CREATED,
           outcome: "replayed",
-          payable: true,
+          gift_state: "open",
           payment_intent: "pi_declined1",
         },
         error: null,
@@ -598,7 +608,7 @@ describe("AL-2681 PR 2a: the guest intake handler (tested directly; not mounted 
           currency: "usd",
           provider_account: "acct_alpha1",
           payment_intent: null,
-          payable: true,
+          gift_state: "open",
           party_id: "88888888-8888-4888-8888-888888888888",
           donor_id: "99999999-9999-4999-8999-999999999999",
           matched: true,

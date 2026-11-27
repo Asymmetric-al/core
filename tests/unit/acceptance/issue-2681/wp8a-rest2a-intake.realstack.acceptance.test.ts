@@ -686,7 +686,7 @@ describe.skipIf(!ADMIN_URL)(
           ).toBe(10_600);
         }));
 
-      it("F6 (b): the answer says whether the gift can still be paid: a new gift can; a replay after the sweep abandoned it cannot; a replay after a declined card can, with its PaymentIntent", () =>
+      it("F6 (b), as clarified: the answer tells three states apart: a new gift and a declined card's gift are open (the latter with its PaymentIntent); a gift the sweep abandoned is closed; a paid gift is paid, never closed", () =>
         inTx(db, async () => {
           const w = await world();
           const request = (key: string): GiftRequest => ({
@@ -695,8 +695,30 @@ describe.skipIf(!ADMIN_URL)(
             lines: [{ fund: w.A.fund, amount: 2100 }],
             contact: { email: `same-${key}@example.test` },
           });
+          const payWith = async (r: ReturnType<typeof begun>, type: string) => {
+            const pi = paymentIntent();
+            const claimed = await claim(db, r.operation_id);
+            await report(db, r.operation_id, claimed.attempt as number, {
+              result: "succeeded",
+              provider_object_id: pi,
+            });
+            const event = await storeEvent(db, w.A, {
+              type,
+              pi,
+              amount: 2100,
+              metadata: {
+                asym_operation: r.operation_id,
+                asym_intake: r.donation_id,
+              },
+            });
+            return { pi, outcome: await work(db, event.id) };
+          };
+
           const fresh = begun(await begin(db, request("fresh-key")));
-          expect(fresh).toMatchObject({ outcome: "created", payable: true });
+          expect(fresh).toMatchObject({
+            outcome: "created",
+            gift_state: "open",
+          });
 
           const swept = begun(await begin(db, request("swept-key")));
           await ageIntake(db, swept.donation_id, 8);
@@ -712,33 +734,30 @@ describe.skipIf(!ADMIN_URL)(
           });
           expect(begun(await begin(db, request("swept-key")))).toMatchObject({
             outcome: "replayed",
-            payable: false,
+            gift_state: "closed",
           });
 
           const declined = begun(await begin(db, request("declined-key")));
-          const pi = paymentIntent();
-          const claimed = await claim(db, declined.operation_id);
-          await report(db, declined.operation_id, claimed.attempt as number, {
-            result: "succeeded",
-            provider_object_id: pi,
-          });
-          const failed = await storeEvent(db, w.A, {
-            type: "payment_intent.payment_failed",
-            pi,
-            amount: 2100,
-            metadata: {
-              asym_operation: declined.operation_id,
-              asym_intake: declined.donation_id,
-            },
-          });
-          expect(await work(db, failed.id)).toMatchObject({ status: "failed" });
+          const failed = await payWith(
+            declined,
+            "payment_intent.payment_failed",
+          );
+          expect(failed.outcome).toMatchObject({ status: "failed" });
           expect(begun(await begin(db, request("declined-key")))).toMatchObject(
             {
               outcome: "replayed",
-              payable: true,
-              payment_intent: pi,
+              gift_state: "open",
+              payment_intent: failed.pi,
             },
           );
+
+          const paid = begun(await begin(db, request("paid-key")));
+          const succeeded = await payWith(paid, "payment_intent.succeeded");
+          expect(succeeded.outcome).toMatchObject({ outcome: "applied" });
+          expect(begun(await begin(db, request("paid-key")))).toMatchObject({
+            outcome: "replayed",
+            gift_state: "paid",
+          });
         }));
 
       it("T4: the Site, entry surface, source code and unlisted code of a line-based intake are sealed: 23514 donation_line_intake_sealed for the owner and service_role", () =>
