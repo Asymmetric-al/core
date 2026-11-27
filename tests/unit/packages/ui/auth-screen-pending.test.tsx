@@ -90,9 +90,21 @@ describe("auth form pending submissions", () => {
   });
 
   it("locks login with a natively disabled submit button and unlocks after failure", async () => {
-    const pending = deferred<{ error: { message: string } }>();
-    auth.signInWithPassword.mockReturnValueOnce(pending.promise);
-    auth.signInWithPassword.mockResolvedValueOnce({ error: null });
+    const pending = deferred<Response>();
+    const signIn = vi
+      .fn<(body: unknown) => Promise<Response>>()
+      .mockReturnValueOnce(pending.promise)
+      .mockResolvedValueOnce(Response.json({ ok: true }));
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async (input: RequestInfo | URL, init?: RequestInit) =>
+        String(input).endsWith("/api/auth/sign-in")
+          ? signIn(JSON.parse(String(init?.body)))
+          : String(input).endsWith("/api/auth/session")
+            ? Response.json({ user: null })
+            : Response.json({ roles: {} }),
+      ),
+    );
     const client = new QueryClient({
       defaultOptions: { queries: { retry: false } },
     });
@@ -114,8 +126,8 @@ describe("auth form pending submissions", () => {
       form.requestSubmit();
     });
 
-    expect(auth.signInWithPassword).toHaveBeenCalledTimes(1);
-    expect(auth.signInWithPassword).toHaveBeenCalledWith({
+    expect(signIn).toHaveBeenCalledTimes(1);
+    expect(signIn).toHaveBeenCalledWith({
       email: "fixture@example.test",
       password: "fixture-password",
     });
@@ -124,18 +136,24 @@ describe("auth form pending submissions", () => {
     act(() => {
       form.requestSubmit();
     });
-    expect(auth.signInWithPassword).toHaveBeenCalledTimes(1);
+    expect(signIn).toHaveBeenCalledTimes(1);
 
     await act(async () => {
-      pending.resolve({ error: { message: "Try again" } });
+      pending.resolve(
+        Response.json({ ok: false, error: "Try again" }, { status: 401 }),
+      );
     });
-    expect(screen.getByText("Try again")).toBeTruthy();
+    expect(await screen.findByText("Try again")).toBeTruthy();
     expect(button.hasAttribute("disabled")).toBe(false);
     expect(button.getAttribute("aria-disabled")).not.toBe("true");
     await act(async () => {
       form.requestSubmit();
     });
-    expect(auth.signInWithPassword).toHaveBeenCalledTimes(2);
+    await waitFor(() => expect(signIn).toHaveBeenCalledTimes(2));
+    expect(auth.signInWithPassword).not.toHaveBeenCalled();
+    await waitFor(() =>
+      expect(auth.replace).toHaveBeenCalledWith("/donor-dashboard"),
+    );
     expect(auth.replace).toHaveBeenCalledWith("/donor-dashboard");
     expect(auth.refresh).toHaveBeenCalledTimes(1);
   });

@@ -27,13 +27,30 @@ import { ForgotPasswordScreen } from "../../../../packages/ui/components/auth/Fo
 import { FullLoginCard } from "../../../../packages/ui/components/auth/FullLoginCard";
 import { ResetPasswordScreen } from "../../../../packages/ui/components/auth/ResetPasswordScreen";
 
+const passwordRoute = vi.fn<(body: unknown) => Promise<Response>>();
+
 beforeEach(() => {
   auth.resetPasswordForEmail.mockResolvedValue({ data: {}, error: null });
-  auth.updateUser.mockResolvedValue({ data: {}, error: null });
+  auth.updateUser.mockRejectedValue(
+    new Error("The browser called the provider."),
+  );
+  passwordRoute.mockResolvedValue(Response.json({ ok: true }));
+  vi.stubGlobal(
+    "fetch",
+    vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+      if (
+        String(input).endsWith("/api/auth/password") &&
+        init?.method === "POST"
+      )
+        return passwordRoute(JSON.parse(String(init.body)));
+      throw new Error(`Unexpected request from the screen: ${String(input)}`);
+    }),
+  );
 });
 afterEach(() => {
   cleanup();
   vi.clearAllMocks();
+  vi.unstubAllGlobals();
 });
 
 const type = (label: string, value: string) =>
@@ -218,7 +235,7 @@ describe("choosing a new password", () => {
     expect((await screen.findByRole("alert")).textContent).toContain(
       "don’t match",
     );
-    expect(auth.updateUser).not.toHaveBeenCalled();
+    expect(passwordRoute).not.toHaveBeenCalled();
   });
 
   it("saves the password and continues signed in to the app", async () => {
@@ -233,19 +250,24 @@ describe("choosing a new password", () => {
     fireEvent.click(screen.getByRole("button", { name: "Save new password" }));
 
     await waitFor(() => expect(router.replace).toHaveBeenCalledWith("/"));
-    expect(auth.updateUser).toHaveBeenCalledWith({
-      password: "long enough phrase",
+    expect(passwordRoute).toHaveBeenCalledWith({
+      newPassword: "long enough phrase",
     });
+    expect(auth.updateUser).not.toHaveBeenCalled();
     expect(router.refresh).toHaveBeenCalled();
   });
 
-  it("keeps the person on the form when Supabase refuses the password", async () => {
-    auth.updateUser.mockResolvedValue({
-      data: null,
-      error: new Error(
-        "New password should be different from the old password.",
+  it("keeps the person on the form when Core refuses the password, in Core's words", async () => {
+    passwordRoute.mockResolvedValue(
+      Response.json(
+        {
+          ok: false,
+          code: "PASSWORD_UNCHANGED",
+          error: "Choose a password you haven’t used here.",
+        },
+        { status: 400 },
       ),
-    });
+    );
     render(
       <ResetPasswordScreen
         appId="donor"
@@ -257,7 +279,7 @@ describe("choosing a new password", () => {
     fireEvent.click(screen.getByRole("button", { name: "Save new password" }));
 
     expect((await screen.findByRole("alert")).textContent).toContain(
-      "different from the old password",
+      "Choose a password you haven’t used here.",
     );
     expect(router.replace).not.toHaveBeenCalled();
   });
@@ -293,7 +315,7 @@ describe("choosing a new password", () => {
     expect(password.hasAttribute("aria-invalid")).toBe(false);
     expect(confirmation.getAttribute("aria-describedby")).toContain(alert.id);
     expect(document.activeElement).toBe(confirmation);
-    expect(auth.updateUser).not.toHaveBeenCalled();
+    expect(passwordRoute).not.toHaveBeenCalled();
   });
 
   // Council round 2, B2: the server checks the recovery window when the page
@@ -323,7 +345,7 @@ describe("choosing a new password", () => {
           .getByRole("link", { name: "Send a new link" })
           .getAttribute("href"),
       ).toBe("/forgot-password");
-      expect(auth.updateUser).not.toHaveBeenCalled();
+      expect(passwordRoute).not.toHaveBeenCalled();
       expect(router.replace).not.toHaveBeenCalled();
       expect(
         screen.getByLabelText("New password").hasAttribute("aria-invalid"),
@@ -350,7 +372,7 @@ describe("choosing a new password", () => {
       fireEvent.click(
         screen.getByRole("button", { name: "Save new password" }),
       );
-      await waitFor(() => expect(auth.updateUser).toHaveBeenCalledTimes(1));
+      await waitFor(() => expect(passwordRoute).toHaveBeenCalledTimes(1));
     } finally {
       vi.useRealTimers();
     }
@@ -386,7 +408,7 @@ describe("choosing a new password", () => {
 
       const alert = await screen.findByRole("alert");
       expect(alert.textContent).toContain("This link has expired");
-      expect(auth.updateUser).not.toHaveBeenCalled();
+      expect(passwordRoute).not.toHaveBeenCalled();
       expect(router.replace).not.toHaveBeenCalled();
     } finally {
       vi.useRealTimers();
@@ -418,7 +440,7 @@ describe("choosing a new password", () => {
 
       const alert = await screen.findByRole("alert");
       expect(alert.textContent).toContain("This link has expired");
-      expect(auth.updateUser).not.toHaveBeenCalled();
+      expect(passwordRoute).not.toHaveBeenCalled();
     } finally {
       vi.useRealTimers();
     }
