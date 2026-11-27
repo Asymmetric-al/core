@@ -163,7 +163,11 @@ describe("on: the choice's action", () => {
         }),
       ),
     ).resolves.toEqual({ load: "/admin/web-studio/collections/pages" });
-    expect(state.set).toHaveLength(1);
+    expect(state.set).toHaveLength(2);
+    expect(state.set[1]).toMatchObject({
+      name: "asym_clipboard_reset",
+      value: "1",
+    });
     expect(state.set[0]?.path).toBe("/admin/web-studio");
   });
 
