@@ -651,7 +651,7 @@ describe("AL-2678 WP5 part 2-r2b1: the workers' routes (contract, error map, ali
     }
   });
 
-  it("confirm calls nothing and answers 409 LEVEL_CHANGED unless the row is still unreviewed at the body's level; then it sends restrict only that level and the organization from the session", async () => {
+  it("confirm calls nothing and answers 409 LEVEL_CHANGED unless the row is still unreviewed at the body's level; then it sends confirm_worker_security_level that level, the source it read and the organization from the session, never restrict (WP5 rest 2b, issue 2835: the stale confirm; red: restrict without the level and source it read)", async () => {
     h.auth.mockResolvedValue(makeAuth("admin"));
     for (const current of [
       row({ security_level_source: "manual" }),
@@ -679,7 +679,7 @@ describe("AL-2678 WP5 part 2-r2b1: the workers' routes (contract, error map, ali
           reads++ === 0 ? row() : row({ security_level_source: "manual" }),
         ],
       }),
-      restrict_worker_publication: { data: commandAnswer() },
+      confirm_worker_security_level: { data: commandAnswer() },
     });
     const response = await POST_CONFIRM(
       post(`/api/admin/workers/${WORKER}/confirm`, {
@@ -692,13 +692,40 @@ describe("AL-2678 WP5 part 2-r2b1: the workers' routes (contract, error map, ali
     expect((await read(response)).worker).toMatchObject({
       securityLevelSource: "manual",
     });
-    expect(rpc).toHaveBeenCalledWith("restrict_worker_publication", {
+    expect(rpc).toHaveBeenCalledWith("confirm_worker_security_level", {
       p_tenant_id: TENANT,
       p_party_id: PARTY,
-      p_security_level: "standard",
-      p_public_alias: null,
-      p_do_not_publish: null,
+      p_expected_level: "standard",
+      p_expected_source: "unreviewed_default",
       p_reason: "Reviewed with the field director",
+    });
+    expect(rpc.mock.calls.map(([fn]) => fn)).not.toContain(
+      "restrict_worker_publication",
+    );
+  });
+
+  it("a confirm whose level or source another command changed after the read answers 409 LEVEL_CHANGED with the reload text, as the entry refuses it (WP5 rest 2b, issue 2835: the stale confirm; red: the change was overwritten)", async () => {
+    h.auth.mockResolvedValue(makeAuth("admin"));
+    stubSession({
+      worker_records: { data: [row()] },
+      confirm_worker_security_level: {
+        error: {
+          code: "22023",
+          message: "The level changed since it was read",
+        },
+      },
+    });
+    const response = await POST_CONFIRM(
+      post(`/api/admin/workers/${WORKER}/confirm`, {
+        level: "standard",
+        reason: "Review",
+      }),
+      params(),
+    );
+    expect(response.status).toBe(409);
+    expect(await read(response)).toEqual({
+      error: "This worker's level has changed. Reload to see it.",
+      code: "LEVEL_CHANGED",
     });
   });
 
