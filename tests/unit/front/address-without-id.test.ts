@@ -358,6 +358,9 @@ describe("on: a sub-role laid over a path outside the segment is 404 no-store, b
     ["admin", "/~finance/api/x"],
     ["admin", "/~finance/choose-organization"],
     ["admin", "/~finance/login/"],
+    ["admin", "/~finance//operator"],
+    ["admin", "/~finance/%2foperator"],
+    ["admin", "/~finance//login"],
     ["missionary", "/~development/login"],
   ] as Array<[App, string]>)(
     "%s %s (base: a 308, a 307, or a 404 without no-store)",
@@ -368,7 +371,12 @@ describe("on: a sub-role laid over a path outside the segment is 404 no-store, b
   );
 
   it("keeps the operator check first: /~finance/operator is refused before the name is looked up", async () => {
-    for (const path of ["/~finance/operator", "/~finance/%6Fperator"]) {
+    for (const path of [
+      "/~finance/operator",
+      "/~finance/%6Fperator",
+      "/~finance//operator",
+      "/~finance/%2foperator",
+    ]) {
       state.lookups = [];
       expectNotFound(await stamped("admin", path), path);
       expect(state.lookups, path).toEqual([]);

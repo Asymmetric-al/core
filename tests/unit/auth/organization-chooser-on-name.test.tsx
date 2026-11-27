@@ -152,6 +152,30 @@ describe("on: the staff chooser", () => {
     });
   });
 
+  it.each([
+    ["the name's own", `/${TA}/gifts`],
+    ["another organization's", `/${TB}/gifts`],
+    ["the name's own in capitals", `/${TA.toUpperCase()}/gifts`],
+    ["the name's own with a sub-role", `/${TA}~finance/gifts`],
+  ])(
+    "builds no address with %s organization ID from next: each option leads home (base: /~finance/<id>/gifts)",
+    async (_label, next) => {
+      const home = await loadOrganizationChoices({ roleClass: "staff" });
+      expect(
+        await loadOrganizationChoices({ roleClass: "staff", next }),
+      ).toEqual(home);
+    },
+  );
+
+  it("sends Q home when next starts with an organization ID (base: /<A>/gifts)", async () => {
+    signedIn(Q);
+    expect(
+      await redirectOf(
+        streamedPart(AdminChooserPage, { next: `/${TA}/gifts` }),
+      ),
+    ).toBe("/");
+  });
+
   it("sends Q, with one row, straight to next with no prefix (base: /<A>/gifts)", async () => {
     signedIn(Q);
     expect(
