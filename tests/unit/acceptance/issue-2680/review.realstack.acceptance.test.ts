@@ -11,6 +11,8 @@ import {
   fixtureSql,
   keepAs,
   lit,
+  migration,
+  preflight,
   submitSql,
   who,
 } from "./harness";
@@ -477,7 +479,12 @@ describe.skipIf(!ADMIN_URL)(
           publish: false,
         });
         expect((await decide(reviewer, "approve", draft)).code).toBe("22023");
+        expect(
+          (await decide(reviewer, "reject", draft, "Not ready")).code,
+        ).toBe("22023");
         expect(await sees(null, draft)).toBe(false);
+        expect(await sees(reviewer, draft)).toBe(false);
+        expect(await sees(missionary, draft)).toBe(true);
 
         const edited = await submit(missionary, id.TA, "Approved then edited");
         expect((await decide(reviewer, "approve", edited)).code).toBe(null);
@@ -595,5 +602,45 @@ describe.skipIf(!ADMIN_URL)(
           );
         }
       }));
+
+    it("the post tables' migration stops before any change, with the count, when a reaction or comment belongs to a post with no organization", () =>
+      inSavepoint(async () => {
+        const post = await submit(missionary, id.TA, "Loses its tenant");
+        await db.query("set local session_replication_role = replica");
+        await db.query(
+          "insert into public.post_likes (tenant_id, post_id, user_id) values ($1, $2, $3)",
+          [id.TA, post, id.UDA],
+        );
+        await db.query(
+          "update public.posts set tenant_id = null where id = $1",
+          [post],
+        );
+        await db.query("set local session_replication_role = origin");
+        await db.query("savepoint preflight");
+        const stopped = await db
+          .query(
+            preflight(
+              migration("_wp7_1_post_children"),
+              "post tables carry their post's tenant",
+            ),
+          )
+          .then(
+            () => "ran",
+            (e: { code?: string; message?: string }) =>
+              `${e.code} ${e.message}`,
+          );
+        await db.query("rollback to savepoint preflight");
+        expect(stopped).toBe(
+          "23502 wp7_1_post_children: 1 reactions or comments belong to a post with no organization or to no post; nothing was changed",
+        );
+      }));
+
+    it("the demo seed's posts start approved, as every post that existed before review did (D-08)", async () => {
+      const seeded = await db.query(
+        "select count(*)::int n, count(*) filter (where review_state = 'approved')::int approved from public.posts where tenant_id = '00000000-0000-0000-0000-000000000001'",
+      );
+      expect(seeded.rows[0].n).toBeGreaterThan(0);
+      expect(seeded.rows[0].approved).toBe(seeded.rows[0].n);
+    });
   },
 );

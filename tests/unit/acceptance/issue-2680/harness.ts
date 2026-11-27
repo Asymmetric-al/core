@@ -15,6 +15,8 @@ export {
   backendPid,
   caller,
   keepAs,
+  migration,
+  preflight,
   waitsOn,
   type Outcome,
 } from "../issue-2678/harness";

@@ -1025,7 +1025,7 @@ describe.skipIf(!ADMIN_URL)(
       }
     });
 
-    it("r2a test 1 (N3, G), guard (passes on the base): a published public post with no organization gives every commenter, a donor included, as NULL", async () => {
+    it("r2a test 1 (N3, G), guard, amended by WP7 pull request 1 (AL-2680): a published public post with no organization holds no comment, since a comment takes its post's tenant (23502), so it names no commenter", async () => {
       await db.query("savepoint s");
       try {
         const postG = randomUUID();
@@ -1033,10 +1033,14 @@ describe.skipIf(!ADMIN_URL)(
           "insert into public.posts (id, tenant_id, missionary_id, content, visibility, status) values ($1, null, null, 'Nowhere', 'public', 'published')",
           [postG],
         );
-        await comment(postG, [id.UDA]);
-        expect(await authorsAs(member, postG)).toEqual({
-          [id.UDA]: [null, null],
-        });
+        await db.query("savepoint g");
+        const refused = await comment(postG, [id.UDA]).then(
+          () => "inserted",
+          (e: { code?: string }) => e.code,
+        );
+        await db.query("rollback to savepoint g");
+        expect(refused).toBe("23502");
+        expect(await authorsAs(member, postG)).toEqual({});
       } finally {
         await db.query("rollback to savepoint s");
       }

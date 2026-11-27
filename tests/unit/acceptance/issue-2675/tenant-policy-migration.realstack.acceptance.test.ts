@@ -1138,11 +1138,8 @@ describe.skipIf(!ADMIN_URL)(
           ]);
         }));
 
-      it("Q3: a signed-in unfiltered read of posts returns published public rows only, under any assignment or none", () =>
+      it("Q3, amended by WP7 pull request 1 (AL-2680): a signed-in unfiltered read of posts returns rows of the request's tenant only: approved, published and public ones to a donor, published ones of any visibility to a reviewer, and none with no assignment", () =>
         tx(async () => {
-          // Rows of both tenants, so a policy that leaked another tenant's
-          // non-public rows would show in the unfiltered read (review of
-          // pull request 2737, thread 4641188106).
           const posts: Record<string, string> = {};
           await replica(true);
           for (const [key, tenant, status, visibility] of [
@@ -1158,36 +1155,42 @@ describe.skipIf(!ADMIN_URL)(
               tenant_id: q(tenant),
               status: `'${status}'`,
               visibility: `'${visibility}'`,
+              review_state: "'approved'",
             });
           }
           await replica(false);
           const fixture = `'{${Object.values(posts).join(",")}}'::uuid[]`;
-          for (const [sub, headers] of [
-            ["UP", under("mPA")],
-            ["UP", under("mPB")],
-            ["UDON", under("mDon")],
-            ["UX", undefined],
-          ] as [User, Record<string, string> | undefined][]) {
+          for (const [sub, headers, tenants, expected] of [
+            ["UP", under("mPA"), ["TA"], ["aPublic", "aFollowers"]],
+            ["UP", under("mPB"), ["TB"], ["bFollowers"]],
+            ["UDON", under("mDon"), ["TA"], ["aPublic"]],
+            ["UX", undefined, [], []],
+          ] as [
+            User,
+            Record<string, string> | undefined,
+            string[],
+            string[],
+          ][]) {
             const label = `${sub} ${JSON.stringify(headers)}`;
-            // Unfiltered: whatever else the database holds, only published
-            // public rows come back.
             const all = await as(
               "authenticated",
               { sub, headers },
-              "select distinct status, visibility from public.posts",
+              "select distinct tenant_id from public.posts",
             );
             expect(all.code, label).toBeNull();
-            expect(all.rows, label).toEqual([
-              { status: "published", visibility: "public" },
-            ]);
-            // Of this case's rows, in either tenant, only the public one.
+            expect(
+              all.rows.map((r) => r.tenant_id),
+              label,
+            ).toEqual(tenants.map((t) => id[t]));
             const mine = await as(
               "authenticated",
               { sub, headers },
               `select id from public.posts where id = any(${fixture})`,
             );
             expect(mine.code, label).toBeNull();
-            expect(mine.rows, label).toEqual([{ id: posts.aPublic }]);
+            expect(mine.rows.map((r) => r.id).sort(), label).toEqual(
+              expected.map((k) => posts[k]).sort(),
+            );
           }
         }));
 
@@ -1632,7 +1635,7 @@ describe.skipIf(!ADMIN_URL)(
       // Callers include a donor and a missionary whose own rows the sweep
       // holds, with a positive control each, so a table whose rows only their
       // subject reads can fail the sweep (fixcheck F3).
-      it("R7: no row of any tenant table without the headers, nor with the assignment header alone, outside the reviewed exceptions (D-18, AL-2678: the requester's own read of account_claim_requests is gone, so its row is swept and its requester reads none of it with no header; persons is gone and external_identifiers is staff-only; the fixture donors and missionaries are linked to their Parties as the migration backfills)", () =>
+      it("R7: no row of any tenant table without the headers, nor with the assignment header alone, outside the reviewed exceptions (D-18, AL-2678: the requester's own read of account_claim_requests is gone, so its row is swept and its requester reads none of it with no header; persons is gone and external_identifiers is staff-only; the fixture donors and missionaries are linked to their Parties as the migration backfills; AL-2680: posts and the four post tables keep anonymous exceptions only, so their signed-in reads are swept like any tenant table's)", () =>
         tx(async () => {
           const pinned = new Set(
             (
@@ -1641,8 +1644,10 @@ describe.skipIf(!ADMIN_URL)(
                   "docs/security/tenant-policy-exceptions.json",
                   "utf8",
                 ),
-              ) as { entries: { table: string }[] }
-            ).entries.map((e) => e.table),
+              ) as { entries: { table: string; roles: string[] }[] }
+            ).entries
+              .filter((e) => e.roles.some((role) => role !== "anon"))
+              .map((e) => e.table),
           );
           const candidates = (
             await rows(
@@ -1664,7 +1669,6 @@ describe.skipIf(!ADMIN_URL)(
           // A row of each pinned table that no caller below may read.
           const pinnedRow: Record<string, Record<string, string>> = {
             locations: { status: "'draft'" },
-            posts: { status: "'draft'", visibility: "'private'" },
             profiles: {},
           };
           expect(candidates.filter((t) => pinned.has(t))).toEqual(
@@ -2373,7 +2377,7 @@ describe.skipIf(!ADMIN_URL)(
           }
         }));
 
-      it("public locations, and the comments of a public post for a caller with no resolved row", () =>
+      it("public locations for a caller with no resolved row, and, since WP7 pull request 1 (AL-2680) made the post tables' signed-in reads tenant-bound, no comment of a public post for that caller", () =>
         tx(async () => {
           const loc = randomUUID();
           const post = randomUUID();
@@ -2390,6 +2394,7 @@ describe.skipIf(!ADMIN_URL)(
             visibility: "'public'",
           });
           await insertRow("post_comments", {
+            tenant_id: q("TA"),
             post_id: `'${post}'`,
             user_id: q("UADM"),
             content: "'hello'",
@@ -2408,7 +2413,7 @@ describe.skipIf(!ADMIN_URL)(
             `select content from public.post_comments where post_id = '${post}'`,
           );
           expect(comments.code, comments.message).toBeNull();
-          expect(comments.rows).toEqual([{ content: "hello" }]);
+          expect(comments.rows).toEqual([]);
         }));
     });
   },
