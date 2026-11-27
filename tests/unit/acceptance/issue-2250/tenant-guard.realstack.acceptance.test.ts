@@ -310,7 +310,7 @@ describe.skipIf(!ADMIN_URL)("#2250 tenant_guard on the real stack", () => {
     expect(await v(sql)).toBe(want),
   );
 
-  it("17: an EXECUTE grant to tenant_guard outside the inventory changes the value (D-18: AL-2671: criterion 17 fires on an unreviewed grant)", async () => {
+  it("17: an EXECUTE grant to tenant_guard outside the inventory changes the value (D-18: AL-2671: criterion 17 fires on an unreviewed grant; D-18, AL-2675: the planted grant was on authz.is_super_admin(), which WP2c rest B dropped, and is now on authz.staff_read(), another authz function the guard must not hold)", async () => {
     const block = CATALOG.find(([title]) =>
       title.startsWith("17: everything else granted to tenant_guard"),
     );
@@ -321,14 +321,14 @@ describe.skipIf(!ADMIN_URL)("#2250 tenant_guard on the real stack", () => {
     try {
       await db.query("begin");
       await db.query(
-        "grant execute on function authz.is_super_admin() to tenant_guard",
+        "grant execute on function authz.staff_read() to tenant_guard",
       );
       got = await v(sql);
     } finally {
       await db.query("rollback");
     }
     expect(got).not.toBe(GUARD_REACH.join(", "));
-    expect(String(got)).toContain("authz.is_super_admin() EXECUTE");
+    expect(String(got)).toContain("authz.staff_read() EXECUTE");
   });
 
   /**

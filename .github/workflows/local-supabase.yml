@@ -232,6 +232,8 @@ on:
       - packages/api/src/shared/line-based-gifts.ts
       - tests/unit/acceptance/issue-2681/wp8a-rest1-harness.ts
       - tests/unit/acceptance/issue-2681/wp8a-rest1-reads.postgrest.acceptance.test.ts
+      - tests/unit/acceptance/issue-2675/no-super-admin-fixture.ts
+      - tests/unit/acceptance/issue-2675/no-super-admin.postgrest.acceptance.test.ts
 
 permissions:
   contents: read
@@ -536,6 +538,17 @@ jobs:
           WP8A_REST_IT_ANON_KEY="$(jq -er '.ANON_KEY | select(length > 0)' <<< "$status")"
           export WP8A_REST_IT_SERVICE_KEY WP8A_REST_IT_ANON_KEY
           bunx vitest run --maxWorkers=1 tests/unit/acceptance/issue-2681/wp8a-rest1-reads.postgrest.acceptance.test.ts
+      - name: Verify that no super-admin branch admits a read, and no read is gained or lost, through PostgREST (AL-2675, WP2c rest B)
+        shell: bash
+        env:
+          WP2C_REST_IT_URL: http://127.0.0.1:54321
+          WP2C_REST_IT_DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:54322/postgres
+        run: |
+          status="$(bun run supabase -- status -o json)"
+          WP2C_REST_IT_SERVICE_KEY="$(jq -er '.SERVICE_ROLE_KEY | select(length > 0)' <<< "$status")"
+          WP2C_REST_IT_ANON_KEY="$(jq -er '.ANON_KEY | select(length > 0)' <<< "$status")"
+          export WP2C_REST_IT_SERVICE_KEY WP2C_REST_IT_ANON_KEY
+          bunx vitest run --maxWorkers=1 tests/unit/acceptance/issue-2675/no-super-admin.postgrest.acceptance.test.ts
       - name: Install Playwright Chromium
         id: chromium
         run: bunx playwright install --with-deps chromium

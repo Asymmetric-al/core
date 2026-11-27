@@ -84,6 +84,7 @@ const run = (
     { entries: [] },
     [],
     { entries: [] },
+    [],
     list,
   ).failures.map(
     (f: { code: string; function?: string }) => `${f.code} ${f.function}`,
@@ -172,11 +173,21 @@ describe("AL-2680 WP7 pull request 1, fix round C3: the own-ministry lane pins i
         ...ownMinistryHelperRows(),
       ]),
       { entries: [] },
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      [],
     ).failures;
     expect(shipped).toEqual([]);
     const withoutHelpers = evaluateTenantRlsCatalog(
       snapshot([...preMembershipCommandRows(), ...ownMinistryCommandRows()]),
       { entries: [] },
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      [],
     ).failures.map(
       (f: { code: string; function?: string }) => `${f.code} ${f.function}`,
     );

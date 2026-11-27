@@ -222,7 +222,7 @@ CREATE POLICY publication_policies_staff_read
   TO authenticated
   USING (
     tenant_id = (SELECT authz.current_tenant_id())
-    AND (SELECT authz.assignment_is('staff'::authz.membership_role))
+    AND (SELECT authz.staff_read())
   );
 
 CREATE POLICY tenant_guard_isolation
@@ -448,7 +448,7 @@ CREATE POLICY "posts tenant read"
         AND NOT worker_withheld
         AND (
           visibility = 'public'
-          OR (SELECT authz.assignment_is('staff'::authz.membership_role))
+          OR (SELECT authz.staff_read())
           OR (
             visibility = 'partners_only'
             AND (SELECT authz.assignment_is('donor'::authz.membership_role))

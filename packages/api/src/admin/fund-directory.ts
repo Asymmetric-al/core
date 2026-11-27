@@ -13,9 +13,8 @@ function likeContainsPattern(search: string) {
 
 /**
  * Fund directory for admin pickers. `q` searches fund names on the server so
- * funds beyond one page stay findable. `tenantId` narrows a super admin's
- * cross-tenant directory to one organization; everyone else is always held
- * to their own tenant, whatever they ask for.
+ * funds beyond one page stay findable. Every caller is held to their own
+ * tenant, whatever `tenantId` asks for; a malformed one is refused.
  */
 export const GET = withPlatformOperation(
   async ({ supabaseAdmin, auth: ctx, request }) => {
@@ -42,11 +41,7 @@ export const GET = withPlatformOperation(
       .order("name", { ascending: true })
       .range(offset, offset + limit - 1);
 
-    if (ctx.role !== "super_admin") {
-      query = query.eq("tenant_id", ctx.tenantId);
-    } else if (requestedTenantId) {
-      query = query.eq("tenant_id", requestedTenantId);
-    }
+    query = query.eq("tenant_id", ctx.tenantId);
 
     if (search) {
       query = query.ilike("name", likeContainsPattern(search));
