@@ -274,7 +274,7 @@ describe("AL-2681 PR 2a: the guest intake handler (tested directly; not mounted 
     const res = await s.handler(request(body()));
     expect(res.status).toBe(503);
     expect(await res.json()).toEqual({
-      error: "giving_unavailable",
+      error: "payment_not_started",
       retry: true,
     });
     expect(s.clientSecret).not.toHaveBeenCalled();
@@ -320,7 +320,7 @@ describe("AL-2681 PR 2a: the guest intake handler (tested directly; not mounted 
       [
         { code: "XX000", message: "boom" },
         503,
-        { error: "giving_unavailable" },
+        { error: "payment_not_started", retry: true },
       ],
     ];
     for (const [error, status, payload] of cases) {
@@ -404,5 +404,41 @@ describe("AL-2681 PR 2a: the guest intake handler (tested directly; not mounted 
     );
     expect(res.status).toBe(503);
     expect(s.calls).toEqual([]);
+  });
+
+  it("keeps apart what a donor must be told apart: a ministry that cannot take gifts here, a payment that could not start (try again), a burst, a failed challenge (outcome 4 of 27 November)", async () => {
+    const unavailable = setup({
+      begin: {
+        data: null,
+        error: { code: "55000", message: "binding_unavailable" },
+      },
+    });
+    expect(await (await unavailable.handler(request(body()))).json()).toEqual({
+      error: "giving_unavailable",
+    });
+    const limiterDown = setup();
+    limiterDown.rpc.mockImplementationOnce(async () => ({
+      data: null,
+      error: { message: "database down" },
+    }));
+    const res = await limiterDown.handler(request(body()));
+    expect(res.status).toBe(503);
+    expect(await res.json()).toEqual({
+      error: "payment_not_started",
+      retry: true,
+    });
+    const challengeDown = setup({
+      verifyChallenge: vi.fn(async () => ({
+        ok: false as const,
+        reason: "unavailable" as const,
+      })),
+    });
+    const res2 = await challengeDown.handler(request(body()));
+    expect(res2.status).toBe(503);
+    expect(await res2.json()).toEqual({
+      error: "payment_not_started",
+      retry: true,
+    });
+    expect(challengeDown.calls).toEqual([]);
   });
 });

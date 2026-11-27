@@ -364,7 +364,7 @@ describe.skipIf(!ADMIN_URL)(
             "22023 contact_required",
           ],
           [
-            "an actor on a Site",
+            "an actor on a Site (while private.site_checkout_serves_guests() holds)",
             {
               ...ok,
               actor: {
@@ -753,6 +753,127 @@ describe.skipIf(!ADMIN_URL)(
           });
           expect(`${onSite.code} ${onSite.message}`).toBe(
             "22023 source_site_not_admitted",
+          );
+        }));
+    });
+
+    describe("a signed-in giver on a Site's checkout: one named check, private.site_checkout_serves_guests(), under the owner's review (outcome 3 of 27 November)", () => {
+      async function homeServesSite(w: Awaited<ReturnType<typeof world>>) {
+        await role(db, null);
+        const host = `both-${randomUUID().slice(0, 8)}.give.example.test`;
+        await db.query(
+          `INSERT INTO public.site_domains (host, tenant_id, site_id, surfaces, expected_project,
+             control_proved_at, attached_at, routing_proved_at, https_proved_at, sign_in_ready_at, activation_proved_at)
+           VALUES ($1, $2, $3, ARRAY['website', 'donor_account'], 'donor', now(), now(), now(), now(), now(), now())`,
+          [host, w.A.tenant, w.hostsA.siteId],
+        );
+        await db.query(
+          "UPDATE public.donor_portal_hosts SET primary_domain = $2 WHERE tenant_id = $1",
+          [w.A.tenant, host],
+        );
+        return host;
+      }
+
+      async function checkOff() {
+        await role(db, null);
+        await db.query(
+          "CREATE OR REPLACE FUNCTION private.site_checkout_serves_guests() RETURNS boolean LANGUAGE sql IMMUTABLE SET search_path = '' AS 'SELECT false'",
+        );
+      }
+
+      const actor = () => ({
+        user_id: randomUUID(),
+        email: "inplace@example.test",
+        email_confirmed: true,
+      });
+
+      it("the check is one postgres-owned function that answers true today, which only tenant_guard executes", () =>
+        inTx(db, async () => {
+          await role(db, null);
+          const row = (
+            await db.query(
+              `SELECT private.site_checkout_serves_guests() AS on,
+                      pg_get_userbyid(p.proowner) AS owner,
+                      has_function_privilege('tenant_guard', p.oid, 'EXECUTE') AS guard,
+                      has_function_privilege('service_role', p.oid, 'EXECUTE') AS service,
+                      has_function_privilege('authenticated', p.oid, 'EXECUTE') AS signed_in
+                 FROM pg_proc AS p WHERE p.oid = 'private.site_checkout_serves_guests()'::regprocedure`,
+            )
+          ).rows[0];
+          expect(row).toEqual({
+            on: true,
+            owner: "postgres",
+            guard: true,
+            service: false,
+            signed_in: false,
+          });
+        }));
+
+      it("while the check holds, a verified actor is refused on a Site's checkout even when that name is also the home domain", () =>
+        inTx(db, async () => {
+          const w = await world();
+          const host = await homeServesSite(w);
+          const a = await begin(db, {
+            host,
+            lines: [{ fund: w.A.fund, amount: 1500 }],
+            actor: actor(),
+          });
+          expect(`${a.code} ${a.message}`).toBe("22023 actor_not_admitted");
+        }));
+
+      it("with the check off, a verified actor on the home domain that serves the Site gives in place: the Site frozen from the host, the website as entry surface, the actor recorded", () =>
+        inTx(db, async () => {
+          const w = await world();
+          const host = await homeServesSite(w);
+          await checkOff();
+          const giver = actor();
+          const r = begun(
+            await begin(db, {
+              host,
+              lines: [{ fund: w.A.fund, amount: 1500 }],
+              actor: giver,
+            }),
+          );
+          expect(await intake(r.donation_id)).toMatchObject({
+            site_id: w.hostsA.siteId,
+            entry_surface: "website",
+          });
+          expect(await contactOf(r.donation_id)).toMatchObject({
+            actor_user_id: giver.user_id,
+            actor_email_confirmed: true,
+          });
+          const guest = begun(
+            await begin(db, {
+              host,
+              lines: [{ fund: w.A.fund, amount: 1500 }],
+            }),
+          );
+          expect(await intake(guest.donation_id)).toMatchObject({
+            site_id: w.hostsA.siteId,
+            entry_surface: "website",
+          });
+        }));
+
+      it("with the check off, an actor on a Site's name that is not the home domain is still refused, and an unverified one is required", () =>
+        inTx(db, async () => {
+          const w = await world();
+          const host = await homeServesSite(w);
+          await checkOff();
+          const elsewhere = await begin(db, {
+            host: w.hostsA.site,
+            lines: [{ fund: w.A.fund, amount: 1500 }],
+            actor: actor(),
+          });
+          expect(`${elsewhere.code} ${elsewhere.message}`).toBe(
+            "22023 actor_not_admitted",
+          );
+          const unverified = await begin(db, {
+            host,
+            lines: [{ fund: w.A.fund, amount: 1500 }],
+            actor: { user_id: randomUUID(), email: "x@example.test" },
+          });
+          expect(`${unverified.code} ${unverified.message}`).toBe(
+            "22023 actor_required",
           );
         }));
     });
