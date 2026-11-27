@@ -7,6 +7,8 @@ import {
   confirmBodySchema,
   createBodySchema,
   createResultSchema,
+  inviteBodySchema,
+  inviteResultSchema,
   isBlank,
   liftBodySchema,
   readBody,
@@ -34,6 +36,11 @@ import type { RequestSessionClient } from "../../shared/request-session-client";
 import type { z } from "zod";
 
 const WRITE = { capability: WORKERS_CAPABILITY } as const;
+
+const INVITATION_HEADERS = {
+  "Cache-Control": "no-store",
+  "Referrer-Policy": "no-referrer",
+} as const;
 
 const codeOf = (error: RpcError | null) =>
   error && typeof error.code === "string" ? error.code : null;
@@ -278,4 +285,50 @@ export const POST_CREATE = withWorkersWrite(
       return workersOutcomeUnknown("create", null, requestId);
     return NextResponse.json({ worker: toWorker(row) }, { status: 201 });
   }, WRITE),
+);
+
+export const POST_INVITE = withWorkersWrite(
+  withOperation(
+    async ({ auth, request, sessionClient, requestId }, context) => {
+      const prepared = await prepare(
+        "invite",
+        { request, sessionClient, requestId, context },
+        inviteBodySchema,
+      );
+      if (!prepared.ok) return prepared.response;
+      if (prepared.row.has_login) return workerError("HAS_LOGIN");
+      const { email, reason } = prepared.body;
+      const { data, error } = await prepared.client.rpc("invite_worker", {
+        p_tenant_id: auth.tenantId,
+        p_email: email,
+        p_party_id: prepared.row.party_id,
+        p_display_name: null,
+        p_legal_name: null,
+        p_real_country: null,
+        p_precise_location: null,
+        p_legal_entity_id: null,
+        p_reason: reason,
+      });
+      if (error) return refusal("invite", error, requestId);
+      const parsed = inviteResultSchema.safeParse(data);
+      if (
+        !parsed.success ||
+        !sameId(parsed.data.tenant_id, auth.tenantId) ||
+        !sameId(parsed.data.party_id, prepared.row.party_id)
+      )
+        return workersOutcomeUnknown("invite", null, requestId);
+      return NextResponse.json(
+        {
+          invitation: {
+            invitationId: parsed.data.invitation_id,
+            email,
+            expiresAt: parsed.data.expires_at,
+          },
+          invitePath: `/invite/${parsed.data.selector}#${parsed.data.verifier}`,
+        },
+        { status: 201, headers: INVITATION_HEADERS },
+      );
+    },
+    WRITE,
+  ),
 );

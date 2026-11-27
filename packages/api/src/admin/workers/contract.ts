@@ -95,6 +95,24 @@ export const createBodySchema = z.strictObject({
   reason,
 });
 
+export const inviteBodySchema = z.strictObject({
+  email: z.string().trim().email().max(320),
+  reason,
+});
+
+export const inviteResultSchema = z.strictObject({
+  invitation_id: z.guid(),
+  tenant_id: z.guid(),
+  selector: z.string().min(1),
+  verifier: z.string().min(1),
+  expires_at: z.string(),
+  role: z.literal("missionary"),
+  staff_role: z.null(),
+  is_tenant_admin: z.literal(false),
+  party_id: z.guid(),
+  assignment_id: z.guid(),
+});
+
 export const createResultSchema = z.strictObject({
   tenant_id: z.guid(),
   party_id: z.guid(),
@@ -158,6 +176,8 @@ export const WORKER_ERRORS = {
     status: 400,
     text: "This organization has no legal entity yet.",
   },
+  HAS_LOGIN: { status: 409, text: "This worker already has a login." },
+  EMAIL_REQUIRED: { status: 400, text: "Give a valid e-mail address." },
 } as const;
 
 export type WorkerErrorCode = keyof typeof WORKER_ERRORS;
@@ -182,7 +202,8 @@ export type WorkersOperation =
   | "lift"
   | "confirm"
   | "reveal"
-  | "create";
+  | "create"
+  | "invite";
 
 async function reportWorkersFailure(
   operation: WorkersOperation,
@@ -246,6 +267,8 @@ function refusalOf(error: RpcError): WorkerErrorCode | null {
     if (message === "Name the legal entity") return "LEGAL_ENTITY_REQUIRED";
     if (message === "This organization has no legal entity")
       return "NO_LEGAL_ENTITY";
+    if (message === "A valid email address is required")
+      return "EMAIL_REQUIRED";
     if (message === "Nothing to change") return "NOTHING_TO_CHANGE";
     if (
       message.startsWith("Lowering a level") ||
@@ -266,6 +289,7 @@ function refusalOf(error: RpcError): WorkerErrorCode | null {
       return "ALIAS_IS_LEGAL_NAME";
     return null;
   }
+  if (code === "55006") return "HAS_LOGIN";
   if (code === "55P03" || code === "40001" || code === "40P01") return "RETRY";
   return null;
 }
