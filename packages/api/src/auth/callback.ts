@@ -108,16 +108,16 @@ export async function GET(request: Request) {
     const { error } = await supabase.auth.exchangeCodeForSession(code);
 
     if (!error) {
+      if (isOperationsSignIn(request.headers, process.env)) {
+        return markSharedOriginSessionChange(
+          callbackRedirect(OPERATOR_AREA_ROOT),
+        );
+      }
       const {
         data: { user },
       } = await supabase.auth.getUser();
 
       if (user) {
-        if (isOperationsSignIn(request.headers, process.env)) {
-          return markSharedOriginSessionChange(
-            callbackRedirect(OPERATOR_AREA_ROOT),
-          );
-        }
         const role = await homeMembershipClass(supabase, request);
         const roleRoute = routeForRole(role);
         if (role && roleRoute) {
