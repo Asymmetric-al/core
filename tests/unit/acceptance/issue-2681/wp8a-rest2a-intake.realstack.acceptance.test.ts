@@ -505,7 +505,7 @@ describe.skipIf(!ADMIN_URL)(
         await role(db, null);
         const rows = (
           await db.query(
-            `SELECT r, has_function_privilege(r, 'public.begin_line_gift(text,text,text,jsonb,bigint,text,boolean,text,jsonb,jsonb)', 'EXECUTE') AS can
+            `SELECT r, has_function_privilege(r, 'public.begin_line_gift(text,text,text,jsonb,bigint,text,boolean,text,jsonb,jsonb,uuid)', 'EXECUTE') AS can
                FROM unnest(ARRAY['anon', 'authenticated', 'service_role']) AS r ORDER BY r`,
           )
         ).rows;

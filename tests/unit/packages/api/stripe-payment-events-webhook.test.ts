@@ -170,10 +170,10 @@ function fakeDatabase(
 
 function handlerWith(
   db: ReturnType<typeof fakeDatabase>,
-  secret: string | undefined = SECRET,
+  secret: string | null = SECRET,
 ) {
   return createStripePaymentEventsWebhookHandler({
-    getWebhookSecret: () => secret,
+    getWebhookSecret: () => secret ?? undefined,
     adminClientFactory: () => ({ client: db.client, error: null }) as never,
   });
 }
@@ -183,7 +183,7 @@ describe("AL-2681 PR 2a: the payment-event destination (mounted; refuses without
     const db = fakeDatabase();
     const raw = JSON.stringify(snapshotEvent());
     expect(
-      (await handlerWith(db, undefined)(request(raw, signed(raw)))).status,
+      (await handlerWith(db, null)(request(raw, signed(raw)))).status,
     ).toBe(503);
     expect(
       (await handlerWith(db, "  ")(request(raw, signed(raw)))).status,

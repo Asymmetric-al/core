@@ -64,7 +64,7 @@ describe.skipIf(!ADMIN_URL)(
         expect(writers).toEqual([
           "atomic_create_donation_with_audit(uuid,uuid,uuid,uuid,bigint,text,uuid,text,text,jsonb,text,text)",
           "begin_donation_saga(uuid,uuid,uuid,bigint,text,uuid,uuid,text,text,text,jsonb)",
-          "tenant_guard.begin_line_gift(uuid,text,text,text,jsonb,bigint,text,boolean,text,jsonb,jsonb)",
+          "tenant_guard.begin_line_gift(uuid,text,text,text,jsonb,bigint,text,boolean,text,jsonb,jsonb,uuid)",
         ]);
       }));
 

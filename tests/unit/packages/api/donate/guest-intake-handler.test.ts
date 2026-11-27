@@ -91,9 +91,9 @@ function setup(
     handler: createGuestIntakeHandler(deps),
     calls,
     rpc,
-    verifyChallenge,
-    sendFirst,
-    clientSecret,
+    verifyChallenge: deps.verifyChallenge as typeof verifyChallenge,
+    sendFirst: deps.sendFirst as typeof sendFirst,
+    clientSecret: deps.clientSecret as typeof clientSecret,
   };
 }
 
