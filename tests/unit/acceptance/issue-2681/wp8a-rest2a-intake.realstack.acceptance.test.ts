@@ -530,7 +530,7 @@ describe.skipIf(!ADMIN_URL)(
       await role(db, "service_role");
       const a = await attempt(
         db,
-        "SELECT tenant_guard.begin_line_gift($1, $2, $3, $4, $5::jsonb, $6, $7, $8, $9, $10::jsonb, $11::jsonb) AS r",
+        "SELECT tenant_guard.begin_line_gift($1, $2, $3, $4, $5::jsonb, $6, $7, $8, $9, $10::jsonb, $11::jsonb, $12::uuid) AS r",
         [tenant, ...args],
       );
       await role(db, null);
@@ -642,6 +642,118 @@ describe.skipIf(!ADMIN_URL)(
           await intakeCounts(db, w.B.tenant),
         ]).toEqual(before);
       }));
+
+    describe("the Site-to-home hand-off: a signed-in gift keeps its Site when the Site is the home organization's (amendment of 27 November, plan :179, :1152, :1179)", () => {
+      async function signedIn(
+        w: Awaited<ReturnType<typeof world>>,
+        sourceSite: string | null,
+        more: Partial<GiftRequest> = {},
+      ) {
+        return begin(db, {
+          host: w.hostsA.home,
+          surface: "donor_account",
+          lines: [{ fund: w.A.fund, amount: 2000 }],
+          actor: {
+            user_id: randomUUID(),
+            email: "handoff@example.test",
+            email_confirmed: true,
+          },
+          sourceSite,
+          ...more,
+        });
+      }
+
+      it("a current Site of the home organization is kept as the gift's Site; the entry surface stays the donor portal's", () =>
+        inTx(db, async () => {
+          const w = await world();
+          const r = begun(await signedIn(w, w.hostsA.siteId));
+          expect(await intake(r.donation_id)).toMatchObject({
+            site_id: w.hostsA.siteId,
+            entry_surface: "donor_account",
+          });
+        }));
+
+      it("another organization's Site, an inactive Site or an unknown one gives a gift of the home organization with no Site, and the other organization is untouched", () =>
+        inTx(db, async () => {
+          const w = await world();
+          const beforeB = await intakeCounts(db, w.B.tenant);
+          const foreign = begun(await signedIn(w, w.hostsB.siteId));
+          expect(foreign).not.toHaveProperty("site_id");
+          expect(JSON.stringify(foreign)).not.toContain(w.hostsB.siteId);
+          expect(JSON.stringify(foreign)).not.toContain(w.B.tenant);
+          expect(await intake(foreign.donation_id)).toMatchObject({
+            site_id: null,
+            entry_surface: "donor_account",
+          });
+          expect(foreign.tenant_id).toBe(w.A.tenant);
+          const unknown = begun(await signedIn(w, randomUUID()));
+          expect(await intake(unknown.donation_id)).toMatchObject({
+            site_id: null,
+            entry_surface: "donor_account",
+          });
+          await role(db, null);
+          await db.query(
+            "UPDATE public.sites SET status = 'inactive' WHERE id = $1",
+            [w.hostsA.siteId],
+          );
+          const inactive = begun(await signedIn(w, w.hostsA.siteId));
+          expect(await intake(inactive.donation_id)).toMatchObject({
+            site_id: null,
+            entry_surface: "donor_account",
+          });
+          expect(await intakeCounts(db, w.B.tenant)).toEqual(beforeB);
+        }));
+
+      it("a guest gift on a Site's checkout and a signed-in gift that kept that Site stay distinguishable by entry surface (:1152)", () =>
+        inTx(db, async () => {
+          const w = await world();
+          const guest = begun(
+            await begin(db, {
+              host: w.hostsA.site,
+              lines: [{ fund: w.A.fund, amount: 2000 }],
+            }),
+          );
+          const signed = begun(await signedIn(w, w.hostsA.siteId));
+          expect(
+            [
+              await intake(guest.donation_id),
+              await intake(signed.donation_id),
+            ].map((r) => [r.site_id, r.entry_surface]),
+          ).toEqual([
+            [w.hostsA.siteId, "website"],
+            [w.hostsA.siteId, "donor_account"],
+          ]);
+        }));
+
+      it("a hand-off's targets and amounts are judged as for any gift; a source Site on a Site's own checkout is refused", () =>
+        inTx(db, async () => {
+          const w = await world();
+          const reserved = await signedIn(w, w.hostsA.siteId, {
+            lines: [{ fund: w.feeA, amount: 2000 }],
+          });
+          expect(`${reserved.code} ${reserved.message}`).toBe(
+            "22023 reserved_fund_line",
+          );
+          const foreignFund = await signedIn(w, w.hostsA.siteId, {
+            lines: [{ fund: w.B.fund, amount: 2000 }],
+          });
+          expect(`${foreignFund.code} ${foreignFund.message}`).toBe(
+            "22023 target_not_found",
+          );
+          const zero = await signedIn(w, w.hostsA.siteId, {
+            lines: [{ fund: w.A.fund, amount: 0 }],
+          });
+          expect(`${zero.code} ${zero.message}`).toBe("22023 lines_invalid");
+          const onSite = await begin(db, {
+            host: w.hostsA.site,
+            lines: [{ fund: w.A.fund, amount: 2000 }],
+            sourceSite: w.hostsA.siteId,
+          });
+          expect(`${onSite.code} ${onSite.message}`).toBe(
+            "22023 source_site_not_admitted",
+          );
+        }));
+    });
 
     describe("a change committed while the command waits on its lock (two sessions, committed, removed in finally)", () => {
       async function race(

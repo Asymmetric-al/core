@@ -200,6 +200,7 @@ describe("AL-2681 PR 2a: the guest intake handler (tested directly; not mounted 
         address: null,
       },
       p_actor: null,
+      p_site_id: null,
     });
     expect(JSON.stringify(begin.args)).not.toMatch(
       /"total"|tenantId|bindingId/,
@@ -383,6 +384,7 @@ describe("AL-2681 PR 2a: the guest intake handler (tested directly; not mounted 
         "p_is_anonymous",
         "p_lines",
         "p_payment_method",
+        "p_site_id",
         "p_source_code",
       ].sort(),
     );

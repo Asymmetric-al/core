@@ -200,6 +200,8 @@ describe.skipIf(!ADMIN_URL)(
         const pi = fake.objects()[0]!.id;
 
         const legacyBetween = await legacyGift(db, fx.A);
+        await role(db, null);
+        const legacyWritten = await legacyRows(db, fx.A.tenant);
 
         const event = await storeEvent(db, fx.A, {
           pi,
@@ -255,10 +257,11 @@ describe.skipIf(!ADMIN_URL)(
         expect(legacy.map((r) => r.id).sort()).toEqual(
           [legacyBefore.donation_id, legacyBetween.donation_id].sort(),
         );
+        expect(legacy).toEqual(legacyWritten);
         expect(
           legacy.every(
             (r) =>
-              r.intake_format === "legacy_header" && r.status === "pending",
+              r.intake_format === "legacy_header" && r.status === "processing",
           ),
         ).toBe(true);
       }));

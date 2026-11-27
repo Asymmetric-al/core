@@ -76,10 +76,11 @@ export type GiftRequest = {
   source?: string | null;
   contact?: Record<string, unknown> | null;
   actor?: Record<string, unknown> | null;
+  sourceSite?: string | null;
 };
 
 export const BEGIN_SQL =
-  "SELECT public.begin_line_gift($1, $2, $3, $4::jsonb, $5, $6, $7, $8, $9::jsonb, $10::jsonb) AS r";
+  "SELECT public.begin_line_gift($1, $2, $3, $4::jsonb, $5, $6, $7, $8, $9::jsonb, $10::jsonb, $11::uuid) AS r";
 
 export const guestContact = () => ({
   email: uniqueEmail("guest"),
@@ -105,6 +106,7 @@ export function beginArgs(r: GiftRequest) {
     r.source ?? null,
     r.contact === null ? null : JSON.stringify(r.contact ?? guestContact()),
     r.actor ? JSON.stringify(r.actor) : null,
+    r.sourceSite ?? null,
   ];
 }
 
