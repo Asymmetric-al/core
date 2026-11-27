@@ -115,10 +115,27 @@ describe.skipIf(!ADMIN_URL)("#2270 authz EXECUTE grants (R)", () => {
   beforeAll(() => db.connect());
   afterAll(() => db.end());
 
-  /** One check = one transaction, always rolled back. */
-  async function tx(fn: () => Promise<void>) {
+  /**
+   * One check = one transaction, always rolled back.
+   *
+   * Amended by WP2c's rest (AL-2675, pull request B; record D-18):
+   * 20261127040000 dropped authz.is_super_admin() with the last policy that
+   * called it. Every case but C1 recreates it inside its rolled-back
+   * transaction, as it stood (a SQL DEFINER owned by postgres reading
+   * profiles.role, EXECUTE for authenticated and service_role), so that this
+   * issue's migration body and its grant contract still run as written. C1
+   * reads the migrated chain itself.
+   */
+  async function tx(fn: () => Promise<void>, { restore = true } = {}) {
     await db.query("begin");
     try {
+      if (restore)
+        await db.query(`create function authz.is_super_admin() returns boolean
+            language sql stable parallel safe security definer set search_path = public
+            as $f$ select exists (select 1 from public.profiles p where p.user_id = auth.uid() and p.role = 'super_admin') $f$;
+          alter function authz.is_super_admin() owner to postgres;
+          revoke all on function authz.is_super_admin() from public;
+          grant execute on function authz.is_super_admin() to authenticated, service_role;`);
       await db.query(
         `insert into public.tenants (id, name, slug) values ($1, 'acc2270 A', 'acc2270-' || $1), ($2, 'acc2270 B', 'acc2270-' || $2);
          insert into auth.users (id) values ($3);
@@ -195,7 +212,7 @@ describe.skipIf(!ADMIN_URL)("#2270 authz EXECUTE grants (R)", () => {
          array(select case when a.grantee = 0 then 'PUBLIC' else a.grantee::regrole::text end
                from aclexplode(coalesce(p.proacl, acldefault('f', p.proowner))) a
                where a.privilege_type = 'EXECUTE' order by 1) grantees
-       from pg_proc p where p.oid = any($1::regprocedure[])`,
+       from pg_proc p where p.oid = any(array(select to_regprocedure(f) from unnest($1::text[]) f))`,
       [FN.map((f) => (f.startsWith("authz.") ? f : `public.${f}`))],
     );
     return Object.fromEntries(
@@ -215,8 +232,29 @@ describe.skipIf(!ADMIN_URL)("#2270 authz EXECUTE grants (R)", () => {
     }
   }
 
-  it("C1: on the migrated database each §1.2 function has exactly the listed grantees (no PUBLIC, no anon)", () =>
-    tx(expectExact));
+  // Amended by WP2c's rest (AL-2675, pull request B; record D-18): the
+  // migrated chain no longer has authz.is_super_admin(); every other §1.2
+  // function keeps exactly the listed grantees.
+  it("C1: on the migrated database each §1.2 function that stands has exactly the listed grantees (no PUBLIC, no anon), and authz.is_super_admin() is gone", () =>
+    tx(
+      async () => {
+        const got = await acl();
+        const standing = FN.filter((f) => f !== "authz.is_super_admin()");
+        expect(Object.keys(got).sort()).toEqual([...standing].sort());
+        for (const f of standing) {
+          expect(got[f]!.grantees, `${f} EXECUTE grantees`).toEqual(
+            EXPECTED[f],
+          );
+          expect(got[f]!.prosecdef, `${f} stays SECURITY DEFINER`).toBe(true);
+          expect(got[f]!.owner).toBe("postgres");
+        }
+        expect(
+          (await db.query("select to_regprocedure('authz.is_super_admin()') f"))
+            .rows[0]!.f,
+        ).toBeNull();
+      },
+      { restore: false },
+    ));
 
   it("C1/OQ4: the INVOKER helpers authz.current_user_id/current_tenant_id keep PUBLIC EXECUTE", () =>
     tx(async () => {

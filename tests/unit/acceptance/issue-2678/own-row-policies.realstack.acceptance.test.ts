@@ -20,25 +20,29 @@ const OLD_OWN_DONOR =
 const OLD_OWN_MISSIONARY =
   "missionary_id IN (SELECT m.id FROM public.missionaries AS m WHERE m.profile_id IN (SELECT authz.caller_profile_ids()))";
 
+// Amended by WP2c's rest (AL-2675, pull request B; record D-18): the old
+// texts lose their super-admin branch. 20261127040000 dropped the function,
+// and no fixture caller's profile says super_admin, so every comparison of
+// the account-link move reads the same rows with or without it.
 const OLD_POLICIES: Record<string, [string, string, string | null]> = {
   donors: [
     "donors owner or staff select",
-    "(SELECT authz.is_super_admin()) OR (tenant_id = (SELECT authz.current_tenant_id()) AND ((SELECT authz.assignment_is('staff')) OR ((SELECT authz.assignment_is('donor')) AND profile_id IN (SELECT authz.caller_profile_ids()))))",
+    "(tenant_id = (SELECT authz.current_tenant_id()) AND ((SELECT authz.assignment_is('staff')) OR ((SELECT authz.assignment_is('donor')) AND profile_id IN (SELECT authz.caller_profile_ids()))))",
     null,
   ],
   donations: [
     "donations owner or staff select",
-    `(SELECT authz.is_super_admin()) OR (tenant_id = (SELECT authz.current_tenant_id()) AND ((SELECT authz.assignment_is('staff')) OR ((SELECT authz.assignment_is('donor')) AND ${OLD_OWN_DONOR}) OR ((SELECT authz.assignment_is('missionary')) AND ${OLD_OWN_MISSIONARY})))`,
+    `(tenant_id = (SELECT authz.current_tenant_id()) AND ((SELECT authz.assignment_is('staff')) OR ((SELECT authz.assignment_is('donor')) AND ${OLD_OWN_DONOR}) OR ((SELECT authz.assignment_is('missionary')) AND ${OLD_OWN_MISSIONARY})))`,
     null,
   ],
   donor_pledges: [
     "donor pledges owner or staff select",
-    `(SELECT authz.is_super_admin()) OR (tenant_id = (SELECT authz.current_tenant_id()) AND ((SELECT authz.assignment_is('staff')) OR ((SELECT authz.assignment_is('donor')) AND ${OLD_OWN_DONOR}) OR ((SELECT authz.assignment_is('missionary')) AND ${OLD_OWN_MISSIONARY})))`,
+    `(tenant_id = (SELECT authz.current_tenant_id()) AND ((SELECT authz.assignment_is('staff')) OR ((SELECT authz.assignment_is('donor')) AND ${OLD_OWN_DONOR}) OR ((SELECT authz.assignment_is('missionary')) AND ${OLD_OWN_MISSIONARY})))`,
     null,
   ],
   donor_activities: [
     "donor activities owner or staff select",
-    "(SELECT authz.is_super_admin()) OR EXISTS (SELECT 1 FROM public.donors AS d WHERE d.id = donor_activities.donor_id AND d.tenant_id = (SELECT authz.current_tenant_id()) AND ((SELECT authz.assignment_is('staff')) OR ((SELECT authz.assignment_is('donor')) AND d.profile_id IN (SELECT authz.caller_profile_ids()))))",
+    "EXISTS (SELECT 1 FROM public.donors AS d WHERE d.id = donor_activities.donor_id AND d.tenant_id = (SELECT authz.current_tenant_id()) AND ((SELECT authz.assignment_is('staff')) OR ((SELECT authz.assignment_is('donor')) AND d.profile_id IN (SELECT authz.caller_profile_ids()))))",
     null,
   ],
   missionaries: [

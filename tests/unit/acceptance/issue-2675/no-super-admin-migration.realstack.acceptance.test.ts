@@ -67,7 +67,8 @@ describe("AL-2675 WP2c rest B: the migration's form", () => {
     expect(
       body.slice(drop + "DROP FUNCTION authz.is_super_admin();".length),
     ).toMatch(/^\s*(DO \$\$[\s\S]*?\$\$;\s*)*COMMIT;\s*$/);
-    expect(read(file())).not.toMatch(/\bCASCADE\b/i);
+    // No statement cascades (the header's prose names the word).
+    expect(body).not.toMatch(/\bCASCADE\b/i);
   });
 
   it("carries the recovery header the release job reads, with a read-only check and its version, and a Down", () => {

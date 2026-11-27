@@ -188,21 +188,26 @@ describe("#2255 forward migration text", () => {
     // and touches nothing else of these tables. Any other statement there,
     // and any other migration, still fails.
     const POLICY_MIGRATION = /^\d{14}_request_tenant_policies\.sql$/;
+    // Amended by WP2c's rest (AL-2675, pull request B; record D-18): its
+    // migration moves the same two staff reads to the staff-read helper, by
+    // ALTER POLICY, and touches nothing else of these tables.
+    const HELPER_MIGRATION = /^\d{14}_wp2c_rest_no_super_admin\.sql$/;
     const hits = readdirSync(DIR)
       .filter((f) => /^\d{14}_.*\.sql$/.test(f) && f !== OWN)
       .filter((f) => !POLICY_MIGRATION.test(f) && !CLAIM_MIGRATION.test(f))
+      .filter((f) => !HELPER_MIGRATION.test(f))
       .filter((f) => re.test(code(readFileSync(path.join(DIR, f), "utf8"))));
     expect(hits).toEqual([]);
-    const policyMigration = readdirSync(DIR).find((f) =>
-      POLICY_MIGRATION.test(f),
-    );
-    const naming = code(readFileSync(path.join(DIR, policyMigration!), "utf8"))
-      .split("\n")
-      .filter((line) => re.test(line));
-    expect(naming).toEqual([
-      'ALTER POLICY "account_claim_requests_staff_select" ON public.account_claim_requests',
-      'ALTER POLICY "legacy_account_invitations_staff_select" ON public.legacy_account_invitations',
-    ]);
+    for (const migration of [POLICY_MIGRATION, HELPER_MIGRATION]) {
+      const file = readdirSync(DIR).find((f) => migration.test(f));
+      const naming = code(readFileSync(path.join(DIR, file!), "utf8"))
+        .split("\n")
+        .filter((line) => re.test(line));
+      expect(naming, file).toEqual([
+        'ALTER POLICY "account_claim_requests_staff_select" ON public.account_claim_requests',
+        'ALTER POLICY "legacy_account_invitations_staff_select" ON public.legacy_account_invitations',
+      ]);
+    }
   });
 });
 

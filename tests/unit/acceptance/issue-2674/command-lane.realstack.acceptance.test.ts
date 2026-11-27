@@ -851,7 +851,8 @@ describe.skipIf(!ADMIN_URL)("AL-2674 command lane (real stack)", () => {
                     or has_function_privilege('authenticated', 'tenant_guard.request_claims()', 'EXECUTE') signed_in,
                   has_function_privilege('tenant_guard', 'authz.has_membership(uuid, authz.membership_role[])', 'EXECUTE') has_membership,
                   has_function_privilege('tenant_guard', 'authz.has_staff_membership(uuid, authz.staff_role[])', 'EXECUTE') has_staff,
-                  has_function_privilege('tenant_guard', 'authz.is_super_admin()', 'EXECUTE') super_admin,
+                  coalesce(has_function_privilege('tenant_guard', to_regprocedure('authz.is_super_admin()'), 'EXECUTE'), false)
+                    or has_function_privilege('tenant_guard', 'authz.staff_read()', 'EXECUTE') super_admin,
                   has_table_privilege('tenant_guard', 'authz.memberships', 'SELECT') sel,
                   has_table_privilege('tenant_guard', 'authz.memberships', 'INSERT, UPDATE, DELETE, TRUNCATE') write`,
         );

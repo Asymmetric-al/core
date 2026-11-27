@@ -531,10 +531,12 @@ describe.skipIf(!ADMIN_URL)(
             if (f.fn !== "authz.current_tenant_id()")
               expect(f.anon, f.fn as string).toBe(false);
           }
-          // The super-admin branch every rewritten policy keeps until WP2c
-          // must not deny caller-token reads a parallel plan.
+          // Amended by WP2c's rest (AL-2675, pull request B; record D-18):
+          // the super-admin branch is gone with its function; the staff-read
+          // helper that the staff-wide reads call in its place must not deny
+          // caller-token reads a parallel plan either.
           const superAdmin = await rows(
-            "select provolatile v, proparallel par from pg_proc where oid = 'authz.is_super_admin()'::regprocedure",
+            "select provolatile v, proparallel par from pg_proc where oid = 'authz.staff_read()'::regprocedure",
           );
           expect(superAdmin).toEqual([{ v: "s", par: "s" }]);
           const anon = await as(
