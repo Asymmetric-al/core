@@ -16,6 +16,7 @@ import { homeRedirect } from "./lib/home-redirect";
 import {
   classifyDonorPath,
   isDonorExemptPath,
+  isGuestGivingOpen,
   isHomeRedirectPath,
   isUnroutedReservedPath,
   resolveDonorPath,
@@ -23,6 +24,8 @@ import {
 
 import type { AuthMiddlewareOptions } from "@asym/auth/middleware";
 import type { NextRequest } from "next/server";
+
+const GIVING_OPEN = isGuestGivingOpen();
 
 const authOptions: AuthMiddlewareOptions = {
   publicRoutes: [
@@ -44,7 +47,10 @@ const authOptions: AuthMiddlewareOptions = {
   // Checkout needs a signed-in donor, so signed-out visitors go to sign-in
   // with the gift kept in `next` and come straight back to it. They never
   // reach the payment UI or the donate API first.
-  protectedRoutePrefixes: ["/donor-dashboard", "/checkout"],
+  protectedRoutePrefixes: [
+    "/donor-dashboard",
+    ...(GIVING_OPEN ? [] : ["/checkout"]),
+  ],
   loginPath: "/login",
   redirectAuthenticatedTo: "/donor-dashboard",
   unauthorizedRedirectTo: "/",
@@ -105,7 +111,7 @@ export async function proxy(request: NextRequest) {
     return homeRedirect(home.host, request.nextUrl, resolved.pathname);
   }
 
-  const pathClass = classifyDonorPath(resolved.pathname);
+  const pathClass = classifyDonorPath(resolved.pathname, GIVING_OPEN);
   const { donor_account: account, website } = lookup.decisions;
   const admitted =
     pathClass === "account"

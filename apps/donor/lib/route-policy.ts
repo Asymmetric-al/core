@@ -61,7 +61,13 @@ export const DONOR_BOTH_ROOTS = [
   "/help/about",
 ] as const;
 
-export type DonorPathClass = "account" | "both" | "website";
+export const DONOR_GIVING_PATHS = [
+  "/checkout",
+  "/api/checkout/config",
+  "/api/donate",
+] as const;
+
+export type DonorPathClass = "account" | "both" | "giving" | "website";
 
 export type DonorPathTransport = "none" | "rsc" | "segment";
 
@@ -185,7 +191,32 @@ export function isDonorExemptPath(normalizedPathname: string): boolean {
   return (DONOR_EXEMPT_PATHS as readonly string[]).includes(normalizedPathname);
 }
 
-export function classifyDonorPath(normalizedPathname: string): DonorPathClass {
+export function isGuestGivingOpen(
+  env: Record<string, string | undefined> = process.env,
+): boolean {
+  return (
+    env.GUEST_GIVING_ENABLED === "true" &&
+    Boolean(env.TURNSTILE_SECRET_KEY?.trim()) &&
+    Boolean(env.NEXT_PUBLIC_TURNSTILE_SITE_KEY?.trim()) &&
+    /^pk_test_[A-Za-z0-9]+$/.test(
+      env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY?.trim() ?? "",
+    )
+  );
+}
+
+export function isGivingPath(normalizedPathname: string): boolean {
+  return (
+    normalizedPathname === "/api/checkout/config" ||
+    normalizedPathname === "/api/donate" ||
+    matchesRoot(normalizedPathname, "/checkout")
+  );
+}
+
+export function classifyDonorPath(
+  normalizedPathname: string,
+  givingOpen = isGuestGivingOpen(),
+): DonorPathClass {
+  if (givingOpen && isGivingPath(normalizedPathname)) return "giving";
   if (
     DONOR_ACCOUNT_ROOTS.some((root) => matchesRoot(normalizedPathname, root))
   ) {

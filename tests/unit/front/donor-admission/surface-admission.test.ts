@@ -263,6 +263,11 @@ describe("on: per-surface path admission across bare-b, site-a, second-a and rea
 
 const GIVING_PATHS = ["/checkout", "/api/checkout/config", "/api/donate"];
 
+async function freshProxy() {
+  vi.resetModules();
+  return (await import("../../../../apps/donor/proxy")).proxy;
+}
+
 function openGiving() {
   vi.stubEnv("GUEST_GIVING_ENABLED", "true");
   vi.stubEnv("TURNSTILE_SECRET_KEY", "1x0000000000000000000000000000000AA");
@@ -273,9 +278,10 @@ function openGiving() {
 describe("AL-2681 PR 2b item zero 3: the giving routes on a website-only name, behind the switch and every control", () => {
   it("on, giving open: a website-only Site name forwards the checkout, the config read and the intake with its organization, signed out and never sent to sign-in", async () => {
     openGiving();
+    const proxy = await freshProxy();
     for (const path of GIVING_PATHS) {
       state.lookups = [];
-      const res = await donorModule.proxy(
+      const res = await proxy(
         donorRequest(SITE_A, path, { headers: { [NAME]: TB } }),
       );
       expect(res.headers.get("x-middleware-next"), path).toBe("1");
@@ -286,7 +292,8 @@ describe("AL-2681 PR 2b item zero 3: the giving routes on a website-only name, b
 
   it("on, giving open: an account-only home forwards the checkout with its organization, signed out, for account mode", async () => {
     openGiving();
-    const res = await donorModule.proxy(
+    const proxy = await freshProxy();
+    const res = await proxy(
       donorRequest(BARE_B, "/checkout", { headers: { [NAME]: TA } }),
     );
     expect(res.headers.get("x-middleware-next")).toBe("1");
@@ -303,19 +310,18 @@ describe("AL-2681 PR 2b item zero 3: the giving routes on a website-only name, b
     async (name, value) => {
       openGiving();
       vi.stubEnv(name, value);
+      const proxy = await freshProxy();
       for (const path of GIVING_PATHS)
-        await expectRefused(
-          await donorModule.proxy(donorRequest(SITE_A, path)),
-          path,
-        );
+        await expectRefused(await proxy(donorRequest(SITE_A, path)), path);
     },
   );
 
   it("off, giving open: the checkout is not a protected path, so a signed-out visitor is not sent to sign-in", async () => {
     openGiving();
+    const proxy = await freshProxy();
     state.offMode = true;
     vi.stubEnv("CORE_SERVE_UNDER_PATHS", "");
-    const res = await donorModule.proxy(donorRequest(SITE_A, "/checkout"));
+    const res = await proxy(donorRequest(SITE_A, "/checkout"));
     expect(res.status).not.toBe(307);
     expect(res.headers.get("x-middleware-next")).toBe("1");
   });
@@ -323,7 +329,8 @@ describe("AL-2681 PR 2b item zero 3: the giving routes on a website-only name, b
   it("guard: off, giving closed: a signed-out visitor to the checkout is sent to sign-in with the gift kept", async () => {
     state.offMode = true;
     vi.stubEnv("CORE_SERVE_UNDER_PATHS", "");
-    const res = await donorModule.proxy(
+    const proxy = await freshProxy();
+    const res = await proxy(
       donorRequest(SITE_A, "/checkout?fund_id=f-1&amount=25"),
     );
     expect(res.status).toBe(307);
