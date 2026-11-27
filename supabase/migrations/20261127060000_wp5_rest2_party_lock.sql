@@ -23,8 +23,11 @@
 --    holds exactly one donor and no open candidate pairs the two, one open
 --    donor_merge_candidates row (existing: that donor; incoming: the claimed
 --    donor; confidence 'possible'; signals ["account_claim_other_party"]), so
---    staff can merge them; it answers whether it wrote one. A postgres-owned
---    definer, EXECUTE for tenant_guard only. It never merges.
+--    staff can merge them; it answers whether it wrote one. It reads under
+--    the advisory lock ('donor_merge_candidate', organization:pair, the two
+--    donor ids in ascending order), so two refusals of one pair at the same
+--    moment, in either direction, record one. A postgres-owned definer,
+--    EXECUTE for tenant_guard only. It never merges.
 -- 3. public.begin_donation_saga: its text from 20261126200000 with the rule
 --    for a signed-in giver: the lock, the Party from public.donor_party_for_
 --    insert (which resolves it in the writer's order under the same lock, or
@@ -43,10 +46,12 @@
 --    two changes. After it enters the tenant and before any row lock it takes
 --    ('donor_party_writer', tenant:caller), so a claim and a gift of the same
 --    login serialize. Before it links, it resolves the caller's Party in the
---    writer's order; a Party other than the claimed donor's is refused with
---    the claim's one answer ({"status":"refused"}) and the audited reason
---    caller_has_other_party, nothing is linked or granted, the claimed donor
---    is left as it was, and the pair is offered to staff through item 2.
+--    writer's order; a Party other than the claimed donor's, whether reached
+--    by an account link, a worker row or the login's own donor, is offered
+--    to staff through item 2, and the claim is refused with its one answer
+--    ({"status":"refused"}) and the audited reason caller_already_linked
+--    when the login has an account link, caller_has_other_party otherwise.
+--    Nothing is linked or granted and the claimed donor is left as it was.
 --    Owner tenant_guard, grants and answers unchanged; its reviewed digest in
 --    scripts/verify/command-entry-boundaries.mjs moves with it.
 --
@@ -174,6 +179,14 @@ BEGIN
     RETURN false;
   END IF;
 
+  PERFORM pg_catalog.pg_advisory_xact_lock(
+    pg_catalog.hashtext('donor_merge_candidate'),
+    pg_catalog.hashtext(
+      p_tenant_id::TEXT || ':' || LEAST(v_other, p_claimed_donor_id)::TEXT
+        || ':' || GREATEST(v_other, p_claimed_donor_id)::TEXT
+    )
+  );
+
   IF EXISTS (
     SELECT 1
       FROM public.donor_merge_candidates AS c
@@ -192,7 +205,7 @@ BEGIN
 END;
 $$;
 COMMENT ON FUNCTION private.record_claim_merge_candidate(UUID, UUID, UUID) IS
-  'For a claim refused because the login is tied to another Party (AL-2678, WP5 rest 2): one open donor_merge_candidates row pairing that Party''s sole donor with the claimed donor, for staff to merge; nothing when the Party holds none or several, or the pair is already open. Never merges. EXECUTE: tenant_guard.';
+  'For a claim refused because the login is tied to another Party (AL-2678, WP5 rest 2): one open donor_merge_candidates row pairing that Party''s sole donor with the claimed donor, for staff to merge; nothing when the Party holds none or several, or the pair is already open in either direction. It reads under the advisory lock (donor_merge_candidate, tenant:pair), so two refusals of one pair at once record one. Never merges. EXECUTE: tenant_guard.';
 ALTER FUNCTION private.record_claim_merge_candidate(UUID, UUID, UUID) OWNER TO postgres;
 REVOKE ALL ON FUNCTION private.record_claim_merge_candidate(UUID, UUID, UUID) FROM PUBLIC, anon, authenticated, service_role;
 GRANT EXECUTE ON FUNCTION private.record_claim_merge_candidate(UUID, UUID, UUID) TO tenant_guard;
@@ -708,16 +721,18 @@ BEGIN
       v_reason := 'contact_changed';
     ELSIF v_donor.linked THEN
       v_reason := 'donor_already_linked';
-    ELSIF EXISTS (
-      SELECT 1 FROM public.account_links AS al
-       WHERE al.tenant_id = p_tenant_id AND al.user_id = v_user
-    ) THEN
-      v_reason := 'caller_already_linked';
     ELSE
       v_other_party := private.login_party(p_tenant_id, v_user);
       IF v_other_party IS NOT NULL AND v_other_party IS DISTINCT FROM v_donor.party_id THEN
-        v_reason := 'caller_has_other_party';
         PERFORM private.record_claim_merge_candidate(p_tenant_id, v_donor.donor_id, v_other_party);
+      END IF;
+      IF EXISTS (
+        SELECT 1 FROM public.account_links AS al
+         WHERE al.tenant_id = p_tenant_id AND al.user_id = v_user
+      ) THEN
+        v_reason := 'caller_already_linked';
+      ELSIF v_other_party IS NOT NULL AND v_other_party IS DISTINCT FROM v_donor.party_id THEN
+        v_reason := 'caller_has_other_party';
       END IF;
     END IF;
   END IF;

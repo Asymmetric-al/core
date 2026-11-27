@@ -29,7 +29,7 @@ export const reviewedPreMembership = Object.freeze({
   }),
   [redeemAccountClaim]: Object.freeze({
     reason: redeemAccountClaimReason,
-    digest: "88854b539ee4d37f23d4004d10092e2e6ef9b7a3b2eeb82cc350e8e7cfd2d431",
+    digest: "2301f4352670a831c860d15f197bfef5faffcab71dc61af8395ac9e3d37c0bed",
   }),
 });
 export const preMembershipEntries = Object.freeze([
