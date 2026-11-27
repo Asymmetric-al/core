@@ -24,7 +24,7 @@ const NO_SECOND_FACTOR =
 const NOT_REQUEST_TENANT =
   "platform: the organization asked for must be the request's own organization";
 const NO_STAFF_ROW =
-  "platform: the caller holds no live staff row in this organization";
+  "platform: the request has no live staff assignment of the caller in this organization";
 const BAD_LIMIT = "platform: the history limit must be from 1 to 200";
 
 const OPERATORS = {
@@ -81,6 +81,8 @@ describe.skipIf(!ADMIN_URL)(
         "mOwA",
         "mOvB",
         "mOrA",
+        "mOxD",
+        "mOxR",
         "hW",
         "hS",
         "hT",
@@ -106,7 +108,9 @@ describe.skipIf(!ADMIN_URL)(
             (${q("mOxB")}, ${q("OX")}, ${q("TB")}, 'staff', 'finance', false, true),
             (${q("mOwA")}, ${q("OW")}, ${q("TA")}, 'donor', null, false, true),
             (${q("mOvB")}, ${q("OV")}, ${q("TB")}, 'staff', 'development', false, true),
-            (${q("mOrA")}, ${q("OR")}, ${q("TA")}, 'staff', 'hr', false, false);
+            (${q("mOrA")}, ${q("OR")}, ${q("TA")}, 'staff', 'hr', false, false),
+            (${q("mOxD")}, ${q("OX")}, ${q("TA")}, 'donor', null, false, true),
+            (${q("mOxR")}, ${q("OX")}, ${q("TA")}, 'staff', 'hr', false, false);
           insert into authz.platform_operators (user_id, added_by, reason)
             select unnest(array[${ops}]::uuid[]), 'acceptance', 'WP2c rest fixture';
           insert into public.eve_audit_events (id, tenant_id, actor_id, actor_profile_id, identity_mode,
@@ -303,6 +307,58 @@ describe.skipIf(!ADMIN_URL)(
         }
         const nobody = await history(null, "50");
         expect(nobody.code).toBe("42501");
+      }));
+
+    it("F1 (review of #2855): finds the caller's staff row as the organization's other reads do: an organization suspended or closed, or a named assignment that is not that row, gets the one refusal that a caller with no row gets", () =>
+      tx(async () => {
+        const named = (row: string) => ({
+          ...scopedTo("TA"),
+          "x-asym-assignment": id[row] ?? row,
+        });
+        const noRow = await operators("OX", "TC", scopedTo("TC"));
+        expect([noRow.code, noRow.message]).toEqual(["42501", NO_STAFF_ROW]);
+
+        for (const headers of [scopedTo("TA"), named("mOxA")]) {
+          const answered = await operators("OX", "TA", headers);
+          expect([JSON.stringify(headers), answered.code]).toEqual([
+            JSON.stringify(headers),
+            null,
+          ]);
+          expect(
+            (answered.rows[0]!.r as Array<{ id: string }>).map((o) =>
+              keyOf(o.id),
+            ),
+          ).toEqual(["OX", "OW"]);
+        }
+
+        for (const row of ["mOxD", "mOxR", "mOxB", "mAdm", "not-a-uuid"]) {
+          const refused = await operators("OX", "TA", named(row));
+          expect([row, refused.code, refused.message]).toEqual([
+            row,
+            "42501",
+            NO_STAFF_ROW,
+          ]);
+        }
+
+        for (const status of ["suspended", "closed"]) {
+          await db.query(
+            "update public.tenants set status = $1 where id = $2",
+            [status, id.TA],
+          );
+          for (const headers of [scopedTo("TA"), named("mOxA")]) {
+            const refused = await operators("OX", "TA", headers);
+            expect([status, refused.code, refused.message]).toEqual([
+              status,
+              "42501",
+              NO_STAFF_ROW,
+            ]);
+          }
+          await db.query(
+            "update public.tenants set status = 'active' where id = $1",
+            [id.TA],
+          );
+          expect((await operators("OX", "TA", scopedTo("TA"))).code).toBeNull();
+        }
       }));
 
     it("refuses at the next call once the operator is taken off the list, with the same aal2 claims, and the route's operator check says no", () =>

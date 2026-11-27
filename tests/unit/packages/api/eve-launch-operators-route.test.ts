@@ -230,4 +230,14 @@ describe("GET /api/admin/eve/launch-readiness/operators (WP2c rest)", () => {
       /withPlatformOperation|supabase\/admin|getAdminClient|createAdminClient/,
     );
   });
+
+  it("F7 (review of #2855): calls the session client's own rpc, with no double cast, and parses the answer by a schema", () => {
+    const handler = readFileSync(
+      "packages/api/src/eve/launch-readiness/operators.ts",
+      "utf8",
+    );
+    expect(handler).not.toMatch(/as unknown as/);
+    expect(handler).toMatch(/sessionClient\.rpc\(\s*"tenant_operators"/);
+    expect(handler).toMatch(/\.safeParse\(/);
+  });
 });

@@ -623,7 +623,7 @@ describe.skipIf(!READY)(
     const NOT_REQUEST_TENANT =
       "platform: the organization asked for must be the request's own organization";
     const NO_STAFF_ROW =
-      "platform: the caller holds no live staff row in this organization";
+      "platform: the request has no live staff assignment of the caller in this organization";
     const db = new pg.Client({
       connectionString: DB_URL,
       connectionTimeoutMillis: 10_000,
@@ -635,10 +635,40 @@ describe.skipIf(!READY)(
       email: `wp2crest-operator-${randomUUID()}@example.invalid`,
       id: "",
     };
+    const keeper = {
+      email: `wp2crest-keeper-${randomUUID()}@example.invalid`,
+      id: "",
+    };
     const person = {
       email: `wp2crest-person-${randomUUID()}@example.invalid`,
       id: "",
     };
+
+    function operatorScript(action: "add" | "remove", email: string) {
+      const run = spawnSync(
+        process.execPath,
+        [
+          "scripts/platform/operators.mjs",
+          action,
+          "--user",
+          email,
+          "--actor",
+          "WP2c rest stack proof",
+          "--reason",
+          "Operator reads proof on a local stack",
+        ],
+        {
+          encoding: "utf8",
+          timeout: 60_000,
+          env: { ...process.env, OPERATORS_DATABASE_URL: DB_URL },
+        },
+      );
+      expect(run.status, run.stderr).toBe(0);
+      expect(JSON.parse(run.stdout.trim())).toMatchObject({
+        action,
+        changed: true,
+      });
+    }
 
     async function createLogin(login: { email: string; id: string }) {
       const created = await auth(
@@ -720,26 +750,10 @@ describe.skipIf(!READY)(
     beforeAll(async () => {
       await db.connect();
       await createLogin(operator);
+      await createLogin(keeper);
       await createLogin(person);
-      const added = spawnSync(
-        process.execPath,
-        [
-          "scripts/platform/operators.mjs",
-          "add",
-          "--user",
-          operator.email,
-          "--actor",
-          "WP2c rest stack proof",
-          "--reason",
-          "Operator reads proof on a local stack",
-        ],
-        {
-          encoding: "utf8",
-          timeout: 60_000,
-          env: { ...process.env, OPERATORS_DATABASE_URL: DB_URL },
-        },
-      );
-      expect(added.status, added.stderr).toBe(0);
+      operatorScript("add", keeper.email);
+      operatorScript("add", operator.email);
       await db.query(
         "delete from authz.memberships where user_id = any($1::uuid[])",
         [[operator.id, person.id]],
@@ -755,7 +769,7 @@ describe.skipIf(!READY)(
     });
 
     afterAll(() =>
-      cleanupProofUsers([operator, person], {
+      cleanupProofUsers([operator, keeper, person], {
         findIds: async (emails) =>
           (
             await db.query<{ id: string }>(
@@ -852,11 +866,70 @@ describe.skipIf(!READY)(
       }
     });
 
-    it("refuses both reads at the next call once the operator is taken off the list, with the same aal2 token", async () => {
-      await db.query(
-        "delete from authz.platform_operators where user_id = $1",
-        [operator.id],
+    it("F1 (review of #2855): refuses, as a caller with no row is refused, the picker in a suspended or closed organization and under a named assignment that is not the caller's staff row there", async () => {
+      const { rows } = await db.query<{ id: string; tenant_id: string }>(
+        `insert into authz.memberships (user_id, tenant_id, role, staff_role, is_tenant_admin, is_active)
+         values ($1, $2, 'donor', null, false, true), ($1, $3, 'staff', 'development', false, true)
+         returning id, tenant_id`,
+        [operator.id, DEMO, SECOND],
       );
+      const donorRow = rows.find((row) => row.tenant_id === DEMO)!.id;
+      const staffRow = (
+        await db.query<{ id: string }>(
+          "select id from authz.memberships where user_id = $1 and tenant_id = $2 and role = 'staff'",
+          [operator.id, DEMO],
+        )
+      ).rows[0]!.id;
+      const { rows: statuses } = await db.query<{ status: string }>(
+        "select status from public.tenants where id = $1",
+        [SECOND],
+      );
+      try {
+        const named = (row: string) => ({
+          ...scoped(DEMO),
+          "x-asym-assignment": row,
+        });
+        expect((await picker(operatorAal2, DEMO, named(staffRow))).status).toBe(
+          200,
+        );
+        for (const row of [donorRow, "not-a-uuid"]) {
+          const refused = await picker(operatorAal2, DEMO, named(row));
+          expect([row, refused.status, refused.json]).toEqual([
+            row,
+            403,
+            expect.objectContaining({ code: "42501", message: NO_STAFF_ROW }),
+          ]);
+        }
+
+        expect(
+          (await picker(operatorAal2, SECOND, scoped(SECOND))).status,
+        ).toBe(200);
+        for (const status of ["suspended", "closed"]) {
+          await db.query(
+            "update public.tenants set status = $1 where id = $2",
+            [status, SECOND],
+          );
+          const refused = await picker(operatorAal2, SECOND, scoped(SECOND));
+          expect([status, refused.status, refused.json]).toEqual([
+            status,
+            403,
+            expect.objectContaining({ code: "42501", message: NO_STAFF_ROW }),
+          ]);
+        }
+      } finally {
+        await db.query("update public.tenants set status = $1 where id = $2", [
+          statuses[0]!.status,
+          SECOND,
+        ]);
+        await db.query(
+          "delete from authz.memberships where user_id = $1 and id <> $2",
+          [operator.id, staffRow],
+        );
+      }
+    });
+
+    it("refuses both reads at the next call once the operator is taken off the list by the operator script, with the same aal2 token", async () => {
+      operatorScript("remove", operator.email);
       for (const refused of [
         await picker(operatorAal2, DEMO, scoped(DEMO)),
         await history(operatorAal2),

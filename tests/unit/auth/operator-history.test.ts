@@ -1,8 +1,10 @@
 import { describe, expect, it, vi } from "vitest";
 
 import {
+  PLATFORM_HISTORY_COLUMNS,
   readPlatformHistory,
   type OperatorMfaClient,
+  type PlatformHistoryRow,
 } from "../../../packages/auth/operator-mfa";
 
 const ROW = {
@@ -133,5 +135,35 @@ describe("AL-2675 WP2c rest: the operator area's history with no organization", 
       error: null,
     }));
     expect(await readPlatformHistory(c)).toEqual({ kind: "failed" });
+  });
+
+  it("F8 (review of #2855): reads each field of a history row from one column table that names every field of the row", () => {
+    const fields: Record<keyof PlatformHistoryRow, true> = {
+      id: true,
+      createdAt: true,
+      action: true,
+      result: true,
+      identityMode: true,
+      actorId: true,
+      policyId: true,
+      changeSummary: true,
+      decisionSummary: true,
+    };
+    expect(Object.keys(PLATFORM_HISTORY_COLUMNS).sort()).toEqual(
+      Object.keys(fields).sort(),
+    );
+    expect(PLATFORM_HISTORY_COLUMNS).toEqual({
+      id: "id",
+      createdAt: "created_at",
+      action: "action",
+      result: "result",
+      identityMode: "identity_mode",
+      actorId: "actor_id",
+      policyId: "policy_id",
+      changeSummary: "change_summary",
+      decisionSummary: "decision_summary",
+    });
+    for (const column of Object.values(PLATFORM_HISTORY_COLUMNS))
+      expect(ROW).toHaveProperty(column);
   });
 });

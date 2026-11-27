@@ -336,6 +336,38 @@ describe("Eve launch readiness panel (D-18: AL-2675 WP2c rest, pull request A: t
     expect(view.queryByText(/could not load/i)).toBeNull();
   });
 
+  it.each([
+    [
+      "an id that is not text",
+      [{ id: 7, displayName: "X", email: "x@example.org" }],
+    ],
+    [
+      "an entry with no email field",
+      [{ id: "43700000-0000-4000-8000-000000000002", displayName: "Ada" }],
+    ],
+    ["a list that is not a list", { id: "x" }],
+  ])(
+    "F4 (review of #2855): shows the failed state, never a partial or empty list, for an answer with %s",
+    async (_what, operators) => {
+      stubReadinessFetch(CLEARED_GOVERNANCE, {
+        status: 200,
+        operators: operators as unknown[],
+      });
+      const view = renderPanel();
+
+      await view.findByText("Latest manifest");
+      expect(
+        await view.findByText(/could not load the list of platform operators/i),
+      ).toBeTruthy();
+      expect(
+        view.queryByText("No platform operators belong to this organization."),
+      ).toBeNull();
+      expect(
+        view.queryByRole("combobox", { name: "Platform operator" }),
+      ).toBeNull();
+    },
+  );
+
   it("falls back to a profile ID field when the people list cannot load", async () => {
     const fetchMock = stubReadinessFetch(CLEARED_GOVERNANCE, { status: 500 });
     const view = renderPanel();
