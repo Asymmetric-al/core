@@ -83,6 +83,7 @@ beforeEach(() => {
     userId: "user-1",
     profileId: "profile-1",
     tenantId: TENANT,
+    role: "missionary",
     isAuthenticated: true,
     memberships: membershipsForRole("missionary", TENANT),
     assignment: {

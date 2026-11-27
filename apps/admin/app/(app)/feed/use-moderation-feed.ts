@@ -18,6 +18,8 @@ export interface ModerationPost {
   status: string;
   review_state?: "submitted" | "approved" | "rejected" | "withdrawn" | null;
   review_reason?: string | null;
+  content_version?: number | null;
+  worker_withheld?: boolean | null;
   ministry_assignment_id?: string | null;
   visibility: string;
   created_at: string;
@@ -113,18 +115,21 @@ async function sendJson(
   url: string,
   method: "POST" | "PUT",
   body: unknown,
-): Promise<string | null> {
+): Promise<{ reached: boolean; error: string | null }> {
   const response = await ownApiFetch(url, {
     method,
     credentials: "same-origin",
     headers: { accept: "application/json", "content-type": "application/json" },
     body: JSON.stringify(body),
   }).catch(() => null);
-  if (response?.ok) return null;
+  if (response?.ok) return { reached: true, error: null };
   const answer = (await response?.json().catch(() => null)) as {
     error?: string;
   } | null;
-  return answer?.error ?? "Something went wrong. Nothing was changed.";
+  return {
+    reached: response !== null,
+    error: answer?.error ?? "Something went wrong. Nothing was changed.",
+  };
 }
 
 export function useModerationActions() {
@@ -133,17 +138,23 @@ export function useModerationActions() {
     queryClient.invalidateQueries({ queryKey: ["moderation"] });
   return {
     review: async (
-      postId: string,
+      post: Pick<ModerationPost, "id" | "content_version">,
       decision: "approve" | "reject" | "withdraw",
       reason?: string,
     ) => {
-      const error = await sendJson(
-        `/api/admin/posts/${encodeURIComponent(postId)}/review`,
+      const answer = await sendJson(
+        `/api/admin/posts/${encodeURIComponent(post.id)}/review`,
         "POST",
-        reason === undefined ? { decision } : { decision, reason },
+        decision === "withdraw"
+          ? { decision, reason }
+          : {
+              decision,
+              version: post.content_version,
+              ...(reason === undefined ? {} : { reason }),
+            },
       );
-      if (!error) await refresh();
-      return error;
+      if (answer.reached) await refresh();
+      return answer.error;
     },
     setPolicy: async (policy: {
       ministryAssignmentId: string;
@@ -151,13 +162,13 @@ export function useModerationActions() {
       mode: PublicationMode;
       reason: string;
     }) => {
-      const error = await sendJson(
+      const answer = await sendJson(
         "/api/admin/publication-policies",
         "PUT",
         policy,
       );
-      if (!error) await refresh();
-      return error;
+      if (answer.reached) await refresh();
+      return answer.error;
     },
   };
 }

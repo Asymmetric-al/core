@@ -10,6 +10,7 @@ import { normalizesToNothing } from "../workers/safety-text";
 const reviewBodySchema = z.object({
   decision: z.enum(["approve", "reject", "withdraw"]),
   reason: z.string().max(500).optional(),
+  version: z.number().int().positive().optional(),
 });
 
 export const POST = withOperation(
@@ -20,12 +21,17 @@ export const POST = withOperation(
     const body = reviewBodySchema.safeParse(await readJsonBodyOrNull(request));
     if (!body.success)
       return NextResponse.json({ error: "Invalid review" }, { status: 400 });
-    const { decision, reason } = body.data;
+    const { decision, reason, version } = body.data;
     if (
       decision !== "approve" &&
       (reason === undefined || normalizesToNothing(reason))
     )
       return NextResponse.json({ error: "Give a reason." }, { status: 400 });
+    if (decision !== "withdraw" && version === undefined)
+      return NextResponse.json(
+        { error: "Reload the update before you review it." },
+        { status: 400 },
+      );
 
     const target = {
       p_tenant_id: auth.tenantId,
@@ -33,7 +39,11 @@ export const POST = withOperation(
     };
     const { error } = await commandClient(sessionClient).rpc(
       `${decision}_ministry_update`,
-      decision === "approve" ? target : { ...target, p_reason: reason },
+      decision === "approve"
+        ? { ...target, p_version: version }
+        : decision === "reject"
+          ? { ...target, p_version: version, p_reason: reason }
+          : { ...target, p_reason: reason },
     );
     if (error?.code === "42501")
       return NextResponse.json(

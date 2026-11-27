@@ -1,5 +1,6 @@
 import {
   getAuthContext,
+  hasContextCapability,
   hasContextRoleClass,
   requestScopeOf,
   requireAuth,
@@ -17,6 +18,7 @@ import { createMissionaryPost } from "./create";
 import {
   FEED_POST_AUTHOR_SELECT,
   FEED_POST_SELECT,
+  forReader,
   type FeedPostRow,
 } from "./select";
 import { postsQuerySchema, postWriteSchema } from "../schemas/posts";
@@ -110,8 +112,9 @@ export async function GET(request: NextRequest) {
     const { likedPostIds, prayedPostIds, firedPostIds } =
       toUserPostInteractionSets(interactionRows);
 
+    const reviewer = hasContextCapability(ctx, "updates.review");
     const postsWithStatus = posts.map((post) => ({
-      ...post,
+      ...forReader(post, ctx.userId, reviewer),
       user_liked: likedPostIds.has(post.id),
       user_prayed: prayedPostIds.has(post.id),
       user_fired: firedPostIds.has(post.id),
@@ -150,7 +153,21 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const [post] = await withPostAuthors([result.post]);
+    const unnamed = {
+      ...result.post,
+      author: null,
+      post_author_public_name: null,
+    };
+    const post = await withPostAuthors([result.post]).then(
+      ([named]) => named ?? unnamed,
+      (error: unknown) => {
+        console.error(
+          "[posts] naming a submitted update's author failed",
+          error,
+        );
+        return unnamed;
+      },
+    );
     return NextResponse.json({ post }, { status: 201 });
   } catch (e) {
     return toErrorResponse(e);

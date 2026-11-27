@@ -189,10 +189,12 @@ function PostFilter({
 function Posts({
   data,
   policies,
+  policiesFailed,
   canSetPolicy,
 }: {
   data: ModerationPostsResponse;
-  policies: Map<string, PublicationMode>;
+  policies: Map<string, PublicationMode> | null;
+  policiesFailed: boolean;
   canSetPolicy: boolean;
 }) {
   const { formatDateTime } = useLocaleFormat();
@@ -302,6 +304,9 @@ function Posts({
                   ) : null}
                   <div className="flex flex-wrap gap-2">
                     <ReviewMark state={post.review_state} />
+                    {post.worker_withheld ? (
+                      <Badge variant="destructive-subtle">Withheld</Badge>
+                    ) : null}
                     <Badge
                       variant={POST_STATUSES[post.status]?.variant ?? "outline"}
                     >
@@ -336,6 +341,12 @@ function Posts({
                   ) : (
                     <p className="text-sm text-muted-foreground">No content</p>
                   )}
+                  {post.worker_withheld ? (
+                    <p className="text-sm text-muted-foreground">
+                      Withheld while its worker is restricted: off every feed
+                      but its author’s and a reviewer’s.
+                    </p>
+                  ) : null}
                   {post.review_reason &&
                   (post.review_state === "rejected" ||
                     post.review_state === "withdrawn") ? (
@@ -343,7 +354,14 @@ function Posts({
                       Reason: {post.review_reason}
                     </p>
                   ) : null}
-                  {post.ministry_assignment_id ? (
+                  {post.ministry_assignment_id &&
+                  !policies &&
+                  policiesFailed ? (
+                    <p className="text-sm text-muted-foreground">
+                      Publication policy unavailable
+                    </p>
+                  ) : null}
+                  {post.ministry_assignment_id && policies ? (
                     <div className="flex flex-wrap items-center gap-2">
                       <p className="text-sm text-muted-foreground">
                         {authorName(post.author)}’s updates{" "}
@@ -384,11 +402,13 @@ export default function ContentModerationPage() {
   const canSetPolicy = missionControl.hasCapability(
     "safety.restrict_publication",
   );
-  const policyModes = new Map(
-    (policies.data?.policies ?? [])
-      .filter((policy) => policy.path === "update")
-      .map((policy) => [policy.ministry_assignment_id, policy.mode]),
-  );
+  const policyModes = policies.isSuccess
+    ? new Map(
+        policies.data.policies
+          .filter((policy) => policy.path === "update")
+          .map((policy) => [policy.ministry_assignment_id, policy.mode]),
+      )
+    : null;
   const [selectedTab, setSelectedTab] = useState<string | null>(null);
   const tab =
     selectedTab ??
@@ -465,6 +485,7 @@ export default function ContentModerationPage() {
                   <Posts
                     data={review.data}
                     policies={policyModes}
+                    policiesFailed={policies.isError}
                     canSetPolicy={canSetPolicy}
                   />
                 )}
@@ -482,6 +503,7 @@ export default function ContentModerationPage() {
                   <Posts
                     data={posts.data}
                     policies={policyModes}
+                    policiesFailed={policies.isError}
                     canSetPolicy={canSetPolicy}
                   />
                 )}

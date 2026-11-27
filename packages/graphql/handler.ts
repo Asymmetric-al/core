@@ -46,11 +46,32 @@ function revalidatePostTags(postId: string) {
 const POST_MISSIONARY_SELECT =
   "id, missionary:missionaries!missionary_id(id, tenant_id, bio, mission_field, funding_goal, current_funding, created_at, updated_at, worker_public_name, profile:profiles!profile_id(id, avatar_url))";
 
+const POST_COLUMNS =
+  "id, tenant_id, content, media, like_count, prayer_count, comment_count, created_at, updated_at, worker_withheld";
+
 async function postsReadByCaller(
   ctx: GraphQLContext,
   auth: AuthenticatedContext,
 ) {
   return createRequestSessionClient(ctx.request, requestScopeOf(auth));
+}
+
+async function requireReadablePost(
+  ctx: GraphQLContext,
+  auth: AuthenticatedContext,
+  postId: string,
+) {
+  const session = await postsReadByCaller(ctx, auth);
+  const { data, error } = await session
+    .from("posts")
+    .select("id")
+    .eq("id", postId)
+    .eq("tenant_id", auth.tenantId)
+    .maybeSingle();
+  if (error || !data)
+    throw createGraphQLError("Post not found", {
+      extensions: { code: "POST_NOT_FOUND" },
+    });
 }
 
 async function withPostMissionaries(
@@ -74,7 +95,10 @@ async function withPostMissionaries(
   );
   return posts.map((post) => ({
     ...post,
-    missionary: missionaries.get(post.id as string) ?? null,
+    missionary:
+      post.worker_withheld === true
+        ? null
+        : (missionaries.get(post.id as string) ?? null),
   }));
 }
 
@@ -167,7 +191,7 @@ const typeDefs = /* GraphQL */ `
   type Post {
     id: ID!
     tenantId: ID!
-    missionary: Missionary!
+    missionary: Missionary
     content: String!
     media: [MediaItem!]!
     likeCount: Int!
@@ -210,18 +234,6 @@ const typeDefs = /* GraphQL */ `
     auditLogs(limit: Int, offset: Int): [AuditLog!]!
   }
 
-  input CreatePostInput {
-    content: String!
-    media: [MediaItemInput!]
-  }
-
-  input MediaItemInput {
-    url: String!
-    type: String!
-    width: Int
-    height: Int
-  }
-
   input CreateDonationInput {
     missionaryId: ID!
     amount: Int!
@@ -249,7 +261,6 @@ const typeDefs = /* GraphQL */ `
   """
   type Mutation {
     updateMyProfile(input: UpdateProfileInput!): Profile!
-    createPost(input: CreatePostInput!): Post!
     deletePost(id: ID!): Boolean!
     likePost(postId: ID!): Boolean!
     unlikePost(postId: ID!): Boolean!
@@ -340,7 +351,7 @@ const resolvers = {
       const session = await postsReadByCaller(ctx, auth);
       const { data: rows, error } = await session
         .from("posts")
-        .select("*")
+        .select(POST_COLUMNS)
         .eq("tenant_id", auth.tenantId)
         .order("created_at", { ascending: false })
         .range(offset, offset + limit - 1);
@@ -373,7 +384,7 @@ const resolvers = {
       const session = await postsReadByCaller(ctx, auth);
       const { data: row } = await session
         .from("posts")
-        .select("*")
+        .select(POST_COLUMNS)
         .eq("id", args.id)
         .eq("tenant_id", auth.tenantId)
         .maybeSingle();
@@ -543,64 +554,6 @@ const resolvers = {
       return mapProfile(data, auth);
     },
 
-    createPost: async (
-      _: unknown,
-      args: {
-        input: {
-          content: string;
-          media?: Array<{
-            url: string;
-            type: string;
-            width?: number;
-            height?: number;
-          }>;
-        };
-      },
-      ctx: GraphQLContext,
-    ) => {
-      requireRoleClass(ctx.auth, ["missionary"]);
-      const auth = ctx.auth as AuthenticatedContext;
-
-      const { data: missionary } = await ctx.supabaseAdmin
-        .from("missionaries")
-        .select("id")
-        .eq("profile_id", auth.profileId)
-        .eq("tenant_id", auth.tenantId)
-        .single();
-
-      if (!missionary) throw new Error("Missionary profile not found");
-
-      const { data: rpcData, error: rpcError } = await ctx.supabaseAdmin.rpc(
-        "atomic_create_post_with_audit",
-        {
-          p_tenant_id: auth.tenantId,
-          p_missionary_id: missionary.id,
-          p_content: args.input.content,
-          p_media: args.input.media || [],
-          p_actor_user_id: auth.userId,
-          p_ip_address: ctx.request.headers.get("x-forwarded-for"),
-          p_user_agent: ctx.request.headers.get("user-agent"),
-        },
-      );
-      if (rpcError) throw new Error(rpcError.message);
-
-      const rpcResult = (rpcData ?? null) as { post_id?: string } | null;
-      if (!rpcResult?.post_id) throw new Error("Failed to create post");
-
-      const { data: post, error } = await ctx.supabaseAdmin
-        .from("posts")
-        .select(
-          "*, missionary:missionaries!missionary_id(id, tenant_id, bio, mission_field, funding_goal, current_funding, created_at, updated_at, worker_public_name, profile:profiles!profile_id(id, avatar_url))",
-        )
-        .eq("id", rpcResult.post_id)
-        .single();
-
-      if (error || !post) throw new Error(error?.message ?? "Post not found");
-
-      revalidatePostTags(post.id);
-      return { ...mapPost(post), userLiked: false, userPrayed: false };
-    },
-
     deletePost: async (
       _: unknown,
       args: { id: string },
@@ -650,6 +603,7 @@ const resolvers = {
     ) => {
       requireAuth(ctx.auth);
       const auth = ctx.auth as AuthenticatedContext;
+      await requireReadablePost(ctx, auth, args.postId);
 
       return applyGraphQLMinistryUpdateReaction({
         rpc: yogaRpc(ctx.supabaseAdmin),
@@ -667,6 +621,7 @@ const resolvers = {
     ) => {
       requireAuth(ctx.auth);
       const auth = ctx.auth as AuthenticatedContext;
+      await requireReadablePost(ctx, auth, args.postId);
 
       return applyGraphQLMinistryUpdateReaction({
         rpc: yogaRpc(ctx.supabaseAdmin),
@@ -684,6 +639,7 @@ const resolvers = {
     ) => {
       requireAuth(ctx.auth);
       const auth = ctx.auth as AuthenticatedContext;
+      await requireReadablePost(ctx, auth, args.postId);
 
       return applyGraphQLMinistryUpdateReaction({
         rpc: yogaRpc(ctx.supabaseAdmin),
@@ -701,6 +657,7 @@ const resolvers = {
     ) => {
       requireAuth(ctx.auth);
       const auth = ctx.auth as AuthenticatedContext;
+      await requireReadablePost(ctx, auth, args.postId);
 
       return applyGraphQLMinistryUpdateReaction({
         rpc: yogaRpc(ctx.supabaseAdmin),
@@ -718,6 +675,7 @@ const resolvers = {
     ) => {
       requireAuth(ctx.auth);
       const auth = ctx.auth as AuthenticatedContext;
+      await requireReadablePost(ctx, auth, args.postId);
 
       const commentId = await addGraphQLMinistryUpdateComment({
         rpc: yogaRpc(ctx.supabaseAdmin),

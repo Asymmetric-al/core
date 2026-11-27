@@ -736,22 +736,29 @@ export function useWorkerFeedPageView(): WorkerFeedPageViewModel {
     toast.success("Update deleted");
   };
 
+  const withdrawing = useRef(new Set<string>());
   const withdrawPost = async (postId: string) => {
-    const result = await fetchResult(`/api/posts/${postId}/withdraw`, {
-      method: "POST",
-    });
-    if (!result.ok) {
-      toast.error("Couldn’t withdraw that update. Try again.");
-      return;
+    if (withdrawing.current.has(postId)) return;
+    withdrawing.current.add(postId);
+    try {
+      const result = await fetchResult(`/api/posts/${postId}/withdraw`, {
+        method: "POST",
+      });
+      if (!result.ok) {
+        toast.error("Couldn’t withdraw that update. Try again.");
+        return;
+      }
+      setPosts((prev) =>
+        prev.map((post) =>
+          post.id === postId
+            ? { ...post, review_state: "withdrawn", review_reason: null }
+            : post,
+        ),
+      );
+      toast.success("Update withdrawn");
+    } finally {
+      withdrawing.current.delete(postId);
     }
-    setPosts((prev) =>
-      prev.map((post) =>
-        post.id === postId
-          ? { ...post, review_state: "withdrawn", review_reason: null }
-          : post,
-      ),
-    );
-    toast.success("Update withdrawn");
   };
 
   // Optimistic: the request leaves the list and returns if the server refuses.

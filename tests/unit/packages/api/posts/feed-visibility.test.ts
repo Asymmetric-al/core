@@ -90,6 +90,7 @@ const signedIn = (role: "donor" | "missionary" | "staff") => ({
   profileId: "profile-1",
   tenantId: "tenant-1",
   assignmentId: "assignment-1",
+  role,
   isAuthenticated: true,
   memberships: membershipsForRole(role, "tenant-1"),
 });

@@ -55,6 +55,7 @@ function ReasonDialog({
   onSubmit,
   children,
   canSubmit = true,
+  onOpen,
 }: {
   trigger: string;
   triggerLabel: string;
@@ -64,6 +65,7 @@ function ReasonDialog({
   onSubmit: (reason: string) => Promise<string | null>;
   children?: ReactNode;
   canSubmit?: boolean;
+  onOpen?: () => void;
 }) {
   const id = useId();
   const [open, setOpen] = useState(false);
@@ -78,6 +80,7 @@ function ReasonDialog({
         if (next) {
           setReason("");
           submit.setError(null);
+          onOpen?.();
         }
         setOpen(next);
       }}
@@ -161,7 +164,7 @@ export function UpdateReviewActions({
             size="sm"
             aria-label={`Approve ${name}`}
             disabled={approve.pending}
-            onClick={() => void approve.run(() => review(post.id, "approve"))}
+            onClick={() => void approve.run(() => review(post, "approve"))}
           >
             Approve
           </Button>
@@ -169,9 +172,9 @@ export function UpdateReviewActions({
             trigger="Don’t approve"
             triggerLabel={`Don’t approve ${name}`}
             title={`Don’t approve “${name}”`}
-            description="The update stays off every feed. Its author sees your reason."
+            description="The update stays off every feed but its author’s and a reviewer’s. Its author sees your reason."
             submitLabel="Don’t approve"
-            onSubmit={(reason) => review(post.id, "reject", reason)}
+            onSubmit={(reason) => review(post, "reject", reason)}
           />
         </div>
         {approve.error ? (
@@ -187,9 +190,9 @@ export function UpdateReviewActions({
         trigger="Withdraw"
         triggerLabel={`Withdraw ${name}`}
         title={`Withdraw “${name}”`}
-        description="The update leaves every feed at the next request. Its author sees your reason."
+        description="The update leaves every feed but its author’s and a reviewer’s at the next request. Its author sees your reason."
         submitLabel="Withdraw update"
-        onSubmit={(reason) => review(post.id, "withdraw", reason)}
+        onSubmit={(reason) => review(post, "withdraw", reason)}
       />
     );
   return null;
@@ -214,6 +217,7 @@ export function PublicationPolicyDialog({
       title={`Publication policy for ${author}`}
       description="Choose whether this missionary’s updates wait for someone else to approve them."
       submitLabel="Save policy"
+      onOpen={() => setChoice(mode)}
       onSubmit={(reason) =>
         setPolicy({
           ministryAssignmentId,
