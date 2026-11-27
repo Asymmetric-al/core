@@ -171,9 +171,17 @@ describe("AL-2678 r2b1: a worker's record in Mission Control", () => {
     ])
       expect(screen.getByRole("button", { name })).toBeTruthy();
     expect(screen.getByText("What a restriction changes.")).toBeTruthy();
+    expect(document.body.textContent).toContain(
+      "Their ministry updates leave the Ministry Updates feed and the public site at once, and return when the restriction is lifted.",
+    );
     expect(
       screen.getByText(
-        'Turning on "Do not publish" saves the setting now, but does not hide posts, profiles or giving pages yet; that enforcement comes in a later publishing update.',
+        'Turning on "Do not publish" takes their ministry updates out of every feed and the public site at once, but does not hide profiles or giving pages yet; that enforcement comes in a later publishing update.',
+      ),
+    ).toBeTruthy();
+    expect(
+      screen.getByText(
+        "The worker's login photo on gift rows still shows, and a photo or media file already attached to one of their updates stays reachable at its address, until a later publishing update.",
       ),
     ).toBeTruthy();
     expect(screen.queryByText(NOT_PERMITTED)).toBeNull();
