@@ -76,7 +76,9 @@ Record D-18 lets the change update the frozen suites in the same change.
    `tests/unit/acceptance/issue-2250/tenant-guard.realstack.acceptance.test.ts`
    holds the guard's reach in `GUARD_REACH`, one item per line, joined into
    the same value. A new case grants `authz.is_super_admin()` to the guard in
-   a rolled-back transaction and shows the criterion's value changes.
+   a rolled-back transaction and shows the criterion's value changes (since
+   WP2c's rest, AL-2675, which dropped that function, it grants
+   `authz.staff_read()`).
 9. **The seed counts are read from their file (Q3).**
    `tests/unit/scripts/release/release-database.test.ts` and
    `tests/unit/scripts/release/schema-fingerprint.realstack.test.ts` take the

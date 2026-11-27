@@ -174,7 +174,7 @@ describe("#2255 forward migration text", () => {
     expect(c).toMatch(/raw/i);
   });
 
-  it("no other forward migration creates or alters these tables (redefinition scan, all forward files) (D-18, AL-2678: the account claim migration of WP5, which builds the claim, adds the token's proof columns and the claim commands to account_claim_requests and ends its requester read; it creates and drops neither table and leaves legacy_account_invitations alone; D-18, AL-2678 WP5 rest 2: the party-lock migration replaces the claim redemption, which reads and updates claim rows, and creates, drops or alters neither table)", () => {
+  it("no other forward migration creates or alters these tables (redefinition scan, all forward files) (D-18, AL-2678: the account claim migration of WP5, which builds the claim, adds the token's proof columns and the claim commands to account_claim_requests and ends its requester read; it creates and drops neither table and leaves legacy_account_invitations alone; D-18, AL-2675: WP2c rest B's migration moves the same two staff reads to the staff-read helper, by ALTER POLICY, and touches nothing else of these tables; D-18, AL-2678 WP5 rest 2: the party-lock migration replaces the claim redemption, which reads and updates claim rows, and creates, drops or alters neither table)", () => {
     const re = new RegExp(`\\b(${TABLES.join("|")})\\b`, "i");
     const CLAIM_MIGRATION = /^\d{14}_account_claim_commands\.sql$/;
     const PARTY_LOCK_MIGRATION = /^\d{14}_wp5_rest2_party_lock\.sql$/;
@@ -204,6 +204,7 @@ describe("#2255 forward migration text", () => {
     // and touches nothing else of these tables. Any other statement there,
     // and any other migration, still fails.
     const POLICY_MIGRATION = /^\d{14}_request_tenant_policies\.sql$/;
+    const HELPER_MIGRATION = /^\d{14}_wp2c_rest_no_super_admin\.sql$/;
     const hits = readdirSync(DIR)
       .filter((f) => /^\d{14}_.*\.sql$/.test(f) && f !== OWN)
       .filter(
@@ -212,18 +213,19 @@ describe("#2255 forward migration text", () => {
           !CLAIM_MIGRATION.test(f) &&
           !PARTY_LOCK_MIGRATION.test(f),
       )
+      .filter((f) => !HELPER_MIGRATION.test(f))
       .filter((f) => re.test(code(readFileSync(path.join(DIR, f), "utf8"))));
     expect(hits).toEqual([]);
-    const policyMigration = readdirSync(DIR).find((f) =>
-      POLICY_MIGRATION.test(f),
-    );
-    const naming = code(readFileSync(path.join(DIR, policyMigration!), "utf8"))
-      .split("\n")
-      .filter((line) => re.test(line));
-    expect(naming).toEqual([
-      'ALTER POLICY "account_claim_requests_staff_select" ON public.account_claim_requests',
-      'ALTER POLICY "legacy_account_invitations_staff_select" ON public.legacy_account_invitations',
-    ]);
+    for (const migration of [POLICY_MIGRATION, HELPER_MIGRATION]) {
+      const file = readdirSync(DIR).find((f) => migration.test(f));
+      const naming = code(readFileSync(path.join(DIR, file!), "utf8"))
+        .split("\n")
+        .filter((line) => re.test(line));
+      expect(naming, file).toEqual([
+        'ALTER POLICY "account_claim_requests_staff_select" ON public.account_claim_requests',
+        'ALTER POLICY "legacy_account_invitations_staff_select" ON public.legacy_account_invitations',
+      ]);
+    }
   });
 });
 

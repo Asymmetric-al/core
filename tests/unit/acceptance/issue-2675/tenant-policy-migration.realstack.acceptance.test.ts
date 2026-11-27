@@ -492,7 +492,7 @@ describe.skipIf(!ADMIN_URL)(
           expect(r.code).toBe("22P02");
         }));
 
-      it("the helpers are STABLE and PARALLEL SAFE; the one definer resolves the row and only signed-in users may call the helpers", () =>
+      it("the helpers are STABLE and PARALLEL SAFE; the one definer resolves the row and only signed-in users may call the helpers (D-18, AL-2675: the super-admin branch is gone with its function; the staff-read helper the staff-wide reads call in its place must not deny caller-token reads a parallel plan either)", () =>
         tx(async () => {
           const fns = await rows(
             `select p.oid::regprocedure::text fn, p.provolatile v, p.proparallel par, p.prosecdef def,
@@ -531,12 +531,10 @@ describe.skipIf(!ADMIN_URL)(
             if (f.fn !== "authz.current_tenant_id()")
               expect(f.anon, f.fn as string).toBe(false);
           }
-          // The super-admin branch every rewritten policy keeps until WP2c
-          // must not deny caller-token reads a parallel plan.
-          const superAdmin = await rows(
-            "select provolatile v, proparallel par from pg_proc where oid = 'authz.is_super_admin()'::regprocedure",
+          const staffRead = await rows(
+            "select provolatile v, proparallel par from pg_proc where oid = 'authz.staff_read()'::regprocedure",
           );
-          expect(superAdmin).toEqual([{ v: "s", par: "s" }]);
+          expect(staffRead).toEqual([{ v: "s", par: "s" }]);
           const anon = await as(
             "anon",
             {},
@@ -1031,7 +1029,7 @@ describe.skipIf(!ADMIN_URL)(
           `set local session_replication_role = ${on ? "replica" : "origin"}`,
         );
 
-      it("Q2: assets, campaigns and funds are staff-only: a donor or missionary assignment reads no row, even with the tenant claim; staff read their own tenant's rows only", () =>
+      it("Q2: assets, campaigns and funds are staff-only: a donor or missionary assignment reads no row, even with the tenant claim; staff read their own tenant's rows only (D-18, AL-2675: WP2c rest B moved those three staff-wide reads to authz.staff_read())", () =>
         tx(async () => {
           await replica(true);
           for (const t of ["assets", "campaigns", "funds"])
@@ -1067,9 +1065,7 @@ describe.skipIf(!ADMIN_URL)(
               "select pg_get_expr(polqual, polrelid) q from pg_policy where polrelid = $1::regclass and polname = 'tenant scoped read'",
               [`public.${t}`],
             );
-            expect(policy[0]!.q, t).toContain(
-              "authz.assignment_is('staff'::authz.membership_role)",
-            );
+            expect(policy[0]!.q, t).toContain("authz.staff_read()");
           }
         }));
 
@@ -1946,27 +1942,31 @@ describe.skipIf(!ADMIN_URL)(
         }));
 
       // R13: a malformed header is an error only where a policy's lookup runs.
-      it("R13: a malformed header on a read whose lookup never runs gives an empty answer, not an error", () =>
+      it("R13: a malformed header raises 22P02 whenever the plan evaluates a request helper (including an absent-id lookup on donors, where removing the super-admin OR branch made the tenant condition top-level, D-18, AL-2675), while a statement proved empty without reading the table (where false) still answers empty", () =>
         tx(async () => {
           const headers = {
             "x-asym-tenant": "not-a-uuid",
             "x-asym-assignment": id.mPA!,
           };
-          for (const sql of [
-            `select id from public.donors where id = '${randomUUID()}'`,
-            "select id from public.donors where false",
-          ]) {
-            const r = await as("authenticated", { sub: "UP", headers }, sql);
-            expect(r.code, `${sql}: ${r.message}`).toBeNull();
-            expect(r.rows, sql).toEqual([]);
-          }
-          // Where rows are there to judge, the lookup runs and raises.
-          const judged = await as(
+          const skipped = await as(
             "authenticated",
             { sub: "UP", headers },
-            "select id from public.donors",
+            "select id from public.donors where false",
           );
-          expect(judged.code).toBe("22P02");
+          expect(skipped.code, skipped.message).toBeNull();
+          expect(skipped.rows).toEqual([]);
+          // Where rows are there to judge, the lookup runs and raises.
+          for (const sql of [
+            `select id from public.donors where id = '${randomUUID()}'`,
+            "select id from public.donors",
+          ]) {
+            const judged = await as(
+              "authenticated",
+              { sub: "UP", headers },
+              sql,
+            );
+            expect(judged.code, sql).toBe("22P02");
+          }
         }));
 
       // R15: "refused" on the Data API is an empty answer; the resolving

@@ -101,7 +101,7 @@ describe.skipIf(!ADMIN_URL)(
       }
     });
 
-    it("10. the committed check is false before the file and true after; a second run stops at its first ADD COLUMN (42701) and changes nothing; the Down, in the header's order, restores the task functions and search_crm_donors byte for byte, removes the key's five field-policy rows (which the schema fingerprint does not see) so the table's contents are the base's again, and the catalog gate passes but for service_role's table privileges and CREATE on authz, which 20261126190000, later in the chain than this scratch database, closes (D-18, issue 2841: the gate holds service_role since then), and for the claim redemption's review, which 20261127060000 moves (D-18, AL-2678 WP5 rest 2 item zero (b))", async () => {
+    it("10. the committed check is false before the file and true after; a second run stops at its first ADD COLUMN (42701) and changes nothing; the Down, in the header's order, restores the task functions and search_crm_donors byte for byte, removes the key's five field-policy rows (which the schema fingerprint does not see) so the table's contents are the base's again, and the catalog gate passes but for service_role's table privileges and CREATE on authz, which 20261126190000, later in the chain than this scratch database, closes (D-18, issue 2841: the gate holds service_role since then; D-18, AL-2675: and the super-admin branches, bare staff reads and field_policies_read pin, which 20261127040000, later in the chain, closes; D-18, AL-2681 PR 2a: and the anonymous checkout config read, which 20261127050200 creates later still, the allowlist naming it), and for the claim redemption's review, which 20261127060000 moves (D-18, AL-2678 WP5 rest 2 item zero (b))", async () => {
       const sources = await definitions();
       const base = captureFingerprint({ databaseUrl: url });
       const basePolicies = await policies();
@@ -163,18 +163,80 @@ console.log(JSON.stringify(await m.runTenantRlsCatalogGate({ databaseUrl: proces
         gate.stdout.trim().split("\n").pop() || "{}",
       ) as {
         ok?: boolean;
-        failures?: { code: string; table?: string; function?: string }[];
+        failures?: {
+          code: string;
+          table?: string;
+          detail?: string;
+          function?: string;
+        }[];
       };
       expect(verdict.failures, gate.stderr).toBeInstanceOf(Array);
-      const later = (f: { code: string; table?: string; function?: string }) =>
+      const noSuperAdminBody = readFileSync(
+        migration("_wp2c_rest_no_super_admin"),
+        "utf8",
+      )
+        .split("\n")
+        .filter((line) => !/^\s*--/.test(line))
+        .join("\n");
+      const alteredByWp2cB = new Set(
+        [
+          ...noSuperAdminBody.matchAll(
+            /^ALTER POLICY "([^"]+)" ON public\.([a-z_]+)$/gm,
+          ),
+        ].map((m) => `${m[2]}|${m[1]}`),
+      );
+      expect(alteredByWp2cB.size).toBe(62);
+      const isAltered = (f: { table?: string; detail?: string }) => {
+        const policy = /^policy "([^"]+)"/.exec(f.detail ?? "")?.[1];
+        return (
+          policy !== undefined && alteredByWp2cB.has(`${f.table}|${policy}`)
+        );
+      };
+      const later = (f: {
+        code: string;
+        table?: string;
+        detail?: string;
+        function?: string;
+      }) =>
         f.code === "SERVICE_ROLE_UNSAFE_PRIVILEGE" ||
         (f.code === "SERVICE_ROLE_SCHEMA_CREATE" && f.table === "authz") ||
+        (f.code === "ANON_ALLOWLIST_STALE" &&
+          f.function ===
+            "public.checkout_giving_config(p_host text, p_targets jsonb)") ||
+        ((f.code === "POLICY_SUPER_ADMIN_BRANCH" ||
+          f.code === "TENANT_CONDITION_MISSING" ||
+          f.code === "STAFF_READ_ON_BARE_STAFF_CHECK") &&
+          isAltered(f)) ||
+        (f.code === "POLICY_EXCEPTION_CHANGED" &&
+          f.table === "field_policies" &&
+          /^policy "field_policies_read"/.test(f.detail ?? "")) ||
         (f.function ===
           "tenant_guard.redeem_account_claim(p_tenant_id uuid, p_token text)" &&
           [
             "COMMAND_EXCEPTION_UNREVIEWED",
             "COMMAND_HUMAN_NO_PREAMBLE",
           ].includes(f.code));
+      expect(
+        later({
+          code: "TENANT_CONDITION_MISSING",
+          table: "donations",
+          detail: 'policy "planted" (SELECT) admits a row without tenant',
+        }),
+      ).toBe(false);
+      expect(
+        later({
+          code: "STAFF_READ_ON_BARE_STAFF_CHECK",
+          table: "profiles",
+          detail: 'policy "planted" admits staff',
+        }),
+      ).toBe(false);
+      expect(
+        later({
+          code: "POLICY_EXCEPTION_CHANGED",
+          table: "field_policies",
+          detail: 'policy "planted" differs',
+        }),
+      ).toBe(false);
       expect(
         verdict.failures!.filter((f) => !later(f)),
         gate.stderr,

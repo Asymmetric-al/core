@@ -532,7 +532,7 @@ describe.skipIf(!ADMIN_URL)("#2255 claim tables on the real stack", () => {
   );
 
   tx(
-    `10: RLS enabled + forced, exactly the 2 SELECT policies to authenticated and the guard's isolation policy, owner super/bypassrls, not an exception (${AL2678_D18})`,
+    `10: RLS enabled + forced, exactly the 2 SELECT policies to authenticated and the guard's isolation policy, owner super/bypassrls, not an exception (${AL2678_D18}; D-18, AL-2675: WP2c rest B moved the two staff reads to the staff-read helper)`,
     async () => {
       const flags = await rows(
         `SELECT c.relname, c.relrowsecurity, c.relforcerowsecurity, r.rolsuper OR r.rolbypassrls AS owner_ok
@@ -669,7 +669,7 @@ describe.skipIf(!ADMIN_URL)("#2255 claim tables on the real stack", () => {
    * else. The catalog rows the file changes are exactly those two.
    */
   const STAFF_NOW =
-    "((tenant_id = ( SELECT authz.current_tenant_id() AS current_tenant_id)) AND ( SELECT authz.assignment_is('staff'::authz.membership_role) AS assignment_is))";
+    "((tenant_id = ( SELECT authz.current_tenant_id() AS current_tenant_id)) AND ( SELECT authz.staff_read() AS staff_read))";
   const rewrittenLater = (v: string) =>
     /^pol public\.(account_claim_requests account_claim_requests_staff_select|legacy_account_invitations legacy_account_invitations_staff_select|account_claim_requests account_claim_requests_requester_select) /.test(
       v,

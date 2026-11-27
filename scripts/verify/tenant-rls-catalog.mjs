@@ -35,6 +35,8 @@ import {
   isAssignmentReader,
   preMembershipExceptions,
   protectedEntry,
+  WORKER_WRAPPER_ANCHOR_LOOKUPS,
+  workerWrapperCallsLookup,
   workerWrapperHasWrite,
   workerWrapperPassesTenantArg,
 } from "./command-entry-boundaries.mjs";
@@ -65,9 +67,28 @@ export const TENANT_HELPERS = [
 /** The tenant condition every signed-in policy of a tenant table carries, as deparsed. */
 export const TENANT_CONDITION =
   "tenant_id = ( SELECT authz.current_tenant_id() AS current_tenant_id)";
-/** The super-admin branch WP2c removes; until then it may stand beside the tenant condition. */
 export const SUPER_ADMIN_BRANCH =
   "SELECT authz.is_super_admin() AS is_super_admin";
+export const STAFF_READ_HELPER = "authz.staff_read";
+export const STAFF_NARROWED_READS = Object.freeze([
+  "crm_notes|crm_notes_tenant_select",
+  "crm_table_named_views|crm staff read",
+  "crm_table_user_preferences|crm staff read",
+  "member_care_activities|member care activities select",
+  "member_care_goals|member care goals select",
+  "member_care_private_notes|member care private notes select",
+  "member_care_requirements|member care requirements select",
+  "support_notification_preferences|support hub staff select",
+  "support_saved_views|support hub staff select",
+]);
+export const OWN_ROW_READS = Object.freeze([
+  "donor_feed_preferences|donor_feed_preferences_own_select",
+  "missionaries|missionaries own row key read",
+]);
+export const KEPT_READS = Object.freeze([
+  ...STAFF_NARROWED_READS,
+  ...OWN_ROW_READS,
+]);
 /** Reviewed SECURITY DEFINER functions that anon may execute (plan 5.4). */
 export const ANON_DEFINER_ALLOWLIST_PATH =
   "docs/security/anon-definer-allowlist.json";
@@ -115,6 +136,29 @@ export const PARENT_SCOPED_TABLES = [
 ];
 
 const quoted = (names) => names.map((s) => `'${s}'`).join(", ");
+const CALL_GAP = `(\\s|/\\*.*\\*/|--[^\\n]*\\n)*`;
+const CALL_MATCH = `qn.nspname not in ('pg_catalog', 'information_schema')
+        and qn.nspname not like 'pg\\_%'
+        and (rp.prosrc || coalesce(pg_get_function_sqlbody(rp.oid), ''))
+            ~* ('(^|[^a-z0-9_$."])"?' || qn.nspname || '"?${CALL_GAP}\\.${CALL_GAP}"?' || q.proname || '"?${CALL_GAP}\\(')`;
+const PARENT_SCOPED_SQL = `with recursive scoped(oid) as (
+      select fk.conrelid
+        from pg_constraint fk
+       where fk.contype = 'f'
+         and fk.conrelid <> 'public.tenants'::regclass
+         and not exists (select 1 from pg_attribute a where a.attrelid = fk.conrelid
+                           and a.attname = 'tenant_id' and a.attnum > 0 and not a.attisdropped)
+         and (fk.confrelid = 'public.tenants'::regclass
+              or exists (select 1 from pg_attribute a where a.attrelid = fk.confrelid
+                           and a.attname = 'tenant_id' and a.attnum > 0 and not a.attisdropped))
+      union
+      select fk.conrelid
+        from pg_constraint fk
+        join scoped s on s.oid = fk.confrelid
+       where fk.contype = 'f'
+         and not exists (select 1 from pg_attribute a where a.attrelid = fk.conrelid
+                           and a.attname = 'tenant_id' and a.attnum > 0 and not a.attisdropped))
+    select oid from scoped`;
 const PUBLIC_EXECUTE = `exists (select 1 from aclexplode(coalesce(p.proacl, acldefault('f', p.proowner))) a
         where a.grantee = 0 and a.privilege_type = 'EXECUTE')`;
 const SIGNATURE = `format('%I.%I(%s)', n.nspname, p.proname, pg_get_function_identity_arguments(p.oid))`;
@@ -126,21 +170,16 @@ const SEARCH_PATH = `(select substr(c, 13) from unnest(p.proconfig) c where c li
  * `tenant_guard` and `platform` are never on that session's search path.
  */
 const BODY = `(p.prosrc || coalesce(E'\\n' || pg_get_function_sqlbody(p.oid), ''))`;
-/**
- * The Data API roles, as rows g(r), and whether policy `p` reaches g.r: it
- * names PUBLIC, or a role g.r holds by membership, itself included
- * (fixcheck F4).
- */
 const API_ROLES = `unnest(array['authenticated', 'anon']) g(r)`;
 const POLICY_REACHES = `(p.polroles @> array[0::oid]
              or exists (select 1 from unnest(p.polroles) x(rid)
-                        where pg_has_role(g.r, x.rid, 'MEMBER')))`;
+                        where pg_has_role(g.r, x.rid, 'USAGE')))`;
 const COMMAND_SCHEMA_PATTERN = COMMAND_SCHEMAS.join("|");
 
-/** A row-security policy admits role `a.grantee` for the command of `a.privilege_type` on relation `c`. */
 const POLICY_ADMITS = `exists (
          select 1 from pg_policy p
           where c.relrowsecurity
+            and p.polpermissive
             and p.polrelid = c.oid
             and p.polcmd in ('*', case a.privilege_type
               when 'SELECT' then 'r' when 'INSERT' then 'a'
@@ -218,6 +257,19 @@ export const SERVICE_ROLE_GRANTS_SQL = `select c.relname as relation, null::text
      and ${reachedBy("has_column_privilege(r.oid, c.oid, att.attnum, 'REFERENCES')")}`;
 
 export const TENANT_RLS_CATALOG_SQL = `-- tenant-rls-catalog-gate:v1
+with recursive policy_fn_reach(root_oid, oid) as (
+  select distinct d.refobjid, d.refobjid
+  from pg_depend d
+  where d.classid = 'pg_policy'::regclass
+    and d.refclassid = 'pg_proc'::regclass
+  union
+  select r.root_oid, q.oid
+  from policy_fn_reach r
+  join pg_proc rp on rp.oid = r.oid
+  join pg_proc q on q.oid <> rp.oid
+  join pg_namespace qn on qn.oid = q.pronamespace
+  where ${CALL_MATCH}
+)
 select jsonb_build_object(
   'tenant_keys', coalesce((select jsonb_agg(jsonb_build_object('table', n.nspname || '.' || r.relname, 'keyed', exists (
       select from pg_constraint fk join pg_attribute parent on parent.attrelid=fk.confrelid and parent.attname='id'
@@ -241,6 +293,7 @@ select jsonb_build_object(
       'rls', c.relrowsecurity,
       'force', c.relforcerowsecurity,
       'policies', (select count(*) from pg_policy p where p.polrelid = c.oid),
+      'parent_scoped', c.oid in (${PARENT_SCOPED_SQL}),
       'owner', r.rolname,
       'owner_bypass', r.rolsuper or r.rolbypassrls) order by c.relname)
     from pg_class c
@@ -373,10 +426,7 @@ select jsonb_build_object(
       join pg_proc rp on rp.oid = r.oid
       join pg_proc q on q.oid <> rp.oid
       join pg_namespace qn on qn.oid = q.pronamespace
-      where qn.nspname not in ('pg_catalog', 'information_schema')
-        and qn.nspname not like 'pg\\_%'
-        and (rp.prosrc || coalesce(pg_get_function_sqlbody(rp.oid), ''))
-            ~* ('(^|[^a-z0-9_$."])"?' || qn.nspname || '"?\\s*\\.\\s*"?' || q.proname || '"?\\s*\\(')
+      where ${CALL_MATCH}
     )
     select jsonb_agg(jsonb_build_object(
       'function', ${SIGNATURE},
@@ -389,7 +439,37 @@ select jsonb_build_object(
   'published', coalesce((
     select jsonb_agg(t.tablename::text order by t.tablename)
     from pg_publication_tables t
-    where t.schemaname = 'public'), '[]'::jsonb)
+    where t.schemaname = 'public'), '[]'::jsonb),
+  -- AL-2675 (WP2c rest, pull request B): every policy of every schema, with
+  -- the functions it depends on, and the text of each of those functions, so
+  -- that no policy anywhere names the super-admin role, directly or through
+  -- a function it calls, and no write policy calls the staff-read helper.
+  'every_policy', coalesce((
+    select jsonb_agg(jsonb_build_object(
+      'schema', n.nspname,
+      'table', c.relname,
+      'policy', p.polname,
+      'cmd', case p.polcmd when 'r' then 'SELECT' when 'a' then 'INSERT'
+                           when 'w' then 'UPDATE' when 'd' then 'DELETE' else 'ALL' end,
+      'using', pg_get_expr(p.polqual, p.polrelid),
+      'check', pg_get_expr(p.polwithcheck, p.polrelid),
+      'functions', coalesce((
+        select jsonb_agg(distinct r.oid::regprocedure::text)
+        from pg_depend d
+        join policy_fn_reach r on r.root_oid = d.refobjid
+        where d.classid = 'pg_policy'::regclass and d.objid = p.oid
+          and d.refclassid = 'pg_proc'::regclass), '[]'::jsonb))
+      order by n.nspname, c.relname, p.polname)
+    from pg_policy p
+    join pg_class c on c.oid = p.polrelid
+    join pg_namespace n on n.oid = c.relnamespace), '[]'::jsonb),
+  'policy_functions', coalesce((
+    select jsonb_agg(jsonb_build_object(
+      'function', f.oid::regprocedure::text,
+      'body', (f.prosrc || coalesce(E'\\n' || pg_get_function_sqlbody(f.oid), '')))
+      order by f.oid::regprocedure::text)
+    from pg_proc f
+    where f.oid in (select distinct oid from policy_fn_reach)), '[]'::jsonb)
 )::text;`;
 
 /**
@@ -676,30 +756,19 @@ export function splitTopLevel(text, op) {
   return parts.map((p) => p.trim());
 }
 
-const isSuperAdminBranch = (expr) => stripParens(expr) === SUPER_ADMIN_BRANCH;
-
-/**
- * Whether a deparsed policy expression admits a row only under the request's
- * tenant: the tenant condition itself, a conjunction with a tenant-bound
- * operand, or a disjunction whose every operand is tenant-bound, beside at
- * most one super-admin branch, `(SELECT authz.is_super_admin())`, until WP2c
- * removes it (activation review Q6). Any other disjunct fails.
- */
 export function tenantBound(expr) {
   const s = stripParens(expr);
   if (s === TENANT_CONDITION) return true;
   const ors = splitTopLevel(s, "OR");
-  if (ors.length > 1) {
-    const branches = ors.filter(isSuperAdminBranch).length;
-    return (
-      branches <= 1 &&
-      ors.every((d) => isSuperAdminBranch(d) || tenantBound(d)) &&
-      ors.some((d) => !isSuperAdminBranch(d))
-    );
-  }
+  if (ors.length > 1) return ors.every(tenantBound);
   const ands = splitTopLevel(s, "AND");
   return ands.length > 1 && ands.some(tenantBound);
 }
+
+const namesSuperAdmin = (text) => /super_admin/i.test(text ?? "");
+const STAFF_READ_CALL = /\bauthz\s*\.\s*staff_read\s*\(/i;
+const BARE_STAFF_CHECK =
+  /\bauthz\.assignment_is\(\s*'staff'::authz\.membership_role\s*(?:,\s*NULL(?:::authz\.staff_role\[\])?\s*)?\)/i;
 
 /**
  * The calls of `authz` helpers in a deparsed policy expression that run once
@@ -743,24 +812,24 @@ export function perRowLookups(expr) {
   return found;
 }
 
-/** Whether a deparsed expression or a function body reads the token's claims for authority. */
 const readsTokenClaim = (text) =>
-  /auth\.jwt\s*\(|app_metadata|request\.jwt\.claims?\b/i.test(text ?? "");
+  /auth\.jwt\s*\(|app_metadata|request\.jwt\.claims?\b|request_claims\s*\(/i.test(
+    text ?? "",
+  );
 
-/**
- * Whether a function a request-tenant helper calls reads anything of the
- * token but its subject (council R12 (a)): `auth.uid()` reads the subject,
- * the caller's identity, and nothing else may be read.
- */
+const SUBJECT_FROM_CLAIMS =
+  /\(?\s*(?:nullif\s*\(\s*)?current_setting\s*\(\s*'request\.jwt\.claims'\s*(?:,\s*(?:true|false)\s*)?\)\s*(?:,\s*''\s*\)\s*)?\)?\s*::\s*jsonb?\s*->>\s*'([^']*)'/gi;
+
 function readsClaimBeyondSubject(text) {
   const t = text ?? "";
-  if (/auth\.jwt\s*\(|app_metadata|user_metadata/i.test(t)) return true;
+  if (/auth\.jwt\s*\(|app_metadata|user_metadata|request_claims\s*\(/i.test(t))
+    return true;
   if (/request\.jwt\.claim\.(?!sub\b)[a-z_]/i.test(t)) return true;
-  if (/request\.jwt\.claims\b/i.test(t)) {
-    const keys = [...t.matchAll(/->>?\s*'([^']*)'/g)].map((m) => m[1]);
-    return keys.length === 0 || keys.some((key) => key !== "sub");
-  }
-  return false;
+  return /request\.jwt\.claims\b/i.test(
+    t.replace(SUBJECT_FROM_CLAIMS, (match, key) =>
+      key === "sub" ? " " : match,
+    ),
+  );
 }
 
 /**
@@ -939,6 +1008,7 @@ export function evaluateTenantRlsCatalog(
   policyExceptionList = { entries: [] },
   preMembershipList = undefined,
   serviceRoleExceptions = SERVICE_ROLE_EXCEPTIONS,
+  keptReadList = KEPT_READS,
 ) {
   const { listed, failures, usable } = readExceptions(exceptions);
   const fail = (code, table, detail) => failures.push({ code, table, detail });
@@ -1244,8 +1314,20 @@ export function evaluateTenantRlsCatalog(
         failFn(
           "WORKER_WRAPPER_TENANT_ARGUMENT",
           w.function,
-          "A service_role wrapper calling a tenant_guard worker entry point takes no tenant argument and passes, as the tenant, only a value it read from a stored row in one whole statement of one schema-qualified relation (SELECT <qualifier>.<column> INTO <variable> FROM <schema>.<relation> [[AS] <alias>] WHERE <predicate> [row lock], where the qualifier is the relation's alias, or its name when it has none, or that SELECT as a scalar subquery; no JOIN, comma source, set operation, subquery, ORDER BY or LIMIT); anything the gate cannot verify fails",
+          "A service_role wrapper calling a tenant_guard worker entry point takes no tenant argument and passes, as the tenant, only a value it read from a stored row in one whole statement of one schema-qualified relation (SELECT <qualifier>.<column> INTO <variable> FROM <schema>.<relation> [[AS] <alias>] WHERE <predicate> [row lock], where the qualifier is the relation's alias, or its name when it has none, or that SELECT as a scalar subquery; no JOIN, comma source, set operation, subquery, ORDER BY or LIMIT), or from one reviewed lookup of WORKER_WRAPPER_ANCHOR_LOOKUPS called with one of its own non-tenant parameters (SELECT <alias>.<column> INTO <variable> FROM <schema>.<lookup>(<parameter>) [[AS] <alias>] [WHERE <predicate>]); anything the gate cannot verify fails",
         );
+      for (const lookup of WORKER_WRAPPER_ANCHOR_LOOKUPS) {
+        const called = workerWrapperCallsLookup(w.body, stripComments, lookup);
+        if (
+          called &&
+          ![...anon.allowed].some((fn) => fn.startsWith(`${lookup}(`))
+        )
+          failFn(
+            "WORKER_WRAPPER_ANCHOR_LOOKUP_UNREVIEWED",
+            w.function,
+            `${lookup} anchors a wrapper's tenant only while ${ANON_DEFINER_ALLOWLIST_PATH} lists it, where the gate holds it to a STABLE SECURITY DEFINER with an empty search path (ruling W8-R41)`,
+          );
+      }
       if (
         workerWrapperHasWrite(w.body, stripComments, w.language, w.search_path)
       )
@@ -1319,6 +1401,66 @@ export function evaluateTenantRlsCatalog(
   // no tenant table in the Realtime publication (plan 5.2).
   const policyExceptions = readPolicyExceptions(policyExceptionList);
   failures.push(...policyExceptions.failures);
+  const isParentScoped = (name) =>
+    PARENT_SCOPED_TABLES.includes(name) ||
+    (tables.get(name)?.tenant === false &&
+      tables.get(name)?.parent_scoped === true);
+  const cleanBodies = new Map(
+    (snapshot.policy_functions ?? []).map((f) => [
+      f.function,
+      stripComments(String(f.body ?? "")),
+    ]),
+  );
+  const escapeRegex = (value) => value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const calleeMatchers = [...cleanBodies.keys()]
+    .map((fn) => {
+      const paren = fn.indexOf("(");
+      const head = paren >= 0 ? fn.slice(0, paren) : fn;
+      const dot = head.indexOf(".");
+      if (dot < 0) return null;
+      const schema = head.slice(0, dot).replace(/^"|"$/g, "");
+      const name = head.slice(dot + 1).replace(/^"|"$/g, "");
+      return {
+        fn,
+        re: new RegExp(
+          `(?:^|[^a-z0-9_$."])"?${escapeRegex(schema)}"?\\s*\\.\\s*"?${escapeRegex(name)}"?\\s*\\(`,
+          "i",
+        ),
+      };
+    })
+    .filter(Boolean);
+  const reachedFrom = (direct) => {
+    const visited = new Set();
+    const queue = [...(direct ?? [])];
+    while (queue.length) {
+      const fn = queue.shift();
+      if (visited.has(fn)) continue;
+      visited.add(fn);
+      const body = cleanBodies.get(fn);
+      if (!body) continue;
+      for (const { fn: callee, re } of calleeMatchers)
+        if (!visited.has(callee) && re.test(body)) queue.push(callee);
+    }
+    return [...visited];
+  };
+  const everyList =
+    snapshot.every_policy ??
+    (snapshot.policies ?? []).map((p) => ({ ...p, schema: "public" }));
+  const publicFunctions = new Map();
+  for (const e of everyList) {
+    if (e.schema !== "public") continue;
+    const k = `${e.table}|${e.policy}`;
+    const prev = publicFunctions.get(k) ?? [];
+    publicFunctions.set(k, [...prev, ...(e.functions ?? [])]);
+  }
+  const staffReadThrough = (reached) =>
+    reached.filter(
+      (fn) =>
+        fn.startsWith(`${STAFF_READ_HELPER}(`) ||
+        STAFF_READ_CALL.test(cleanBodies.get(fn) ?? ""),
+    );
+  const keptReadSet = new Set(keptReadList ?? []);
+  const seenKeptReads = new Set();
   const seen = new Set();
   let tenantPolicies = 0;
   for (const p of snapshot.policies ?? []) {
@@ -1357,7 +1499,27 @@ export function evaluateTenantRlsCatalog(
     // tenant column). On a table that reaches its tenant through a parent,
     // every signed-in policy is a pin (council R3).
     const listedEntry = policyExceptions.listed.get(key);
-    const parentScoped = PARENT_SCOPED_TABLES.includes(p.table);
+    const parentScoped = isParentScoped(p.table);
+    if (p.cmd === "SELECT" && keptReadSet.has(key)) seenKeptReads.add(key);
+    const keptReached = KEPT_READS.includes(key)
+      ? staffReadThrough(reachedFrom(publicFunctions.get(key)))
+      : [];
+    if (
+      KEPT_READS.includes(key) &&
+      (exprs.some((e) => STAFF_READ_CALL.test(stripComments(e))) ||
+        keptReached.length > 0)
+    ) {
+      const via = keptReached.length
+        ? ` through ${keptReached.join(", ")}`
+        : "";
+      fail(
+        "STAFF_READ_HELPER_ON_NARROWED_READ",
+        p.table,
+        OWN_ROW_READS.includes(key)
+          ? `policy "${p.policy}" is an own-row read (OWN_ROW_READS in ${CATALOG_GATE_PATH}); it calls ${STAFF_READ_HELPER}()${via}, which a support grant will pass`
+          : `policy "${p.policy}" narrows the staff it admits and keeps the staff check it narrows (STAFF_NARROWED_READS in ${CATALOG_GATE_PATH}); it calls ${STAFF_READ_HELPER}()${via}, which a support grant will pass`,
+      );
+    }
     if (!tables.get(p.table)?.tenant && !listedEntry && !parentScoped) continue;
     if (tables.get(p.table)?.tenant) tenantPolicies += 1;
     const lookups = (e) => {
@@ -1387,9 +1549,18 @@ export function evaluateTenantRlsCatalog(
       );
       continue;
     }
+    if (
+      p.cmd === "SELECT" &&
+      !STAFF_NARROWED_READS.includes(key) &&
+      exprs.some((e) => BARE_STAFF_CHECK.test(e))
+    )
+      fail(
+        "STAFF_READ_ON_BARE_STAFF_CHECK",
+        p.table,
+        `policy "${p.policy}" admits staff through authz.assignment_is('staff'): a staff-wide read calls (SELECT ${STAFF_READ_HELPER}()); a read that narrows the staff it admits is named in STAFF_NARROWED_READS (${CATALOG_GATE_PATH}) after review`,
+      );
     // Council R2: the effective predicate of each command, with a missing
-    // USING as true and a missing WITH CHECK as the USING. The super-admin
-    // branch passes only beside the tenant condition (tenantBound).
+    // USING as true and a missing WITH CHECK as the USING.
     for (const e of effectivePredicates(p)) {
       if (stripParens(e) === "false") continue;
       if (!tenantBound(e))
@@ -1400,6 +1571,39 @@ export function evaluateTenantRlsCatalog(
         );
       lookups(e);
     }
+  }
+  for (const key of keptReadList ?? [])
+    if (!seenKeptReads.has(key)) {
+      const [table, policy] = key.split("|");
+      fail(
+        "KEPT_READ_STALE",
+        table,
+        `no signed-in SELECT policy "${policy}" on this table: update STAFF_NARROWED_READS or OWN_ROW_READS in ${CATALOG_GATE_PATH}`,
+      );
+    }
+  for (const e of everyList) {
+    const where = e.schema === "public" ? e.table : `${e.schema}.${e.table}`;
+    const text = [e.using, e.check].filter((x) => x != null).join("\n");
+    const reached = reachedFrom(e.functions);
+    const through = reached.filter((fn) =>
+      namesSuperAdmin(cleanBodies.get(fn) ?? ""),
+    );
+    if (namesSuperAdmin(text) || through.length)
+      fail(
+        "POLICY_SUPER_ADMIN_BRANCH",
+        where,
+        `policy "${e.policy}" (${e.cmd}) names the super_admin role${through.length ? ` through ${through.join(", ")}` : ""}: no profile role grants a read; an operator reaches an organization's data only under a support grant (ADR-0228, plan 5.4)`,
+      );
+    const writeThrough = e.cmd !== "SELECT" ? staffReadThrough(reached) : [];
+    if (
+      e.cmd !== "SELECT" &&
+      (STAFF_READ_CALL.test(stripComments(text)) || writeThrough.length > 0)
+    )
+      fail(
+        "STAFF_READ_HELPER_IN_WRITE",
+        where,
+        `policy "${e.policy}" (${e.cmd}) writes and calls ${STAFF_READ_HELPER}()${writeThrough.length ? ` through ${writeThrough.join(", ")}` : ""}, which only reads may call: a support grant is read-only (plan 5.4)`,
+      );
   }
   for (const key of policyExceptions.listed.keys())
     if (!seen.has(key)) {
@@ -1443,10 +1647,20 @@ export function evaluateTenantRlsCatalog(
           h.function,
           "a request-tenant helper sets an empty search path (SET search_path = ''), so a call without a schema cannot reach a function the gate does not read",
         );
+      if (
+        h.root === false &&
+        typeof h.search_path === "string" &&
+        h.search_path !== '""'
+      )
+        failFn(
+          "TENANT_HELPER_SEARCH_PATH",
+          h.function,
+          `a request-tenant helper reaches this function, which sets search_path ${h.search_path}: set none, or an empty one (SET search_path = '')`,
+        );
     }
   }
   for (const t of snapshot.published ?? [])
-    if (tables.get(t)?.tenant || PARENT_SCOPED_TABLES.includes(t))
+    if (tables.get(t)?.tenant || isParentScoped(t))
       fail(
         "TENANT_TABLE_PUBLISHED",
         t,
@@ -1505,6 +1719,8 @@ function assertSnapshotShape(snapshot) {
     "policies",
     "tenant_helpers",
     "published",
+    "every_policy",
+    "policy_functions",
   ];
   if (!lists.every((k) => Array.isArray(snapshot?.[k])))
     throw new Error(
@@ -1569,6 +1785,20 @@ function assertSnapshotShape(snapshot) {
       throw incomplete("tenant helper", h);
   if (!snapshot.published.every(isText))
     throw incomplete("publication", { relation: "published" });
+  for (const e of snapshot.every_policy)
+    if (
+      ![e?.schema, e?.table, e?.policy, e?.cmd].every(isText) ||
+      !textOrNull(e.using) ||
+      !textOrNull(e.check) ||
+      !Array.isArray(e.functions) ||
+      !e.functions.every(isText)
+    )
+      throw incomplete("policy of any schema", {
+        relation: `${e?.schema}.${e?.table} ${e?.policy}`,
+      });
+  for (const f of snapshot.policy_functions)
+    if (![f?.function, f?.body].every(isText))
+      throw incomplete("function a policy calls", f);
 }
 
 /**

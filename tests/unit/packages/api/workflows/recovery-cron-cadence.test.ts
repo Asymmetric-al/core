@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import { dispatchRecoveryScan } from "../../../../../packages/api/src/workflows/functions/dispatch-recovery-scan";
 import { donationSagaRecoveryScan } from "../../../../../packages/api/src/workflows/functions/donation-saga-recovery";
+import { moneySchedule } from "../../../../../packages/api/src/workflows/functions/money-schedule";
 import { stripeEventRecoveryScan } from "../../../../../packages/api/src/workflows/functions/stripe-event-processing";
 
 const INNGEST_FREE_MONTHLY_EXECUTIONS = 50_000;
@@ -56,23 +57,27 @@ describe("workflow recovery cron cadence (free-tier execution budget)", () => {
       fn: stripeEventRecoveryScan,
       stepsPerRun: 2,
     },
+    {
+      name: "money-schedule",
+      fn: moneySchedule,
+      stepsPerRun: 0,
+    },
   ] as const;
 
-  it("uses the pre-launch 30-minute cadence on all three recovery scans", () => {
+  it("uses the pre-launch 30-minute cadence on all four scheduled functions (D-18, AL-2681 PR 2a: the money schedule joins the three recovery scans, one execution a run)", () => {
     for (const scan of scans) {
       const cron = getSingleCronTrigger(scan.fn.opts.triggers);
       expect(cron, scan.name).toBe("*/30 * * * *");
     }
   });
 
-  it("keeps the combined 31-day scheduled baseline well below Inngest's 50,000 free-plan cap", () => {
+  it("keeps the combined 31-day scheduled baseline well below Inngest's 50,000 free-plan cap (D-18, AL-2681 PR 2a: 1,488 more executions, 11,904 in all)", () => {
     const totalExecutions = scans.reduce((sum, scan) => {
       const cron = getSingleCronTrigger(scan.fn.opts.triggers);
       return sum + runsPer31Days(cron) * (scan.stepsPerRun + 1);
     }, 0);
 
-    // 1,488 runs/31d * (2 + 2 + 3) = 10,416 executions (~21% of the 50k cap),
-    // leaving ~39.5k executions/month for event-driven workflows.
+    expect(totalExecutions).toBe(11_904);
     expect(totalExecutions).toBeLessThanOrEqual(15_000);
     expect(totalExecutions).toBeLessThan(INNGEST_FREE_MONTHLY_EXECUTIONS);
   });

@@ -58,13 +58,14 @@ const without = (config: VercelConfig, key: string) =>
   Object.fromEntries(Object.entries(config).filter(([name]) => name !== key));
 
 describe("the dashboards' vercel.json rewrite providers' root paths under the base path, and change nothing else", () => {
-  it("lists, in order, each dashboard's exempt paths without the release check and the assistant's /eve/v1/github", () => {
+  it("lists, in order, each dashboard's exempt paths without the release check and the assistant's /eve/v1/github (D-18, AL-2681: the admin list gains the payment-event destination of W8-R39)", () => {
     expect(rewritesOf("admin").map((rule) => rule.source)).toEqual(
       EXPECTED_SOURCES.admin,
     );
     expect(EXPECTED_SOURCES.admin).toEqual([
       "/api/webhooks/stripe",
       "/api/webhooks/stripe-connect",
+      "/api/webhooks/stripe-payment-events",
       "/api/email/webhooks/resend",
       "/api/inngest",
     ]);

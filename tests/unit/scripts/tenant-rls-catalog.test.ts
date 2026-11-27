@@ -1,16 +1,18 @@
 import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
+
+import { describe, expect, it } from "vitest";
+
+import keyExceptions from "../../../docs/security/tenant-key-exceptions.json";
 import { CAPABILITY_REGISTRY } from "../../../packages/auth/capabilities/registry";
 import { EXCLUDED_SCHEMA_PATTERN } from "../../../scripts/release/schema-fingerprint.mjs";
 import keys from "../../../scripts/verify/command-capabilities.json";
 import {
+  WORKER_WRAPPER_ANCHOR_LOOKUPS,
   preMembershipEntries,
   reviewedPreMembership,
   preMembershipExceptions,
 } from "../../../scripts/verify/command-entry-boundaries.mjs";
-
-import { describe, expect, it } from "vitest";
-import keyExceptions from "../../../docs/security/tenant-key-exceptions.json";
 
 it("allows the reviewed CMS tenant-key debt to shrink, never to grow", () => {
   const original = new Set([
@@ -196,6 +198,9 @@ describe("WP4 command boundaries", () => {
           listed(),
           allow(),
           { entries: [] },
+          undefined,
+          undefined,
+          [],
         ),
       ),
     ).toContain(`COMMAND_HUMAN_NO_PREAMBLE ${plantedName}`);
@@ -352,7 +357,17 @@ describe("WP4 command boundaries", () => {
       published: [],
     };
     expect(
-      codes(evaluateTenantRlsCatalog({ ...empty, commands: [] }, listed())),
+      codes(
+        evaluateTenantRlsCatalog(
+          { ...empty, commands: [] },
+          listed(),
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          [],
+        ),
+      ),
     ).toEqual(
       preMembershipEntries.map(
         (entry) => `COMMAND_EXCEPTION_UNREVIEWED ${entry.function}`,
@@ -362,6 +377,11 @@ describe("WP4 command boundaries", () => {
       evaluateTenantRlsCatalog(
         { ...empty, commands: preMembershipCommandRows() },
         listed(),
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        [],
       ).failures,
     ).toEqual([]);
     expect(codes(evaluate([]))).toEqual([]);
@@ -403,6 +423,7 @@ const evaluate = (
     more.policyExceptions ?? { entries: [] },
     [],
     more.serviceRoleExceptions ?? { entries: [] },
+    [],
   );
 const codes = (result: ReturnType<typeof evaluate>) =>
   result.failures.map(
@@ -1591,6 +1612,7 @@ describe("evaluateTenantRlsCatalog: the request's tenant on every signed-in poli
   const DONOR_OWN =
     "(( SELECT authz.assignment_is('donor'::authz.membership_role) AS assignment_is) AND (profile_id IN ( SELECT authz.caller_profile_ids() AS caller_profile_ids)))";
   const SUPER = "( SELECT authz.is_super_admin() AS is_super_admin)";
+  const HELPER = "( SELECT authz.staff_read() AS staff_read)";
   const policy = (
     tableName: string,
     using: string | null,
@@ -1665,31 +1687,46 @@ describe("evaluateTenantRlsCatalog: the request's tenant on every signed-in poli
     expect(splitTopLevel(`((name = ' OR x') AND ${T})`, "OR")).toHaveLength(1);
   });
 
-  // Amended by council R2 (record D-18): a policy that is the super-admin
-  // branch alone no longer passes. Ruling 6 allows the branch only beside the
-  // tenant condition, and no such policy remains after the migration; the
-  // case now asserts that it fails.
-  it("passes the tenant condition with a class term, a super-admin branch beside it and a deny-all policy, and fails a policy that is the branch alone", () => {
+  it("passes the tenant condition with a class term and a deny-all policy, and fails a super-admin branch beside it and the branch alone (D-18: council R2: the branch alone fails; AL-2675, WP2c rest B: the branch beside the tenant condition fails too, and the read's class term is the staff-read helper)", () => {
     const result = run([
-      policy("donors", `(${T} AND ${STAFF})`),
-      policy("donors", `(${SUPER} OR (${T} AND (${STAFF} OR ${DONOR_OWN})))`, {
+      policy("donors", `(${T} AND ${HELPER})`),
+      policy("donors", `(${T} AND (${HELPER} OR ${DONOR_OWN}))`, {
         policy: "own",
       }),
       policy("donors", "false", { policy: "deny", cmd: "ALL", check: "false" }),
     ]);
     expect(result.failures).toEqual([]);
     expect(result.counts.tenantPolicies).toBe(3);
+    expect(
+      codes(
+        run([
+          policy(
+            "donors",
+            `(${SUPER} OR (${T} AND (${HELPER} OR ${DONOR_OWN})))`,
+            {
+              policy: "own",
+            },
+          ),
+        ]),
+      ),
+    ).toEqual([
+      "TENANT_CONDITION_MISSING donors",
+      "POLICY_SUPER_ADMIN_BRANCH donors",
+    ]);
     for (const alone of [SUPER, `(${SUPER})`])
       expect(
         codes(run([policy("donors", alone, { policy: "super" })])),
         alone,
-      ).toEqual(["TENANT_CONDITION_MISSING donors"]);
+      ).toEqual([
+        "TENANT_CONDITION_MISSING donors",
+        "POLICY_SUPER_ADMIN_BRANCH donors",
+      ]);
   });
 
   // Council R2: Postgres reads a missing USING as true for every row, and a
   // missing WITH CHECK as the USING; the gate judges what each command
   // effectively admits, not only the text that is there.
-  it("judges each command's effective predicate: a missing USING admits every row, a missing WITH CHECK is the USING", () => {
+  it("judges each command's effective predicate: a missing USING admits every row, a missing WITH CHECK is the USING (D-18, AL-2675: the read stands on the staff-read helper, the writes keep the bare staff check)", () => {
     const T_STAFF = `(${T} AND ${STAFF})`;
     for (const [cmd, using, check] of [
       ["SELECT", null, null],
@@ -1708,7 +1745,7 @@ describe("evaluateTenantRlsCatalog: the request's tenant on every signed-in poli
       ["UPDATE", T_STAFF, null],
       ["ALL", T_STAFF, null],
       ["INSERT", null, T_STAFF],
-      ["SELECT", T_STAFF, null],
+      ["SELECT", `(${T} AND ${HELPER})`, null],
     ] as const)
       expect(
         run([policy("donors", using, { policy: "bound", cmd, check })])
@@ -1731,18 +1768,22 @@ describe("evaluateTenantRlsCatalog: the request's tenant on every signed-in poli
     }
   });
 
-  it("Q6: accepts exactly one super-admin disjunct beside the tenant condition and fails any other", () => {
-    expect(tenantBound(`(${SUPER} OR (${T} AND ${STAFF}))`)).toBe(true);
-    expect(tenantBound(`(${SUPER} OR ${SUPER} OR (${T} AND ${STAFF}))`)).toBe(
+  it("Q6, since WP2c's rest: accepts no super-admin disjunct beside the tenant condition and fails any other disjunct (D-18, AL-2675: Q6's one super-admin disjunct no longer passes)", () => {
+    expect(tenantBound(`(${SUPER} OR (${T} AND ${HELPER}))`)).toBe(false);
+    expect(tenantBound(`(${SUPER} OR ${SUPER} OR (${T} AND ${HELPER}))`)).toBe(
       false,
+    );
+    expect(tenantBound(`((${T} AND ${HELPER}) OR (${T} AND ${STAFF}))`)).toBe(
+      true,
     );
     for (const other of [
       "( SELECT authz.has_membership(( SELECT authz.current_tenant_id() AS current_tenant_id)) AS has_membership)",
       "(( SELECT auth.uid() AS uid) IS NOT NULL)",
       "authz.is_super_admin()",
+      SUPER,
     ]) {
       const result = run([
-        policy("donors", `(${other} OR (${T} AND ${STAFF}))`),
+        policy("donors", `(${other} OR (${T} AND ${HELPER}))`),
       ]);
       expect(codes(result), other).toContain("TENANT_CONDITION_MISSING donors");
     }
@@ -1982,7 +2023,7 @@ describe("evaluateTenantRlsCatalog: the request's tenant on every signed-in poli
   // The coordinator's follow-up on activation review Q7: no signed-in write
   // policy on a table where signed-in users hold no write grant, so a grant
   // that comes back by accident fails CI instead of being admitted.
-  it("fails an INSERT, UPDATE or DELETE policy whose command no signed-in role holds a privilege for", () => {
+  it("fails an INSERT, UPDATE or DELETE policy whose command no signed-in role holds a privilege for (D-18, AL-2675: the staff-wide read beside it calls the staff-read helper)", () => {
     const T_STAFF = `(${T} AND ${STAFF})`;
     for (const cmd of ["INSERT", "UPDATE", "DELETE"]) {
       const write = policy("donors", cmd === "INSERT" ? null : T_STAFF, {
@@ -2005,7 +2046,10 @@ describe("evaluateTenantRlsCatalog: the request's tenant on every signed-in poli
           check: "false",
           granted: false,
         }),
-        policy("donors", T_STAFF, { policy: "read", granted: false }),
+        policy("donors", `(${T} AND ${HELPER})`, {
+          policy: "read",
+          granted: false,
+        }),
       ]).failures,
     ).toEqual([]);
   });
@@ -2045,7 +2089,7 @@ describe("evaluateTenantRlsCatalog: the request's tenant on every signed-in poli
     ).toEqual([]);
   });
 
-  it("selects every signed-in policy of public, the request-tenant helpers and the published tables", () => {
+  it("selects every signed-in policy of public, the request-tenant helpers and the published tables (D-18, AL-2675, record D-109 (g): a role reaches a policy as Postgres applies it, by USAGE; issue 2675's real-stack gate case plants a role held WITH INHERIT FALSE)", () => {
     expect(TENANT_RLS_CATALOG_SQL).toContain("'policies'");
     // Amended by fixcheck F4 (record D-18): the selection named PUBLIC and
     // authenticated only; it is now every policy that names PUBLIC or a role
@@ -2058,7 +2102,7 @@ describe("evaluateTenantRlsCatalog: the request's tenant on every signed-in poli
       "unnest(array['authenticated', 'anon']) g(r)",
     );
     expect(TENANT_RLS_CATALOG_SQL).toContain(
-      "pg_has_role(g.r, x.rid, 'MEMBER')",
+      "pg_has_role(g.r, x.rid, 'USAGE')",
     );
     expect(TENANT_RLS_CATALOG_SQL).toContain("'search_path', (select substr");
     expect(TENANT_RLS_CATALOG_SQL).toMatch(
@@ -2107,6 +2151,8 @@ describe("tenant keys", () => {
         listed(),
         allow(),
         { entries: [] },
+        [],
+        undefined,
         [],
       ),
     );
@@ -2790,5 +2836,110 @@ describe("WP8a worker wrapper rules (TP2 section 11)", () => {
     expect(failure?.detail).toContain(
       "the qualifier is the relation's alias, or its name when it has none",
     );
+  });
+});
+
+describe("W8-R41: one reviewed lookup may anchor a worker wrapper's tenant (AL-2681 PR 2a, ruling on the intake's organization)", () => {
+  const lookup = "public.resolve_verified_host(p_host text)";
+  const lookupDefiner = definer(lookup, "postgres", true, {
+    volatility: "s",
+    anon_execute: true,
+  });
+  const lanes = [command("tenant_guard.begin_line_gift(uuid, text, text)")];
+  const judge = (wrappers: object[], anon: unknown = allow(lookup)) =>
+    evaluate([], listed(), [lookupDefiner], lanes, anon, { wrappers });
+  const sig = "public.begin_line_gift(p_host text, p_surface text)";
+  const body = (from: string) =>
+    `DECLARE v_tenant uuid; BEGIN SELECT h.tenant_id INTO v_tenant FROM ${from} AS h WHERE h.state = 'active'; IF v_tenant IS NULL THEN RAISE EXCEPTION 'host_not_admitted' USING ERRCODE = '42501'; END IF; RETURN tenant_guard.begin_line_gift(v_tenant, p_host, p_surface); END;`;
+  const worker = (fn: string, text: string) =>
+    wrapper(fn, text, { service_role: true, language: "plpgsql" });
+
+  it("the list is frozen and names only the reviewed single-host lookup", () => {
+    expect(WORKER_WRAPPER_ANCHOR_LOOKUPS).toEqual([
+      "public.resolve_verified_host",
+    ]);
+    expect(Object.isFrozen(WORKER_WRAPPER_ANCHOR_LOOKUPS)).toBe(true);
+  });
+
+  it("admits the lookup called with one of the wrapper's own parameters, with or without an alias and a plain predicate", () => {
+    expect(
+      codes(judge([worker(sig, body("public.resolve_verified_host(p_host)"))])),
+    ).toEqual([]);
+    expect(
+      codes(
+        judge([
+          worker(
+            sig,
+            "DECLARE v_tenant uuid; BEGIN SELECT resolve_verified_host.tenant_id INTO v_tenant FROM public.resolve_verified_host(p_host); RETURN tenant_guard.begin_line_gift(v_tenant, p_host, p_surface); END;",
+          ),
+        ]),
+      ),
+    ).toEqual([]);
+  });
+
+  it.each<[string, string]>([
+    ["an unlisted function", "public.lookup_owner(p_host)"],
+    [
+      "an expression argument",
+      "public.resolve_verified_host(pg_catalog.lower(p_host))",
+    ],
+    ["a literal argument", "public.resolve_verified_host('give.example.org')"],
+    ["two arguments", "public.resolve_verified_host(p_host, p_surface)"],
+    ["an unqualified call", "resolve_verified_host(p_host)"],
+    [
+      "a locked read of the lookup",
+      "public.resolve_verified_host(p_host) FOR SHARE",
+    ],
+  ])("refuses %s as the anchor", (_label, from) => {
+    expect(codes(judge([worker(sig, body(from))]))).toContain(
+      `WORKER_WRAPPER_TENANT_ARGUMENT ${sig}`,
+    );
+  });
+
+  it("refuses an organization parameter as the lookup's argument", () => {
+    const fn = "public.begin_line_gift(p_tenant_host text, p_surface text)";
+    const text = body("public.resolve_verified_host(p_tenant_host)").replace(
+      "begin_line_gift(v_tenant, p_host,",
+      "begin_line_gift(v_tenant, p_tenant_host,",
+    );
+    expect(codes(judge([worker(fn, text)]))).toContain(
+      `WORKER_WRAPPER_TENANT_ARGUMENT ${fn}`,
+    );
+  });
+
+  it("refuses the lookup while it is not on the anon-definer allowlist, where it is reviewed as a STABLE definer with an empty path", () => {
+    expect(
+      codes(
+        judge(
+          [worker(sig, body("public.resolve_verified_host(p_host)"))],
+          allow(),
+        ),
+      ),
+    ).toEqual(
+      expect.arrayContaining([
+        `WORKER_WRAPPER_ANCHOR_LOOKUP_UNREVIEWED ${sig}`,
+      ]),
+    );
+  });
+
+  it("F8: a quoted call of the lookup is the same call: it is refused while the lookup is not on the allowlist", () => {
+    expect(
+      codes(
+        judge(
+          [worker(sig, body('public."resolve_verified_host"(p_host)'))],
+          allow(),
+        ),
+      ),
+    ).toEqual(
+      expect.arrayContaining([
+        `WORKER_WRAPPER_ANCHOR_LOOKUP_UNREVIEWED ${sig}`,
+      ]),
+    );
+  });
+
+  it("an unlisted lookup is still a call the wrapper may not make", () => {
+    expect(
+      codes(judge([worker(sig, body("public.lookup_owner(p_host)"))])),
+    ).toContain(`WORKER_WRAPPER_WRITES ${sig}`);
   });
 });
