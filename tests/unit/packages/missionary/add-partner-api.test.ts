@@ -23,8 +23,8 @@ function values() {
   };
 }
 
-function answer(status: number, body: unknown = ADDED) {
-  return new Response(JSON.stringify(body), {
+function answer(status: number, body: unknown = ADDED, raw?: string) {
+  return new Response(raw ?? JSON.stringify(body), {
     status,
     headers: { "content-type": "application/json" },
   });
@@ -77,6 +77,36 @@ describe("the Add Partner submission key in the browser (AL-2678 WP5 rest, fix r
         AddPartnerRefused,
       );
       await addPartner(partner);
+      expect(keyOf(1)).toBe(keyOf(0));
+    },
+  );
+
+  it.each([
+    ["a body that is not JSON", () => answer(201, undefined, "<html>busy")],
+    ["a body without the stored partner", () => answer(201, { ok: true })],
+    ["a null body", () => answer(201, null)],
+    [
+      "a body whose read fails",
+      () => {
+        const broken = answer(201);
+        vi.spyOn(broken, "json").mockRejectedValueOnce(
+          new TypeError("network error"),
+        );
+        return broken;
+      },
+    ],
+  ] as const)(
+    "keeps the key after a 2xx with %s: the retry is the same submission and makes no second partner (WP5 rest 2 item zero (d); red: a new key)",
+    async (_case, broken) => {
+      const partner = values();
+      h.fetch.mockResolvedValueOnce(broken());
+      h.fetch.mockResolvedValueOnce(answer(200, { ...ADDED, duplicate: true }));
+      await expect(addPartner(partner)).rejects.toBeInstanceOf(Error);
+      await expect(addPartner(partner)).resolves.toEqual({
+        ...ADDED,
+        duplicate: true,
+      });
+      expect(keyOf(0)).toMatch(KEY);
       expect(keyOf(1)).toBe(keyOf(0));
     },
   );
