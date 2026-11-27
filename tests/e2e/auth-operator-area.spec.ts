@@ -141,6 +141,12 @@ async function enterCode(page: Page, label: string, code: string) {
 }
 
 async function seriousViolations(page: Page): Promise<string[]> {
+  await expect
+    .poll(() => page.title(), {
+      message:
+        "the document never got a non-empty title, so axe would report document-title",
+    })
+    .toMatch(/\S/);
   const results = await new AxeBuilder({ page })
     .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"])
     .analyze();

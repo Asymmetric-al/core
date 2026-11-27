@@ -104,6 +104,24 @@ describe("on: the staff callback picks the home among the name's organization's 
     vi.stubEnv("CORE_APP_BASE_PATH", "/admin");
   });
 
+  it.each([
+    ["/missionary", "missionary", "staff", "/admin"],
+    ["/admin", "staff", "missionary", "/missionary"],
+    ["", "donor", "staff", "/admin"],
+    ["", "donor", "missionary", "/missionary"],
+    ["/missionary", "missionary", "donor", "/donor-dashboard"],
+  ])(
+    "from %s (%s), a %s membership lands on %s",
+    async (base, surface, role, home) => {
+      vi.stubEnv("CORE_APP_BASE_PATH", base);
+      fixture.rows = [{ tenant: TA, role }];
+      const res = await callback({
+        "x-asym-role-class": surface,
+        "x-asym-name-tenant": TA,
+      });
+      expect(res.headers.get("location")).toBe(home);
+    },
+  );
   it("lands D, a donor in A and staff only in B, on the donor dashboard on A's name", async () => {
     fixture.rows = D;
     const response = await callback({ "x-asym-name-tenant": TA });
@@ -127,6 +145,24 @@ describe("on: the staff callback picks the home among the name's organization's 
       const response = await callback(headers, "/donors");
       expect(response.headers.get("location")).toBe("/admin/donors");
       expect(fixture.rowReads).toBe(0);
+    },
+  );
+
+  it.each([
+    ["/admin/donors", "/"],
+    ["/missionary/profile", "/"],
+    ["/administration", "/administration"],
+  ])(
+    "on the donor app, a person with no class and next=%s lands on %s: next stays in the donor app",
+    async (next, location) => {
+      vi.stubEnv("CORE_APP_BASE_PATH", "");
+      fixture.rows = [];
+      const response = await callback(
+        { "x-asym-role-class": "donor", "x-asym-name-tenant": TA },
+        next,
+      );
+      expect(response.status).toBe(307);
+      expect(response.headers.get("location")).toBe(location);
     },
   );
 });

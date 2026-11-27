@@ -199,14 +199,9 @@ describe.each([
       expect(state.lookups).toEqual([]);
     });
 
-    it("keeps today's answers on requests the on branch refuses or rewrites, including no host", async () => {
+    it("keeps today's answers on requests the on branch refuses or rewrites, including no host (/admin/x and /%61dmin/x moved to reserved-addresses.test.ts: a reserved first segment no donor route serves now answers 404 in both modes, N3 rest PR 1 F2)", async () => {
       state.userId = null;
-      for (const path of [
-        "/a%5clogin",
-        "/%61dmin/x",
-        "/admin/x",
-        "/login.segments/_tree.segment",
-      ]) {
+      for (const path of ["/a%5clogin", "/login.segments/_tree.segment"]) {
         state.sessionReads = 0;
         const res = await donorModule.proxy(
           donorRequest(HOME_B, path, { headers: { [NAME]: TB } }),

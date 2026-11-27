@@ -254,7 +254,8 @@ export function ProfileFormColumn({
                 Profile picture
               </p>
               <p className="text-xs text-muted-foreground max-w-55">
-                Square image, at least 400x400px. JPG or PNG, max 5MB.
+                Square JPG or PNG, at least 400 × 400 pixels. Cropped photo up
+                to 4 MB.
               </p>
               <ImageUpload
                 value={profile.avatarUrl}
@@ -305,7 +306,8 @@ export function ProfileFormColumn({
               />
             </ImageUpload>
             <p id={coverHintId} className="text-xs text-muted-foreground">
-              Shown across the top of your giving page. Up to 10MB.
+              Shown across the top of your giving page. Cropped cover up to 4
+              MB.
             </p>
           </motion.div>
         </CardContent>

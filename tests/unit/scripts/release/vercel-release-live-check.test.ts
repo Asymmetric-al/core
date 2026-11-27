@@ -447,8 +447,8 @@ describe("release job: live deployment verification and forced release", () => {
     const promotes = calls.filter((c) => c.path.includes("/promote/"));
     expect(promotes.map((c) => c.path)).toEqual([
       expect.stringContaining("/promote/dpl_1?"),
-      expect.stringContaining("/promote/dpl_2?"),
       expect.stringContaining("/promote/dpl_3?"),
+      expect.stringContaining("/promote/dpl_2?"),
     ]);
 
     expect(logs).toContain("admin: staged dpl_1.");

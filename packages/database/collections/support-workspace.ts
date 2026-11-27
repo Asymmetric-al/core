@@ -237,7 +237,7 @@ export const supportHubReadModel: SupportHubReadModel = {
       title: "Profile image troubleshooting",
       queueId: "missionary_support",
       preview:
-        "Please try a square JPG under 5MB. If it still fails, send the file and support will crop it for you.",
+        "Please try a square JPG under 4 MB. If it still fails, send the file and support will crop it for you.",
     },
     {
       id: "macro-church-onboarding",

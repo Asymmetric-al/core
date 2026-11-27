@@ -662,7 +662,6 @@
   "packages/api/src/donor-portal/wallet.ts": 5,
   "packages/api/src/editor-images/key.ts": 2,
   "packages/api/src/email/address.ts": 1,
-  "packages/api/src/email/assets.ts": 2,
   "packages/api/src/email/consent.ts": 15,
   "packages/api/src/email/settings-store.ts": 2,
   "packages/api/src/email/template-test-send.ts": 5,

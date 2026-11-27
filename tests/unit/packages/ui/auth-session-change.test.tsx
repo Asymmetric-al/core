@@ -45,13 +45,16 @@ function watchCleanups() {
   });
 }
 
-function renderLogin(demoOnly: boolean) {
+function renderLogin(
+  demoOnly: boolean,
+  appId: "admin" | "donor" | "missionary" = "admin",
+) {
   const client = new QueryClient({
     defaultOptions: { queries: { retry: false } },
   });
   return render(
     <QueryClientProvider client={client}>
-      <LoginScreen appId="admin" nextPath="/web-studio" demoOnly={demoOnly} />
+      <LoginScreen appId={appId} nextPath="/web-studio" demoOnly={demoOnly} />
     </QueryClientProvider>,
   );
 }
@@ -82,6 +85,24 @@ afterEach(() => {
 });
 
 describe("a change of person or organization runs the session-change cleanups when it completes (WP6 rest, pull request 2, round 2, G1)", () => {
+  it.each(["donor", "missionary"] as const)(
+    "sets the shared-origin mark when a second person signs in on %s",
+    async (app) => {
+      vi.stubEnv("CORE_SERVE_UNDER_PATHS", "1");
+      try {
+        document.cookie = "asym_clipboard_reset=; Path=/; Max-Age=0";
+        auth.signInWithPassword.mockResolvedValueOnce({ error: null });
+        renderLogin(false, app);
+        signInWithPassword();
+        await waitFor(() => expect(auth.replace).toHaveBeenCalled());
+        expect(document.cookie).toContain("asym_clipboard_reset=1");
+      } finally {
+        document.cookie = "asym_clipboard_reset=; Path=/; Max-Age=0";
+        vi.unstubAllEnvs();
+      }
+    },
+  );
+
   it("runs every registered cleanup, and none once it is unregistered", () => {
     const first = vi.fn();
     const second = vi.fn();

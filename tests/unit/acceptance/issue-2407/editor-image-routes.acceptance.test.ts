@@ -239,17 +239,28 @@ describe.each(MOUNTS)("#2407a criterion 12 [A] %s mount", (mount) => {
   ])("#2407a criterion 12: %s returns 415 (M14)", async (_label, file) => {
     await rejected(mount, request({ file }), 415);
   });
-  it("#2407a criterion 12: 5,242,880 bytes succeed; one more byte, or an oversize declared Content-Length, returns 413 before storage (M14)", async () => {
-    await stored(mount, request({ file: image("image/webp", 5242880) }));
+  it("#2407a criterion 12: 4,000,000 bytes succeed; one more byte, or an oversize declared Content-Length, returns 413 before storage (M14)", async () => {
+    const atLimit = request({ file: image("image/webp", 4_000_000) });
+    expect((await atLimit.clone().arrayBuffer()).byteLength).toBeLessThan(
+      4_500_000,
+    );
+    await stored(mount, atLimit);
     h.from.mockClear();
     h.upload.mockClear();
-    await rejected(mount, request({ file: image("image/webp", 5242881) }), 413);
+    const refused = await post(
+      mount,
+      request({ file: image("image/webp", 4_000_001) }),
+    );
+    expect(refused.status).toBe(413);
+    expect(await refused.json()).toEqual({
+      error: "Image file must be 4 MB or smaller.",
+    });
     await rejected(mount, request({ length: String(6 * 1024 * 1024) }), 413);
     expect(h.from).not.toHaveBeenCalled();
   });
   it("#2407a criterion 12: a streamed body past the cap with an understated Content-Length returns 413 (M14)", async () => {
     const form = await request({
-      file: image("image/webp", 5242880),
+      file: image("image/webp", 4_000_000),
     }).formData();
     form.set("padding", "x".repeat(128 * 1024));
     const encoded = new Response(form);
