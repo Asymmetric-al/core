@@ -220,7 +220,7 @@ describe("#2253 service-role gate on fixtures (8, 9, 10)", () => {
   it("8: re-exporting the factory, requireWorkflowAdminClient or withPlatformOperation fails even when allowlisted", () => {
     const fx: [string, string, string][] = [
       [
-        "packages/api/src/donate/index.ts",
+        "packages/api/src/donate/guest/intake-route.ts",
         "admin_client",
         `export { getAdminClient } from "${FACTORY}";\n${call(1, "createAdminClient")}`,
       ],

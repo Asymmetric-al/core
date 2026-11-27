@@ -36,7 +36,6 @@ vi.mock("@asym/database/supabase/post-interactions", () => ({
   }),
 }));
 
-import { POST as donatePOST } from "../../../../packages/api/src/donate";
 import {
   GET as donationsGET,
   POST as donationsPOST,
@@ -142,19 +141,7 @@ function reExports(path: string): string {
   return readFileSync(`${root}${path}`, "utf8").trim();
 }
 
-describe("AL-2676 (record row WP2c, WP3): the donor app mounts only what a donor membership can pass", () => {
-  it("POST /api/donate refuses a staff-only membership with 403 before any body read, Stripe call or service-key use", async () => {
-    h.getAuthContext.mockResolvedValue(context("staff"));
-    const response = await donatePOST(
-      watchedRequest("http://localhost:3000/api/donate"),
-    );
-    expect(response.status).toBe(403);
-    expect(JSON.stringify(await response.json())).toContain(
-      "requires a donor membership",
-    );
-    expect(h.touched).toEqual([]);
-  });
-
+describe("AL-2676 (record row WP2c, WP3): the donor app mounts only what a donor membership can pass (D-18, AL-2681 PR 2b: POST /api/donate is now the guest intake, which needs no membership)", () => {
   it.each([
     [
       "GET",
@@ -209,10 +196,6 @@ describe("AL-2676 (record row WP2c, WP3): the donor app mounts only what a donor
   });
 
   it.each([
-    [
-      "POST /api/donate",
-      () => donatePOST(watchedRequest("http://localhost:3000/api/donate")),
-    ],
     [
       "GET /api/donations",
       () =>

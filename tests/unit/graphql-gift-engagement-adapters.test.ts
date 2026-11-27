@@ -246,17 +246,10 @@ describe("GraphQL Gift and engagement source guards", () => {
     expect(handler).not.toContain("amount * 100");
   });
 
-  it("moves HTTP Gift begin onto the shared command and quotes charged cents", () => {
-    const donate = readRepoFile("packages/api/src/donate/index.ts");
+  it("moves HTTP Gift begin onto the shared command and quotes charged cents (D-18, AL-2681 PR 2b: the legacy POST /api/donate is retired; /api/donations remains until part C)", () => {
     const donations = readRepoFile("packages/api/src/donations/index.ts");
 
-    expect(donate).not.toContain("begin_donation_saga");
     expect(donations).not.toContain("begin_donation_saga");
-    expect(donate).toContain("beginGiftIntake");
-    expect(donate).toContain("processDonationSagaOutboxEvent");
-    expect(donate).toContain("feeQuote.chargedAmountCents");
-    expect(donate).toContain("feeExtras: extraPaymentIntentMetadata");
-    expect(donate).not.toContain("Math.round(amount * 100)");
     expect(donations).toContain("beginGiftIntake");
     expect(donations).toContain("processDonationSagaOutboxEvent");
     expect(donations).not.toContain("Math.round(amount * 100)");

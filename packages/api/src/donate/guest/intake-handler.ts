@@ -175,12 +175,13 @@ export function createGuestIntakeHandler(deps: GuestIntakeDeps) {
   const verify = deps.verifyChallenge ?? verifyGuestChallenge;
 
   return async function POST(request: Request): Promise<Response> {
+    const enabled = await settled(async () => deps.enabled());
+    if (!enabled) return unavailable();
     const ready = await settled(async () => ({
-      enabled: deps.enabled(),
       secret: deps.challengeSecret()?.trim(),
       rpc: deps.rpc(),
     }));
-    if (!ready?.enabled || !ready.secret || !ready.rpc) return unavailable();
+    if (!ready?.secret || !ready.rpc) return unavailable();
     const { secret, rpc } = ready;
     const host = request.headers.get("host")?.trim();
     if (!host) return unavailable();

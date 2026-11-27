@@ -8,7 +8,6 @@ import { expectRealstackStep } from "../shared/realstack-step";
 
 const REGISTRY = "packages/database/collections/registry.ts";
 const DOC = "docs/guides/architecture/data-access-boundary.md";
-const BUILDER = "packages/api/tests/unit/donate-get-config.test.ts";
 const sql = () => {
   expect(H.read(H.FORWARD), H.FORWARD).not.toBe("");
   return H.code(H.read(H.FORWARD));
@@ -103,8 +102,10 @@ describe("#2364 static [A][S]", () => {
     // force it; reject forcing, while preserving the approved target state.
     expect(text.replace(/\bNO\s+FORCE\b/gi, "")).not.toMatch(/\bFORCE\b/i);
   });
-  it("#2364 criterion 9: Builder supplies the declared GET config unit suite", () => {
-    expect(H.read(BUILDER), BUILDER).not.toBe("");
+  it("#2364 criterion 9 (D-18, AL-2681 PR 2b: the legacy GET config of /api/donate retires with its route, and its suite with it; checkout reads /api/checkout/config): the donate route mounts only the guest intake's POST", () => {
+    expect(H.read("apps/donor/app/api/donate/route.ts").trim()).toBe(
+      'export { POST } from "@asym/api/donate/guest/intake-route";',
+    );
   });
   it("#2364 criterion 10: the missionaries registry entry stays read-only and docs explain service-role missionaries reads/config-only GET", () => {
     const entry =

@@ -1,1 +1,1 @@
-export { GET, POST } from "@asym/api/donate";
+export { POST } from "@asym/api/donate/guest/intake-route";
