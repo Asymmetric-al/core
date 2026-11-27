@@ -32,10 +32,22 @@ function createReplayFromMock(options: {
   storedAmount: number | null;
   storedFeeExtras?: Record<string, string> | null;
   feeExtrasError?: { message: string };
+  link?: "none" | "error";
 }) {
   return vi.fn((table: string) => {
     if (table === "donations") {
       return createDonationsFromMock(options.storedAmount)(table);
+    }
+    if (table === "account_links") {
+      const read = {
+        select: () => read,
+        eq: () => read,
+        maybeSingle: async () =>
+          options.link === "error"
+            ? { data: null, error: { message: "read timed out" } }
+            : { data: null, error: null },
+      };
+      return read;
     }
 
     expect(table).toBe("donation_saga_outbox");
@@ -268,6 +280,7 @@ describe("POST /api/donate Gift processing-fee policy", () => {
         from: createReplayFromMock({
           storedAmount: 10000,
           storedFeeExtras: {},
+          link: "none",
         }),
       } as never,
       error: null,
@@ -284,6 +297,48 @@ describe("POST /api/donate Gift processing-fee policy", () => {
       error: "Idempotency key already used",
       requestId: expect.any(String),
     });
+    expect(mockedProcessDonationSagaOutboxEvent).not.toHaveBeenCalled();
+    expect(createIntent).not.toHaveBeenCalled();
+  });
+
+  it("answers a replay whose ownership lookup fails as an outcome not known (500, the key kept), never as a key conflict, and drives no provider effect (WP5 rest 2 item zero (e); red: 409 Idempotency key already used)", async () => {
+    mockedGetAuthContext.mockResolvedValue({
+      ...authenticatedDonor,
+      userId: "user-2",
+      profileId: "profile-2",
+    });
+    const createIntent = vi.fn();
+    mockedResolveTenantStripe.mockResolvedValue({
+      ok: true,
+      stripe: { paymentIntents: { create: createIntent } } as never,
+      secretKey: "test",
+      publishableKey: "test",
+    });
+    mockedGetAdminClient.mockReturnValue({
+      client: {
+        rpc: rpcMock,
+        from: createReplayFromMock({
+          storedAmount: 10000,
+          storedFeeExtras: {},
+          link: "error",
+        }),
+      } as never,
+      error: null,
+    });
+    rpcMock.mockResolvedValue({
+      data: { ...beginRpcResult, replayed: true },
+      error: null,
+    });
+    const response = await POST(
+      createDonateRequest({ amount: 100, currency: "usd" }),
+    );
+    expect(response.status).toBe(500);
+    const body = await response.json();
+    expect(body).toEqual({
+      error: "Failed to load the existing donation for this idempotency key.",
+      requestId: expect.any(String),
+    });
+    expect(JSON.stringify(body)).not.toMatch(/timed out|already used/);
     expect(mockedProcessDonationSagaOutboxEvent).not.toHaveBeenCalled();
     expect(createIntent).not.toHaveBeenCalled();
   });

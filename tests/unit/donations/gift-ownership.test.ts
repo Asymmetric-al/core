@@ -81,6 +81,27 @@ describe("a gift read back is the caller's when its donor is theirs by profile, 
     expect(matched.calls).toEqual([]);
   });
 
+  it("answers null, an outcome not known, when the own-donor lookup fails, never a mismatch (WP5 rest 2 item zero (e); red: profile)", async () => {
+    const from = vi.fn(() => {
+      const chain: Record<string, unknown> = {};
+      for (const method of ["select", "eq", "limit"])
+        chain[method] = () => chain;
+      chain.maybeSingle = async () => ({
+        data: null,
+        error: { message: "canceling statement due to statement timeout" },
+      });
+      return chain;
+    });
+    expect(
+      await callerGiftMismatches(
+        { from } as never,
+        stored({ profile: null }, "donor-c"),
+        GIFT,
+        PERSON,
+      ),
+    ).toBeNull();
+  });
+
   it("still reports the other fields when the donor is the caller's", async () => {
     expect(
       await callerGiftMismatches(
