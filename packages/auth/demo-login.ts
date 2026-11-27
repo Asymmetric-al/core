@@ -50,6 +50,8 @@ function leavesTheDonorApp(pathname: string): boolean {
   } catch {
     return true;
   }
+  if (/[?#]/.test(decoded) || /(?:^|\/)\.\.?(?:\/|$)/.test(decoded))
+    return true;
   return namesAnotherApp(pathname) || namesAnotherApp(decoded);
 }
 

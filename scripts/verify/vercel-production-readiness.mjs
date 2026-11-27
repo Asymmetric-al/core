@@ -654,7 +654,11 @@ export function formatReadinessReport({ commit, reports }) {
       if (report.health.bodyStatus) {
         lines.push(`Health body status: ${report.health.bodyStatus}`);
       }
-      if (report.health.releaseCommit) {
+      if (report.pathMode) {
+        lines.push(
+          `Release health commit: ${report.health.releaseCommit || "absent"} (${report.healthReleaseMatches ? "matches target" : "does not match target"})`,
+        );
+      } else if (report.health.releaseCommit) {
         lines.push(
           `Release health commit: ${report.health.releaseCommit} (${report.healthReleaseMatches ? "matches target or legacy-unknown" : "does not match target"})`,
         );

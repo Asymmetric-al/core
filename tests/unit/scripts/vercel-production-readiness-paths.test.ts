@@ -311,4 +311,37 @@ describe("#2845 item 8: in path mode the live commit must be the target commit",
       expect(projectReport("admin", {}, commit).ready).toBe(true);
     },
   );
+
+  it.each([
+    [null, "Release health commit: absent (does not match target)"],
+    ["unknown", "Release health commit: unknown (does not match target)"],
+    ["built", "Release health commit: built (matches target)"],
+  ])(
+    "in path mode the report states the commit it compared (%s)",
+    (commit, line) => {
+      const text = formatReadinessReport({
+        commit: "built",
+        reports: [projectReport("admin", PATH_VALUES.admin!, commit)],
+      });
+      expect(text).toContain(line);
+      expect(text).not.toContain("legacy-unknown");
+    },
+  );
+
+  it("off keeps today's report lines (guard)", () => {
+    expect(
+      formatReadinessReport({
+        commit: "built",
+        reports: [projectReport("admin", {}, "unknown")],
+      }),
+    ).toContain(
+      "Release health commit: unknown (matches target or legacy-unknown)",
+    );
+    expect(
+      formatReadinessReport({
+        commit: "built",
+        reports: [projectReport("admin", {}, null)],
+      }),
+    ).not.toContain("Release health commit:");
+  });
 });

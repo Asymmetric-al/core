@@ -7,6 +7,7 @@ const state = vi.hoisted(() => ({
   demoOnly: true,
   visitor: [] as unknown[],
   screen: [] as Array<{ nextPath: string | null; demoOnly: boolean }>,
+  forgotPasswordHref: [] as Array<string | null | undefined>,
 }));
 
 vi.mock("next/headers", () => ({
@@ -32,8 +33,13 @@ vi.mock("@asym/auth/auth-screen", () => ({
 }));
 
 vi.mock("@asym/ui/components/auth/LoginScreen", () => ({
-  LoginScreen: (props: { nextPath: string | null; demoOnly: boolean }) => {
+  LoginScreen: (props: {
+    nextPath: string | null;
+    demoOnly: boolean;
+    forgotPasswordHref?: string | null;
+  }) => {
     state.screen.push({ nextPath: props.nextPath, demoOnly: props.demoOnly });
+    state.forgotPasswordHref.push(props.forgotPasswordHref);
     return null;
   },
 }));
@@ -69,6 +75,7 @@ beforeEach(() => {
   state.demoOnly = true;
   state.visitor = [];
   state.screen = [];
+  state.forgotPasswordHref = [];
   vi.stubEnv("OPERATIONS_NAMES", OPS);
 });
 
@@ -92,6 +99,11 @@ describe("on: the sign-in page on an operations address", () => {
     ]);
   });
 
+  it("offers no password-reset link, which the operations address does not answer", async () => {
+    await render("/donors");
+    expect(state.forgotPasswordHref).toEqual([null]);
+  });
+
   it.each([
     [
       "a stamped request (a page-scope header)",
@@ -107,6 +119,7 @@ describe("on: the sign-in page on an operations address", () => {
         nextPath: "/donors",
         demoOnly: true,
       });
+      expect(state.forgotPasswordHref).toEqual([undefined]);
     },
   );
 });
@@ -122,5 +135,6 @@ describe.each([
       nextPath: "/donors",
       demoOnly: true,
     });
+    expect(state.forgotPasswordHref).toEqual([undefined]);
   });
 });
