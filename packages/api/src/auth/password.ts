@@ -189,6 +189,7 @@ export async function POST(request: Request) {
       if (providerUnavailable(error)) return refuse(REFUSALS.unavailable);
       if (error.status === 401 || error.status === 403)
         return refuse(REFUSALS.signedOut);
+      if (error.code === "same_password") return refuse(REFUSALS.same);
       return refuse(REFUSALS.notAccepted);
     }
   } catch {
