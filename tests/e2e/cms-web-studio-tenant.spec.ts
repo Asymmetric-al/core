@@ -2108,11 +2108,8 @@ test("@cms no control offers publishing until WP7: the edit view and the bulk ba
       .first()
       .check();
     const bar = page.getByRole("group", { name: /selected/ });
-    await expect(bar.getByRole("button", { name: /publish/i })).toHaveCount(0);
-    await bar.getByRole("button", { name: /^Edit/ }).click();
-    await expect(
-      page.getByRole("button", { name: /^Save Draft$/i }).last(),
-    ).toBeVisible();
+    await expect(bar.getByRole("button", { name: /^Delete/ })).toBeVisible();
+    await expect(bar.getByRole("button", { name: /^Edit/ })).toHaveCount(0);
     await expect(page.getByRole("button", { name: /publish/i })).toHaveCount(0);
   } finally {
     await cleanUp(page, "pages", id);
@@ -2239,9 +2236,11 @@ test("@cms Payload's copy-and-paste store is empty after a change of organizatio
     await expect.poll(() => clipboardOf(page)).toBeNull();
   } finally {
     await signIn(page);
-    await cleanUp(page, "pages", pasteTarget);
+    await switchOrganization(page, base, SECOND);
+    expect(
+      (await deleteDocument(page, base, "pages", pasteTarget)).status(),
+    ).toBe(200);
   }
-  await switchOrganization(page, base, SECOND);
   expect(
     (
       await page.request.get(
