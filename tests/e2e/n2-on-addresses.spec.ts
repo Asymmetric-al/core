@@ -111,6 +111,7 @@ test("P works under /~development and /~finance in two tabs, each reading and wr
   };
   const current = String(generation());
   const before = locationsOf(TA);
+  const administers: Record<string, number> = {};
 
   for (const role of ["development", "finance"] as const) {
     const tab = tabs[role];
@@ -138,8 +139,16 @@ test("P works under /~development and /~finance in two tabs, each reading and wr
       { method: "POST", body: LOCATION },
     );
     expect(written.status, role).toBeLessThan(300);
+    administers[role] = (
+      await sendAs(
+        tab,
+        "/admin/api/admin/members/invitations",
+        claimsOf(calls[0]!),
+      )
+    ).status;
   }
 
   expect(locationsOf(TA)).toBe(before + 2);
   expect(rows.development).not.toBe(rows.finance);
+  expect(administers).toEqual({ development: 200, finance: 403 });
 });

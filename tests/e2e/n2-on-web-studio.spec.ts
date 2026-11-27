@@ -98,8 +98,34 @@ test("a choice in Web Studio's chooser enters by a document load; the API tab sh
   const studio = await enterWebStudio(page);
   expect(studio.softRedirect).toBeNull();
   expect(studio.afterChoice()).toContain("/admin/web-studio");
-  const id = await createDraftPage(page, `N2 on api ${Date.now()}`);
+  const title = `N2 on api ${Date.now()}`;
+  const id = await createDraftPage(page, title);
   try {
+    await page.goto(`/admin/web-studio/collections/pages/${id}`);
+    await expect(page.locator("[data-web-studio-scope]")).toBeAttached();
+    const loginLoads: string[] = [];
+    context.on("request", (request) => {
+      if (
+        request.resourceType() === "document" &&
+        new URL(request.url()).pathname.startsWith("/admin/login")
+      ) {
+        loginLoads.push(request.url());
+      }
+    });
+    const [preview] = await Promise.all([
+      context.waitForEvent("page"),
+      page
+        .getByRole("link", { name: /^Preview/ })
+        .first()
+        .click(),
+    ]);
+    await expect(preview.getByRole("heading", { name: title })).toBeVisible();
+    expect(new URL(preview.url()).pathname).toBe(
+      `/admin/web-studio/preview/pages/${id}`,
+    );
+    expect(loginLoads).toEqual([]);
+    await preview.close();
+
     await page.goto(`/admin/web-studio/collections/pages/${id}/api`);
     await expect(page.locator(".query-inspector")).toContainText(id);
     await expect(
@@ -118,6 +144,39 @@ test("a choice in Web Studio's chooser enters by a document load; the API tab sh
     await opened.close();
   } finally {
     await deletePage(page, id);
+  }
+});
+
+test("Web Studio left open after the name's generation moved refuses a page made from a template with the reload prompt, and makes none", async ({
+  page,
+}) => {
+  await enterWebStudio(page);
+  await page.waitForLoadState("networkidle");
+  const before = sql("SELECT count(*) FROM cms.pages");
+  const saved = saveName();
+  try {
+    bumpGeneration();
+    const answer = await page.evaluate(async () => {
+      const response = await fetch(
+        "/admin/web-studio/api/web-studio/create-from-template",
+        {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({ title: "N2 on template" }),
+        },
+      );
+      return {
+        status: response.status,
+        refusal: response.headers.get("x-asym-web-studio-refusal"),
+      };
+    });
+    expect(answer).toEqual({ status: 409, refusal: "scope_mismatch" });
+    const notice = page.getByRole("alertdialog");
+    await expect(notice).toBeVisible();
+    await expect(notice).toContainText(STALE_MESSAGE);
+    expect(sql("SELECT count(*) FROM cms.pages")).toBe(before);
+  } finally {
+    restoreName(saved);
   }
 });
 
