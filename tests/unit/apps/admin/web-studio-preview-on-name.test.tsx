@@ -7,7 +7,6 @@ import {
 import { cleanup, render, screen } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import PreviewPage from "../../../../apps/admin/app/(payload)/web-studio/preview/[collection]/[id]/page";
 import { createSupabaseAuthStrategy } from "../../../../apps/admin/src/cms/auth/supabase-strategy";
 
 const state = vi.hoisted(() => ({
@@ -184,6 +183,9 @@ afterEach(() => {
 });
 
 async function renderPreview() {
+  vi.resetModules();
+  const { default: PreviewPage } =
+    await import("../../../../apps/admin/app/(payload)/web-studio/preview/[collection]/[id]/page");
   return render(
     await PreviewPage({
       params: Promise.resolve({ collection: "pages", id: "page-1" }),
