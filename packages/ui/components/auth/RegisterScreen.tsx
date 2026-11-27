@@ -1,6 +1,7 @@
 "use client";
 
 import { answerReadsAsSent } from "@asym/auth/auth-email-request";
+import { markSharedBrowserSessionChange } from "@asym/auth/clipboard-reset";
 import {
   getDefaultPostLoginPathForApp,
   type AppId,
@@ -129,6 +130,7 @@ export function RegisterScreen({
 
         // Only a project with confirmation switched off returns a session.
         if (data?.session) {
+          markSharedBrowserSessionChange();
           replace(defaultPostLoginPath);
           refresh();
           return;

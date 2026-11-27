@@ -1,16 +1,11 @@
+import { clipboardResetCookie } from "@asym/auth/clipboard-reset";
+
 import type { NextResponse } from "next/server";
 
-export const CLIPBOARD_RESET_COOKIE = "asym_clipboard_reset";
-
-export function clipboardResetCookie() {
-  return {
-    name: CLIPBOARD_RESET_COOKIE,
-    value: "1",
-    path: "/",
-    sameSite: "lax" as const,
-    secure: process.env.NODE_ENV === "production",
-  };
-}
+export {
+  CLIPBOARD_RESET_COOKIE,
+  clipboardResetCookie,
+} from "@asym/auth/clipboard-reset";
 
 export function withClipboardReset<Args extends unknown[]>(
   handler: (...args: Args) => Promise<NextResponse>,

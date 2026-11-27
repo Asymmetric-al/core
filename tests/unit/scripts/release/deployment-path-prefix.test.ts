@@ -3,8 +3,6 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { deploymentPathPrefix } from "../../../../scripts/release/serve-under-paths.mjs";
 
 const APPS = ["admin", "missionary", "donor"] as const;
-const REFUSAL =
-  "CORE_SERVE_UNDER_PATHS=1 is refused on production builds (VERCEL_ENV/VERCEL_TARGET_ENV=production).";
 
 describe("deploymentPathPrefix: the path prefix of an app's deployment, read as the build reads the switch", () => {
   afterEach(() => {
@@ -51,17 +49,16 @@ describe("deploymentPathPrefix: the path prefix of an app's deployment, read as 
     ["VERCEL_TARGET_ENV", "PRODUCTION"],
     ["VERCEL_TARGET_ENV", "production"],
   ])(
-    "throws the build's production refusal for 1 with %s=%j, for every app",
+    "uses each app's production prefix for 1 with %s=%j, for every app",
     (name, value) => {
       for (const app of APPS) {
         expect(
-          () =>
-            deploymentPathPrefix(app, {
-              CORE_SERVE_UNDER_PATHS: "1",
-              [name]: value,
-            }),
+          deploymentPathPrefix(app, {
+            CORE_SERVE_UNDER_PATHS: "1",
+            [name]: value,
+          }),
           app,
-        ).toThrow(REFUSAL);
+        ).toBe(app === "donor" ? "" : `/${app}`);
       }
     },
   );
@@ -104,6 +101,6 @@ describe("deploymentPathPrefix: the path prefix of an app's deployment, read as 
     vi.stubEnv("VERCEL_TARGET_ENV", "");
     expect(deploymentPathPrefix("missionary")).toBe("/missionary");
     vi.stubEnv("VERCEL_ENV", "production");
-    expect(() => deploymentPathPrefix("missionary")).toThrow(REFUSAL);
+    expect(deploymentPathPrefix("missionary")).toBe("/missionary");
   });
 });

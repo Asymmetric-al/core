@@ -30,6 +30,9 @@ type RouteHandler<Args> = (request: Request, args: Args) => Promise<Response>;
 
 type ResolveCaller = (input: WebStudioCallerInput) => Promise<WebStudioCaller>;
 
+export const MEMBERSHIP_READ_FAILED_MESSAGE =
+  "Web Studio could not check your organization just now. Try again.";
+
 export function claimedCallsOnly<Args>(
   handler: RouteHandler<Args>,
   resolveCaller: ResolveCaller = createWebStudioCallerResolver(),
@@ -42,6 +45,12 @@ export function claimedCallsOnly<Args>(
     });
     if (caller.kind === "allow" && caller.generation.kind === "valid") {
       return handler(request, args);
+    }
+    if (caller.kind === "unavailable") {
+      return Response.json(
+        { errors: [{ message: MEMBERSHIP_READ_FAILED_MESSAGE }] },
+        { status: 503, headers: { "cache-control": "no-store" } },
+      );
     }
     return webStudioRefusalResponse(
       caller.kind === "refuse" && caller.refusal

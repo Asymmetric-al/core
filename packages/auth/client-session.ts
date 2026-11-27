@@ -8,6 +8,7 @@ import {
   signOutOnServer as defaultSignOutOnServer,
   type ServerSignOutResult,
 } from "./client-signout";
+import { markSharedBrowserSessionChange } from "./clipboard-reset";
 
 import type { Profile } from "@asym/database/types";
 import type { Session, User } from "@supabase/supabase-js";
@@ -65,6 +66,7 @@ export function registerSessionChangeCleanup(cleanup: () => void) {
 }
 
 export function runSessionChangeCleanups() {
+  markSharedBrowserSessionChange();
   for (const cleanup of [...sessionChangeCleanup]) cleanup();
 }
 

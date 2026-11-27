@@ -162,7 +162,7 @@ export interface OwnApiCall {
   headers: Record<string, string>;
   status: number | null;
   refused: string | null;
-  failed: boolean;
+  failure: string | null;
 }
 
 export function recordOwnApi(page: Page): OwnApiCall[] {
@@ -177,7 +177,7 @@ export function recordOwnApi(page: Page): OwnApiCall[] {
       headers: request.headers(),
       status: null,
       refused: null,
-      failed: false,
+      failure: null,
     };
     calls.push(call);
     byRequest.set(request, call);
@@ -190,7 +190,9 @@ export function recordOwnApi(page: Page): OwnApiCall[] {
   });
   page.on("requestfailed", (request) => {
     const call = byRequest.get(request);
-    if (call && call.status === null) call.failed = true;
+    if (call && call.status === null) {
+      call.failure = request.failure()?.errorText ?? "unknown";
+    }
   });
   return calls;
 }

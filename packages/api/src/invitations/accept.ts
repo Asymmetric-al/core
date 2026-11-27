@@ -1,3 +1,4 @@
+import { markSharedOriginSessionChange } from "@asym/auth/clipboard-reset";
 import {
   isNameTenantRefused,
   nameTenantIdOf,
@@ -171,15 +172,17 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  return NextResponse.json(
-    {
-      ...data,
-      redirectPath: redirectPathFor(
-        data.tenant_id,
-        nameTenantIdOf(name),
-        name.kind === "off",
-      ),
-    },
-    { status: 200, headers: NO_STORE_HEADERS },
+  return markSharedOriginSessionChange(
+    NextResponse.json(
+      {
+        ...data,
+        redirectPath: redirectPathFor(
+          data.tenant_id,
+          nameTenantIdOf(name),
+          name.kind === "off",
+        ),
+      },
+      { status: 200, headers: NO_STORE_HEADERS },
+    ),
   );
 }

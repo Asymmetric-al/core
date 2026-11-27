@@ -1,4 +1,6 @@
+import { EventEmitter } from "node:events";
 import { readFileSync } from "node:fs";
+import { createServer, type AddressInfo } from "node:net";
 import path from "node:path";
 
 import { describe, expect, it, vi } from "vitest";
@@ -9,9 +11,15 @@ import defaultConfig, {
 import proofConfig from "../../../playwright.n2-on.config";
 import {
   appEnvironment,
+  assertPortsFree,
   emptyRestore,
   finish,
   freshSecrets,
+  holdInterrupts,
+  serveUntilStopped,
+  waitForQuietMachine,
+  waitForServer,
+  watchServers,
   parseOptions,
   prepareRows,
   proofEnvironment,
@@ -131,6 +139,22 @@ describe("the runner", () => {
     expect(Object.values(proof)).not.toContain(first.payloadSecret);
   });
 
+  it("gives the servers no list of names: the lookup admits them, as in production", () => {
+    const env = appEnvironment(
+      stackValuesFromStatus(STATUS),
+      proofPorts({}),
+      freshSecrets(),
+      {},
+    );
+    expect(env).not.toHaveProperty("FRONT_NAMES");
+    for (const app of ["donor", "admin", "missionary"] as const) {
+      expect(
+        serverEnvironment(app, env, freshSecrets()),
+        app,
+      ).not.toHaveProperty("FRONT_NAMES");
+    }
+  });
+
   it("adds only the person's own rows, and parses its options", () => {
     expect(scratchRowsSql(SEED)).toMatch(/^INSERT INTO authz\.memberships /);
     expect(scratchRowsSql(SEED)).toContain(
@@ -195,6 +219,102 @@ describe("the runner names the seed's organizations and people by their slugs an
     expect(statement).toContain(
       `'${SEED.personP}', '${SEED.tenantB}', 'missionary', NULL`,
     );
+  });
+});
+
+describe("the runner never runs against a server it did not start (#2858 items 4 and 5)", () => {
+  it("refuses a port another process holds, and passes a free one", async () => {
+    const holder = createServer();
+    await new Promise<void>((resolve) =>
+      holder.listen(0, "localhost", () => resolve()),
+    );
+    const { port } = holder.address() as AddressInfo;
+    await expect(assertPortsFree([port])).rejects.toThrow(
+      new RegExp(`port ${port} is in use`),
+    );
+    await new Promise<void>((resolve) => holder.close(() => resolve()));
+    await expect(assertPortsFree([port])).resolves.toBeUndefined();
+  });
+
+  it("reports a server that exits or fails to start", () => {
+    const admin = new EventEmitter();
+    const donor = new EventEmitter();
+    const watch = watchServers([
+      { name: "admin", process: admin },
+      { name: "donor", process: donor },
+    ]);
+    expect(watch.failure()).toBeNull();
+    admin.emit("exit", 1, null);
+    expect(watch.failure()).toMatch(/admin exited \(code 1\)/);
+    donor.emit("error", new Error("spawn ENOENT"));
+    expect(watch.failure()).toMatch(/admin exited/);
+
+    const missionary = new EventEmitter();
+    const second = watchServers([{ name: "missionary", process: missionary }]);
+    missionary.emit("error", new Error("spawn ENOENT"));
+    expect(second.failure()).toMatch(
+      /missionary could not start: spawn ENOENT/,
+    );
+  });
+
+  it("stops waiting for a server as soon as one has failed", async () => {
+    await expect(
+      waitForServer(1, () => "admin exited (code 1)", 60_000),
+    ).rejects.toThrow("admin exited (code 1)");
+  });
+
+  it("ends the wait for a quiet machine at once when the run is interrupted or a server fails", async () => {
+    const busy = () => 99;
+    const late = new Promise((resolve) => setTimeout(resolve, 2_000, "late"));
+    const write = vi.spyOn(process.stdout, "write").mockReturnValue(true);
+    try {
+      for (const stopped of [
+        Promise.resolve("SIGINT"),
+        new Promise((resolve) => setTimeout(resolve, 20, "admin exited")),
+      ]) {
+        const waited = waitForQuietMachine(10, stopped, busy).then(
+          () => "ended",
+        );
+        await expect(Promise.race([waited, late])).resolves.toBe("ended");
+      }
+    } finally {
+      write.mockRestore();
+    }
+  });
+
+  it("tells a waiter at once when a watched server fails", async () => {
+    const donor = new EventEmitter();
+    const watch = watchServers([{ name: "donor", process: donor }]);
+    setTimeout(() => donor.emit("exit", 1, null), 10);
+    await expect(watch.failed()).resolves.toMatch(/donor exited \(code 1\)/);
+  });
+
+  it("stops serving with a failing exit as soon as a watched server dies, and ends cleanly on an interrupt", async () => {
+    const admin = new EventEmitter();
+    const watch = watchServers([{ name: "admin", process: admin }]);
+    const never = { wait: () => new Promise<NodeJS.Signals>(() => {}) };
+    setTimeout(() => admin.emit("exit", null, "SIGKILL"), 10);
+    await expect(serveUntilStopped(never, watch)).rejects.toThrow(
+      /admin exited \(code SIGKILL\)/,
+    );
+
+    const quiet = watchServers([
+      { name: "missionary", process: new EventEmitter() },
+    ]);
+    const interrupted = {
+      wait: () => Promise.resolve("SIGINT" as NodeJS.Signals),
+    };
+    await expect(serveUntilStopped(interrupted, quiet)).resolves.toBe(0);
+  });
+
+  it("holds an interrupt until the restore has run, and then lets it go", () => {
+    const before = process.listenerCount("SIGINT");
+    const hold = holdInterrupts();
+    expect(process.listenerCount("SIGINT")).toBe(before + 1);
+    process.emit("SIGINT");
+    expect(hold.signal()).toBe("SIGINT");
+    hold.release();
+    expect(process.listenerCount("SIGINT")).toBe(before);
   });
 });
 

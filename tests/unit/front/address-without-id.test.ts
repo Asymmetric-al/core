@@ -261,17 +261,43 @@ describe("on: one row of the surface works at the bare path", () => {
     );
   });
 
-  it.each(["/~member_care/donors", "/~finance/x", "/~member_care"])(
-    "answers Q at /admin%s 404 no-store, never a redirect (base: a redirect to an address with A's ID)",
-    async (path) => {
+  it.each([
+    ["/~member_care/donors?x=1", "/admin/donors?x=1"],
+    ["/~finance/x", "/admin/x"],
+    ["/~member_care", "/admin"],
+    ["/~development/donors?a=1&b=2", "/admin/donors?a=1&b=2"],
+  ])(
+    "sends Q at /admin%s to %s, 307 no-store after the membership read, never under the named row (D-18: ruling 2 of 27 November, plan line 876; base: 404 no-store)",
+    async (path, target) => {
       state.rows = Q;
-      expectNotFound(await stamped("admin", path), path);
+      const response = await stamped("admin", path);
+      expect(response.status, path).toBe(307);
+      expect(response.headers.get("cache-control"), path).toBe("no-store");
+      expect(location(response), path).toBe(`${ORIGIN}${target}`);
+      expect(response.headers.get("x-middleware-rewrite"), path).toBeNull();
+      expect(forwarded(response, "x-asym-assignment"), path).toBeNull();
+      expect(state.sessionReads, path).toBeGreaterThan(0);
     },
   );
 
-  it("answers /missionary/~development/feed 404 no-store before any session read (base: a redirect)", async () => {
-    expectNotFound(await stamped("missionary", "/~development/feed"));
-    expect(state.sessionReads).toBe(0);
+  it("sends P's one missionary row at /missionary/~development/feed?x=1 to /missionary/feed?x=1, 307 no-store after the membership read (D-18: ruling 2; base: 404 before any session read)", async () => {
+    const response = await stamped("missionary", "/~development/feed?x=1");
+    expect(response.status).toBe(307);
+    expect(response.headers.get("cache-control")).toBe("no-store");
+    expect(location(response)).toBe(`${ORIGIN}/missionary/feed?x=1`);
+    expect(forwarded(response, "x-asym-assignment")).toBeNull();
+    expect(state.sessionReads).toBeGreaterThan(0);
+  });
+
+  it("still answers a sub-role in front of a root outside the segment 404 no-store before any session read (guard)", async () => {
+    for (const [app, path] of [
+      ["admin", "/~finance/login"],
+      ["missionary", "/~development/login"],
+    ] as Array<[App, string]>) {
+      state.sessionReads = 0;
+      expectNotFound(await stamped(app, path), path);
+      expect(state.sessionReads, path).toBe(0);
+    }
   });
 });
 

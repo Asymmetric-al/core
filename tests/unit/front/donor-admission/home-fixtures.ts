@@ -89,7 +89,6 @@ export function resetHomeMode(state: HomeState) {
   vi.stubEnv("FRONT_MISSIONARY_ORIGIN", "http://localhost:25202");
   vi.stubEnv("FRONT_STAMP_KEY_ADMIN", freshKey());
   vi.stubEnv("FRONT_STAMP_KEY_MISSIONARY", freshKey());
-  vi.stubEnv("FRONT_NAMES", `${HOME_A},${HOME_B}`);
 }
 
 export function siteRequest(

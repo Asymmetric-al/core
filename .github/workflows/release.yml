@@ -247,6 +247,7 @@ jobs:
     timeout-minutes: 150
     environment: release-production
     env:
+      CORE_SERVE_UNDER_PATHS: ${{ vars.CORE_SERVE_UNDER_PATHS }}
       RELEASE_SHA: ${{ github.sha }}
       RELEASE_SUPABASE_PROJECT_REF: ${{ vars.RELEASE_SUPABASE_PROJECT_REF }}
     steps:
@@ -265,6 +266,9 @@ jobs:
       - name: Choose the apps this release builds
         id: plan
         env:
+          VERCEL_ADMIN_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_ADMIN_AUTOMATION_BYPASS_SECRET }}
+          VERCEL_DONOR_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_DONOR_AUTOMATION_BYPASS_SECRET }}
+          VERCEL_MISSIONARY_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_MISSIONARY_AUTOMATION_BYPASS_SECRET }}
           RELEASE_APPS_MODE: ${{ github.event_name == 'workflow_dispatch' && inputs.apps || 'changed' }}
         run: node scripts/release/vercel-release.mjs plan
       - name: Stage, health-check and promote

@@ -17,6 +17,7 @@ import {
   classifyDonorPath,
   isDonorExemptPath,
   isHomeRedirectPath,
+  isUnroutedReservedPath,
   resolveDonorPath,
 } from "./lib/route-policy";
 
@@ -64,6 +65,9 @@ const namedAuthProxy = createAuthMiddleware({
 
 export async function proxy(request: NextRequest) {
   if (!isServeUnderPathsEnabled()) {
+    if (isUnroutedReservedPath(request.nextUrl.pathname)) {
+      return frontNotFound();
+    }
     return authProxy(withoutFrontHeaders(request));
   }
   const routed = await routeToDashboard(request, process.env);
@@ -72,6 +76,7 @@ export async function proxy(request: NextRequest) {
   const cleaned = withoutFrontHeaders(request, { stripForwardedHost: true });
   const resolved = resolveDonorPath(request.nextUrl.pathname);
   if (resolved === null) return frontNotFound();
+  if (isUnroutedReservedPath(resolved.pathname)) return frontNotFound();
   if (resolved.transport === "none" && isDonorExemptPath(resolved.pathname)) {
     return namedAuthProxy(cleaned);
   }

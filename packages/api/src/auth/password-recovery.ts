@@ -1,3 +1,4 @@
+import { markSharedOriginSessionChange } from "@asym/auth/clipboard-reset";
 import { PASSWORD_RECOVERY_PATHS } from "@asym/auth/password-recovery";
 import { createClient } from "@asym/database/supabase/server";
 
@@ -26,11 +27,13 @@ export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const code = searchParams.get("code");
 
+  const response = callbackRedirect(PASSWORD_RECOVERY_PATHS.reset);
   if (code) {
     const supabase = await createClient(null); // Auth only: reads no tenant table.
     // A refused exchange issues no session; the reset screen reports it.
-    await supabase.auth.exchangeCodeForSession(code);
+    const { error } = await supabase.auth.exchangeCodeForSession(code);
+    if (!error) markSharedOriginSessionChange(response);
   }
 
-  return callbackRedirect(PASSWORD_RECOVERY_PATHS.reset);
+  return response;
 }
