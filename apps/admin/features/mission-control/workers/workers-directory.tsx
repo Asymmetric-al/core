@@ -1,6 +1,7 @@
 "use client";
 
 import { TenantLink as Link } from "@asym/auth/tenant-navigation";
+import { useMC } from "@asym/lib/mission-control/context";
 import { PageShell } from "@asym/ui/components/primitives/page-shell";
 import { Button, buttonVariants } from "@asym/ui/components/shadcn/button";
 import {
@@ -16,8 +17,14 @@ import {
 import { Skeleton } from "@asym/ui/components/shadcn/skeleton";
 import { useSearchParams } from "next/navigation";
 
+import { CreateWorkerDialog } from "./worker-dialogs";
 import { WorkerBadges } from "./worker-display";
-import { isUnreviewed, useWorkers, type Worker } from "./workers-api";
+import {
+  SAFETY_CAPABILITY,
+  isUnreviewed,
+  useWorkers,
+  type Worker,
+} from "./workers-api";
 
 const PAGE_SIZE = 20;
 
@@ -105,6 +112,7 @@ function ReviewFilter({ unreviewedOnly }: { unreviewedOnly: boolean }) {
 export function WorkersDirectory() {
   const unreviewedOnly = useSearchParams().get("review") === "unreviewed";
   const workers = useWorkers();
+  const { capabilities = [] } = useMC();
   const shown = (workers.data ?? []).filter(
     (worker) => !unreviewedOnly || isUnreviewed(worker),
   );
@@ -114,6 +122,11 @@ export function WorkersDirectory() {
       title={WORKERS_TITLE}
       description={WORKERS_DESCRIPTION}
       density="compact"
+      actions={
+        capabilities.includes(SAFETY_CAPABILITY) ? (
+          <CreateWorkerDialog />
+        ) : undefined
+      }
     >
       <div className="flex flex-col gap-4">
         <ReviewFilter unreviewedOnly={unreviewedOnly} />

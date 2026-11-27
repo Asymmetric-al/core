@@ -37,7 +37,9 @@ import {
   SECURITY_LEVELS,
   WorkerRequestError,
   revealWorkerIdentity,
+  useCreateWorker,
   useWorkerCommand,
+  type CreateWorkerBody,
   type RevealedIdentity,
   type SecurityLevel,
   type Worker,
@@ -49,8 +51,11 @@ const FAILURE_TEXT = "Something went wrong. Nothing was changed.";
 const REASON_MISSING = "Give a reason.";
 const ALIAS_MISSING = "A restricted or high-risk worker needs a public alias.";
 const NOTHING_CHOSEN = "Choose what to change.";
+const DISPLAY_NAME_MISSING = "Give a display name.";
+const LEGAL_NAME_MISSING = "Give the worker's legal name.";
+const NAME_MAX = 200;
 
-type FieldName = "reason" | "alias" | "level";
+type FieldName = "reason" | "alias" | "level" | "displayName" | "legalName";
 type Problem = { field: FieldName; message: string; focus: string };
 
 function useFieldErrors() {
@@ -142,9 +147,56 @@ function ReasonField({
   );
 }
 
+function TextField({
+  id,
+  label,
+  value,
+  onChange,
+  disabled,
+  maxLength,
+  description,
+  error,
+}: {
+  id: string;
+  label: string;
+  value: string;
+  onChange: (value: string) => void;
+  disabled: boolean;
+  maxLength: number;
+  description?: string;
+  error?: string;
+}) {
+  const describedBy = [
+    description ? `${id}-help` : null,
+    error ? `${id}-error` : null,
+  ]
+    .filter(Boolean)
+    .join(" ");
+  return (
+    <Field data-invalid={error ? true : undefined}>
+      <FieldLabel htmlFor={id}>{label}</FieldLabel>
+      <Input
+        id={id}
+        value={value}
+        maxLength={maxLength}
+        autoComplete="off"
+        disabled={disabled}
+        aria-invalid={error ? true : undefined}
+        aria-describedby={describedBy || undefined}
+        onChange={(event) => onChange(event.target.value)}
+      />
+      {description ? (
+        <FieldDescription id={`${id}-help`}>{description}</FieldDescription>
+      ) : null}
+      {error ? <FieldError id={`${id}-error`}>{error}</FieldError> : null}
+    </Field>
+  );
+}
+
 function ActionDialog({
   trigger,
   triggerLabel,
+  triggerVariant = "outline",
   title,
   description,
   submitLabel,
@@ -158,6 +210,7 @@ function ActionDialog({
 }: {
   trigger: string;
   triggerLabel: string;
+  triggerVariant?: "outline" | "default";
   title: string;
   description?: ReactNode;
   submitLabel: string;
@@ -179,7 +232,7 @@ function ActionDialog({
     >
       <DialogTrigger
         render={
-          <Button variant="outline" size="sm" aria-label={triggerLabel}>
+          <Button variant={triggerVariant} size="sm" aria-label={triggerLabel}>
             {trigger}
           </Button>
         }
@@ -669,6 +722,179 @@ export function RevealDialog({ worker }: { worker: Worker }) {
           error={fields.errors.reason}
         />
       )}
+    </ActionDialog>
+  );
+}
+
+const NEW_WORKER = {
+  displayName: "",
+  legalName: "",
+  realCountry: "",
+  preciseLocation: "",
+  alias: "",
+};
+
+const filled = (value: string) => !normalizesToNothing(value);
+
+export function CreateWorkerDialog() {
+  const id = useId();
+  const [open, setOpen] = useState(false);
+  const [form, setForm] = useState(NEW_WORKER);
+  const [level, setLevel] = useState<SecurityLevel | null>(null);
+  const [reason, setReason] = useState("");
+  const latch = useLatchedSubmit();
+  const fields = useFieldErrors();
+  const create = useCreateWorker();
+  const reset = () => {
+    setForm(NEW_WORKER);
+    setLevel(null);
+    setReason("");
+    latch.setError(null);
+    fields.reset();
+  };
+  const edit =
+    (key: keyof typeof NEW_WORKER, field?: FieldName) => (value: string) => {
+      setForm((current) => ({ ...current, [key]: value }));
+      if (field) fields.clear(field);
+    };
+  const needsAlias =
+    (level === "restricted" || level === "high_risk") && !filled(form.alias);
+  return (
+    <ActionDialog
+      trigger="Add worker"
+      triggerLabel="Add worker"
+      triggerVariant="default"
+      title="Add a worker"
+      description="The worker has no login. Leave the level unchosen to add them as Standard, waiting for review."
+      submitLabel={latch.pending ? "Adding…" : "Add worker"}
+      pending={latch.pending}
+      error={latch.error}
+      open={open}
+      onOpenChange={(next) => {
+        if (!next) reset();
+        setOpen(next);
+      }}
+      onSubmit={() => {
+        const problems: Problem[] = [
+          ...(filled(form.displayName)
+            ? []
+            : [
+                {
+                  field: "displayName" as const,
+                  message: DISPLAY_NAME_MISSING,
+                  focus: `${id}-display`,
+                },
+              ]),
+          ...(filled(form.legalName)
+            ? []
+            : [
+                {
+                  field: "legalName" as const,
+                  message: LEGAL_NAME_MISSING,
+                  focus: `${id}-legal`,
+                },
+              ]),
+          ...(needsAlias
+            ? [
+                {
+                  field: "alias" as const,
+                  message: ALIAS_MISSING,
+                  focus: `${id}-alias`,
+                },
+              ]
+            : []),
+          ...reasonProblem(reason, `${id}-reason`),
+        ];
+        if (!fields.check(problems)) return;
+        const body: CreateWorkerBody = {
+          displayName: form.displayName,
+          legalName: form.legalName,
+          ...(filled(form.realCountry)
+            ? { realCountry: form.realCountry }
+            : {}),
+          ...(filled(form.preciseLocation)
+            ? { preciseLocation: form.preciseLocation }
+            : {}),
+          ...(level ? { level } : {}),
+          ...(filled(form.alias) ? { alias: form.alias } : {}),
+          reason,
+        };
+        void latch.run(async () => {
+          await create.mutateAsync(body);
+          reset();
+          setOpen(false);
+        });
+      }}
+    >
+      <TextField
+        id={`${id}-display`}
+        label="Display name"
+        value={form.displayName}
+        onChange={edit("displayName", "displayName")}
+        disabled={latch.pending}
+        maxLength={NAME_MAX}
+        description="The name staff see in Mission Control."
+        error={fields.errors.displayName}
+      />
+      <div data-sentry-block className="flex flex-col gap-4">
+        <TextField
+          id={`${id}-legal`}
+          label="Legal name"
+          value={form.legalName}
+          onChange={edit("legalName", "legalName")}
+          disabled={latch.pending}
+          maxLength={NAME_MAX}
+          description="Shown again only through Show legal name, which is recorded."
+          error={fields.errors.legalName}
+        />
+        <TextField
+          id={`${id}-country`}
+          label="Country (optional)"
+          value={form.realCountry}
+          onChange={edit("realCountry")}
+          disabled={latch.pending}
+          maxLength={NAME_MAX}
+        />
+        <TextField
+          id={`${id}-location`}
+          label="Precise location (optional)"
+          value={form.preciseLocation}
+          onChange={edit("preciseLocation")}
+          disabled={latch.pending}
+          maxLength={REASON_MAX}
+        />
+      </div>
+      <LevelChoice
+        id={`${id}-level`}
+        legend="Security level (optional)"
+        levels={SECURITY_LEVELS}
+        value={level}
+        onChange={(next) => {
+          setLevel(next);
+          fields.clear("alias");
+        }}
+        disabled={latch.pending}
+      />
+      <TextField
+        id={`${id}-alias`}
+        label="Public alias"
+        value={form.alias}
+        onChange={edit("alias", "alias")}
+        disabled={latch.pending}
+        maxLength={NAME_MAX}
+        description="Required for a restricted or high-risk worker."
+        error={fields.errors.alias}
+      />
+      <ReasonField
+        id={`${id}-reason`}
+        value={reason}
+        onChange={(next) => {
+          setReason(next);
+          fields.clear("reason");
+        }}
+        disabled={latch.pending}
+        error={fields.errors.reason}
+      />
     </ActionDialog>
   );
 }

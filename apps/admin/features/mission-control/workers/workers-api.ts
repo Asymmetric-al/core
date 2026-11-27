@@ -32,6 +32,8 @@ export const LEVEL_LABELS: Record<SecurityLevel, string> = {
   high_risk: "High risk",
 };
 
+export const SAFETY_CAPABILITY = "safety.restrict_publication";
+
 export const WORKERS_QUERY_KEY = ["admin", "workers"] as const;
 
 export function workerQueryKey(assignmentId: string) {
@@ -158,6 +160,26 @@ export function useWorkerCommand(assignmentId: string) {
           workerEnvelopeSchema,
         )
       ).worker,
+    onSettled: () =>
+      queryClient.invalidateQueries({ queryKey: WORKERS_QUERY_KEY }),
+  });
+}
+
+export type CreateWorkerBody = {
+  displayName: string;
+  legalName: string;
+  realCountry?: string;
+  preciseLocation?: string;
+  level?: SecurityLevel;
+  alias?: string;
+  reason: string;
+};
+
+export function useCreateWorker() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (body: CreateWorkerBody) =>
+      (await postJson("/api/admin/workers", body, workerEnvelopeSchema)).worker,
     onSettled: () =>
       queryClient.invalidateQueries({ queryKey: WORKERS_QUERY_KEY }),
   });

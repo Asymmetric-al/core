@@ -17,13 +17,12 @@ import { RestrictionEffects, WorkerBadges } from "./worker-display";
 import {
   LEVEL_LABELS,
   NOT_PERMITTED_TEXT,
+  SAFETY_CAPABILITY,
   WorkerRequestError,
   isUnreviewed,
   useWorker,
   type Worker,
 } from "./workers-api";
-
-export const SAFETY_CAPABILITY = "safety.restrict_publication";
 
 function BackToWorkers() {
   return (
