@@ -70,12 +70,11 @@ export async function callerGiftMismatches(
 ): Promise<string[] | null> {
   const mismatched = giftMismatches(row, gift);
   if (!mismatched.includes("profile")) return mismatched;
-  let own: Awaited<ReturnType<typeof findOwnDonor>>;
-  try {
-    own = await findOwnDonor(supabase, person);
-  } catch {
-    return null;
-  }
+  const own = await findOwnDonor(supabase, person).then(
+    (lookup) => lookup,
+    () => null,
+  );
+  if (own === null) return null;
   if (own.status !== "found") return mismatched;
   return giftMismatches(row, { ...gift, ownDonorId: own.donor.id });
 }
