@@ -327,6 +327,7 @@ async function loadContributionOperationDetail(input: {
   supabaseAdmin: SupabaseAdmin;
   tenantId: string;
   contributionId: string;
+  withHolds?: boolean;
 }): Promise<ContributionDetail> {
   const donationResult = await input.supabaseAdmin
     .from("donations")
@@ -532,11 +533,14 @@ async function loadContributionOperationDetail(input: {
         crmPostStatus: asString(stagedGiftResult.data.crm_post_status),
         reviewReason: asString(stagedGiftResult.data.review_reason),
         twentyRecordId: asString(stagedGiftResult.data.twenty_record_id),
-        holds: await loadGiftHolds(
-          input.supabaseAdmin,
-          input.tenantId,
-          asString(stagedGiftResult.data.id) ?? "",
-        ),
+        holds:
+          input.withHolds === false
+            ? []
+            : await loadGiftHolds(
+                input.supabaseAdmin,
+                input.tenantId,
+                asString(stagedGiftResult.data.id) ?? "",
+              ),
       }
     : null;
 
@@ -1110,7 +1114,13 @@ export async function applyContributionCorrection(input: {
   expectedRevision?: string | null;
   idempotencyKey?: string | null;
 }) {
-  const before = await loadContributionOperationDetail(input);
+  const detailInput = {
+    supabaseAdmin: input.supabaseAdmin,
+    tenantId: input.tenantId,
+    contributionId: input.contributionId,
+    withHolds: false,
+  };
+  const before = await loadContributionOperationDetail(detailInput);
 
   if (input.expectedRevision && input.expectedRevision !== before.revision) {
     throw new ApiHttpError(
@@ -1215,22 +1225,58 @@ export async function applyContributionCorrection(input: {
       );
     }
 
+    const existingId = String(
+      (existingResult.data as Record<string, unknown>).id ?? "",
+    );
+    let resumedOutcome: ReceiptDeliveryOutcome | null = null;
+    if (
+      receiptAffected &&
+      deliverySelection &&
+      deliverySelection.choice !== "defer"
+    ) {
+      const delivered = await input.supabaseAdmin
+        .from("contribution_receipt_snapshots")
+        .select("id")
+        .eq("tenant_id", input.tenantId)
+        .eq("adjustment_id", existingId)
+        .limit(1);
+      if (delivered.error) {
+        throw new Error(delivered.error.message);
+      }
+      if ((delivered.data ?? []).length === 0) {
+        resumedOutcome = await runReceiptDelivery({
+          supabaseAdmin: input.supabaseAdmin,
+          tenantId: input.tenantId,
+          contributionId: input.contributionId,
+          adjustmentId: existingId,
+          stagedGiftId: before.stagedGift?.id ?? null,
+          selection: deliverySelection,
+          affectedFields,
+          requested: requestedDelivery ?? deliverySelection,
+          snapshotContent: buildReceiptSnapshotContent({
+            detail: before,
+            workerPublicNames,
+            affectedFields,
+            adjustmentId: existingId,
+          }),
+        });
+      }
+    }
+
     return {
       before: summarizeEffectiveDetail(before),
       after: summarizeEffectiveDetail(before),
       status: "applied" as const,
-      adjustmentId: String(
-        (existingResult.data as Record<string, unknown>).id ?? "",
-      ),
+      adjustmentId: existingId,
       idempotentReplay: true,
-      receiptOutcome: null,
+      receiptOutcome: resumedOutcome,
     };
   }
 
   const adjustmentId = String(
     ((insertResult.data ?? {}) as Record<string, unknown>).id ?? "",
   );
-  const after = await loadContributionOperationDetail(input);
+  const after = await loadContributionOperationDetail(detailInput);
 
   let receiptOutcome: ReceiptDeliveryOutcome | null = null;
   if (receiptAffected) {

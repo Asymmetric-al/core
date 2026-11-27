@@ -180,6 +180,69 @@ async function assertTenantReferences(input: {
   }
 }
 
+type FeeCoverLine = { fundId: string; amount: number };
+
+async function loadFeeCoverLine(input: {
+  supabaseAdmin: Parameters<typeof loadStagedGiftById>[0]["supabaseAdmin"];
+  tenantId: string;
+  stagedGiftId: string;
+}): Promise<FeeCoverLine | null> {
+  const stored = await input.supabaseAdmin
+    .from("staged_gift_allocations")
+    .select("fund_id, amount")
+    .eq("tenant_id", input.tenantId)
+    .eq("staged_gift_id", input.stagedGiftId);
+  if (stored.error) {
+    throw new Error(stored.error.message);
+  }
+  const rows = (stored.data ?? []) as {
+    fund_id: string | null;
+    amount: number;
+  }[];
+  const fundIds = Array.from(
+    new Set(rows.flatMap((row) => (row.fund_id ? [row.fund_id] : []))),
+  );
+  if (fundIds.length === 0) {
+    return null;
+  }
+  const fees = await input.supabaseAdmin
+    .from("funds")
+    .select("id")
+    .eq("tenant_id", input.tenantId)
+    .eq("system_purpose", "fee_cover")
+    .in("id", fundIds);
+  if (fees.error) {
+    throw new Error(fees.error.message);
+  }
+  const feeFundIds = new Set(
+    ((fees.data ?? []) as { id: string }[]).map((fund) => fund.id),
+  );
+  const line = rows.find((row) => row.fund_id && feeFundIds.has(row.fund_id));
+  return line?.fund_id
+    ? { fundId: line.fund_id, amount: Number(line.amount) }
+    : null;
+}
+
+function withoutKeptFeeCoverLine(
+  allocations: z.infer<typeof allocationSchema>[],
+  feeLine: FeeCoverLine,
+) {
+  const fee = allocations.filter(
+    (allocation) => allocation.fundId === feeLine.fundId,
+  );
+  if (
+    fee.length !== 1 ||
+    fee[0]!.amount !== feeLine.amount ||
+    fee[0]!.missionaryId
+  ) {
+    throw new ApiHttpError(
+      400,
+      "A review keeps the fee-cover line as it was: its fund and amount.",
+    );
+  }
+  return allocations.filter((allocation) => allocation !== fee[0]);
+}
+
 async function appendReviewAudit(input: {
   supabaseAdmin: Parameters<typeof loadStagedGiftById>[0]["supabaseAdmin"];
   tenantId: string;
@@ -315,11 +378,21 @@ export const PATCH = withPlatformOperation(
           );
         }
       }
+      const feeLine = body.allocations
+        ? await loadFeeCoverLine({
+            supabaseAdmin,
+            tenantId: gift.tenantId,
+            stagedGiftId: gift.id,
+          })
+        : null;
       await assertTenantReferences({
         supabaseAdmin,
         tenantId: gift.tenantId,
         donorId: body.donorId,
-        allocations: body.allocations,
+        allocations:
+          body.allocations && feeLine
+            ? withoutKeptFeeCoverLine(body.allocations, feeLine)
+            : body.allocations,
       });
 
       const patch = {

@@ -181,8 +181,8 @@ export type DonorPortalDonation = {
   status: "Paid" | "Received" | "Processing" | "Failed" | "Refunded";
   type: "Recurring" | "One-Time";
   method: string;
-  receiptUrl: string;
-  statementYear: number;
+  receiptUrl: string | null;
+  statementYear: number | null;
   designation: {
     id: string | null;
     name: string;
@@ -450,9 +450,15 @@ export function buildDonorPortalSnapshot(input: {
 }): DonorPortalSnapshot {
   const now = input.now ?? new Date();
   const currentYear = now.getUTCFullYear();
+  const lineBased = new Set(
+    input.donations
+      .filter((donation) => donation.intake_format === "line_based")
+      .map((donation) => donation.id),
+  );
   const donationModels = input.donations.map((donation) => {
     const date = donationDate(donation);
     const amountCents = donation.amount ?? 0;
+    const receipted = !lineBased.has(donation.id);
     return {
       id: donation.id,
       date,
@@ -464,8 +470,8 @@ export function buildDonorPortalSnapshot(input: {
       status: donationStatus(donation),
       type: donationType(donation),
       method: paymentLabel(donation.payment_method),
-      receiptUrl: `/api/donor/receipts/${donation.id}`,
-      statementYear: new Date(date).getUTCFullYear(),
+      receiptUrl: receipted ? `/api/donor/receipts/${donation.id}` : null,
+      statementYear: receipted ? new Date(date).getUTCFullYear() : null,
       designation: designationFromDonation(donation),
       missionary: lineMissionary(donation) ?? giftMissionary(donation),
       fund: lineFund(donation) ?? giftFund(donation),
@@ -497,20 +503,30 @@ export function buildDonorPortalSnapshot(input: {
   });
 
   const settledDonations = donationModels.filter(
-    (donation) => donation.status === "Paid",
+    (donation) => donation.status === "Paid" || donation.status === "Received",
   );
-  const yearToDateCents = settledDonations
-    .filter((donation) => donation.statementYear === currentYear)
-    .reduce((sum, donation) => sum + donation.amountCents, 0);
+  const settledLegacy = settledDonations.filter(
+    (donation) => !lineBased.has(donation.id),
+  );
+  const settledLineBased = settledDonations.filter((donation) =>
+    lineBased.has(donation.id),
+  );
+  const centsOf = (donations: DonorPortalDonation[]) =>
+    donations.reduce((sum, donation) => sum + donation.amountCents, 0);
+  const yearOf = (donation: DonorPortalDonation) =>
+    new Date(donation.date).getUTCFullYear();
+  const yearToDateCents = centsOf(
+    settledDonations.filter((donation) => yearOf(donation) === currentYear),
+  );
   const activeRecurringGiftCount = recurringGifts.filter((gift) =>
     ["active", "processing", "trialing"].includes(gift.status.toLowerCase()),
   ).length;
-  const statementYears = [
-    ...new Set(settledDonations.map((donation) => donation.statementYear)),
-  ].sort((a, b) => b - a);
+  const statementYears = [...new Set(settledLegacy.map(yearOf))].sort(
+    (a, b) => b - a,
+  );
   const supportedDesignations = new Set<string>();
 
-  donationModels.forEach((donation) => {
+  settledDonations.forEach((donation) => {
     supportedDesignations.add(
       `${donation.designation.type}:${donation.designation.id ?? donation.designation.name}`,
     );
@@ -583,18 +599,17 @@ export function buildDonorPortalSnapshot(input: {
     summary: {
       yearToDateCents,
       lifetimeGivenCents:
-        input.donor.total_given ??
-        settledDonations.reduce(
-          (sum, donation) => sum + donation.amountCents,
-          0,
-        ),
-      giftCount: input.donor.gift_count ?? donationModels.length,
+        (input.donor.total_given ?? centsOf(settledLegacy)) +
+        centsOf(settledLineBased),
+      giftCount:
+        (input.donor.gift_count ?? settledLegacy.length) +
+        settledLineBased.length,
       activeRecurringGiftCount,
       supportedDesignationCount: supportedDesignations.size,
-      receiptCount: settledDonations.length,
+      receiptCount: settledLegacy.length,
       statementYears,
       latestImpactLabel:
-        donationModels[0]?.designation.name ??
+        settledDonations[0]?.designation.name ??
         recurringGifts[0]?.designation.name ??
         null,
     },

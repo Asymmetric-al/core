@@ -53,7 +53,10 @@
 --    outside 3 to 500 characters (22023), and write an audit row. The
 --    threshold command refuses zero or less (22023), and NULL clears; it
 --    writes the tenant's first policy row with the table's defaults when
---    there is none. The resolution command locks the gift, then the hold;
+--    there is none (an insert that does nothing when the row exists), then
+--    locks the row and audits the value it replaced, so of two first
+--    writes the second records the first's (F9). The resolution command
+--    locks the gift, then the hold;
 --    refuses another organization's hold or a resolved one; for an
 --    attribution hold it re-runs the predicate on the current rows and
 --    records the answer; it never posts.
@@ -62,9 +65,10 @@
 --    INSERT of donor_id and UPDATE of updated_at (the lock the resolution
 --    command takes).
 --
--- Locks, all held to COMMIT, taken first and in this order: SHARE ROW
--- EXCLUSIVE on donations (the holds' key), ACCESS EXCLUSIVE on staged_gifts
--- (its trigger and grants), ACCESS EXCLUSIVE on
+-- Locks, all held to COMMIT, taken first and in the order the running
+-- commands take theirs (F8): SHARE ROW EXCLUSIVE on tenants (the holds' key
+-- to it) and on donations (the holds' key), ACCESS EXCLUSIVE on
+-- staged_gifts (its trigger and grants), ACCESS EXCLUSIVE on
 -- contribution_approval_policies (its new column). lock_timeout stops a run
 -- rather than queue it behind live traffic.
 --
@@ -84,12 +88,15 @@
 --   DO $$ BEGIN IF to_regclass('public.staged_gift_holds') IS NOT NULL
 --     AND EXISTS (SELECT 1 FROM public.staged_gift_holds) THEN
 --     RAISE EXCEPTION 'Down refused: a gift hold exists' USING ERRCODE = '55000'; END IF; END $$;
---   DROP FUNCTION public.resolve_gift_hold(uuid, uuid, text), public.set_large_gift_threshold(uuid, bigint, text),
---     tenant_guard.resolve_gift_hold(uuid, uuid, text), tenant_guard.set_large_gift_threshold(uuid, bigint, text);
+--   DROP FUNCTION public.resolve_gift_hold(uuid, uuid, text), public.set_large_gift_threshold(uuid, bigint, text);
+--   SET LOCAL ROLE tenant_guard;
+--   DROP FUNCTION tenant_guard.resolve_gift_hold(uuid, uuid, text), tenant_guard.set_large_gift_threshold(uuid, bigint, text);
+--   RESET ROLE;
 --   DROP TRIGGER staged_gifts_hold_guard ON public.staged_gifts;
 --   DROP FUNCTION private.staged_gifts_hold_guard();
 --   DROP TABLE public.staged_gift_holds;
 --   DROP FUNCTION private.staged_gift_holds_rules();
+--   DROP FUNCTION private.staged_gift_holds_no_truncate();
 --   DROP FUNCTION private.money_large_gift_hold(bigint, text, bigint),
 --     private.money_duplicate_donors(uuid, text, text, jsonb, uuid),
 --     private.money_entered_name(text, text), private.money_norm(text);
@@ -103,6 +110,7 @@
 BEGIN;
 SET LOCAL lock_timeout = '5s';
 
+LOCK TABLE public.tenants IN SHARE ROW EXCLUSIVE MODE;
 LOCK TABLE public.donations IN SHARE ROW EXCLUSIVE MODE;
 LOCK TABLE public.staged_gifts IN ACCESS EXCLUSIVE MODE;
 LOCK TABLE public.contribution_approval_policies IN ACCESS EXCLUSIVE MODE;
@@ -485,19 +493,22 @@ BEGIN
             DETAIL = 'The large-gift threshold is a positive number of cents, or NULL for none.';
   END IF;
 
+  INSERT INTO public.contribution_approval_policies (tenant_id, updated_by)
+  VALUES (v_ctx.tenant_id, v_ctx.actor_id)
+  ON CONFLICT (tenant_id) DO NOTHING;
+
   SELECT p.large_gift_threshold_cents
     INTO v_before
     FROM public.contribution_approval_policies AS p
    WHERE p.tenant_id = v_ctx.tenant_id
      FOR UPDATE;
 
-  INSERT INTO public.contribution_approval_policies (tenant_id, large_gift_threshold_cents, updated_by)
-  VALUES (v_ctx.tenant_id, p_threshold_cents, v_ctx.actor_id)
-  ON CONFLICT (tenant_id) DO UPDATE
-    SET large_gift_threshold_cents = EXCLUDED.large_gift_threshold_cents,
-        updated_by = EXCLUDED.updated_by,
-        updated_at = pg_catalog.clock_timestamp()
-  RETURNING large_gift_threshold_cents INTO v_after;
+  UPDATE public.contribution_approval_policies AS p
+     SET large_gift_threshold_cents = p_threshold_cents,
+         updated_by = v_ctx.actor_id,
+         updated_at = pg_catalog.clock_timestamp()
+   WHERE p.tenant_id = v_ctx.tenant_id
+  RETURNING p.large_gift_threshold_cents INTO v_after;
 
   INSERT INTO public.audit_logs (
     tenant_id,

@@ -24,6 +24,18 @@
 --    tenant's line-based intakes named, with the fund's name and the
 --    worker's public name (private.worker_public_name_for, which never
 --    returns a restricted worker's Party name, ADR 0008).
+-- 4. public.actor_gifts_without_donor(tenant, login) (fix round F2): a
+--    postgres-owned STABLE definer, EXECUTE for service_role only: the ids
+--    of the tenant's counted line-based intakes the login made (its
+--    contact row's actor_user_id) that have no donor yet, newest first, at
+--    most 251. The donor portal shows a person their own donor's gifts and
+--    these; a gift attributed or moved to another donor is no longer one.
+--    It answers ids only, so service_role still reads nothing of the
+--    contact row.
+-- 5. public.admin_contributions_summary(tenant) replaced (fix round F5): as
+--    20260408224500 wrote it, with its search path emptied, and counting no
+--    line-based intake that is pending or abandoned (the rows
+--    packages/api/src/shared/line-based-gifts.ts counts everywhere else).
 --
 -- Locks: none at migration time (functions only). At run time each overload
 -- locks the gift FOR UPDATE first, as before.
@@ -37,8 +49,10 @@
 --
 -- Down, an operator's last resort, in one transaction: re-run, verbatim,
 -- 20261117153112's CREATE FUNCTION as CREATE OR REPLACE and
--- 20260707220134's CREATE OR REPLACE FUNCTION with their grants; DROP
--- FUNCTION public.line_based_gift_lines(uuid, uuid[]).
+-- 20260707220134's CREATE OR REPLACE FUNCTION with their grants, and
+-- 20260408224500's CREATE OR REPLACE FUNCTION; DROP FUNCTION
+-- public.line_based_gift_lines(uuid, uuid[]),
+-- public.actor_gifts_without_donor(uuid, uuid).
 
 BEGIN;
 SET LOCAL lock_timeout = '5s';
@@ -410,6 +424,61 @@ ALTER FUNCTION public.line_based_gift_lines(UUID, UUID[]) OWNER TO postgres;
 REVOKE ALL ON FUNCTION public.line_based_gift_lines(UUID, UUID[])
   FROM PUBLIC, anon, authenticated, service_role;
 GRANT EXECUTE ON FUNCTION public.line_based_gift_lines(UUID, UUID[]) TO service_role;
+
+CREATE OR REPLACE FUNCTION public.actor_gifts_without_donor(
+  p_tenant_id UUID,
+  p_user_id UUID
+)
+RETURNS SETOF UUID
+LANGUAGE sql
+STABLE
+SECURITY DEFINER
+SET search_path = ''
+AS $fn$
+  SELECT c.donation_id
+    FROM public.donation_intake_contacts AS c
+    JOIN public.donations AS d
+      ON d.tenant_id = c.tenant_id
+     AND d.id = c.donation_id
+   WHERE c.tenant_id = p_tenant_id
+     AND c.actor_user_id = p_user_id
+     AND d.donor_id IS NULL
+     AND d.intake_format = 'line_based'
+     AND d.status IN ('processing', 'completed', 'failed', 'refunded')
+   ORDER BY d.created_at DESC, c.donation_id
+   LIMIT 251;
+$fn$;
+
+ALTER FUNCTION public.actor_gifts_without_donor(UUID, UUID) OWNER TO postgres;
+REVOKE ALL ON FUNCTION public.actor_gifts_without_donor(UUID, UUID)
+  FROM PUBLIC, anon, authenticated, service_role;
+GRANT EXECUTE ON FUNCTION public.actor_gifts_without_donor(UUID, UUID) TO service_role;
+
+CREATE OR REPLACE FUNCTION public.admin_contributions_summary(p_tenant_id UUID)
+RETURNS TABLE (
+    total_received BIGINT,
+    successful_count BIGINT,
+    pending_amount BIGINT,
+    pending_count BIGINT,
+    average_gift NUMERIC,
+    recurring_count BIGINT
+)
+LANGUAGE sql
+STABLE
+SET search_path = ''
+AS $$
+  SELECT
+    COALESCE(SUM(amount) FILTER (WHERE status IN ('completed', 'succeeded', 'success')), 0)::BIGINT AS total_received,
+    COUNT(*) FILTER (WHERE status IN ('completed', 'succeeded', 'success'))::BIGINT AS successful_count,
+    COALESCE(SUM(amount) FILTER (WHERE status IN ('pending', 'processing')), 0)::BIGINT AS pending_amount,
+    COUNT(*) FILTER (WHERE status IN ('pending', 'processing'))::BIGINT AS pending_count,
+    COALESCE(AVG(amount) FILTER (WHERE status IN ('completed', 'succeeded', 'success')), 0)::NUMERIC AS average_gift,
+    COUNT(*) FILTER (WHERE COALESCE(is_recurring, FALSE) OR donation_type = 'recurring')::BIGINT AS recurring_count
+  FROM public.donations
+  WHERE tenant_id = p_tenant_id
+    AND (intake_format <> 'line_based'
+         OR status IN ('processing', 'completed', 'failed', 'refunded'));
+$$;
 
 COMMIT;
 

@@ -14,7 +14,8 @@
 --    NULL with a reason of 3 to 500 characters after the JavaScript trim
 --    set; one case per event and kind; inserted open by tenant_guard only,
 --    never deleted or truncated, anchors fixed, a resolved case fixed
---    (23514; 42501 for another inserter). Row security forced, tenant_guard
+--    (23514; 42501 for any other role that inserts or updates one, its
+--    owner included, F13). Row security forced, tenant_guard
 --    SELECT and INSERT of named columns behind tenant_guard_isolation,
 --    nothing for PUBLIC, anon, authenticated or service_role.
 -- 2. public.donation_saga_outbox:
@@ -24,6 +25,9 @@
 --      create_payment): its parameters are exactly {"payment_intent":
 --      "pi_...", "cancellation_reason": "abandoned"}, and its PaymentIntent
 --      is its intake's (checked on insert, 23514);
+--    - a request parked before this file (R1a parks only an unknown
+--      outcome) is given park_reason 'outcome_unknown' before the checks
+--      are validated (F8), with the rules trigger off for that one update;
 --    - checks replaced, each NOT VALID then validated:
 --      donation_saga_outbox_request_check (the two kinds),
 --      donation_saga_outbox_request_params_check (create_payment's
@@ -37,29 +41,42 @@
 --      (23514 provider_request_bad_move otherwise); the trigger alone writes
 --      park_reason beside parked_at.
 -- 3. tenant_guard.apply_account_event replaced: as 20261123030300 wrote it,
---    and on a move into disconnected it parks every queued and known
---    retry_wait provider request of an intake on that binding and links each
---    to the one disconnect task ('provider_request_parked_disconnected').
+--    and on a move into disconnected it locks every queued and known
+--    retry_wait provider request of an intake on that binding in one
+--    statement that tests their state, parks exactly those (an update that
+--    tests it again) and links each to the one disconnect task
+--    ('provider_request_parked_disconnected'); a request a worker claimed
+--    first is left to its claim (F3).
 -- 4. The sweep: tenant_guard.abandon_unpaid_intake(tenant, intake), a
---    guard-owned definer for service_role that enters the tenant first; on
---    the locked line-based intake: a status other than pending or failed is
---    'closed'; younger than seven days (D-08) is 'not_due'; otherwise the
---    intake moves to abandoned by the sweep, its queued create_payment
---    request moves to abandoned (machine row 16), and when the intake holds
---    a PaymentIntent one queued cancel_payment request is written; one audit
---    row. public.abandon_unpaid_intake(intake), its invoker wrapper for
---    service_role, reads the tenant from the stored intake and answers
---    unknown_anchor, writing nothing, when there is none.
+--    guard-owned definer for service_role that enters the tenant first. It
+--    takes its rows in the order docs/security/tenant-guard.md gives (F3):
+--    the intake's binding FOR SHARE (so a disconnect either commits first
+--    and is seen, or waits until the sweep commits and then parks the
+--    cancel it wrote), then every provider request of the intake, then the
+--    line-based intake. A status other than pending or failed is 'closed';
+--    younger than seven days (D-08) is 'not_due'; a request of the intake
+--    it did not lock, or a create_payment request sending, waiting to retry
+--    or parked, is 'in_flight' and nothing changes (F4); an intake holding
+--    a PaymentIntent whose binding is disconnected is
+--    'binding_disconnected' and nothing changes; otherwise the intake moves
+--    to abandoned by the sweep, its queued create_payment request moves to
+--    abandoned (machine row 16, an update that tests the state), and when
+--    the intake holds a PaymentIntent one queued cancel_payment request is
+--    written; one audit row. public.abandon_unpaid_intake(intake), its
+--    invoker wrapper for service_role, reads the tenant from the stored
+--    intake and answers unknown_anchor, writing nothing, when there is
+--    none.
 --
--- Locks, all held to COMMIT, taken first and in this order: SHARE ROW
--- EXCLUSIVE on donations and stripe_connect_events (the new keys' targets),
--- ACCESS EXCLUSIVE on donation_saga_outbox (its column, checks and
--- trigger). lock_timeout stops a run rather than queue it behind live
--- traffic.
+-- Locks, all held to COMMIT, taken first and in the order the running
+-- commands take theirs (F8): SHARE ROW EXCLUSIVE on tenants and
+-- stripe_connect_events (the new keys' targets), ACCESS EXCLUSIVE on
+-- donation_saga_outbox (its column, checks and trigger), SHARE ROW
+-- EXCLUSIVE on donations (a new key's target). lock_timeout stops a run
+-- rather than queue it behind live traffic.
 --
 -- Recovery. Nothing here is written to run twice: a run lost between its
--- COMMIT and its ledger row stops on the next run at its first ADD COLUMN
--- (42701, column "park_reason" already exists). This file has committed
+-- COMMIT and its ledger row stops on the next run at its first CREATE TABLE
+-- (42P07, relation "payment_event_cases" already exists). This file has committed
 -- when this read-only check is true:
 --   SELECT to_regclass('public.payment_event_cases') IS NOT NULL
 -- Then follow docs/ops/release-job.md, "If the migration committed but its
@@ -76,9 +93,14 @@
 --       WHERE park_reason = 'binding_disconnected' OR request_kind = 'cancel_payment')
 --     OR EXISTS (SELECT 1 FROM public.payment_event_cases) THEN
 --     RAISE EXCEPTION 'Down refused' USING ERRCODE = '55000'; END IF; END $$;
---   DROP FUNCTION public.abandon_unpaid_intake(uuid), tenant_guard.abandon_unpaid_intake(uuid, uuid);
---   re-run, verbatim, the CREATE OR REPLACE of tenant_guard.apply_account_event from
---     20261123030300 and of private.donation_saga_outbox_provider_rules() from 20261126020100;
+--   DROP FUNCTION public.abandon_unpaid_intake(uuid);
+--   GRANT CREATE ON SCHEMA tenant_guard TO tenant_guard;
+--   SET LOCAL ROLE tenant_guard;
+--   DROP FUNCTION tenant_guard.abandon_unpaid_intake(uuid, uuid);
+--   re-run, verbatim, the CREATE OR REPLACE of tenant_guard.apply_account_event from 20261123030300;
+--   RESET ROLE;
+--   REVOKE CREATE ON SCHEMA tenant_guard FROM tenant_guard;
+--   re-run, verbatim, the CREATE OR REPLACE of private.donation_saga_outbox_provider_rules() from 20261126020100;
 --   ALTER TABLE public.donation_saga_outbox DROP CONSTRAINT donation_saga_outbox_park_reason_check,
 --     DROP CONSTRAINT donation_saga_outbox_park_reason_legacy_check,
 --     then drop and re-add, as 20261126020100 wrote them, _request_check, _request_params_check,
@@ -88,9 +110,10 @@
 BEGIN;
 SET LOCAL lock_timeout = '5s';
 
-LOCK TABLE public.donations IN SHARE ROW EXCLUSIVE MODE;
+LOCK TABLE public.tenants IN SHARE ROW EXCLUSIVE MODE;
 LOCK TABLE public.stripe_connect_events IN SHARE ROW EXCLUSIVE MODE;
 LOCK TABLE public.donation_saga_outbox IN ACCESS EXCLUSIVE MODE;
+LOCK TABLE public.donations IN SHARE ROW EXCLUSIVE MODE;
 
 CREATE TABLE public.payment_event_cases (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -165,12 +188,13 @@ BEGIN
             DETAIL = 'A payment event case is evidence and is never deleted.';
   END IF;
 
+  IF (current_user = 'tenant_guard') IS NOT TRUE THEN
+    RAISE EXCEPTION 'payment_event_case_guard_only'
+      USING ERRCODE = '42501',
+            DETAIL = 'Only the guard role opens or changes a payment event case.';
+  END IF;
+
   IF TG_OP = 'INSERT' THEN
-    IF (current_user = 'tenant_guard') IS NOT TRUE THEN
-      RAISE EXCEPTION 'payment_event_case_guard_only'
-        USING ERRCODE = '42501',
-              DETAIL = 'Only the guard role opens a payment event case.';
-    END IF;
     IF (NEW.resolved_at IS NULL) IS NOT TRUE THEN
       RAISE EXCEPTION 'payment_event_case_created_open'
         USING ERRCODE = '23514',
@@ -371,6 +395,14 @@ ALTER TABLE public.donation_saga_outbox
         ELSE false
       END) IS TRUE
     ) NOT VALID;
+
+ALTER TABLE public.donation_saga_outbox DISABLE TRIGGER donation_saga_outbox_provider_rules;
+UPDATE public.donation_saga_outbox
+   SET park_reason = 'outcome_unknown'
+ WHERE kind = 'provider_request'
+   AND parked_at IS NOT NULL
+   AND park_reason IS NULL;
+ALTER TABLE public.donation_saga_outbox ENABLE TRIGGER donation_saga_outbox_provider_rules;
 
 ALTER TABLE public.donation_saga_outbox VALIDATE CONSTRAINT donation_saga_outbox_park_reason_check;
 ALTER TABLE public.donation_saga_outbox VALIDATE CONSTRAINT donation_saga_outbox_park_reason_legacy_check;
@@ -603,6 +635,7 @@ DECLARE
   v_task_id UUID;
   v_outcome JSONB;
   v_parked UUID[];
+  v_moved BIGINT;
 BEGIN
   PERFORM tenant_guard.enter(p_tenant_id);
 
@@ -766,21 +799,6 @@ BEGIN
     END IF;
 
     IF v_target_status = 'disconnected' THEN
-      PERFORM 1
-         FROM public.donation_saga_outbox AS o
-        WHERE o.tenant_id = p_tenant_id
-          AND o.kind = 'provider_request'
-          AND o.status IN ('queued', 'retry_wait')
-          AND NOT o.outcome_unknown
-          AND o.donation_id IN (
-            SELECT d.id
-              FROM public.donations AS d
-             WHERE d.tenant_id = p_tenant_id
-               AND d.payment_account_binding_id = v_binding.id
-          )
-        ORDER BY o.id
-          FOR NO KEY UPDATE;
-
       v_parked := ARRAY(
         SELECT o.id
           FROM public.donation_saga_outbox AS o
@@ -795,6 +813,7 @@ BEGIN
                 AND d.payment_account_binding_id = v_binding.id
            )
          ORDER BY o.id
+           FOR NO KEY UPDATE
       );
 
       UPDATE public.donation_saga_outbox AS o
@@ -802,7 +821,15 @@ BEGIN
              last_error_code = 'binding_disconnected',
              updated_at = v_now
        WHERE o.tenant_id = p_tenant_id
-         AND o.id = ANY (v_parked);
+         AND o.id = ANY (v_parked)
+         AND o.status IN ('queued', 'retry_wait')
+         AND NOT o.outcome_unknown;
+      GET DIAGNOSTICS v_moved = ROW_COUNT;
+      IF v_moved <> COALESCE(pg_catalog.cardinality(v_parked), 0) THEN
+        RAISE EXCEPTION 'provider_request_park_lost'
+          USING ERRCODE = '40001',
+                DETAIL = 'A request locked for parking was not parked.';
+      END IF;
 
       INSERT INTO public.mission_control_task_links (
         tenant_id,
@@ -892,21 +919,25 @@ SECURITY DEFINER
 SET search_path = ''
 AS $$
 DECLARE
+  v_binding_id UUID;
+  v_binding_status TEXT;
+  v_locked UUID[];
+  v_in_flight UUID[];
   v_intake RECORD;
   v_found BOOLEAN;
   v_now TIMESTAMPTZ;
   v_abandoned UUID[];
+  v_moved BIGINT;
   v_cancel_id UUID;
   v_params JSONB;
 BEGIN
   PERFORM tenant_guard.enter(p_tenant_id);
 
-  SELECT d.id, d.tenant_id, d.status, d.amount, d.currency, d.provider_account_ref, d.livemode,
-         d.stripe_payment_intent_id, d.created_at
-    INTO v_intake
+  SELECT d.payment_account_binding_id
+    INTO v_binding_id
     FROM public.donations AS d
    WHERE d.id = p_donation_id
-     FOR NO KEY UPDATE;
+     AND d.intake_format = 'line_based';
   v_found := FOUND;
 
   IF NOT v_found THEN
@@ -914,6 +945,30 @@ BEGIN
       USING ERRCODE = '42501',
             DETAIL = 'No line-based intake with this id in the entered tenant.';
   END IF;
+
+  SELECT b.status
+    INTO v_binding_status
+    FROM public.payment_account_bindings AS b
+   WHERE b.tenant_id = p_tenant_id
+     AND b.id = v_binding_id
+     FOR SHARE;
+
+  v_locked := ARRAY(
+    SELECT o.id
+      FROM public.donation_saga_outbox AS o
+     WHERE o.tenant_id = p_tenant_id
+       AND o.donation_id = p_donation_id
+       AND o.kind = 'provider_request'
+     ORDER BY o.id
+       FOR NO KEY UPDATE
+  );
+
+  SELECT d.id, d.tenant_id, d.status, d.amount, d.currency, d.provider_account_ref, d.livemode,
+         d.stripe_payment_intent_id, d.created_at
+    INTO v_intake
+    FROM public.donations AS d
+   WHERE d.id = p_donation_id
+     FOR NO KEY UPDATE;
 
   v_now := pg_catalog.clock_timestamp();
 
@@ -935,6 +990,36 @@ BEGIN
     );
   END IF;
 
+  v_in_flight := ARRAY(
+    SELECT o.id
+      FROM public.donation_saga_outbox AS o
+     WHERE o.tenant_id = v_intake.tenant_id
+       AND o.donation_id = v_intake.id
+       AND o.kind = 'provider_request'
+       AND (NOT (o.id = ANY (v_locked))
+            OR (o.request_kind = 'create_payment'
+                AND o.status IN ('sending', 'retry_wait', 'parked')))
+     ORDER BY o.id
+  );
+
+  IF pg_catalog.cardinality(v_in_flight) > 0 THEN
+    RETURN pg_catalog.jsonb_build_object(
+      'outcome', 'in_flight',
+      'donation_id', v_intake.id,
+      'tenant_id', tenant_guard.current_tenant_id(),
+      'requests', pg_catalog.to_jsonb(v_in_flight)
+    );
+  END IF;
+
+  IF v_intake.stripe_payment_intent_id IS NOT NULL AND v_binding_status = 'disconnected' THEN
+    RETURN pg_catalog.jsonb_build_object(
+      'outcome', 'binding_disconnected',
+      'donation_id', v_intake.id,
+      'tenant_id', tenant_guard.current_tenant_id(),
+      'binding_status', v_binding_status
+    );
+  END IF;
+
   UPDATE public.donations
      SET status = 'abandoned',
          abandoned_by = 'sweep',
@@ -945,8 +1030,7 @@ BEGIN
     SELECT o.id
       FROM public.donation_saga_outbox AS o
      WHERE o.tenant_id = v_intake.tenant_id
-       AND o.donation_id = v_intake.id
-       AND o.kind = 'provider_request'
+       AND o.id = ANY (v_locked)
        AND o.request_kind = 'create_payment'
        AND o.status = 'queued'
      ORDER BY o.id
@@ -956,7 +1040,14 @@ BEGIN
      SET status = 'abandoned',
          updated_at = v_now
    WHERE o.tenant_id = v_intake.tenant_id
-     AND o.id = ANY (v_abandoned);
+     AND o.id = ANY (v_abandoned)
+     AND o.status = 'queued';
+  GET DIAGNOSTICS v_moved = ROW_COUNT;
+  IF v_moved <> COALESCE(pg_catalog.cardinality(v_abandoned), 0) THEN
+    RAISE EXCEPTION 'provider_request_abandon_lost'
+      USING ERRCODE = '40001',
+            DETAIL = 'A request locked for abandoning was not abandoned.';
+  END IF;
 
   IF v_intake.stripe_payment_intent_id IS NOT NULL THEN
     v_cancel_id := pg_catalog.gen_random_uuid();

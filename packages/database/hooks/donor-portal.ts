@@ -20,8 +20,8 @@ export type DonorPortalDonation = {
   status: "Paid" | "Received" | "Processing" | "Failed" | "Refunded";
   type: "Recurring" | "One-Time";
   method: string;
-  receiptUrl: string;
-  statementYear: number;
+  receiptUrl: string | null;
+  statementYear: number | null;
   designation: {
     id: string | null;
     name: string;

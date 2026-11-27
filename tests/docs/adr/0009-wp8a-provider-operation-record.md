@@ -245,6 +245,57 @@ giver_email_missing`); `removeTwoTenants` also removes holds, event
     name as an unqualified relation, so the sweep, the disconnect and the
     core collect ids with `ARRAY(SELECT ...)` or lock with `PERFORM ... FOR
 NO KEY UPDATE` first.
+30. **Who gave sits on the intake's contact row (fix round F1).** The login,
+    its address at intake and whether Auth had confirmed it are columns of
+    `donation_intake_contacts`, not of `donations`: `authenticated` selects
+    `donations` whole (the browser's collection reads `select=*`, which a
+    column grant would refuse) and its row policy admits the attributed
+    donor, staff and the receiving missionary. No Data API role and not
+    `service_role` reads the contact row; the core reads it as the guard.
+31. **A person's portal (F2)** lists their own donor's gifts and, of the
+    gifts their login made, only those with no donor yet, whose ids
+    `public.actor_gifts_without_donor` answers (a `postgres`-owned definer
+    for `service_role`, ids only). A gift attributed or moved to another
+    donor leaves the maker's portal.
+32. **One order (F3).** The binding (the sweep `FOR SHARE`, the disconnect
+    by its update), then the intake's provider requests in id order, then
+    the intake. The core takes the requests before the intake whichever
+    way it found the intake. A request's state changes only by an update
+    that tests the state its locker read, and the disconnect locks the
+    requests it parks in the statement that tests their state. A cancel
+    for a disconnected binding is never written by the sweep: an intake
+    holding a PaymentIntent there is `binding_disconnected` until the
+    account returns.
+33. **The sweep closes no intake in flight (F4):** a create request
+    sending, waiting to retry or parked, or a request of the intake it did
+    not lock, is `in_flight`, and nothing changes.
+34. **Staff totals count what the lists count (F5).** The summary leaves out
+    a line-based intake that is pending or abandoned; every other reader of
+    `donations` totals settled gifts only or reads by donor, worker or id,
+    and an unpaid or abandoned intake has no donor, no worker on its header
+    and is never settled.
+35. **The portal's figures (F6)** count settled gifts (Paid or Received)
+    the same way everywhere: this year's total, the designations and the
+    latest impact from them; lifetime given and the gift count add the
+    settled line-based gifts to the donor's stored totals, which the apply
+    does not keep. A failed gift counts nowhere. A line-based gift has no
+    receipt link, receipt count or statement year until WP8b receipts it.
+36. **The review route admits the fee-cover line only as stored (F7)**:
+    it refuses a changed or missing one with 400 before it writes, as
+    `replace_staged_gift_allocations` refuses it, and passes only the
+    donor lines through the reference check.
+37. **A success for a parked create request is its case's evidence (F10)**,
+    also when the intake already records the PaymentIntent; it stages
+    nothing. **After a staff abandonment no event writes anything** but the
+    success's case (F14). **A committed correction reaches its receipt
+    (F11):** the correction reads its detail without holds, and a retry with
+    the same key makes a receipt the adjustment has none of. **The lines
+    read pages (F12)**, 500 lines a page in a fixed order, under the Data
+    API's 1,000-row cap. **Event cases are written by the guard alone, on
+    every operation (F13).**
+38. **The large-gift threshold compares the charged total, fee cover
+    included** (inventory 8.3, accepted 27 November 2026): no ruling fixes
+    the amount, and the charged total is the cautious reading.
 
 ## Pins moved (D-18), each with the reason in the edited title
 

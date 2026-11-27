@@ -204,6 +204,7 @@ function normalizePledgeRows(rows: DonorPortalPledgeRow[]) {
 export type DonorPortalContext = {
   profile: DonorPortalProfileRow;
   donor: DonorPortalDonorRow;
+  loginId: string;
 };
 
 export async function resolveDonorPortalContext(
@@ -244,7 +245,27 @@ export async function resolveDonorPortalContext(
     throw new ApiHttpError(404, "Donor record not found");
   }
 
-  return { profile, donor: lookup.donor };
+  return { profile, donor: lookup.donor, loginId };
+}
+
+async function actorGiftsWithoutDonor(
+  supabaseAdmin: AdminSupabaseClient,
+  tenantId: string,
+  loginId: string,
+): Promise<string[]> {
+  const { data, error } = (await supabaseAdmin.rpc(
+    "actor_gifts_without_donor" as never,
+    { p_tenant_id: tenantId, p_user_id: loginId } as never,
+  )) as SupabaseResult<unknown>;
+  if (error) {
+    throw new ApiHttpError(
+      500,
+      error.message || "Unable to load donor giving history",
+    );
+  }
+  return (Array.isArray(data) ? data : []).filter(
+    (id): id is string => typeof id === "string",
+  );
 }
 
 /**
@@ -260,11 +281,20 @@ export async function getDonorPortalSnapshot(input: {
   profileId: string;
   tenantId: string;
 }): Promise<DonorPortalSnapshot> {
-  const { profile, donor } = await resolveDonorPortalContext(
+  const { profile, donor, loginId } = await resolveDonorPortalContext(
     input.supabaseAdmin,
     input.profileId,
     input.tenantId,
   );
+  const actorGifts = await actorGiftsWithoutDonor(
+    input.supabaseAdmin,
+    input.tenantId,
+    loginId,
+  );
+  const ownGifts =
+    actorGifts.length > 0
+      ? `donor_id.eq.${donor.id},and(donor_id.is.null,id.in.(${actorGifts.join(",")}))`
+      : `donor_id.eq.${donor.id}`;
 
   const [donationsResult, pledgesResult, preferencesResult] = await Promise.all(
     [
@@ -272,7 +302,7 @@ export async function getDonorPortalSnapshot(input: {
         .from("donations")
         .select(DONATION_SELECT)
         .eq("tenant_id", input.tenantId)
-        .or(`donor_id.eq.${donor.id},actor_user_id.eq.${input.profileId}`)
+        .or(ownGifts)
         .or(COUNTED_INTAKE_FILTER)
         .order("gift_date", { ascending: false })
         .limit(RECENT_GIFT_LIMIT + 1) as unknown as Promise<

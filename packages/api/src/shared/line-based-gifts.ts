@@ -37,12 +37,22 @@ export type GiftHold = {
   resolutionReason: string | null;
 };
 
+type LinesPage = {
+  order(column: string): LinesPage;
+  range(
+    from: number,
+    to: number,
+  ): PromiseLike<{ data: unknown; error: { message: string } | null }>;
+};
+
 type RpcClient = {
   rpc(
     fn: "line_based_gift_lines",
     args: { p_tenant_id: string; p_donation_ids: string[] },
-  ): PromiseLike<{ data: unknown; error: { message: string } | null }>;
+  ): LinesPage;
 };
+
+export const GIFT_LINES_PAGE = 500;
 
 export async function loadLineBasedGiftLines(
   client: unknown,
@@ -51,17 +61,24 @@ export async function loadLineBasedGiftLines(
 ): Promise<Map<string, LineBasedGiftLine[]>> {
   const byIntake = new Map<string, LineBasedGiftLine[]>();
   if (donationIds.length === 0) return byIntake;
-  const { data, error } = await (client as RpcClient).rpc(
-    "line_based_gift_lines",
-    { p_tenant_id: tenantId, p_donation_ids: donationIds },
-  );
-  if (error) throw new Error(error.message || "Unable to load gift lines");
-  for (const row of (Array.isArray(data) ? data : []) as LineBasedGiftLine[]) {
-    const lines = byIntake.get(row.donation_id) ?? [];
-    lines.push({ ...row, amount: Number(row.amount) });
-    byIntake.set(row.donation_id, lines);
+  for (let from = 0; ; from += GIFT_LINES_PAGE) {
+    const { data, error } = await (client as RpcClient)
+      .rpc("line_based_gift_lines", {
+        p_tenant_id: tenantId,
+        p_donation_ids: donationIds,
+      })
+      .order("donation_id")
+      .order("line_number")
+      .range(from, from + GIFT_LINES_PAGE - 1);
+    if (error) throw new Error(error.message || "Unable to load gift lines");
+    const rows = (Array.isArray(data) ? data : []) as LineBasedGiftLine[];
+    for (const row of rows) {
+      const lines = byIntake.get(row.donation_id) ?? [];
+      lines.push({ ...row, amount: Number(row.amount) });
+      byIntake.set(row.donation_id, lines);
+    }
+    if (rows.length < GIFT_LINES_PAGE) return byIntake;
   }
-  return byIntake;
 }
 
 type SelectClient = {

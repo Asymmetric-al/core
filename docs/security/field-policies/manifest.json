@@ -943,36 +943,6 @@
         "public": "---",
         "export": "---"
       },
-      "actor_user_id": {
-        "type": "uuid",
-        "nullable": true,
-        "category": "internal",
-        "mission_control": "v--",
-        "donor": "---",
-        "missionary": "---",
-        "public": "---",
-        "export": "---"
-      },
-      "actor_email": {
-        "type": "text",
-        "nullable": true,
-        "category": "contact",
-        "mission_control": "v--",
-        "donor": "---",
-        "missionary": "---",
-        "public": "---",
-        "export": "---"
-      },
-      "actor_email_confirmed": {
-        "type": "boolean",
-        "nullable": true,
-        "category": "internal",
-        "mission_control": "v--",
-        "donor": "---",
-        "missionary": "---",
-        "public": "---",
-        "export": "---"
-      },
       "is_anonymous": {
         "type": "boolean",
         "nullable": true,
