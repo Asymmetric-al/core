@@ -3,6 +3,7 @@ import path from "node:path";
 
 import { describe, expect, it, vi } from "vitest";
 
+import { StripeLiveModeRefusedError } from "../../../packages/api/src/stripe/test-mode-key";
 import {
   ACCOUNT_VARIABLES,
   PROOF_FLAG,
@@ -16,7 +17,6 @@ import {
   stripeGetter,
   verifyTestAccounts,
 } from "../../../scripts/e2e/run-giving-stripe-test-proof.mts";
-import { StripeLiveModeRefusedError } from "../../../packages/api/src/stripe/test-mode-key";
 
 const TEST_SECRET = ["sk", "test", "proofkey0000000000000000"].join("_");
 const LIVE_SECRET = ["sk", "live", "proofkey0000000000000000"].join("_");
