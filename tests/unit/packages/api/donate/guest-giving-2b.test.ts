@@ -185,10 +185,10 @@ describe("AL-2681 PR 2b item zero 6: the limit of gift attempts", () => {
     });
   });
 
-  it("a refused attempt is 429 with retryAfterSeconds and Retry-After, and nothing is begun", async () => {
+  it("a refused attempt is 429 with retryAfterSeconds, Retry-After and the bucket that refused, and nothing is begun", async () => {
     const s = intake({
       attempt: {
-        data: { admitted: false, retry_after_seconds: 37 },
+        data: { admitted: false, retry_after_seconds: 37, bucket: "person" },
         error: null,
       },
     });
@@ -198,6 +198,7 @@ describe("AL-2681 PR 2b item zero 6: the limit of gift attempts", () => {
     expect(await res.json()).toEqual({
       error: "too_many_requests",
       retryAfterSeconds: 37,
+      bucket: "person",
     });
     expect(beginArgs(s.calls)).toBeUndefined();
   });
@@ -339,4 +340,28 @@ describe("AL-2681 PR 2b, issue 2857 item 37: a wrong server secret is the server
       ).toEqual({ ok: false, reason: "unavailable" });
     },
   );
+});
+
+describe("AL-2681 PR 2b: amount_out_of_range carries the bounds the command states", () => {
+  it("the 400 names the minimum and maximum the command's refusal states, so the page types no figure", async () => {
+    const s = intake({
+      begin: {
+        data: null,
+        error: {
+          code: "22023",
+          message: "amount_out_of_range",
+          details:
+            "A gift in US dollars is between 50 and 99,999,999 cents, fee cover included.",
+        } as never,
+      },
+    });
+    const res = await s.handler(post("/api/donate", giftBody()));
+    expect(res.status).toBe(400);
+    expect(await res.json()).toEqual({
+      error: "amount_out_of_range",
+      minCents: 50,
+      maxCents: 99_999_999,
+      currency: "usd",
+    });
+  });
 });

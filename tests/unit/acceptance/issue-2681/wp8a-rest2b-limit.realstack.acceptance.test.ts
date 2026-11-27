@@ -123,6 +123,7 @@ describe.skipIf(!ADMIN_URL)(
             address: from,
           });
           expect(refused.admitted).toBe(false);
+          expect(refused).toMatchObject({ bucket: "address" });
           expect(refused.retry_after_seconds).toBeGreaterThanOrEqual(1);
           expect(refused.retry_after_seconds).toBeLessThanOrEqual(600);
           const other = await secondSite(fx.A);
@@ -271,6 +272,14 @@ describe.skipIf(!ADMIN_URL)(
               ).admitted,
             );
           expect(answers).toEqual([true, true, true, true, true, true, false]);
+          expect(
+            await attemptGift(db, {
+              host: hosts.home,
+              surface: "donor_account",
+              address: "192.0.2.50",
+              user,
+            }),
+          ).toMatchObject({ admitted: false, bucket: "person" });
           expect(
             (await attemptGift(db, { host: hosts.site, address: "192.0.2.99" }))
               .admitted,
