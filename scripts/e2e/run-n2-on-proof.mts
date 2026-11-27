@@ -316,12 +316,23 @@ function loadAverage(): number {
   return Number(readFileSync("/proc/loadavg", "utf8").split(" ")[0]);
 }
 
-async function waitForQuietMachine(limit: number): Promise<void> {
-  while (os.platform() === "linux" && loadAverage() >= limit) {
+export async function waitForQuietMachine(
+  limit: number,
+  stopped: Promise<unknown> = new Promise(() => {}),
+  load: () => number = loadAverage,
+): Promise<void> {
+  const ended = stopped.then(() => true);
+  while (os.platform() === "linux" && load() >= limit) {
     process.stdout.write(
       `[n2-on] one-minute load is at or above ${limit}; waiting\n`,
     );
-    await new Promise((resolve) => setTimeout(resolve, 20_000));
+    let timer: NodeJS.Timeout | undefined;
+    const paused = new Promise<boolean>((resolve) => {
+      timer = setTimeout(resolve, 20_000, false);
+    });
+    const stop = await Promise.race([paused, ended]);
+    clearTimeout(timer);
+    if (stop) return;
   }
 }
 
@@ -414,17 +425,38 @@ interface WatchedProcess {
 
 export function watchServers(
   servers: ReadonlyArray<{ name: string; process: WatchedProcess }>,
-): { failure(): string | null } {
+): { failure(): string | null; failed(): Promise<string> } {
   let failure: string | null = null;
+  let announce: (message: string) => void = () => {};
+  const failed = new Promise<string>((resolve) => {
+    announce = resolve;
+  });
+  const fail = (message: string) => {
+    if (failure !== null) return;
+    failure = message;
+    announce(message);
+  };
   for (const { name, process: child } of servers) {
     child.once("exit", (code, signal) => {
-      failure ??= `${name} exited (code ${code ?? signal ?? "unknown"})`;
+      fail(`${name} exited (code ${code ?? signal ?? "unknown"})`);
     });
     child.once("error", (error) => {
-      failure ??= `${name} could not start: ${error.message}`;
+      fail(`${name} could not start: ${error.message}`);
     });
   }
-  return { failure: () => failure };
+  return { failure: () => failure, failed: () => failed };
+}
+
+export async function serveUntilStopped(
+  interrupts: { wait(): Promise<NodeJS.Signals> },
+  watch: { failed(): Promise<string> },
+): Promise<number> {
+  const failure = await Promise.race([
+    interrupts.wait().then(() => null),
+    watch.failed(),
+  ]);
+  if (failure !== null) throw new Error(failure);
+  return 0;
 }
 
 const HELD_SIGNALS = ["SIGINT", "SIGTERM"] as const;
@@ -572,10 +604,12 @@ export async function main(
       process.stdout.write(
         `[n2-on] serving at http://${NAME_A}:${ports.front}; stop with Ctrl-C\n`,
       );
-      await interrupts.wait();
-      return 0;
+      return await serveUntilStopped(interrupts, watch);
     }
-    await waitForQuietMachine(10);
+    await waitForQuietMachine(
+      10,
+      Promise.race([interrupts.wait(), watch.failed()]),
+    );
     const failed = watch.failure();
     if (failed) throw new Error(failed);
     if (interrupts.signal()) return 130;
