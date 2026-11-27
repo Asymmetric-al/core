@@ -2023,7 +2023,7 @@
   "tests/unit/packages/api/admin-support-service.test.ts": 3,
   "tests/unit/packages/api/admin/contribution-action-availability.test.ts": 6,
   "tests/unit/packages/api/admin/contribution-action-result-projection.test.ts": 7,
-  "tests/unit/packages/api/admin/contribution-adjustment-operations.test.ts": 11,
+  "tests/unit/packages/api/admin/contribution-adjustment-operations.test.ts": 8,
   "tests/unit/packages/api/admin/contribution-approval-notifications.test.ts": 19,
   "tests/unit/packages/api/admin/contribution-batch-identity.test.ts": 1,
   "tests/unit/packages/api/admin/contribution-batches.test.ts": 2,

@@ -581,7 +581,7 @@ describe.skipIf(!ADMIN_URL)(
     });
 
     describe("the apply and the event cases", () => {
-      it("F10: a payment success for a parked create request is evidence for its case and stages no gift, also when the intake already records that PaymentIntent", () =>
+      it("F10: a payment success for a parked create request stages no gift, also when the intake already records that PaymentIntent; with no open repair case it opens one paid_while_parked case (D-18, AL-2681 issue 2857 item 1: before, it answered case_evidence with no case)", () =>
         inTx(db, async () => {
           const fx = await seedTwoTenants(db);
           const intake = await giftIntake(db, fx.A);
@@ -611,7 +611,8 @@ describe.skipIf(!ADMIN_URL)(
             metadata: { asym_operation: op, asym_intake: intake.donationId },
           });
           expect(await work(db, event.id)).toMatchObject({
-            outcome: "case_evidence",
+            outcome: "case_opened",
+            kind: "paid_while_parked",
             donation_id: intake.donationId,
           });
           expect(await giftOf(db, intake.donationId)).toBeUndefined();
