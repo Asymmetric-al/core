@@ -1,5 +1,9 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
+vi.mock("../../../../scripts/load-workspace-env.mjs", () => ({
+  loadWorkspaceEnvironment: () => ({}),
+}));
+
 afterEach(() => {
   vi.unstubAllEnvs();
   vi.resetModules();
