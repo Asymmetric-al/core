@@ -193,8 +193,10 @@ answer; see [the release job runbook](../../ops/release-job.md).
 | admin      | `/api/admin/mission-control/needs-attention`                   | Node.js (no `runtime` segment export) | Mission Control task attention dashboard                   |
 | admin      | `/api/admin/missionaries`                                      | Node.js (no `runtime` segment export) | Admin client                                               |
 | admin      | `/api/admin/payment-accounts`                                  | Node.js (no `runtime` segment export) | Caller-token Stripe Connect onboarding (`withOperation`)   |
-| admin      | `/api/admin/posts`                                             | Node.js (no `runtime` segment export) | Admin client                                               |
-| admin      | `/api/admin/posts/[postId]`                                    | Node.js (no `runtime` segment export) | Admin client                                               |
+| admin      | `/api/admin/posts`                                             | Node.js (no `runtime` segment export) | Request-scoped reads; admin client names authors           |
+| admin      | `/api/admin/posts/[postId]`                                    | Node.js (no `runtime` segment export) | Request-scoped reads; admin client names authors           |
+| admin      | `/api/admin/posts/[postId]/review`                             | Node.js (no `runtime` segment export) | Request-scoped review command (updates.review)             |
+| admin      | `/api/admin/publication-policies`                              | Node.js (no `runtime` segment export) | Request-scoped publication policy (staff)                  |
 | admin      | `/api/admin/sites`                                             | Node.js (no `runtime` segment export) | Caller-token Sites read and create (`withOperation`)       |
 | admin      | `/api/admin/sites/brand`                                       | Node.js (no `runtime` segment export) | Caller-token donor account name (`withOperation`)          |
 | admin      | `/api/admin/sites/status`                                      | Node.js (no `runtime` segment export) | Caller-token Site status (`withOperation`)                 |
@@ -333,6 +335,7 @@ answer; see [the release job runbook](../../ops/release-job.md).
 | missionary | `/api/posts/[postId]/fire`                                     | Node.js (no `runtime` segment export) | `next/headers` cookies(), server client                    |
 | missionary | `/api/posts/[postId]/like`                                     | Node.js (no `runtime` segment export) | `next/headers` cookies(), server client                    |
 | missionary | `/api/posts/[postId]/prayer`                                   | Node.js (no `runtime` segment export) | `next/headers` cookies(), server client                    |
+| missionary | `/api/posts/[postId]/withdraw`                                 | Node.js (no `runtime` segment export) | Request-scoped own-ministry withdrawal                     |
 | missionary | `/api/profile`                                                 | Node.js (no `runtime` segment export) | Service role; selected-assignment missionary RPCs          |
 | missionary | `/api/upload/editor-image`                                     | Node.js (no `runtime` segment export) | Shared editor-image upload, request-scoped client          |
 | missionary | `/api/upload/image`                                            | Node.js (no `runtime` segment export) | Shared profile-photo upload, request-scoped client         |

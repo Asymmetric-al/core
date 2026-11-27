@@ -54,6 +54,7 @@ import {
 import {
   useModerationFeed,
   type ModerationAuthor,
+  type ModerationPost,
   type ModerationPostsResponse,
   type PublicationMode,
 } from "./use-moderation-feed";
@@ -86,6 +87,11 @@ const POST_STATUSES: Record<
   draft: { label: "Draft", variant: "outline" },
   archived: { label: "Archived", variant: "secondary" },
 };
+
+function ReviewMark({ state }: { state: ModerationPost["review_state"] }) {
+  const mark = state ? REVIEW_STATES[state] : undefined;
+  return mark ? <Badge variant={mark.variant}>{mark.label}</Badge> : null;
+}
 
 function staffLabel(value: string | null | undefined, fallback: string) {
   const words = value?.trim().replaceAll(/[_-]+/g, " ").toLowerCase();
@@ -295,11 +301,7 @@ function Posts({
                     </p>
                   ) : null}
                   <div className="flex flex-wrap gap-2">
-                    {post.review_state && REVIEW_STATES[post.review_state] ? (
-                      <Badge variant={REVIEW_STATES[post.review_state].variant}>
-                        {REVIEW_STATES[post.review_state].label}
-                      </Badge>
-                    ) : null}
+                    <ReviewMark state={post.review_state} />
                     <Badge
                       variant={POST_STATUSES[post.status]?.variant ?? "outline"}
                     >
