@@ -1,4 +1,5 @@
-import { serve } from "inngest/next";
+import { serve, type RequestHandler } from "inngest/next";
+import { NextRequest } from "next/server";
 
 import { dispatchRecoveryScan } from "./functions/dispatch-recovery-scan";
 import {
@@ -13,22 +14,59 @@ import {
 } from "./functions/stripe-event-processing";
 import { workflowSmoke } from "./functions/workflow-smoke";
 import { inngest } from "./inngest/client";
+import { carriesReleaseProof, jobServePath, jobSyncOrigin } from "./sync-proof";
 
 /**
  * Workflow function serving for the staff operations surface. The app route
  * (`apps/admin/app/api/inngest/route.ts`) re-exports these handlers and stays
  * thin per docs/guides/architecture/data-access-boundary.md.
  */
-export const { GET, POST, PUT } = serve({
+const functions = [
+  workflowSmoke,
+  dispatchRecoveryScan,
+  donationSagaRecovery,
+  donationSagaRecoveryScan,
+  stripeEventProcessing,
+  stripeEventRecoveryScan,
+  inboundEmailProcessing,
+  moneySchedule,
+];
+
+const servePath = jobServePath();
+const serveOrigin = jobSyncOrigin(process.env);
+
+const signed = serve({
   client: inngest,
-  functions: [
-    workflowSmoke,
-    dispatchRecoveryScan,
-    donationSagaRecovery,
-    donationSagaRecoveryScan,
-    stripeEventProcessing,
-    stripeEventRecoveryScan,
-    inboundEmailProcessing,
-    moneySchedule,
-  ],
+  functions,
+  servePath,
+  ...(serveOrigin ? { serveOrigin } : {}),
+  enableUnauthedSync: false,
 });
+
+const released = serveOrigin
+  ? serve({
+      client: inngest,
+      functions,
+      servePath,
+      serveOrigin,
+      enableUnauthedSync: true,
+    })
+  : null;
+
+export const { GET, POST } = signed;
+
+export const PUT: RequestHandler = async (request, context) => {
+  if (
+    !carriesReleaseProof(request, process.env.VERCEL_AUTOMATION_BYPASS_SECRET)
+  )
+    return signed.PUT(request, context);
+  if (!released || !serveOrigin)
+    return Response.json(
+      { code: "job_sync_origin_unset" },
+      { status: 503, headers: { "Cache-Control": "no-store" } },
+    );
+  return released.PUT(
+    new NextRequest(new URL(servePath, serveOrigin), { method: "PUT" }),
+    context,
+  );
+};
