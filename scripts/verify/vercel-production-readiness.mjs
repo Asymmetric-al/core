@@ -513,6 +513,7 @@ export function summarizeProjectReadiness({
     !health?.releaseCommit ||
     health.releaseCommit === "unknown" ||
     health.releaseCommit === commit;
+  const healthStateMatches = !paths || health?.serveUnderPaths === true;
   // Production deploys only through the release job, so Vercel's Git
   // integration must not deploy the production branch.
   const productionBranchReady =
@@ -531,7 +532,8 @@ export function summarizeProjectReadiness({
       invalidEnv.length === 0 &&
       Boolean(deploymentForCommit) &&
       healthOk &&
-      healthReleaseMatches,
+      healthReleaseMatches &&
+      healthStateMatches,
     missingEnv,
     invalidEnv,
     unreadableEnv,
@@ -540,6 +542,7 @@ export function summarizeProjectReadiness({
     latestDeployment,
     health: health ?? null,
     healthReleaseMatches,
+    pathMode: paths,
     productionBranch: productionBranch ?? "",
     productionGitDeployments,
     vercelConfigPath: project.vercelConfigPath,
@@ -633,6 +636,11 @@ export function formatReadinessReport({ commit, reports }) {
       if (report.health.releaseCommit) {
         lines.push(
           `Release health commit: ${report.health.releaseCommit} (${report.healthReleaseMatches ? "matches target or legacy-unknown" : "does not match target"})`,
+        );
+      }
+      if (report.pathMode) {
+        lines.push(
+          `Release health serveUnderPaths: ${report.health.serveUnderPaths ?? "absent"} (expected true)`,
         );
       }
       if (report.health.surface) {
@@ -853,6 +861,10 @@ export async function readHealth(
       releaseEnvironment:
         release && typeof release.environment === "string"
           ? release.environment
+          : undefined,
+      serveUnderPaths:
+        paths && typeof release?.serveUnderPaths === "boolean"
+          ? release.serveUnderPaths
           : undefined,
     };
   } catch (error) {
