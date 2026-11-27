@@ -3276,6 +3276,16 @@
         "public": "---",
         "export": "---"
       },
+      "reconciled_at": {
+        "type": "timestamp with time zone",
+        "nullable": true,
+        "category": "internal",
+        "mission_control": "v--",
+        "donor": "---",
+        "missionary": "---",
+        "public": "---",
+        "export": "---"
+      },
       "created_at": {
         "type": "timestamp with time zone",
         "nullable": false,

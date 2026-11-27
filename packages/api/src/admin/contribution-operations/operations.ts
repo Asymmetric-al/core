@@ -9,6 +9,7 @@ import {
   buildReceiptSnapshotContent,
   computeReceiptAffectedFields,
   parseReceiptDeliverySelection,
+  parseReceiptSnapshotContent,
   resolveTenantReceiptDeliveryPolicy,
   validateReceiptDeliverySelection,
 } from "./receipt-delivery";
@@ -978,7 +979,11 @@ export async function loadReceiptDeliveryContext(input: {
   };
 }
 
-type ReceiptSnapshotRef = { id: string; createdAt: string | null };
+type ReceiptSnapshotRef = {
+  id: string;
+  createdAt: string | null;
+  content: ReceiptSnapshotContentV1 | null;
+};
 
 const RECEIPT_SEND_IN_FLIGHT_MS = 5 * 60 * 1000;
 
@@ -990,7 +995,7 @@ async function findReceiptSnapshot(input: {
 }): Promise<ReceiptSnapshotRef | null> {
   const { data, error } = await input.supabaseAdmin
     .from("contribution_receipt_snapshots")
-    .select("id, created_at")
+    .select("id, created_at, content")
     .eq("tenant_id", input.tenantId)
     .eq("adjustment_id", input.adjustmentId)
     .eq("kind", input.kind)
@@ -1004,6 +1009,7 @@ async function findReceiptSnapshot(input: {
     ? {
         id: row.id,
         createdAt: typeof row.created_at === "string" ? row.created_at : null,
+        content: parseReceiptSnapshotContent(row.content),
       }
     : null;
 }
@@ -1066,7 +1072,10 @@ async function insertReceiptSnapshot(input: {
 
   const id = (data as Record<string, unknown> | null)?.id;
   return {
-    snapshot: typeof id === "string" ? { id, createdAt: null } : null,
+    snapshot:
+      typeof id === "string"
+        ? { id, createdAt: null, content: input.content }
+        : null,
     existing: false,
   };
 }
@@ -1105,7 +1114,6 @@ async function sendExistingEmailReceipt(input: {
   tenantId: string;
   stagedGiftId: string;
   snapshot: ReceiptSnapshotRef;
-  content: ReceiptSnapshotContentV1;
   base: Pick<
     ReceiptDeliveryOutcome,
     "affectedFields" | "requested" | "confirmed"
@@ -1135,12 +1143,17 @@ async function sendExistingEmailReceipt(input: {
       snapshotId: input.snapshot.id,
     };
   }
+  if (!input.snapshot.content) {
+    throw new Error(
+      "The stored receipt snapshot of this correction cannot be read, so it was not sent again.",
+    );
+  }
   const receipt = await sendUpdatedReceiptSnapshotEmail({
     supabaseAdmin: input.supabaseAdmin,
     tenantId: input.tenantId,
     stagedGiftId: input.stagedGiftId,
     snapshotId: input.snapshot.id,
-    content: input.content,
+    content: input.snapshot.content,
   });
   return emailReceiptOutcome(input.base, receipt.status, input.snapshot.id);
 }
@@ -1217,7 +1230,6 @@ async function runReceiptDelivery(input: {
       tenantId: input.tenantId,
       stagedGiftId: input.stagedGiftId,
       snapshot: inserted.snapshot,
-      content: input.snapshotContent,
       base,
     });
   }
@@ -1323,7 +1335,6 @@ async function replayReceipt(input: {
     tenantId: input.tenantId,
     stagedGiftId: input.stagedGiftId!,
     snapshot: existing,
-    content: input.snapshotContent,
     base,
   });
 }
@@ -1428,9 +1439,13 @@ export async function applyContributionCorrection(input: {
         })
       : new Map<string, string | null>();
 
-  const replay = async (adjustmentId: string) => ({
+  const replay = async (
+    adjustmentId: string,
+    current: ContributionDetail = before,
+    names: ReadonlyMap<string, string | null> = workerPublicNames,
+  ) => ({
     before: summarizeEffectiveDetail(before),
-    after: summarizeEffectiveDetail(before),
+    after: summarizeEffectiveDetail(current),
     status: "applied" as const,
     adjustmentId,
     idempotentReplay: true,
@@ -1441,14 +1456,14 @@ export async function applyContributionCorrection(input: {
             tenantId: input.tenantId,
             contributionId: input.contributionId,
             adjustmentId,
-            detail: before,
-            stagedGiftId: before.stagedGift?.id ?? null,
+            detail: current,
+            stagedGiftId: current.stagedGift?.id ?? null,
             selection: deliverySelection,
             affectedFields,
             requested: requestedDelivery ?? deliverySelection,
             snapshotContent: buildReceiptSnapshotContent({
-              detail: before,
-              workerPublicNames,
+              detail: current,
+              workerPublicNames: names,
               affectedFields,
               adjustmentId,
             }),
@@ -1497,7 +1512,19 @@ export async function applyContributionCorrection(input: {
     if (raced.donationId !== input.contributionId) {
       refuseKeyOfAnotherGift();
     }
-    return replay(raced.id);
+    const current = await loadContributionOperationDetail(detailInput);
+    const currentNames =
+      receiptAffected &&
+      deliverySelection &&
+      deliverySelection.choice !== "defer"
+        ? await loadReceiptWorkerPublicNames({
+            supabaseAdmin: input.supabaseAdmin,
+            tenantId: input.tenantId,
+            before: current,
+            effectiveValues,
+          })
+        : workerPublicNames;
+    return replay(raced.id, current, currentNames);
   }
 
   const adjustmentId = String(

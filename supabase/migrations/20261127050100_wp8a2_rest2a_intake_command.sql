@@ -61,13 +61,20 @@
 --    request (23505 idempotency_key_reused); checks the payment method is
 --    a card (never ach or a wallet: ruling of 27 November on intent
 --    conflicts, section 3) and the contact has an address to write
---    to; takes the entity from the lines (one entity, no donor line on the
+--    to; refuses a fee cover above five percent of the donor's lines plus
+--    100 cents (22023 fee_cover_out_of_range) and a US-dollar total outside
+--    50 to 99,999,999 cents, the range Stripe takes (22023
+--    amount_out_of_range); takes the entity from the lines (one entity, no donor line on the
 --    reserved fund), the binding from the entity's active test-mode binding
 --    (FOR SHARE, before the intake: the documented order), the fee line
 --    from the caller's fee cover on the entity's reserved fund; writes the
 --    key, the intake, its lines, its contact row, one audit row and,
 --    through money_enqueue_payment_request, one queued create_payment
---    request with no donor. Each refusal changes nothing.
+--    request with no donor. Each refusal changes nothing. Its answer says
+--    whether the gift can still be paid (payable): a new gift can; a
+--    replayed one cannot once the intake is abandoned or its create
+--    request ended for good (refused, dead_letter, abandoned); a declined
+--    card's gift still can, on its PaymentIntent.
 -- 7. public.begin_line_gift(host, ..., source Site): the wrapper takes the
 --    host (and, for a hand-off, the source Site) and no organization. It reads the organization from the reviewed single-host
 --    lookup public.resolve_verified_host(p_host) (state active), refuses
@@ -396,6 +403,7 @@ DECLARE
   v_id UUID;
   v_number INTEGER;
   v_operation UUID;
+  v_operation_status TEXT;
   v_replay RECORD;
 BEGIN
   PERFORM tenant_guard.enter(p_tenant_id);
@@ -642,6 +650,12 @@ BEGIN
       v_sum := v_sum + (v_line.value ->> 'amount')::BIGINT;
     END LOOP;
 
+    IF p_fee_cover * 100 > v_sum * 5 + 10000 THEN
+      RAISE EXCEPTION 'fee_cover_out_of_range'
+        USING ERRCODE = '22023',
+              DETAIL = 'A fee cover is at most five percent of the donor''s lines plus 100 cents.';
+    END IF;
+
     SELECT b.id, b.provider_account_ref, b.livemode, b.status
       INTO v_binding
       FROM public.payment_account_bindings AS b
@@ -676,6 +690,12 @@ BEGIN
       FROM public.legal_entities AS e
      WHERE e.tenant_id = p_tenant_id
        AND e.id = v_entity;
+
+    IF v_currency = 'usd' AND (v_sum + p_fee_cover NOT BETWEEN 50 AND 99999999) THEN
+      RAISE EXCEPTION 'amount_out_of_range'
+        USING ERRCODE = '22023',
+              DETAIL = 'A gift in US dollars is between 50 and 99,999,999 cents, fee cover included.';
+    END IF;
 
     IF v_code ~ '^[a-z0-9][a-z0-9_-]{0,63}$' THEN
       SELECT c.id
@@ -767,7 +787,8 @@ BEGIN
         'amount', v_sum + p_fee_cover,
         'currency', v_currency,
         'provider_account', v_binding.provider_account_ref,
-        'payment_intent', NULL
+        'payment_intent', NULL,
+        'payable', true
       );
     END IF;
 
@@ -784,14 +805,14 @@ BEGIN
             DETAIL = 'This key began another gift; a new gift needs a new key.';
   END IF;
 
-  SELECT d.id, d.amount, d.currency, d.provider_account_ref, d.stripe_payment_intent_id
+  SELECT d.id, d.amount, d.currency, d.provider_account_ref, d.stripe_payment_intent_id, d.status
     INTO v_replay
     FROM public.donations AS d
    WHERE d.tenant_id = p_tenant_id
      AND d.id = v_existing.donation_id;
 
-  SELECT o.id
-    INTO v_operation
+  SELECT o.id, o.status
+    INTO v_operation, v_operation_status
     FROM public.donation_saga_outbox AS o
    WHERE o.tenant_id = p_tenant_id
      AND o.donation_id = v_existing.donation_id
@@ -805,7 +826,11 @@ BEGIN
     'amount', v_replay.amount,
     'currency', v_replay.currency,
     'provider_account', v_replay.provider_account_ref,
-    'payment_intent', v_replay.stripe_payment_intent_id
+    'payment_intent', v_replay.stripe_payment_intent_id,
+    'payable', (v_replay.status IS DISTINCT FROM 'abandoned'
+                AND v_operation_status IS DISTINCT FROM 'refused'
+                AND v_operation_status IS DISTINCT FROM 'dead_letter'
+                AND v_operation_status IS DISTINCT FROM 'abandoned')
   );
 END;
 $$;

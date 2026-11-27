@@ -11,7 +11,10 @@
 -- 3. tenant_guard.defer_payment_event(tenant, event, attempt) and its
 --    wrapper public.defer_payment_event(event, attempt): for the attempt
 --    that claimed a connected refund or dispute event (charge.refund*,
---    refund.*, charge.dispute.*), it finds the line-based intake of the
+--    refund.*, charge.dispute.*), locking as the apply does (the event,
+--    then the account, then the gift) and refusing 55000 lease_lost unless
+--    the event's lease is live and the account's sync lease names this
+--    event, it finds the line-based intake of the
 --    event's PaymentIntent on the event's account and mode, locks it, opens
 --    one Mission Control task per gift ('payment_event_deferred', linked to
 --    the intake) or one per event when no intake is known, links the event
@@ -27,7 +30,12 @@
 --    binding, opens one open 'payment_account_drift' task linked to the
 --    binding. It never changes the binding: only the account's own events
 --    move it. A reading of another account or mode is 22023
---    snapshot_mismatch.
+--    snapshot_mismatch. It locks the account row and stamps its
+--    reconciled_at as its first write, whatever its outcome, so two
+--    reconciliations of one account run one after the other (one drift
+--    task) and the due work reads every account in turn; a reading that
+--    says the provider read failed (read_failed: true) is stamped and
+--    answered read_failed, and opens nothing.
 -- Each guard function is owned by tenant_guard, enters the tenant first,
 -- refuses any isolation level but READ COMMITTED (25001) and grants EXECUTE
 -- to service_role only; each wrapper is a postgres-owned invoker that reads
@@ -51,6 +59,7 @@
 --   DROP FUNCTION tenant_guard.reconcile_payment_account(uuid, uuid, jsonb);
 --   DROP FUNCTION public.defer_payment_event(uuid, integer);
 --   DROP FUNCTION tenant_guard.defer_payment_event(uuid, uuid, integer);
+--   REVOKE UPDATE (reconciled_at) ON TABLE public.payment_provider_accounts FROM tenant_guard;
 --   re-run, as tenant_guard, the CREATE OR REPLACE of tenant_guard.claim_provider_event this file replaced;
 --   ALTER TABLE public.stripe_connect_events DROP CONSTRAINT stripe_connect_events_processing_status_check,
 --     ADD CONSTRAINT stripe_connect_events_processing_status_check CHECK (processing_status IN
@@ -294,6 +303,7 @@ SET search_path = ''
 AS $$
 DECLARE
   v_event RECORD;
+  v_account RECORD;
   v_pi TEXT;
   v_intake UUID;
   v_task UUID;
@@ -308,7 +318,7 @@ BEGIN
   END IF;
 
   SELECT e.id, e.event_type, e.livemode, e.provider_account_id, e.stripe_event_id,
-         e.processing_status, e.process_attempts, e.raw_payload
+         e.processing_status, e.process_attempts, e.lease_expires_at, e.raw_payload
     INTO v_event
     FROM public.stripe_connect_events AS e
    WHERE e.id = p_event_id
@@ -319,10 +329,30 @@ BEGIN
       USING ERRCODE = '42501';
   END IF;
 
+  SELECT a.id, a.sync_lease_event_id
+    INTO v_account
+    FROM public.payment_provider_accounts AS a
+   WHERE a.tenant_id = p_tenant_id
+     AND a.provider_account_id = v_event.provider_account_id
+     AND a.livemode = v_event.livemode
+     FOR NO KEY UPDATE;
+
+  IF NOT FOUND THEN
+    RAISE EXCEPTION 'tenant_guard: payment provider account anchor not found in entered tenant'
+      USING ERRCODE = '42501';
+  END IF;
+
   IF (v_event.processing_status = 'processing' AND v_event.process_attempts = p_attempt) IS NOT TRUE THEN
     RAISE EXCEPTION 'event_not_claimed'
       USING ERRCODE = '55000',
             DETAIL = 'Only the attempt that claimed the event may defer it.';
+  END IF;
+
+  IF (v_event.lease_expires_at > pg_catalog.clock_timestamp()
+      AND v_account.sync_lease_event_id = p_event_id) IS NOT TRUE THEN
+    RAISE EXCEPTION 'lease_lost'
+      USING ERRCODE = '55000',
+            DETAIL = 'The attempt''s event lease ran out or the account''s sync lease names another event.';
   END IF;
 
   IF (v_event.event_type LIKE 'charge.refund%'
@@ -433,10 +463,7 @@ BEGIN
      SET sync_lease_event_id = NULL,
          sync_lease_expires_at = NULL,
          updated_at = v_now
-   WHERE tenant_id = p_tenant_id
-     AND provider_account_id = v_event.provider_account_id
-     AND livemode = v_event.livemode
-     AND sync_lease_event_id = p_event_id;
+   WHERE id = v_account.id;
 
   RETURN pg_catalog.jsonb_build_object(
     'outcome', 'deferred',
@@ -476,7 +503,8 @@ BEGIN
   SELECT a.id, a.legal_entity_id, a.provider_account_id, a.livemode
     INTO v_account
     FROM public.payment_provider_accounts AS a
-   WHERE a.id = p_account_id;
+   WHERE a.id = p_account_id
+     FOR NO KEY UPDATE;
 
   IF NOT FOUND THEN
     RAISE EXCEPTION 'tenant_guard: payment provider account not found in entered tenant'
@@ -490,6 +518,10 @@ BEGIN
       USING ERRCODE = '22023',
             DETAIL = 'The reading does not name this account and mode.';
   END IF;
+
+  UPDATE public.payment_provider_accounts
+     SET reconciled_at = pg_catalog.clock_timestamp()
+   WHERE id = v_account.id;
 
   SELECT b.id, b.status
     INTO v_binding
@@ -505,6 +537,14 @@ BEGIN
     RETURN pg_catalog.jsonb_build_object(
       'outcome', 'no_binding',
       'account_id', p_account_id,
+      'tenant_id', tenant_guard.current_tenant_id()
+    );
+  END IF;
+
+  IF (p_snapshot -> 'read_failed') = 'true'::JSONB THEN
+    RETURN pg_catalog.jsonb_build_object(
+      'outcome', 'read_failed',
+      'binding_status', v_binding.status,
       'tenant_id', tenant_guard.current_tenant_id()
     );
   END IF;
@@ -636,6 +676,8 @@ BEGIN
   RETURN tenant_guard.reconcile_payment_account(v_tenant, p_account_id, p_snapshot);
 END;
 $$;
+
+GRANT UPDATE (reconciled_at) ON TABLE public.payment_provider_accounts TO tenant_guard;
 
 REVOKE ALL ON FUNCTION
   tenant_guard.defer_payment_event(UUID, UUID, INTEGER),

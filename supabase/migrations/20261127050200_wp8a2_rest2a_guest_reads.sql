@@ -33,15 +33,25 @@
 --    and due, or processing with an expired lease ('payment_event', the
 --    type), and connected-account events in the same states
 --    ('account_event', the type and the account); each mapped test-mode
---    account whose binding is active or restricted ('account', its
---    account). An invoker that reads with clock_timestamp(); EXECUTE for
+--    account whose binding is pending, active or restricted ('account',
+--    its account), the least recently reconciled first. An invoker that
+--    reads with clock_timestamp(); EXECUTE for
 --    service_role only, which already reads those tables.
 --
--- No lock is taken: the file creates objects and adds no constraint to an
--- existing table.
+-- 4. public.payment_provider_accounts.reconciled_at: when the schedule last
+--    handed the account's provider reading, or a failed read, to
+--    tenant_guard.reconcile_payment_account (20261127050300), which stamps
+--    it; the due work orders accounts by it, never read first, so every
+--    account is read again within ceil(N / limit) ticks and a read that
+--    keeps failing goes to the back. Visible on Mission Control only, like
+--    the account's other times.
+--
+-- Locks, taken first and held to COMMIT: ACCESS EXCLUSIVE on
+-- payment_provider_accounts for the new nullable column (no rewrite).
+-- lock_timeout stops a run rather than queue it behind live traffic.
 --
 -- Recovery. A run lost between its COMMIT and its ledger row stops on the
--- next run at CREATE TABLE private.intake_rate_windows (42P07). This file
+-- next run at ADD COLUMN reconciled_at (42701). This file
 -- has committed when this read-only check is true:
 --   SELECT to_regclass('private.intake_rate_windows') IS NOT NULL
 -- Then follow docs/ops/release-job.md, "If the migration committed but its
@@ -53,9 +63,23 @@
 --   DROP FUNCTION public.checkout_giving_config(text, jsonb);
 --   DROP FUNCTION public.take_intake_rate_token(text);
 --   DROP TABLE private.intake_rate_windows;
+--   DELETE FROM public.field_policies WHERE record_type = 'payment_provider_accounts'
+--     AND field_key = 'reconciled_at';
+--   ALTER TABLE public.payment_provider_accounts DROP COLUMN reconciled_at;
 
 BEGIN;
 SET LOCAL lock_timeout = '5s';
+
+LOCK TABLE public.payment_provider_accounts IN ACCESS EXCLUSIVE MODE;
+
+ALTER TABLE public.payment_provider_accounts ADD COLUMN reconciled_at TIMESTAMPTZ;
+
+INSERT INTO public.field_policies (
+  record_type, field_key, surface, visible, editable, exportable, sensitivity_category
+)
+SELECT 'payment_provider_accounts', 'reconciled_at', s.surface, s.surface = 'mission_control',
+       false, false, 'internal'::public.field_sensitivity_category
+  FROM unnest(ARRAY['mission_control', 'donor', 'missionary', 'public', 'export']) AS s(surface);
 
 CREATE TABLE private.intake_rate_windows (
   address_digest TEXT NOT NULL
@@ -255,8 +279,8 @@ AS $fn$
       AND b.provider_account_ref = a.provider_account_id
       AND b.livemode = a.livemode
     WHERE a.livemode = false
-      AND b.status IN ('active', 'restricted')
-    ORDER BY a.id
+      AND b.status IN ('pending', 'active', 'restricted')
+    ORDER BY a.reconciled_at NULLS FIRST, a.id
     LIMIT p_limit);
 $fn$;
 
