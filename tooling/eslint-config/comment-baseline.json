@@ -2160,7 +2160,7 @@
   "tests/unit/packages/api/workflows/envelope-guard.test.ts": 3,
   "tests/unit/packages/api/workflows/inbound-email-workflow.test.ts": 11,
   "tests/unit/packages/api/workflows/inbound-routing.test.ts": 6,
-  "tests/unit/packages/api/workflows/recovery-cron-cadence.test.ts": 4,
+  "tests/unit/packages/api/workflows/recovery-cron-cadence.test.ts": 2,
   "tests/unit/packages/api/workflows/runtime-smoke.test.ts": 2,
   "tests/unit/packages/api/workflows/stripe-event-workflow.test.ts": 3,
   "tests/unit/packages/api/workflows/summaries-policy.test.ts": 4,
