@@ -243,7 +243,7 @@ function historyRow(value: unknown): PlatformHistoryRow | null {
 }
 
 export async function readPlatformHistory(
-  client: OperatorMfaClient = defaultClient(),
+  client: Pick<OperatorMfaClient, "rpc"> = defaultClient(),
   limit = 50,
 ): Promise<PlatformHistory> {
   try {
