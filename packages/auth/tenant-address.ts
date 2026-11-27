@@ -83,6 +83,13 @@ export function startsWithOrganizationId(pathname: string): boolean {
   return ORGANIZATION_ID_SEGMENT.test(pathname);
 }
 
+export function subRoleStartsAnotherAuthority(pathname: string): boolean {
+  const match = SUB_ROLE_SEGMENT.exec(pathname);
+  return (
+    match !== null && startsAnotherAuthority(pathname.slice(match[0].length))
+  );
+}
+
 export function nameAddressPrefix(subRole: StaffSubrole | null): string {
   return subRole ? `/~${subRole}` : "";
 }
@@ -102,6 +109,7 @@ export function refusesAddressOnName(
   roleClass: string | null,
 ): boolean {
   if (startsWithOrganizationId(pathname)) return true;
+  if (subRoleStartsAnotherAuthority(pathname)) return true;
   const address = parseSubRoleAddress(pathname);
   if (!address) return false;
   return (

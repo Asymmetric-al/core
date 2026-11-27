@@ -9,6 +9,7 @@ import {
 import {
   CHOOSER_PATH,
   isOutsideTenantSegment,
+  startsWithOrganizationId,
   stripTenantAddress,
   withTenantAddress,
 } from "@asym/auth/tenant-address";
@@ -17,6 +18,7 @@ import {
   listNameAddressChoices,
 } from "@asym/auth/tenant-address-decisions";
 import { readServerNameTenantState } from "@asym/auth/tenant-server";
+import { isServeUnderPathsEnabled } from "@asym/database/app-base-path";
 
 import type { MembershipRole, StaffSubrole } from "@asym/database/types";
 
@@ -65,6 +67,13 @@ function choicePath(next: string | null | undefined): string {
   if (!safe) return "/";
   const url = new URL(safe, "http://localhost");
   const pathname = stripTenantAddress(url.pathname);
+  if (
+    isServeUnderPathsEnabled() &&
+    (startsWithOrganizationId(url.pathname) ||
+      startsWithOrganizationId(pathname))
+  ) {
+    return "/";
+  }
   if (isOutsideTenantSegment(pathname)) return "/";
   // What is left once the prefix is gone is an address of its own, so it
   // passes the same check again before any href is built from it (council
