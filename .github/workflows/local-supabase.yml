@@ -210,6 +210,12 @@ on:
       - tests/e2e/auth-operator-area.spec.ts
       - tests/e2e/helpers/totp.ts
       - scripts/e2e/tee-dev-server.mjs
+      # Every other file that journey imports, which its path-filter pin
+      # derives (#2845 item 2; AL-2675, WP2c rest).
+      - tests/e2e/helpers/browser-stores.ts
+      - tests/e2e/helpers/operator-reads.ts
+      - tests/e2e/helpers/secret-pages.ts
+      - tests/e2e/playwright-shared.ts
       # Media custody, Storage refusal and signed-in delivery (AL-2679, WP6 part 1).
       - packages/api/src/storage/**
       - packages/api/src/media/**

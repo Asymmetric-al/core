@@ -18,6 +18,7 @@ const mfa = vi.hoisted(() => ({
   startEnrolment: vi.fn(),
   verifyCode: vi.fn(),
   removeFactor: vi.fn(),
+  readPlatformHistory: vi.fn(),
 }));
 
 const session = vi.hoisted(() => ({
@@ -30,6 +31,7 @@ vi.mock("@asym/auth/operator-mfa", () => ({
   startEnrolment: mfa.startEnrolment,
   verifyCode: mfa.verifyCode,
   removeFactor: mfa.removeFactor,
+  readPlatformHistory: mfa.readPlatformHistory,
 }));
 
 vi.mock("@asym/auth/client-session", () => ({
@@ -104,6 +106,8 @@ beforeEach(() => {
   mfa.startEnrolment.mockReset();
   mfa.verifyCode.mockReset();
   mfa.removeFactor.mockReset();
+  mfa.readPlatformHistory.mockReset();
+  mfa.readPlatformHistory.mockResolvedValue({ kind: "rows", rows: [] });
   session.signOutClientSession.mockReset();
   session.domAtSignOut = "";
   session.signOutClientSession.mockImplementation(async () => {

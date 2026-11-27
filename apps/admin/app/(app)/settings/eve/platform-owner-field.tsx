@@ -9,24 +9,25 @@ import { SearchableSelect } from "@asym/ui/components/shadcn/searchable-select";
 import { Skeleton } from "@asym/ui/components/shadcn/skeleton";
 import { useQuery } from "@tanstack/react-query";
 import { useId } from "react";
+import { z } from "zod";
 
 import type { EveLaunchPermission } from "@asym/api/eve/launch-readiness";
+import type { EveLaunchOperator } from "@asym/api/eve/launch-readiness/operators";
 import type { SearchableSelectOption } from "@asym/ui/components/shadcn/searchable-select";
 
-/**
- * Launch permissions can only be held by a platform owner (the
- * `grant_eve_launch_permission` RPC asserts the receiving profile is a
- * super_admin in the same tenant), so the picker lists exactly those people
- * from the existing tenant-scoped admin users API.
- */
-const PLATFORM_OWNERS_URL = "/api/admin/users?role=super_admin&limit=100";
-const PLATFORM_OWNERS_QUERY_KEY = [
+const PLATFORM_OPERATORS_URL = "/api/admin/eve/launch-readiness/operators";
+const PLATFORM_OPERATORS_QUERY_KEY = [
   "admin",
   "eve",
-  "launch-permission-people",
+  "launch-permission-operators",
 ] as const;
 
-/** Plain-language names for the permission codes the server stores. */
+const NOT_AN_OPERATOR_TEXT =
+  "Only a platform operator can grant launch permissions.";
+const LISTED_HINT =
+  "Only platform operators who belong to this organization are listed.";
+const EMPTY_TEXT = "No platform operators belong to this organization.";
+
 export const LAUNCH_PERMISSION_LABELS: Record<
   EveLaunchPermission,
   { label: string; detail: string }
@@ -45,45 +46,55 @@ export const LAUNCH_PERMISSIONS = Object.keys(
   LAUNCH_PERMISSION_LABELS,
 ) as EveLaunchPermission[];
 
-interface PlatformOwnerProfile {
-  id: string;
-  email?: string | null;
-  first_name?: string | null;
-  full_name?: string | null;
-  last_name?: string | null;
-}
-
-/** "Name (email)", falling back to whichever of the two is on file. */
-export function platformOwnerOption(
-  profile: PlatformOwnerProfile,
+export function platformOperatorOption(
+  operator: EveLaunchOperator,
 ): SearchableSelectOption {
-  const name =
-    profile.full_name?.trim() ||
-    [profile.first_name, profile.last_name]
-      .map((part) => part?.trim())
-      .filter(Boolean)
-      .join(" ");
-  const email = profile.email?.trim();
+  const name = operator.displayName?.trim();
+  const email = operator.email?.trim();
   const label =
     name && email
       ? `${name} (${email})`
-      : name || email || "Platform owner with no name or email on file";
-  return { value: profile.id, label };
+      : name || email || "Platform operator with no name or email on file";
+  return { value: operator.id, label };
 }
 
-async function loadPlatformOwners(): Promise<SearchableSelectOption[]> {
-  const response = await ownApiFetch(PLATFORM_OWNERS_URL, {
+class OperatorsReadError extends Error {
+  readonly status: number;
+
+  constructor(status: number) {
+    super("Could not load platform operators.");
+    this.name = "OperatorsReadError";
+    this.status = status;
+  }
+}
+
+const operatorsAnswerSchema = z.object({
+  operators: z.array(
+    z.object({
+      id: z.string().min(1),
+      displayName: z.string().nullable(),
+      email: z.string().nullable(),
+    }),
+  ),
+});
+
+async function loadPlatformOperators(): Promise<SearchableSelectOption[]> {
+  const response = await ownApiFetch(PLATFORM_OPERATORS_URL, {
     credentials: "same-origin",
     headers: { accept: "application/json" },
   });
-  const { ok, body } = await readJsonBody<{ users?: unknown }>(response);
-  if (!ok || !body || !Array.isArray(body.users)) {
-    throw new Error("Could not load platform owners.");
+  const { ok, body } = await readJsonBody<unknown>(response);
+  const parsed = operatorsAnswerSchema.safeParse(body);
+  if (!ok || !parsed.success) {
+    throw new OperatorsReadError(response.status);
   }
-  return (body.users as PlatformOwnerProfile[])
-    .filter((profile) => typeof profile?.id === "string")
-    .map(platformOwnerOption)
+  return parsed.data.operators
+    .map(platformOperatorOption)
     .sort((a, b) => a.label.localeCompare(b.label));
+}
+
+function isRefusal(error: unknown): boolean {
+  return error instanceof OperatorsReadError && error.status === 403;
 }
 
 export function PlatformOwnerField({
@@ -95,8 +106,8 @@ export function PlatformOwnerField({
 }) {
   const hintId = useId();
   const people = useQuery({
-    queryKey: PLATFORM_OWNERS_QUERY_KEY,
-    queryFn: loadPlatformOwners,
+    queryKey: PLATFORM_OPERATORS_QUERY_KEY,
+    queryFn: loadPlatformOperators,
     retry: false,
     staleTime: 60_000,
   });
@@ -105,18 +116,22 @@ export function PlatformOwnerField({
     return <Skeleton className="h-9" />;
   }
 
+  if (people.isError && isRefusal(people.error)) {
+    return (
+      <p className="text-sm text-muted-foreground">{NOT_AN_OPERATOR_TEXT}</p>
+    );
+  }
+
   if (people.isError) {
-    // Without the list, an owner who knows the profile ID can still act, and
-    // a temporary failure can be retried without reloading the page.
     const isRetrying = people.isFetching;
     return (
       <div className="space-y-2">
         <Label htmlFor="eve-launch-profile">
-          Platform owner&apos;s profile ID
+          Platform operator&apos;s profile ID
         </Label>
         <div className="flex flex-wrap items-center justify-between gap-2">
           <p className="text-sm text-muted-foreground">
-            We could not load the list of platform owners.
+            We could not load the list of platform operators.
           </p>
           <Button
             type="button"
@@ -127,7 +142,7 @@ export function PlatformOwnerField({
             focusableWhenDisabled
             aria-busy={isRetrying || undefined}
           >
-            Load platform owners again
+            Load platform operators again
           </Button>
         </div>
         <Input
@@ -150,25 +165,23 @@ export function PlatformOwnerField({
   return (
     <div className="space-y-2">
       <Label id="eve-launch-profile-label" htmlFor="eve-launch-profile">
-        Platform owner
+        Platform operator
       </Label>
       <SearchableSelect
         id="eve-launch-profile"
         aria-labelledby="eve-launch-profile-label"
         aria-describedby={hintId}
-        searchLabel="Search platform owners by name or email"
+        searchLabel="Search platform operators by name or email"
         items={options}
         value={profileId || null}
         onValueChange={(value) => onProfileIdChange(value ?? "")}
         disabled={options.length === 0}
         placeholder={
-          options.length === 0
-            ? "No platform owners found"
-            : "Choose a platform owner"
+          options.length === 0 ? EMPTY_TEXT : "Choose a platform operator"
         }
       />
       <p id={hintId} className="text-xs text-muted-foreground">
-        Search by name or email. Only platform owners are listed.
+        {LISTED_HINT}
       </p>
     </div>
   );

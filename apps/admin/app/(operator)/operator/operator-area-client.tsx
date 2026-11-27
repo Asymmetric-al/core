@@ -52,6 +52,8 @@ import Image from "next/image";
 import { useCallback, useEffect, useId, useRef, useState } from "react";
 import { flushSync } from "react-dom";
 
+import { PlatformHistoryPanel } from "./platform-history";
+
 import type { FormEvent } from "react";
 
 const CODE_LENGTH = 6;
@@ -530,6 +532,7 @@ function AreaPanel({
           onReread={onChanged}
         />
       )}
+      <PlatformHistoryPanel />
       <AlertDialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
