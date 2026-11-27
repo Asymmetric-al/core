@@ -184,6 +184,58 @@ describe("a gift read back is the caller's when its donor is theirs by profile, 
       ).toBeNull();
   });
 
+  function reads(rows: Record<string, { list?: unknown[]; single?: unknown }>) {
+    const calls: string[] = [];
+    const from = vi.fn((table: string) => {
+      calls.push(table);
+      const chain: Record<string, unknown> = {};
+      for (const method of ["select", "eq", "limit"])
+        chain[method] = () => chain;
+      chain.maybeSingle = async () => ({
+        data: rows[table]?.single ?? null,
+        error: null,
+      });
+      chain.then = (resolve: (value: unknown) => unknown) =>
+        resolve({ data: rows[table]?.list ?? [], error: null });
+      return chain;
+    });
+    return { supabase: { from } as never, calls };
+  }
+
+  it("a login with an account link resolves through that link only: its linked Party holds no donor, and a worker row on another Party whose donor gave does not make that gift its own (WP5 rest 2b item zero, issue 2835's item 1; red: accepted through the worker row)", async () => {
+    const { supabase, calls } = reads({
+      account_links: { single: { party_id: "party-l" } },
+      donors: { list: [], single: { party_id: "party-w" } },
+      missionaries: { list: [{ party_id: "party-w" }] },
+    });
+    expect(
+      await callerGiftMismatches(
+        supabase,
+        stored({ profile: null }, "donor-w"),
+        GIFT,
+        PERSON,
+      ),
+    ).toEqual(["profile"]);
+    expect(calls).not.toContain("missionaries");
+  });
+
+  it("on the worker path the Party must hold exactly one donor, the one asked for: a worker's Party with two donors is refused (WP5 rest 2b item zero, issue 2835's item 1; red: accepted)", async () => {
+    expect(
+      await callerGiftMismatches(
+        reads({
+          missionaries: { list: [{ party_id: "party-w" }] },
+          donors: {
+            list: [{ id: "donor-w" }, { id: "donor-x" }],
+            single: { party_id: "party-w" },
+          },
+        }).supabase,
+        stored({ profile: null }, "donor-w"),
+        GIFT,
+        PERSON,
+      ),
+    ).toEqual(["profile"]);
+  });
+
   it("still reports the other fields when the donor is the caller's", async () => {
     expect(
       await callerGiftMismatches(
