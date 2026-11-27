@@ -36,6 +36,7 @@ import {
   preMembershipExceptions,
   protectedEntry,
   WORKER_WRAPPER_ANCHOR_LOOKUPS,
+  WORKER_WRAPPER_ANCHOR_SIGNATURES,
   workerWrapperCallsLookup,
   workerWrapperHasWrite,
   workerWrapperPassesTenantArg,
@@ -1320,7 +1321,7 @@ export function evaluateTenantRlsCatalog(
         const called = workerWrapperCallsLookup(w.body, stripComments, lookup);
         if (
           called &&
-          ![...anon.allowed].some((fn) => fn.startsWith(`${lookup}(`))
+          !anon.allowed.has(WORKER_WRAPPER_ANCHOR_SIGNATURES[lookup])
         )
           failFn(
             "WORKER_WRAPPER_ANCHOR_LOOKUP_UNREVIEWED",
