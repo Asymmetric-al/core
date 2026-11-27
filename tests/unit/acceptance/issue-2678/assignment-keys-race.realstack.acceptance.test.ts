@@ -66,7 +66,7 @@ describe.skipIf(!ADMIN_URL)(
       return user;
     }
 
-    async function worker(profile: string) {
+    async function worker(profile: string | null) {
       const id = randomUUID();
       await admin.query(
         "insert into public.parties (id, tenant_id, display_name) values ($1, $2, 'Worker C')",
@@ -90,6 +90,66 @@ describe.skipIf(!ADMIN_URL)(
         ).rows[0].a;
       return out;
     };
+
+    const CHILDREN = [
+      [
+        "donors",
+        "insert into public.donors (id, tenant_id, party_id, missionary_id, name) values ($1, $2, public.donor_party_for_insert($2::uuid, null, 'acc2678 F3', null), $3, 'acc2678 F3')",
+      ],
+      [
+        "posts",
+        "insert into public.posts (id, tenant_id, missionary_id, content) values ($1, $2, $3, 'acc2678 F3')",
+      ],
+      [
+        "follows",
+        "insert into public.follows (id, tenant_id, missionary_id) values ($1, $2, $3)",
+      ],
+      [
+        "follower_requests",
+        "insert into public.follower_requests (id, tenant_id, missionary_id) values ($1, $2, $3)",
+      ],
+      [
+        "missionary_tasks",
+        "insert into public.missionary_tasks (id, tenant_id, missionary_id, title) values ($1, $2, $3, 'acc2678 F3')",
+      ],
+    ] as const;
+
+    async function writeChildren(c: pg.Client, profile: string) {
+      const rows: Record<string, string> = {};
+      for (const [table, sql] of CHILDREN) {
+        rows[table] = randomUUID();
+        await c.query(sql, [rows[table], T, profile]);
+      }
+      return rows;
+    }
+
+    async function linking(kind: "second" | "first", profile: string) {
+      if (kind === "second") {
+        await worker(profile);
+        const added = randomUUID();
+        await admin.query(
+          "insert into public.parties (id, tenant_id, display_name) values ($1, $2, 'Worker C two')",
+          [added, T],
+        );
+        return {
+          expected: null,
+          link: (c: pg.Client) =>
+            c.query(
+              "insert into public.missionaries (id, tenant_id, party_id, profile_id, legal_entity_id) values ($1, $2, $1, $3, $2)",
+              [added, T, profile],
+            ),
+        };
+      }
+      const unlinked = await worker(null);
+      return {
+        expected: unlinked,
+        link: (c: pg.Client) =>
+          c.query(
+            "update public.missionaries set profile_id = $2 where id = $1",
+            [unlinked, profile],
+          ),
+      };
+    }
 
     beforeAll(async () => {
       for (const client of [admin, c1, c2]) await client.connect();
@@ -115,6 +175,8 @@ describe.skipIf(!ADMIN_URL)(
         }
       for (const [sql, params] of [
         ["delete from public.audit_logs where tenant_id = $1", [T]],
+        ["delete from public.follows where tenant_id = $1", [T]],
+        ["delete from public.follower_requests where tenant_id = $1", [T]],
         ["delete from public.posts where tenant_id = $1", [T]],
         ["delete from public.missionary_tasks where tenant_id = $1", [T]],
         ["delete from public.donors where tenant_id = $1", [T]],
@@ -230,6 +292,57 @@ describe.skipIf(!ADMIN_URL)(
       expect(await keysOf({ posts: post })).toEqual({ posts: null });
       expect(waited).toBe(true);
     });
+
+    for (const [kind, race, owner] of [
+      [
+        "second",
+        "one to two: S2 links a second worker to the login",
+        "no key, since the login then has two workers",
+      ],
+      [
+        "first",
+        "none to one: S2 gives a worker with no login that login",
+        "that worker's key, since it is then the sole assignment",
+      ],
+    ] as const)
+      for (const first of ["children", "link"] as const)
+        it(`F3 (fix round of pull request 2859), ${race}, ${first === "children" ? "S1's children written first" : "S2's link first"}: one row of each of the five tables the derivation serves ends with ${owner}, whichever commits last (red: ${first === "children" ? "S2 does not wait and the rows keep what S1 derived" : "S1 does not wait and derives from what it saw"})`, async () => {
+          const P = await login();
+          const { expected, link } = await linking(kind, P);
+          const [holder, waiter] = first === "children" ? [c1, c2] : [c2, c1];
+          let pending: Promise<unknown> | undefined;
+          try {
+            await holder.query("begin");
+            await waiter.query("begin");
+            await waiter.query("set local lock_timeout = '20s'");
+            let rows: Record<string, string>;
+            let waited: boolean;
+            if (first === "children") {
+              rows = await writeChildren(c1, P);
+              pending = link(c2);
+              waited = await blockedOrSettled(admin, pending, c2pid, c1pid);
+              await c1.query("commit");
+              await pending;
+              await c2.query("commit");
+            } else {
+              await link(c2);
+              const writing = writeChildren(c1, P);
+              pending = writing;
+              waited = await blockedOrSettled(admin, writing, c1pid, c2pid);
+              await c2.query("commit");
+              rows = await writing;
+              await c1.query("commit");
+            }
+            expect(await keysOf(rows)).toEqual(
+              Object.fromEntries(CHILDREN.map(([table]) => [table, expected])),
+            );
+            expect(waited).toBe(true);
+          } finally {
+            await holder.query("rollback").catch(() => undefined);
+            await pending?.catch(() => undefined);
+            await waiter.query("rollback").catch(() => undefined);
+          }
+        });
 
     it("9. item 3: the repair locks the rows it reads, so when another session changes a wrong key and commits while the repair waits, the old key it reports is the key it replaced (red: the key it read before it waited)", async () => {
       const P = await login();
