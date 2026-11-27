@@ -173,35 +173,71 @@ test("a choice in Web Studio's chooser enters by a document load; the API tab sh
   });
 });
 
+async function createFromTemplate(page: Page, stamp: string) {
+  return page.evaluate(async (suffix) => {
+    const response = await fetch(
+      "/admin/web-studio/api/web-studio/create-from-template",
+      {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          starterKey: "standard",
+          title: `N2 on template ${suffix}`,
+          slug: `n2-on-template-${suffix}`,
+        }),
+      },
+    );
+    const body = (await response.json().catch(() => ({}))) as { id?: string };
+    return {
+      status: response.status,
+      refusal: response.headers.get("x-asym-web-studio-refusal"),
+      id: body.id ?? null,
+    };
+  }, stamp);
+}
+
+function pagesWithSlug(slug: string): string {
+  return sql(`SELECT count(*) FROM cms.pages WHERE slug = '${slug}'`);
+}
+
 test("Web Studio left open after the name's generation moved refuses a page made from a template with the reload prompt, and makes none", async ({
   page,
 }) => {
   await enterWebStudio(page);
   await page.waitForLoadState("networkidle");
-  const before = sql("SELECT count(*) FROM cms.pages");
+  await documentFetchInPlace(page);
+
+  const fresh = `${Date.now()}a`;
+  const made = await createFromTemplate(page, fresh);
+  expect(
+    made.status,
+    "the same call with the current generation makes a draft",
+  ).toBe(200);
+  expect(made.id).not.toBeNull();
+  expect(pagesWithSlug(`n2-on-template-${fresh}`)).toBe("1");
+  const removed = await page.evaluate(async (pageId) => {
+    const response = await fetch(`/admin/web-studio/api/pages/${pageId}`, {
+      method: "DELETE",
+    });
+    return response.status;
+  }, made.id!);
+  expect(removed).toBe(200);
+  expect(pagesWithSlug(`n2-on-template-${fresh}`)).toBe("0");
+
+  const stale = `${Date.now()}b`;
   const saved = saveName();
   try {
     bumpGeneration();
-    await documentFetchInPlace(page);
-    const answer = await page.evaluate(async () => {
-      const response = await fetch(
-        "/admin/web-studio/api/web-studio/create-from-template",
-        {
-          method: "POST",
-          headers: { "content-type": "application/json" },
-          body: JSON.stringify({ title: "N2 on template" }),
-        },
-      );
-      return {
-        status: response.status,
-        refusal: response.headers.get("x-asym-web-studio-refusal"),
-      };
+    const answer = await createFromTemplate(page, stale);
+    expect(answer).toEqual({
+      status: 409,
+      refusal: "scope_mismatch",
+      id: null,
     });
-    expect(answer).toEqual({ status: 409, refusal: "scope_mismatch" });
     const notice = page.getByRole("alertdialog");
     await expect(notice).toBeVisible();
     await expect(notice).toContainText(STALE_MESSAGE);
-    expect(sql("SELECT count(*) FROM cms.pages")).toBe(before);
+    expect(pagesWithSlug(`n2-on-template-${stale}`)).toBe("0");
   } finally {
     restoreName(saved);
   }
