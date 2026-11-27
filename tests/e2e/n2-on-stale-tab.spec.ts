@@ -131,6 +131,10 @@ test("a tab left open after the name's generation moved cannot read or write, sh
         .toBe(0);
       const judged = judgeStaleCalls(appCalls(), moved);
       expect(
+        judged.transportErrors.map((call) => [call.url, call.failure]),
+        `${role}: a stale call failed in transport`,
+      ).toEqual([]);
+      expect(
         judged.served.map((call) => [call.url, call.status]),
         role,
       ).toEqual([]);
