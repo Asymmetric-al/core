@@ -129,6 +129,20 @@ const STATUS: Record<WebStudioRefusal, number> = {
   scope_mismatch: 409,
 };
 
+export function webStudioRefusalResponse(refusal: WebStudioRefusal): Response {
+  const message = WEB_STUDIO_REFUSAL_MESSAGES[refusal];
+  return Response.json(
+    { message, errors: [{ message }], docs: [] },
+    {
+      status: STATUS[refusal],
+      headers: {
+        [WEB_STUDIO_REFUSAL_HEADER]: refusal,
+        "cache-control": "no-store",
+      },
+    },
+  );
+}
+
 const REFUSAL_ERROR_NAMES = new Set(["Forbidden", "UnauthorizedError"]);
 
 /** Payload `hooks.afterError`: the refusal's status and message for an anonymous `Forbidden`. */
