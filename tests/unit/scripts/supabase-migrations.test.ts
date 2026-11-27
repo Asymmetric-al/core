@@ -16,7 +16,10 @@ import { fileURLToPath } from "node:url";
 import { afterEach, describe, expect, it } from "vitest";
 import { KEPT_READS } from "../../../scripts/verify/tenant-rls-catalog.mjs";
 
-import { ownMinistryCommandRows } from "../../fixtures/own-ministry-commands";
+import {
+  ownMinistryCommandRows,
+  ownMinistryHelperRows,
+} from "../../fixtures/own-ministry-commands";
 import { preMembershipCommandRows } from "../../fixtures/pre-membership-commands";
 import { MIGRATION } from "../acceptance/issue-2256/harness";
 
@@ -168,7 +171,11 @@ function runVerifier(
     ],
     // AL-2674: the gate also reads the command-schema functions, the
     // wrappers that call into them and the unadmitted table grants.
-    commands: [...preMembershipCommandRows(), ...ownMinistryCommandRows()],
+    commands: [
+      ...preMembershipCommandRows(),
+      ...ownMinistryCommandRows(),
+      ...ownMinistryHelperRows(),
+    ],
     wrappers: [],
     grants: [],
     service_role_grants: [],

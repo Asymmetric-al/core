@@ -171,7 +171,7 @@ describe("GET /api/posts reads on the caller's own token (AL-2680, WP7 pull requ
   });
 });
 
-describe("AL-2680 fix round S5: the feed names its columns, and a reviewer's reason and the author's login reach only the author and a reviewer", () => {
+describe("AL-2680 fix round S5: the feed names its columns, and a reviewer's reason and the author's login reach only the author here (a reviewer reads them in Mission Control)", () => {
   it("selects named columns only, none of them the reviewer's identity", () => {
     const columns = FEED_POST_SELECT.split(",").map((c) => c.trim());
     expect(columns).not.toContain("*");
@@ -181,7 +181,7 @@ describe("AL-2680 fix round S5: the feed names its columns, and a reviewer's rea
       expect(columns).toContain(shown);
   });
 
-  it("keeps the reason and the author's login on the caller's own update and on every row for a reviewer, and drops them from another person's update", async () => {
+  it("keeps the reason and the author's login on the caller's own update, and drops them from another person's update for every other reader, staff included", async () => {
     s.sessionRows = [
       {
         id: "post-1",
@@ -210,13 +210,11 @@ describe("AL-2680 fix round S5: the feed names its columns, and a reviewer's rea
     expect(own.posts[1]?.review_reason).toBeNull();
 
     s.getAuthContext.mockResolvedValue(signedIn("staff"));
-    const reviewer = (await (
-      await GET(request("?status=published"))
-    ).json()) as { posts: Record<string, unknown>[] };
-    expect(reviewer.posts[1]).toMatchObject({
-      author_user_id: "user-2",
-      review_reason: "automatic",
-    });
+    const staff = (await (await GET(request("?status=published"))).json()) as {
+      posts: Record<string, unknown>[];
+    };
+    expect(staff.posts[1]).not.toHaveProperty("author_user_id");
+    expect(staff.posts[1]?.review_reason).toBeNull();
   });
 });
 
