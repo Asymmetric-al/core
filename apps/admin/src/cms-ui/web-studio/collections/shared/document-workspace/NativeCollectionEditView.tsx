@@ -22,6 +22,7 @@ import {
 import { cn } from "@asym/ui/lib/utils";
 import {
   DefaultEditView,
+  useAuth,
   useDocumentInfo,
   useDocumentTitle,
   useForm,
@@ -47,6 +48,7 @@ import { NativeDocumentSubtitle } from "./document-subtitle";
 import {
   buildNativeDocumentStateItems,
   describeUnpublishedVersions,
+  isLockedByAnotherEditor,
   documentHeading,
   glanceNativeDocumentStateItems,
 } from "./editor-state";
@@ -55,6 +57,7 @@ import { NativeDocumentWorkspaceSettingsDialog } from "./NativeDocumentWorkspace
 import { usePopupTriggerRoles } from "./popup-trigger-roles";
 import { usePublishedPageURL } from "./use-published-page-url";
 import { buildWebStudioAuthenticatedPreviewPath } from "../../../adapters/preview-url";
+import { mediaAddress } from "../../../media/media-upload";
 import { Link } from "../../../routing";
 import { StudioLayout } from "../../../shell/studio-layout";
 import { getWebStudioCollectionConfig } from "../../config";
@@ -75,6 +78,7 @@ function warnPreferenceDev(context: string, error: unknown) {
 }
 
 export type NativeCollectionEditViewProps = DocumentViewClientProps & {
+  documentActions?: ReactNode;
   studioCollection: WebStudioCollectionSlug;
 };
 
@@ -225,8 +229,8 @@ function resolveNativeCollectionEditModel({
     versionCount,
   });
   const mediaPreviewUrl =
-    studioCollection === "media" && typeof data?.url === "string"
-      ? data.url
+    studioCollection === "media" && typeof data?.id === "string"
+      ? mediaAddress(data.id)
       : null;
 
   return {
@@ -714,6 +718,7 @@ function NativeCollectionInspector({
 }
 
 export function NativeCollectionEditView({
+  documentActions,
   studioCollection,
   ...props
 }: NativeCollectionEditViewProps) {
@@ -795,39 +800,42 @@ export function NativeCollectionEditView({
         <div className="flex flex-col gap-4 px-4 py-4 sm:px-6 md:gap-6 md:py-6 lg:px-8">
           <NativeCollectionEditHeader
             actions={
-              <NativeCollectionEditActions
-                apiHref={model.apiHref}
-                documentPath={model.documentPath}
-                livePreviewHref={model.livePreviewHref}
-                onOpenSettings={() => setSettingsOpen(true)}
-                pinToggle={
-                  collectionSlug &&
-                  (typeof data?.id === "string" ||
-                    typeof data?.id === "number") ? (
-                    <DocumentPinToggle
-                      collectionSlug={collectionSlug}
-                      documentId={data.id}
+              <>
+                {documentActions}
+                <NativeCollectionEditActions
+                  apiHref={model.apiHref}
+                  documentPath={model.documentPath}
+                  livePreviewHref={model.livePreviewHref}
+                  onOpenSettings={() => setSettingsOpen(true)}
+                  pinToggle={
+                    collectionSlug &&
+                    (typeof data?.id === "string" ||
+                      typeof data?.id === "number") ? (
+                      <DocumentPinToggle
+                        collectionSlug={collectionSlug}
+                        documentId={data.id}
+                      />
+                    ) : null
+                  }
+                  previewLinks={
+                    <DocumentPreviewLinks
+                      className={
+                        workspace.inspectorOpen ? "xl:hidden" : undefined
+                      }
+                      previewURL={headerPreviewLinks.previewHref}
+                      publishedURL={headerPreviewLinks.publishedHref}
                     />
-                  ) : null
-                }
-                previewLinks={
-                  <DocumentPreviewLinks
-                    className={
-                      workspace.inspectorOpen ? "xl:hidden" : undefined
-                    }
-                    previewURL={headerPreviewLinks.previewHref}
-                    publishedURL={headerPreviewLinks.publishedHref}
-                  />
-                }
-                previewMenu={
-                  <DocumentPreviewMenu
-                    previewURL={headerPreviewLinks.previewHref}
-                    publishedURL={headerPreviewLinks.publishedHref}
-                  />
-                }
-                versionCount={versionCount}
-                versionsHref={model.versionsHref}
-              />
+                  }
+                  previewMenu={
+                    <DocumentPreviewMenu
+                      previewURL={headerPreviewLinks.previewHref}
+                      publishedURL={headerPreviewLinks.publishedHref}
+                    />
+                  }
+                  versionCount={versionCount}
+                  versionsHref={model.versionsHref}
+                />
+              </>
             }
             heading={model.heading}
             readOnly={model.readOnly}
@@ -892,6 +900,8 @@ export function NativeCollectionEditView({
                 // link button would duplicate it, so its slot stays empty
                 // (a null slot falls back to Payload's default button).
                 PreviewButton={<NoPayloadPreviewButton />}
+                PublishButton={<NoPayloadPublishButton />}
+                UnpublishButton={<NoPayloadPublishButton />}
               />
             </div>
             {workspace.inspectorOpen ? (
@@ -942,6 +952,7 @@ function NativeDocumentFormBridge({
   studioConfig: WebStudioCollectionConfig;
 }) {
   const {
+    currentEditor,
     data,
     documentIsLocked,
     hasPublishedDoc,
@@ -951,6 +962,7 @@ function NativeDocumentFormBridge({
     unpublishedVersionCount,
     uploadStatus,
   } = useDocumentInfo();
+  const { user } = useAuth();
   const form = useForm();
   const backgroundProcessing = useFormBackgroundProcessing();
   const formInitializing = useFormInitializing();
@@ -960,7 +972,11 @@ function NativeDocumentFormBridge({
   const stateItems = buildNativeDocumentStateItems({
     backgroundProcessing,
     documentId: documentIdFromData(data),
-    documentIsLocked: Boolean(documentIsLocked),
+    documentIsLocked: isLockedByAnotherEditor({
+      currentEditor,
+      documentIsLocked: Boolean(documentIsLocked),
+      userId: user?.id,
+    }),
     hasDrafts: studioConfig.hasDrafts,
     hasPublishedDoc: Boolean(hasPublishedDoc),
     isTrashed: Boolean(isTrashed),
@@ -1106,5 +1122,9 @@ function NativeDocumentStateSummary({
 
 /** Fills Payload's preview-button slot with nothing; see the edit view. */
 function NoPayloadPreviewButton() {
+  return null;
+}
+
+function NoPayloadPublishButton() {
   return null;
 }

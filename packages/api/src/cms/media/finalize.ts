@@ -7,7 +7,7 @@ import { finalizeMediaUpload } from "../../storage/media-store";
 
 const finalizeMediaUploadBodySchema = z
   .object({
-    assetId: z.string().uuid(),
+    assetId: z.guid().transform((value) => value.toLowerCase()),
   })
   .strict();
 

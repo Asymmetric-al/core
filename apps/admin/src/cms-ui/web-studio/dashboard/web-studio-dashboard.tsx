@@ -147,10 +147,12 @@ function CreateFlows() {
 function CollectionCount({
   total,
   drafts = null,
+  draftsFailed = false,
   unit,
 }: {
   total: number | null;
   drafts?: number | null;
+  draftsFailed?: boolean;
   unit: CountUnit;
 }) {
   if (total === null) {
@@ -160,6 +162,11 @@ function CollectionCount({
   }
   return (
     <span className="flex items-center gap-2">
+      {draftsFailed ? (
+        <span className="text-xs text-muted-foreground">
+          Draft count unavailable
+        </span>
+      ) : null}
       {drafts ? (
         <Badge variant="info">
           {numberFormatter.format(drafts)} {drafts === 1 ? "draft" : "drafts"}
@@ -241,6 +248,7 @@ function CollectionDirectory({
                 <CollectionCount
                   total={collection.total}
                   drafts={collection.drafts}
+                  draftsFailed={collection.draftsFailed}
                   unit={DOCUMENT_UNIT}
                 />
               }
@@ -262,6 +270,9 @@ function RecentStatusBadge({
   if (status === "published") return <Badge variant="success">Published</Badge>;
   if (status === "changed") return <Badge variant="warning">Changed</Badge>;
   if (status === "draft") return <Badge variant="info">Draft</Badge>;
+  if (status === "unknown") {
+    return <Badge variant="outline">Status unavailable</Badge>;
+  }
   return null;
 }
 

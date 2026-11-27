@@ -349,7 +349,7 @@ describe("NativeCollectionGrid", () => {
     }
   });
 
-  it("selects documents into Payload's selection and offers Payload's bulk actions", () => {
+  it("selects documents into Payload's selection and offers Payload's bulk actions, Publish and Unpublish excepted (WP6 rest, pull request 2)", () => {
     const view = setup({
       bulk: { collection: { slug: "pages" }, hasDeletePermission: true },
     });
@@ -363,13 +363,16 @@ describe("NativeCollectionGrid", () => {
     fixture.selected = new Map([[1, true]]);
     view.unmount();
     setup({
-      bulk: { collection: { slug: "pages" }, hasDeletePermission: true },
+      bulk: {
+        collection: { slug: "pages", versions: { drafts: { autosave: true } } },
+        hasDeletePermission: true,
+      },
     });
     const bar = screen.getByRole("group", { name: "1 page selected" });
     expect(bar.textContent).toContain("1 page selected");
-    expect(within(bar).getByRole("button", { name: "Edit 1" })).toBeTruthy();
-    expect(within(bar).getByRole("button", { name: "Publish" })).toBeTruthy();
-    expect(within(bar).getByRole("button", { name: "Unpublish" })).toBeTruthy();
+    expect(within(bar).queryByRole("button", { name: "Edit 1" })).toBeNull();
+    expect(within(bar).queryByRole("button", { name: "Publish" })).toBeNull();
+    expect(within(bar).queryByRole("button", { name: "Unpublish" })).toBeNull();
     const remove = within(bar).getByRole("button", { name: "Delete" });
     expect(JSON.parse(remove.dataset.ids ?? "{}")).toEqual({
       pages: { all: false, ids: [1], totalCount: 1 },
@@ -378,6 +381,32 @@ describe("NativeCollectionGrid", () => {
       within(bar).getByRole("button", { name: "Clear selection" }),
     );
     expect(fixture.toggleAll).toHaveBeenCalled();
+  });
+
+  it("offers Payload's bulk Edit only where its drawer cannot publish: never on a collection with drafts, until WP7 (fix round F2)", () => {
+    fixture.selected = new Map([[1, true]]);
+    const drafts = setup({
+      bulk: {
+        collection: { slug: "pages", versions: { drafts: true } },
+        hasDeletePermission: true,
+      },
+    });
+    expect(
+      within(screen.getByRole("group", { name: /selected/ })).queryByRole(
+        "button",
+        { name: /^Edit/ },
+      ),
+    ).toBeNull();
+    drafts.unmount();
+    setup({
+      bulk: { collection: { slug: "navigation" }, hasDeletePermission: true },
+    });
+    expect(
+      within(screen.getByRole("group", { name: /selected/ })).getByRole(
+        "button",
+        { name: "Edit 1" },
+      ),
+    ).toBeTruthy();
   });
 
   it("reorders columns from the View panel and saves Payload's column order", async () => {

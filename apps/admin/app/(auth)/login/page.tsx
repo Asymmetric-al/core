@@ -4,6 +4,8 @@ import { LoginScreen } from "@asym/ui/components/auth/LoginScreen";
 
 import type { Metadata } from "next";
 
+import { PayloadClipboardReset } from "@/src/cms-ui/web-studio/shell/payload-clipboard";
+
 export const metadata: Metadata = {
   title: "Sign in",
   description: "Sign in to the admin portal.",
@@ -20,15 +22,18 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
   });
 
   return (
-    <LoginScreen
-      appId="admin"
-      nextPath={nextPath}
-      demoOnly={serverEnv.DEMO_ONLY_LOGIN === true}
-      title="Sign in"
-      subtitle="Access is by invitation. Ask your Mission Control administrator for an account."
-      // Invitation guidance replaces the registration link. Password reset
-      // is self-service, through the default /forgot-password link.
-      showRegisterLink={false}
-    />
+    <>
+      <PayloadClipboardReset />
+      <LoginScreen
+        appId="admin"
+        nextPath={nextPath}
+        demoOnly={serverEnv.DEMO_ONLY_LOGIN === true}
+        title="Sign in"
+        subtitle="Access is by invitation. Ask your Mission Control administrator for an account."
+        // Invitation guidance replaces the registration link. Password reset
+        // is self-service, through the default /forgot-password link.
+        showRegisterLink={false}
+      />
+    </>
   );
 }

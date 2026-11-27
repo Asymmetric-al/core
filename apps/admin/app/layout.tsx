@@ -16,6 +16,8 @@ import { AdminTanStackDevtools } from "./_providers/tanstack-devtools";
 
 import type { Metadata, Viewport } from "next";
 
+import { PayloadClipboardGuard } from "@/src/cms-ui/web-studio/shell/payload-clipboard";
+
 // Layer order first: it decides how Payload's stylesheets rank against Tailwind.
 import "./css-layer-order.css";
 import "./globals.css";
@@ -85,6 +87,7 @@ export default function RootLayout({
             disableTransitionOnChange
           >
             <BoneyardRegistry />
+            <PayloadClipboardGuard />
             {/* A navigation across the tenant segment's boundary loads a
                 new document, so no client state crosses it (AL-2675). */}
             <ScopeReloadNotices>

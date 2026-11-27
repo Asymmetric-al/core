@@ -62,6 +62,7 @@ vi.mock(
     }: {
       BeforeDocumentControls?: ReactNode;
     }) => <div>{BeforeDocumentControls}</div>,
+    useAuth: () => ({ user: null }),
     useConfig: () => ({ config: { routes: { api: fixture.api } } }),
     useDocumentInfo: () => fixture.info,
     useDocumentTitle: () => ({ title: "About" }),

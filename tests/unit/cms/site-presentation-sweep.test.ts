@@ -208,6 +208,21 @@ describe("AL-2679 WP6 rest: the sweep's own Payload process", () => {
     expect(text).not.toContain("hunter2hunter2");
   });
 
+  it("scrubs the cms_runtime password in the percent-encoded form PAYLOAD_DATABASE_URI carries, as well as decoded (#2839, item zero 3)", async () => {
+    const { failureText } = await sweep();
+    const password = `p@ss/w:rd%#?[]^|${"q".repeat(20)}`;
+    const uri = `postgresql://cms_runtime.${REF}:${encodeURIComponent(password)}@aws-0-us-east-1.pooler.supabase.com:5432/postgres`;
+    const raw = new URL(uri).password;
+    expect(raw).not.toBe(password);
+    const text = failureText(
+      new Error(`auth failed with ${raw} after ${password}`),
+      { PAYLOAD_SECRET: "f".repeat(64), PAYLOAD_DATABASE_URI: uri },
+    );
+    expect(text).toContain("auth failed");
+    expect(text).not.toContain(raw);
+    expect(text).not.toContain(password);
+  });
+
   it("takes only a list of Sites, each a pair of UUIDs, and nothing else", async () => {
     const { readSweepInput } = await sweep();
     expect(
