@@ -6,7 +6,7 @@ export const REASON_GUIDANCE =
   "Say why, not who or where. Do not write a name, a place or contact details: reasons are kept in the audit log, which platform administrators can read.";
 
 export const DO_NOT_PUBLISH_NOTE =
-  "Saves the setting now; hiding posts and pages arrives in a later publishing update.";
+  "Takes their updates out of every feed now; hiding profiles and pages arrives in a later publishing update.";
 
 const LEVEL_VARIANTS = {
   standard: "secondary",
@@ -35,12 +35,12 @@ const DOES_NOT_CHANGE = [
   "A Web Studio giving page made from a template keeps the title and address it was made with.",
   "A fund named after the worker keeps its name. A restriction does not rename a fund; staff rename it.",
   "Notes staff typed on gift allocations stay as written.",
-  "The worker's login photo on posts and gift rows, and photos or media already attached to their posts, still show until a later publishing update.",
+  "The worker's login photo on gift rows still shows, and a photo or media file already attached to one of their updates stays reachable at its address, until a later publishing update.",
   "Emails already sent cannot be recalled.",
   "A donor record entered without a link to this worker, and tasks or notes colleagues wrote before, can still name them. The donor app's data interface still returns their biography, mission field, funding figures and login photo.",
   "A page already open elsewhere keeps what it shows until it reloads.",
   "A request already under way finishes with what it read.",
-  'Turning on "Do not publish" saves the setting now, but does not hide posts, profiles or giving pages yet; that enforcement comes in a later publishing update.',
+  'Turning on "Do not publish" takes their ministry updates out of every feed and the public site at once, but does not hide profiles or giving pages yet; that enforcement comes in a later publishing update.',
 ];
 
 export function RestrictionEffects() {
@@ -55,7 +55,9 @@ export function RestrictionEffects() {
         statements), the Ministry Updates feed, comments (with no photo),
         updated receipts made from now on and receipt PDFs downloaded again, and
         colleagues&apos; Partners, Home, tasks, follow requests and giving
-        figures when this person gives to or follows a colleague.
+        figures when this person gives to or follows a colleague. Their ministry
+        updates leave the Ministry Updates feed and the public site at once, and
+        return when the restriction is lifted.
       </p>
       <p>
         <strong className="font-medium text-foreground">
