@@ -147,6 +147,24 @@ describe("on: the staff callback picks the home among the name's organization's 
       expect(fixture.rowReads).toBe(0);
     },
   );
+
+  it.each([
+    ["/admin/donors", "/"],
+    ["/missionary/profile", "/"],
+    ["/administration", "/administration"],
+  ])(
+    "on the donor app, a person with no class and next=%s lands on %s: next stays in the donor app",
+    async (next, location) => {
+      vi.stubEnv("CORE_APP_BASE_PATH", "");
+      fixture.rows = [];
+      const response = await callback(
+        { "x-asym-role-class": "donor", "x-asym-name-tenant": TA },
+        next,
+      );
+      expect(response.status).toBe(307);
+      expect(response.headers.get("location")).toBe(location);
+    },
+  );
 });
 
 describe.each([
