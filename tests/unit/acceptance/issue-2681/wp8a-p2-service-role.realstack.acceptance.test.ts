@@ -685,10 +685,18 @@ describe.skipIf(!ADMIN_URL)(
       }
     });
 
-    it("the catalog gate passes it: the gate reads no default privileges, the relations of public only, and CREATE on the schemas the release fingerprint covers", () => {
+    it("the catalog gate passes it: the gate reads no default privileges, the relations of public only, and CREATE on the schemas the release fingerprint covers, but for the allowlisted checkout config read, which a later file creates (D-18, AL-2681 PR 2a: 20261127050200 is after this replay's last file)", () => {
       const gate = runTenantRlsCatalogGate({ databaseUrl: replay.url });
-      expect(gate.failures).toEqual([]);
-      expect(gate.ok).toBe(true);
+      expect(
+        gate.failures.filter(
+          (f: { code: string; function?: string }) =>
+            !(
+              f.code === "ANON_ALLOWLIST_STALE" &&
+              f.function ===
+                "public.checkout_giving_config(p_host text, p_targets jsonb)"
+            ),
+        ),
+      ).toEqual([]);
     });
   },
 );
