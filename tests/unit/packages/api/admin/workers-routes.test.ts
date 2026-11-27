@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
   POST_CONFIRM,
+  POST_CREATE,
   POST_LIFT,
   POST_RESTRICT,
   POST_REVEAL,
@@ -1034,4 +1035,110 @@ describe("AL-2678 WP5 part 2-r2b1: the workers' routes (contract, error map, ali
       consoleError.mockRestore();
     }
   });
+  it("create sends create_worker the names, level, alias, legal entity and reason with the organization from the session, then answers 201 with the worker read back by its id and never the legal name (WP5 rest 2b, create_worker; red: no create route)", async () => {
+    h.auth.mockResolvedValue(makeAuth("admin"));
+    const consoleError = vi
+      .spyOn(console, "error")
+      .mockImplementation(() => {});
+    try {
+      const rpc = stubSession({
+        create_worker: {
+          data: {
+            tenant_id: TENANT,
+            party_id: PARTY,
+            assignment_id: WORKER,
+            security_level: "standard",
+            security_level_source: "unreviewed_default",
+          },
+        },
+        worker_records: { data: [row()] },
+      });
+      const response = await POST_CREATE(
+        post("/api/admin/workers", {
+          displayName: "Worker Kestrel",
+          legalName: SECRET,
+          reason: "New field worker",
+        }),
+      );
+      expect(response.status).toBe(201);
+      const body = await read(response);
+      expect(body.worker).toMatchObject({
+        assignmentId: WORKER,
+        securityLevelSource: "unreviewed_default",
+      });
+      expect(JSON.stringify(body)).not.toContain(SECRET);
+      expect(rpc).toHaveBeenCalledWith("create_worker", {
+        p_tenant_id: TENANT,
+        p_display_name: "Worker Kestrel",
+        p_legal_name: SECRET,
+        p_real_country: null,
+        p_precise_location: null,
+        p_security_level: null,
+        p_public_alias: null,
+        p_legal_entity_id: null,
+        p_reason: "New field worker",
+      });
+      expect(rpc).toHaveBeenCalledWith("worker_records", {
+        p_assignment_id: WORKER,
+      });
+      for (const spy of [consoleError, h.captureError])
+        expect(JSON.stringify(spy.mock.calls)).not.toContain(SECRET);
+    } finally {
+      consoleError.mockRestore();
+    }
+  });
+
+  it.each([
+    [
+      "A display name is required",
+      "22023",
+      400,
+      "DISPLAY_NAME_REQUIRED",
+      "Give a display name.",
+    ],
+    [
+      "A legal name is required",
+      "22023",
+      400,
+      "LEGAL_NAME_REQUIRED",
+      "Give the worker's legal name.",
+    ],
+    [
+      "Name the legal entity",
+      "22023",
+      400,
+      "LEGAL_ENTITY_REQUIRED",
+      "Choose the legal entity this worker serves under.",
+    ],
+    [
+      "No legal entity with that id in this organization",
+      "P0002",
+      404,
+      "LEGAL_ENTITY_NOT_FOUND",
+      "That legal entity is not this organization's.",
+    ],
+    [
+      "tenant_guard: missing capability",
+      "42501",
+      403,
+      "NOT_PERMITTED",
+      NOT_PERMITTED,
+    ],
+  ])(
+    "create answers %s (%s) with %i %s and its fixed text, never the legal name (WP5 rest 2b, create_worker; red: no create route)",
+    async (message, code, status, errorCode, text) => {
+      h.auth.mockResolvedValue(makeAuth("admin"));
+      stubSession({ create_worker: { error: { code, message } } });
+      const response = await POST_CREATE(
+        post("/api/admin/workers", {
+          displayName: "Worker Kestrel",
+          legalName: SECRET,
+          reason: "New",
+        }),
+      );
+      expect(response.status).toBe(status);
+      const body = await read(response);
+      expect(body).toEqual({ error: text, code: errorCode });
+    },
+  );
 });
