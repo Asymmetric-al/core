@@ -188,6 +188,9 @@ async function installClientIdentity(page: Page, app: PortalApp) {
       ? route.fulfill({ status: 204, headers })
       : route.fulfill({ json: user, headers }),
   );
+  await page.route("**/api/auth/session", (route) =>
+    route.fulfill({ json: { user } }),
+  );
   await page.route(`${SUPABASE_URL}/rest/v1/profiles?*`, (route) => {
     const request = route.request();
     if (request.method() === "OPTIONS") {

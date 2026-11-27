@@ -1051,7 +1051,7 @@
   "packages/ui/components/auth/ResetPasswordScreen.tsx": 14,
   "packages/ui/components/auth/SwitchAccountButton.tsx": 2,
   "packages/ui/components/auth/auth-primitives.tsx": 12,
-  "packages/ui/components/auth/change-password-form.tsx": 3,
+  "packages/ui/components/auth/change-password-form.tsx": 2,
   "packages/ui/components/auth/organization-choice-submit.tsx": 1,
   "packages/ui/components/auth/organization-chooser.tsx": 8,
   "packages/ui/components/auth/sign-out-other-sessions.tsx": 1,

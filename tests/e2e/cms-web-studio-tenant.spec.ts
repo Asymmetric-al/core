@@ -2328,29 +2328,6 @@ const isAuthService = (url: URL) => url.pathname.startsWith("/auth/v1/");
 const isDataService = (url: URL) => url.pathname.startsWith("/rest/v1/");
 const isAdminServer = (url: URL) => url.origin === new URL(base).origin;
 
-function passwordSession(userId: string) {
-  const now = Math.floor(Date.now() / 1000);
-  const claims = Buffer.from(
-    JSON.stringify({ sub: userId, exp: now + 3600, role: "authenticated" }),
-  ).toString("base64url");
-  return {
-    access_token: `e30.${claims}.e2e`,
-    token_type: "bearer",
-    expires_in: 3600,
-    expires_at: now + 3600,
-    refresh_token: "e2e-refresh-token",
-    user: {
-      id: userId,
-      aud: "authenticated",
-      role: "authenticated",
-      email: `${userId}@example.test`,
-      app_metadata: { provider: "email", providers: ["email"] },
-      user_metadata: {},
-      created_at: "2026-11-27T00:00:00.000Z",
-    },
-  };
-}
-
 async function copyLayoutIn(tab: Page) {
   await tab.goto(
     `${base}/web-studio/collections/pages/${await draftPreviewPage(tab)}`,
@@ -2377,13 +2354,14 @@ test("@cms what was copied after the sign-in page opened is gone once the next p
 
   const next = fixturePerson("demoAdmin");
   try {
-    await page.route(isAuthService, (route) =>
-      new URL(route.request().url()).pathname === "/auth/v1/token"
-        ? route.fulfill({ json: passwordSession(next.userId) })
+    await page.route(isAuthService, (route) => route.abort());
+    await page.route(isDataService, (route) => route.abort());
+    await page.route(isAdminServer, (route) =>
+      route.request().method() === "POST" &&
+      new URL(route.request().url()).pathname.endsWith("/api/auth/sign-in")
+        ? route.fulfill({ json: { ok: true } })
         : route.abort(),
     );
-    await page.route(isDataService, (route) => route.abort());
-    await page.route(isAdminServer, (route) => route.abort());
     await page.getByLabel("Email").fill(`${next.userId}@example.test`);
     await page.getByLabel("Password", { exact: true }).fill("e2e-password");
     await page.getByRole("button", { name: "Sign in" }).click();

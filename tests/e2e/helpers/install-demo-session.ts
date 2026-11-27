@@ -52,6 +52,10 @@ async function installHermeticDonorClientIdentity(page: Page, origin: string) {
       await route.fulfill({ json: user, headers });
     },
   );
+  await page.route("**/api/auth/session", async (route) => {
+    if (route.request().method() !== "GET") return route.abort();
+    await route.fulfill({ json: { user } });
+  });
   await page.route(
     "https://example.supabase.co/rest/v1/profiles?*",
     async (route) => {
