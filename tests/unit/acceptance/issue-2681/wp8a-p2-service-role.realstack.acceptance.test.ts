@@ -605,7 +605,7 @@ describe.skipIf(!ADMIN_URL)(
 );
 
 describe.skipIf(!ADMIN_URL)(
-  "AL-2681 WP8a part 2, issue 2841, F0: the migration on a replay with the hosted defaults whose postgres also holds default privileges in another schema (as on the platform's storage) and for every schema",
+  "AL-2681 WP8a part 2, issue 2841, F0: the migration on a replay with the hosted defaults whose postgres also holds default privileges in another schema (as on the platform's storage) and for every schema (D-18, AL-2681 fix round F8: the replay ends before this migration, since 20261127030000 now refuses to run until it is applied)",
   () => {
     let replay: Replay;
     let db: pg.Client;
@@ -614,8 +614,8 @@ describe.skipIf(!ADMIN_URL)(
     let applied: string | null = "not run";
 
     beforeAll(async () => {
-      replay = await new Replay(ADMIN_URL, true).build((file) =>
-        MIGRATION.endsWith(`/${file}`),
+      replay = await new Replay(ADMIN_URL, true).build(
+        (file) => file >= MIGRATION.slice(MIGRATION.lastIndexOf("/") + 1),
       );
       db = new pg.Client({ connectionString: replay.url });
       await db.connect();
