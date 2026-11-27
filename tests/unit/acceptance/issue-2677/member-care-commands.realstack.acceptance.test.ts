@@ -517,7 +517,7 @@ describe.skipIf(!ADMIN_URL)(
         }
       }));
 
-    it("member_care_directory_rows uses LEFT JOIN, preserves deterministic order and total_count, supports detail lookup outside limit, and returns 0 rows on unauthorized or bad scope", () =>
+    it("member_care_directory_rows uses LEFT JOIN, preserves deterministic order and total_count, supports detail lookup outside limit, and returns 0 rows on unauthorized or bad scope (D-18, AL-2678 WP5 rest part B: a worker with no profile is named by its Party's display name)", () =>
       tx(async () => {
         const meta = await db.query(
           `select p.proowner::regrole::text as owner, p.prosecdef, p.provolatile::text as vol, p.proconfig,
@@ -560,7 +560,7 @@ describe.skipIf(!ADMIN_URL)(
           extra.mA2,
           extra.mANoProfile,
         ]);
-        expect(all.rows[2]!.display_name).toBeNull();
+        expect(all.rows[2]!.display_name).toBe("Fixture");
         expect(all.rows[2]!.total_count).toBe(3);
 
         const detailOutsideLimit = await as(

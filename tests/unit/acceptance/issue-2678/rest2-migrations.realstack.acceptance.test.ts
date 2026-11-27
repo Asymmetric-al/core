@@ -33,6 +33,7 @@ const FUNCTIONS = [
   "private.accept_worker_invitation(uuid,uuid,uuid)",
   "tenant_guard.invite_worker(uuid,text,uuid,text,text,text,text,uuid,text)",
   "public.invite_worker(uuid,text,uuid,text,text,text,text,uuid,text)",
+  "public.member_care_directory_rows(uuid,uuid,integer)",
 ];
 
 describe.skipIf(!ADMIN_URL)(
@@ -283,6 +284,10 @@ describe.skipIf(!ADMIN_URL)(
 
     it("20261127090300 (part B, worker invitations): the check, the file, the Down (the acceptance's text and comment restored, the invite command, its wrapper and the helper dropped, the column with its key, check, index and five field_policies rows removed) and the file again", async () => {
       await upAndDown("_wp5_rest2b_worker_invitations");
+    }, 300_000);
+
+    it("20261127090400 (part B, Care's worker names): the check, the file, the Down (the reader's text and comment restored) and the file again", async () => {
+      await upAndDown("_wp5_rest2b_care_worker_names");
     }, 300_000);
   },
 );

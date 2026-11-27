@@ -21,6 +21,7 @@ const RETIRED =
 const NOT_A_TENANT_READER = new Set([
   "donors_fill_party_after_insert_temp true",
   "donor_party_for_insert true",
+  "accept_worker_invitation true",
 ]);
 
 it.runIf(IN_MIGRATE_JOB && !ADMIN_URL)(
@@ -293,7 +294,7 @@ describe.skipIf(!ADMIN_URL)("#2256 person anchor on the real stack", () => {
   );
 
   tx(
-    `6: profiles.tenant_id is a nullable uuid FK -> tenants(id); the reader set equals §1.3 (${POINTER}; D-18, AL-2678 WP5 rest: the Party writer names profiles and tenant_id but reads only a profile's display_name and full_name by id, never profiles.tenant_id, so it is no reader, as the temporary fill trigger is not)`,
+    `6: profiles.tenant_id is a nullable uuid FK -> tenants(id); the reader set equals §1.3 (${POINTER}; D-18, AL-2678 WP5 rest: the Party writer names profiles and tenant_id but reads only a profile's display_name and full_name by id, never profiles.tenant_id, so it is no reader, as the temporary fill trigger is not; D-18, AL-2678 WP5 rest part B: private.accept_worker_invitation checks that a profile row exists by its id and never reads profiles.tenant_id, so it is no reader either)`,
     async () => {
       expect(
         await one(
