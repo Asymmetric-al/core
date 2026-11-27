@@ -5,12 +5,14 @@ import {
   NOT_PERMITTED_TEXT,
   OUTCOME_UNKNOWN_TEXT,
   SECURITY_LEVELS,
+  inviteEnvelopeSchema,
   revealEnvelopeSchema,
   workerEnvelopeSchema,
   workerListEnvelopeSchema,
   type RevealedIdentity,
   type SecurityLevel,
   type Worker,
+  type WorkerInvitation,
 } from "@asym/api/admin/workers/envelopes";
 import { ownApiFetch } from "@asym/database/own-api";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -23,6 +25,7 @@ export {
   type RevealedIdentity,
   type SecurityLevel,
   type Worker,
+  type WorkerInvitation,
 };
 
 export const LEVEL_LABELS: Record<SecurityLevel, string> = {
@@ -33,6 +36,7 @@ export const LEVEL_LABELS: Record<SecurityLevel, string> = {
 };
 
 export const SAFETY_CAPABILITY = "safety.restrict_publication";
+export const MEMBERS_CAPABILITY = "people.manage_members";
 
 export const WORKERS_QUERY_KEY = ["admin", "workers"] as const;
 
@@ -180,6 +184,20 @@ export function useCreateWorker() {
   return useMutation({
     mutationFn: async (body: CreateWorkerBody) =>
       (await postJson("/api/admin/workers", body, workerEnvelopeSchema)).worker,
+    onSettled: () =>
+      queryClient.invalidateQueries({ queryKey: WORKERS_QUERY_KEY }),
+  });
+}
+
+export function useInviteWorker(assignmentId: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (body: { email: string; reason: string }) =>
+      postJson(
+        `/api/admin/workers/${encodeURIComponent(assignmentId)}/invite`,
+        body,
+        inviteEnvelopeSchema,
+      ),
     onSettled: () =>
       queryClient.invalidateQueries({ queryKey: WORKERS_QUERY_KEY }),
   });

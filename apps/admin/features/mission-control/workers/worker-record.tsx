@@ -9,6 +9,7 @@ import { useParams } from "next/navigation";
 
 import {
   ConfirmLevelDialog,
+  InviteDialog,
   LiftDialog,
   RestrictDialog,
   RevealDialog,
@@ -16,6 +17,7 @@ import {
 import { RestrictionEffects, WorkerBadges } from "./worker-display";
 import {
   LEVEL_LABELS,
+  MEMBERS_CAPABILITY,
   NOT_PERMITTED_TEXT,
   SAFETY_CAPABILITY,
   WorkerRequestError,
@@ -44,7 +46,13 @@ function Row({ label, value }: { label: string; value: string }) {
   );
 }
 
-function WorkerControls({ worker }: { worker: Worker }) {
+function WorkerControls({
+  worker,
+  canInvite,
+}: {
+  worker: Worker;
+  canInvite: boolean;
+}) {
   const raised = worker.securityLevel !== "standard" || worker.doNotPublish;
   return (
     <section aria-label="Safety settings" className="flex flex-col gap-4">
@@ -55,6 +63,9 @@ function WorkerControls({ worker }: { worker: Worker }) {
         {worker.hasLegalIdentity === true ? (
           <RevealDialog worker={worker} />
         ) : null}
+        {canInvite && !worker.hasLogin ? (
+          <InviteDialog worker={worker} />
+        ) : null}
       </div>
       <RestrictionEffects />
     </section>
@@ -64,9 +75,11 @@ function WorkerControls({ worker }: { worker: Worker }) {
 function WorkerDetails({
   worker,
   canChange,
+  canInvite,
 }: {
   worker: Worker;
   canChange: boolean;
+  canInvite: boolean;
 }) {
   return (
     <div className="flex flex-col gap-6">
@@ -89,7 +102,11 @@ function WorkerDetails({
         ) : null}
       </dl>
       {canChange ? (
-        <WorkerControls key={worker.assignmentId} worker={worker} />
+        <WorkerControls
+          key={worker.assignmentId}
+          worker={worker}
+          canInvite={canInvite}
+        />
       ) : (
         <p className="text-sm text-muted-foreground">{NOT_PERMITTED_TEXT}</p>
       )}
@@ -102,6 +119,7 @@ export function WorkerRecord() {
   const assignmentId = params?.assignmentId ?? "";
   const { capabilities = [] } = useMC();
   const canChange = capabilities.includes(SAFETY_CAPABILITY);
+  const canInvite = capabilities.includes(MEMBERS_CAPABILITY);
   const query = useWorker(assignmentId);
   const worker = query.data;
 
@@ -151,7 +169,11 @@ export function WorkerRecord() {
       }
       breadcrumbs={<BackToWorkers />}
     >
-      <WorkerDetails worker={worker} canChange={canChange} />
+      <WorkerDetails
+        worker={worker}
+        canChange={canChange}
+        canInvite={canInvite}
+      />
     </PageShell>
   );
 }

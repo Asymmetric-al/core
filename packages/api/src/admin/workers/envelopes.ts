@@ -51,3 +51,14 @@ export const revealEnvelopeSchema = z.strictObject({
 });
 
 export type RevealedIdentity = z.infer<typeof revealEnvelopeSchema>;
+
+export const inviteEnvelopeSchema = z.strictObject({
+  invitation: z.strictObject({
+    invitationId: z.guid(),
+    email: z.string(),
+    expiresAt: z.string(),
+  }),
+  invitePath: z.string().startsWith("/invite/"),
+});
+
+export type WorkerInvitation = z.infer<typeof inviteEnvelopeSchema>;

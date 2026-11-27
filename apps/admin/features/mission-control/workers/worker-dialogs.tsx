@@ -38,13 +38,19 @@ import {
   WorkerRequestError,
   revealWorkerIdentity,
   useCreateWorker,
+  useInviteWorker,
   useWorkerCommand,
   type CreateWorkerBody,
   type RevealedIdentity,
   type SecurityLevel,
   type Worker,
   type WorkerCommand,
+  type WorkerInvitation,
 } from "./workers-api";
+import {
+  formatInvitationAddress,
+  invitationAddressLabel,
+} from "../invitations/invitation-address";
 
 const REASON_MAX = 500;
 const FAILURE_TEXT = "Something went wrong. Nothing was changed.";
@@ -54,8 +60,11 @@ const NOTHING_CHOSEN = "Choose what to change.";
 const DISPLAY_NAME_MISSING = "Give a display name.";
 const LEGAL_NAME_MISSING = "Give the worker's legal name.";
 const NAME_MAX = 200;
+const EMAIL_INVALID = "Give a valid e-mail address.";
+const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-type FieldName = "reason" | "alias" | "level" | "displayName" | "legalName";
+type FieldName =
+  "reason" | "alias" | "level" | "displayName" | "legalName" | "email";
 type Problem = { field: FieldName; message: string; focus: string };
 
 function useFieldErrors() {
@@ -156,6 +165,7 @@ function TextField({
   maxLength,
   description,
   error,
+  type = "text",
 }: {
   id: string;
   label: string;
@@ -165,6 +175,7 @@ function TextField({
   maxLength: number;
   description?: string;
   error?: string;
+  type?: "text" | "email";
 }) {
   const describedBy = [
     description ? `${id}-help` : null,
@@ -177,6 +188,7 @@ function TextField({
       <FieldLabel htmlFor={id}>{label}</FieldLabel>
       <Input
         id={id}
+        type={type}
         value={value}
         maxLength={maxLength}
         autoComplete="off"
@@ -895,6 +907,133 @@ export function CreateWorkerDialog() {
         disabled={latch.pending}
         error={fields.errors.reason}
       />
+    </ActionDialog>
+  );
+}
+
+export function InviteDialog({ worker }: { worker: Worker }) {
+  const id = useId();
+  const [open, setOpen] = useState(false);
+  const [email, setEmail] = useState("");
+  const [reason, setReason] = useState("");
+  const [created, setCreated] = useState<WorkerInvitation | null>(null);
+  const [copied, setCopied] = useState(false);
+  const latch = useLatchedSubmit();
+  const fields = useFieldErrors();
+  const invite = useInviteWorker(worker.assignmentId);
+  const close = () => {
+    setEmail("");
+    setReason("");
+    setCreated(null);
+    setCopied(false);
+    latch.setError(null);
+    fields.reset();
+    setOpen(false);
+  };
+  const address = created
+    ? formatInvitationAddress(
+        { role: "missionary", invitePath: created.invitePath },
+        typeof window !== "undefined" ? window.location.origin : "",
+      )
+    : "";
+  const copy = async () => {
+    try {
+      await navigator.clipboard.writeText(address);
+      setCopied(true);
+    } catch {
+      setCopied(false);
+    }
+  };
+  return (
+    <ActionDialog
+      trigger="Invite to sign in"
+      triggerLabel={`Invite ${worker.displayName} to sign in`}
+      title={
+        created
+          ? "Invitation link created"
+          : `Invite ${worker.displayName} to sign in`
+      }
+      description={
+        created
+          ? "Share this one-time link with the invited person. It is shown once."
+          : "They accept with the account of this address and open their own record, with no claim step."
+      }
+      submitLabel={latch.pending ? "Creating…" : "Create invitation"}
+      pending={latch.pending}
+      error={latch.error}
+      open={open}
+      onOpenChange={(next) => (next ? setOpen(true) : close())}
+      footer={
+        created ? (
+          <>
+            <Button type="button" variant="outline" onClick={() => void copy()}>
+              {copied ? "Copied" : "Copy"}
+            </Button>
+            <Button type="button" onClick={close}>
+              Done
+            </Button>
+          </>
+        ) : undefined
+      }
+      onSubmit={() => {
+        if (created) return;
+        const problems: Problem[] = [
+          ...(EMAIL_PATTERN.test(email.trim())
+            ? []
+            : [
+                {
+                  field: "email" as const,
+                  message: EMAIL_INVALID,
+                  focus: `${id}-email`,
+                },
+              ]),
+          ...reasonProblem(reason, `${id}-reason`),
+        ];
+        if (!fields.check(problems)) return;
+        void latch.run(async () => {
+          setCreated(await invite.mutateAsync({ email: email.trim(), reason }));
+        });
+      }}
+    >
+      {created ? (
+        <Field>
+          <FieldLabel htmlFor={`${id}-link`}>
+            {invitationAddressLabel("missionary")}
+          </FieldLabel>
+          <Input
+            id={`${id}-link`}
+            value={address}
+            readOnly
+            onFocus={(event) => event.currentTarget.select()}
+          />
+        </Field>
+      ) : (
+        <>
+          <TextField
+            id={`${id}-email`}
+            label="E-mail address"
+            type="email"
+            value={email}
+            onChange={(next) => {
+              setEmail(next);
+              fields.clear("email");
+            }}
+            disabled={latch.pending}
+            maxLength={320}
+            error={fields.errors.email}
+          />
+          <ReasonField
+            id={`${id}-reason`}
+            value={reason}
+            onChange={(next) => {
+              setReason(next);
+              fields.clear("reason");
+            }}
+            disabled={latch.pending}
+            error={fields.errors.reason}
+          />
+        </>
+      )}
     </ActionDialog>
   );
 }
