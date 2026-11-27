@@ -49,9 +49,9 @@ const PRED =
   "(authz.is_super_admin() OR authz.has_staff_membership(tenant_id, NULL::authz.staff_role[]))";
 const LOG_INSERT =
   "(authz.is_super_admin() OR ((auth.uid() = actor_user_id) AND authz.has_staff_membership(tenant_id, NULL::authz.staff_role[])))";
-/** The predicate the second release of WP2b gives the standing policies (AL-2675). */
+/** The predicate the standing policies carry since WP2c rest B (AL-2675). */
 const PRED_NOW =
-  "(( SELECT authz.is_super_admin() AS is_super_admin) OR ((tenant_id = ( SELECT authz.current_tenant_id() AS current_tenant_id)) AND ( SELECT authz.assignment_is('staff'::authz.membership_role) AS assignment_is)))";
+  "((tenant_id = ( SELECT authz.current_tenant_id() AS current_tenant_id)) AND ( SELECT authz.staff_read() AS staff_read))";
 void PRED;
 void LOG_INSERT;
 
@@ -115,10 +115,16 @@ describe.skipIf(!ADMIN_URL)("#2270 authz EXECUTE grants (R)", () => {
   beforeAll(() => db.connect());
   afterAll(() => db.end());
 
-  /** One check = one transaction, always rolled back. */
-  async function tx(fn: () => Promise<void>) {
+  async function tx(fn: () => Promise<void>, { restore = true } = {}) {
     await db.query("begin");
     try {
+      if (restore)
+        await db.query(`create function authz.is_super_admin() returns boolean
+            language sql stable parallel safe security definer set search_path = public
+            as $f$ select exists (select 1 from public.profiles p where p.user_id = auth.uid() and p.role = 'super_admin') $f$;
+          alter function authz.is_super_admin() owner to postgres;
+          revoke all on function authz.is_super_admin() from public;
+          grant execute on function authz.is_super_admin() to authenticated, service_role;`);
       await db.query(
         `insert into public.tenants (id, name, slug) values ($1, 'acc2270 A', 'acc2270-' || $1), ($2, 'acc2270 B', 'acc2270-' || $2);
          insert into auth.users (id) values ($3);
@@ -195,7 +201,7 @@ describe.skipIf(!ADMIN_URL)("#2270 authz EXECUTE grants (R)", () => {
          array(select case when a.grantee = 0 then 'PUBLIC' else a.grantee::regrole::text end
                from aclexplode(coalesce(p.proacl, acldefault('f', p.proowner))) a
                where a.privilege_type = 'EXECUTE' order by 1) grantees
-       from pg_proc p where p.oid = any($1::regprocedure[])`,
+       from pg_proc p where p.oid = any(array(select to_regprocedure(f) from unnest($1::text[]) f))`,
       [FN.map((f) => (f.startsWith("authz.") ? f : `public.${f}`))],
     );
     return Object.fromEntries(
@@ -215,8 +221,26 @@ describe.skipIf(!ADMIN_URL)("#2270 authz EXECUTE grants (R)", () => {
     }
   }
 
-  it("C1: on the migrated database each §1.2 function has exactly the listed grantees (no PUBLIC, no anon)", () =>
-    tx(expectExact));
+  it("C1: on the migrated database each §1.2 function that stands has exactly the listed grantees (no PUBLIC, no anon), and authz.is_super_admin() is gone (D-18, AL-2675: WP2c rest B dropped it with the last policy that called it; every other case recreates it as it stood, a SQL definer owned by postgres reading profiles.role with EXECUTE for authenticated and service_role, inside its rolled-back transaction, so that this issue's migration body and grant contract still run as written)", () =>
+    tx(
+      async () => {
+        const got = await acl();
+        const standing = FN.filter((f) => f !== "authz.is_super_admin()");
+        expect(Object.keys(got).sort()).toEqual([...standing].sort());
+        for (const f of standing) {
+          expect(got[f]!.grantees, `${f} EXECUTE grantees`).toEqual(
+            EXPECTED[f],
+          );
+          expect(got[f]!.prosecdef, `${f} stays SECURITY DEFINER`).toBe(true);
+          expect(got[f]!.owner).toBe("postgres");
+        }
+        expect(
+          (await db.query("select to_regprocedure('authz.is_super_admin()') f"))
+            .rows[0]!.f,
+        ).toBeNull();
+      },
+      { restore: false },
+    ));
 
   it("C1/OQ4: the INVOKER helpers authz.current_user_id/current_tenant_id keep PUBLIC EXECUTE", () =>
     tx(async () => {
@@ -329,7 +353,7 @@ describe.skipIf(!ADMIN_URL)("#2270 authz EXECUTE grants (R)", () => {
   // class of the request's one assignment beside the super-admin branch; the
   // five write policies are gone, and no write grant stands behind any of
   // them (activation review Q7, Q8, and the coordinator's follow-up on Q7).
-  it("C8: the standing policies are TO authenticated with this chain's predicates; the dropped ones are gone with their grants", () =>
+  it("C8: the standing policies are TO authenticated with this chain's predicates; the dropped ones are gone with their grants (D-18, AL-2675: WP2c rest B removed the standing reads' super-admin branch and moved their staff check to the staff-read helper)", () =>
     tx(async () => {
       const gone = await db.query(
         "select policyname from pg_policies where schemaname = 'public' and policyname = any($1)",

@@ -147,7 +147,6 @@ function staffActor(overrides: Partial<ActorContext> = {}): ActorContext {
   return {
     action: "crm.note.read",
     authTenantId: TENANT_A,
-    isSuperAdmin: false,
     isTenantAdministrator: false,
     profileId: STAFF_ID,
     role: "staff",

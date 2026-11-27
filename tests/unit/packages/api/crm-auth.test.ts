@@ -1,7 +1,11 @@
 import { describe, expect, it } from "vitest";
 
-import { requireCrmAccess } from "../../../../packages/api/src/crm/auth/access";
+import {
+  assertCrmTenantAccess,
+  requireCrmAccess,
+} from "../../../../packages/api/src/crm/auth/access";
 
+import type { ActorContext } from "../../../../packages/api/src/crm/types";
 import type { AuthContext } from "@asym/auth/context";
 
 function authContext(overrides: Partial<AuthContext> = {}): AuthContext {
@@ -25,7 +29,7 @@ function authContext(overrides: Partial<AuthContext> = {}): AuthContext {
 }
 
 describe("CRM authorization bridge", () => {
-  it("creates an actor context from the authenticated Supabase staff user", () => {
+  it("creates an actor context from the authenticated Supabase staff user (D-18, AL-2675: the actor no longer carries a super-admin flag; no membership ever set it)", () => {
     expect(
       requireCrmAccess(authContext(), {
         action: "crm.record.read",
@@ -34,7 +38,6 @@ describe("CRM authorization bridge", () => {
     ).toEqual({
       action: "crm.record.read",
       authTenantId: "tenant-1",
-      isSuperAdmin: false,
       isTenantAdministrator: false,
       profileId: "profile-1",
       role: "staff",
@@ -113,6 +116,38 @@ describe("CRM authorization bridge", () => {
         },
       ),
     ).toThrow(/tenant/);
+  });
+
+  it("refuses another organization's record to an actor whose memberships carry the label super_admin, which resolves no capability (a guard), and to an actor carrying the old flag, which the notes and relationships services' tenant check admitted", () => {
+    const labelled = authContext({
+      memberships: [
+        {
+          tenantId: "tenant-1",
+          role: "super_admin" as never,
+          staffRole: null,
+          isActive: true,
+        },
+      ],
+    });
+    expect(() =>
+      requireCrmAccess(labelled, {
+        action: "crm.record.read",
+        resourceType: "record",
+        resourceTenantId: "tenant-2",
+      }),
+    ).toThrow(/Forbidden/);
+    const actor = requireCrmAccess(authContext(), {
+      action: "crm.record.read",
+      resourceType: "record",
+    });
+    expect(actor).not.toHaveProperty("isSuperAdmin");
+    expect(() =>
+      assertCrmTenantAccess({
+        ...actor,
+        isSuperAdmin: true,
+        tenantId: "tenant-2",
+      } as unknown as ActorContext),
+    ).toThrow(/tenant mismatch/);
   });
 
   it("refuses a super_admin profile role with no membership", () => {

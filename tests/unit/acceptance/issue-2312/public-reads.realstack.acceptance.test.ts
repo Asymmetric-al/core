@@ -211,8 +211,8 @@ describe.skipIf(!ADMIN_URL)(
       t === "missionaries"
         ? "tenant_id = (SELECT authz.current_tenant_id()) AND (SELECT authz.assignment_is('missionary')) AND party_id IN (SELECT al.party_id FROM public.account_links AS al WHERE al.tenant_id = (SELECT authz.current_tenant_id()) AND al.user_id = (SELECT authz.current_user_id()))"
         : t === "follows"
-          ? "tenant_id = (SELECT authz.current_tenant_id()) AND ((SELECT authz.assignment_is('staff')) OR ((SELECT authz.assignment_is('donor')) AND donor_id IN (SELECT d.id FROM public.donors AS d WHERE d.tenant_id = (SELECT authz.current_tenant_id()) AND d.party_id IN (SELECT al.party_id FROM public.account_links AS al WHERE al.tenant_id = (SELECT authz.current_tenant_id()) AND al.user_id = (SELECT authz.current_user_id())))))"
-          : "tenant_id = (SELECT authz.current_tenant_id()) AND ((SELECT authz.assignment_is('staff')))" +
+          ? "tenant_id = (SELECT authz.current_tenant_id()) AND ((SELECT authz.staff_read()) OR ((SELECT authz.assignment_is('donor')) AND donor_id IN (SELECT d.id FROM public.donors AS d WHERE d.tenant_id = (SELECT authz.current_tenant_id()) AND d.party_id IN (SELECT al.party_id FROM public.account_links AS al WHERE al.tenant_id = (SELECT authz.current_tenant_id()) AND al.user_id = (SELECT authz.current_user_id())))))"
+          : "tenant_id = (SELECT authz.current_tenant_id()) AND ((SELECT authz.staff_read()))" +
             // D-18 (AL-2676): the funds policy also hides the reserved fee-cover fund.
             (t === "funds" ? " AND system_purpose IS NULL" : "");
     const keyOf = (v: unknown) =>
@@ -309,7 +309,7 @@ describe.skipIf(!ADMIN_URL)(
 
     describe("criterion 1: post-state", () => {
       it.each(H.TABLES)(
-        "1: public.%s has the exact authorized PERMISSIVE policies and deparsed quals (D-18: WP4b part 1 adds tenant_guard_isolation on missionaries)",
+        "1: public.%s has the exact authorized PERMISSIVE policies and deparsed quals (D-18: WP4b part 1 adds tenant_guard_isolation on missionaries; D-18, AL-2675: WP2c rest B moves each staff read, and follows' staff branch, to the staff-read helper)",
         (t) =>
           tx(async () => {
             const p = await policies(t);
@@ -319,7 +319,7 @@ describe.skipIf(!ADMIN_URL)(
                     name: "crm staff read",
                     cmd: "SELECT",
                     role: "authenticated",
-                    qual: "tenant_id = (SELECT authz.current_tenant_id()) AND (SELECT authz.assignment_is('staff'))",
+                    qual: "tenant_id = (SELECT authz.current_tenant_id()) AND (SELECT authz.staff_read())",
                     withCheck: null,
                   },
                   {
