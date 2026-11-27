@@ -33,6 +33,11 @@ const NOT_PERMITTED =
   "Only staff with the Restrict publication permission can change these settings.";
 const PAGE_CONTENT = ':has(> [data-slot="page-shell-header"])';
 let careStaff: Person | null = null;
+const ZERO_REASON = `Reviewed for the zero count ${runTag}`;
+const addedName = `Worker Plover ${runTag}`;
+const addedLegal = `Legal Placeholder Two ${runTag}`;
+const confirmedParties: string[] = [];
+let added: { partyId: string; assignmentId: string } | null = null;
 
 async function expectAccessible(page: Page, scope?: string) {
   const builder = new AxeBuilder({ page }).withTags([
@@ -142,6 +147,30 @@ test.describe("AL-2678 WP5 part 2-r2b1: the worker's record in Mission Control o
     if (!env?.dbUrl) return;
     try {
       await withOwner(env, async (db) => {
+        await db.query(
+          "update public.parties set security_level_source = 'unreviewed_default' where tenant_id = $1 and id = any($2::uuid[]) and security_level_source = 'manual'",
+          [DEMO, confirmedParties],
+        );
+        await db.query(
+          "delete from public.audit_logs where tenant_id = $1 and resource_type = 'party' and details->>'reason' = $2",
+          [DEMO, ZERO_REASON],
+        );
+        if (added) {
+          await db.query(
+            "delete from public.audit_logs where resource_type = 'party' and resource_id = $1",
+            [added.partyId],
+          );
+          await db.query(
+            "delete from private.party_restricted where party_id = $1",
+            [added.partyId],
+          );
+          await db.query("delete from public.missionaries where id = $1", [
+            added.assignmentId,
+          ]);
+          await db.query("delete from public.parties where id = $1", [
+            added.partyId,
+          ]);
+        }
         await db.query(
           "delete from public.audit_logs where resource_type = 'party' and resource_id = $1",
           [partyId],
@@ -373,5 +402,65 @@ test.describe("AL-2678 WP5 part 2-r2b1: the worker's record in Mission Control o
     await expect(
       page.getByRole("alert").filter({ hasText: "Worker not found." }),
     ).toBeVisible();
+  });
+  test("W6 (issue 2835's title, the zero count): the Home summary waits for the count's answer, goes once every unreviewed worker is confirmed, and comes back as 1 worker when staff add a worker with no level (WP5 rest 2b; red: the summary never returns, since no worker can be added)", async ({
+    page,
+  }) => {
+    await signIn(page, SEEDED.owner.email, SEEDED_PASSWORD);
+    const waiting = await withOwner(env!, (db) =>
+      db.query(
+        `select m.id as assignment_id, p.id as party_id, p.security_level
+           from public.parties p
+           join public.missionaries m on m.tenant_id = p.tenant_id and m.party_id = p.id
+          where p.tenant_id = $1 and p.security_level_source = 'unreviewed_default'`,
+        [DEMO],
+      ),
+    );
+    expect(await unreviewedCount(page)).toBe(waiting.rows.length);
+    const headers = await documentScopeHeaders(page);
+    for (const row of waiting.rows as {
+      assignment_id: string;
+      party_id: string;
+      security_level: string;
+    }[]) {
+      const reply = await page.request.post(
+        `/api/admin/workers/${row.assignment_id}/confirm`,
+        {
+          headers: { ...headers, ...sameOrigin(page) },
+          data: { level: row.security_level, reason: ZERO_REASON },
+        },
+      );
+      expect(reply.status()).toBe(200);
+      confirmedParties.push(row.party_id);
+    }
+    expect(await unreviewedCount(page)).toBe(0);
+
+    await page.goto(`/${DEMO}/workers`);
+    await waitForHydratedForm(page);
+    await page.getByRole("button", { name: "Add worker" }).click();
+    const dialog = page.getByRole("dialog");
+    await expectAccessible(page, '[role="dialog"]');
+    await dialog.getByLabel("Display name").fill(addedName);
+    await dialog.getByLabel("Legal name").fill(addedLegal);
+    await dialog.getByLabel("Reason").fill("New field worker");
+    const [reply] = await Promise.all([
+      page.waitForResponse(
+        (response) =>
+          new URL(response.url()).pathname === "/api/admin/workers" &&
+          response.request().method() === "POST",
+      ),
+      dialog.getByRole("button", { name: "Add worker" }).click(),
+    ]);
+    expect(reply.status()).toBe(201);
+    const body = (await reply.json()) as {
+      worker: { partyId: string; assignmentId: string };
+    };
+    added = body.worker;
+    expect(JSON.stringify(body)).not.toContain(addedLegal);
+    await expect(page.getByRole("dialog")).toHaveCount(0);
+    await expect(
+      page.getByRole("link", { name: addedName }).first(),
+    ).toBeVisible();
+    expect(await unreviewedCount(page)).toBe(1);
   });
 });
