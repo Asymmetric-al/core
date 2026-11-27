@@ -79,11 +79,6 @@ export function resolveServeUnderPaths(env) {
       `Invalid ${CORE_SERVE_UNDER_PATHS_ENV} value ${JSON.stringify(raw)}: expected unset, "0", or "1".`,
     );
   }
-  if (isProductionBuildTarget(source)) {
-    throw new Error(
-      `${CORE_SERVE_UNDER_PATHS_ENV}=1 is refused on production builds (VERCEL_ENV/VERCEL_TARGET_ENV=production).`,
-    );
-  }
   return true;
 }
 

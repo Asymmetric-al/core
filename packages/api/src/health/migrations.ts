@@ -94,6 +94,7 @@ const defaultDeps: Omit<MigrationHealthDeps, "getClient"> = {
   // build and runtime; exposed only in the bypass-authenticated detail below.
   readRelease: () => ({
     commit: process.env.VERCEL_GIT_COMMIT_SHA?.trim() || "unknown",
+    serveUnderPaths: process.env.CORE_SERVE_UNDER_PATHS === "1",
     deploymentId: process.env.VERCEL_DEPLOYMENT_ID?.trim() || null,
     environment: resolveDeploymentEnvironment({
       VERCEL_ENV: process.env.VERCEL_ENV,
