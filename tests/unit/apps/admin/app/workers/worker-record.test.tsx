@@ -401,13 +401,13 @@ describe("AL-2678 r2b1: a worker's record in Mission Control", () => {
     fireEvent.change(within(dialog).getByLabelText("Public alias"), {
       target: { value: "\u200b\u2060 " },
     });
+    fireEvent.click(within(dialog).getByRole("button", { name: "Restrict" }));
     expect(
-      (
-        within(dialog).getByRole("button", {
-          name: "Restrict",
-        }) as HTMLButtonElement
-      ).disabled,
-    ).toBe(true);
+      await within(dialog).findByText(
+        "A restricted or high-risk worker needs a public alias.",
+      ),
+    ).toBeTruthy();
+    expect(posts).toEqual([]);
     fireEvent.click(within(dialog).getByRole("button", { name: "Cancel" }));
     await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull());
     current = worker({ securityLevel: "standard", publicAlias: "Kite" });
@@ -586,8 +586,11 @@ describe("AL-2678 r2b1: a worker's record in Mission Control", () => {
     const submit = within(dialog).getByRole("button", {
       name: "Lift restriction",
     }) as HTMLButtonElement;
-    expect(submit.disabled).toBe(true);
+    expect(submit.disabled).toBe(false);
     fireEvent.submit(submit.closest("form")!);
+    expect(
+      await within(dialog).findByText("Choose what to change."),
+    ).toBeTruthy();
     expect(posts).toEqual([]);
     expect(
       (within(dialog).getByLabelText("Reason") as HTMLTextAreaElement).value,
@@ -627,6 +630,81 @@ describe("AL-2678 r2b1: a worker's record in Mission Control", () => {
     expect(document.body.textContent).not.toContain(
       "Something went wrong. Nothing was changed.",
     );
+  });
+
+  it("validates on submit: Confirm, Restrict, Lift and Reveal keep their button enabled, and a submit without a reason marks Reason invalid with its text, moves focus to it and sends nothing (WP5 rest 2b, issue 2835 item 1; red: the button is disabled and nothing says why)", async () => {
+    show();
+    for (const [trigger, submitName] of [
+      [/Confirm level for Worker Kestrel/, "Confirm level"],
+      [/Restrict Worker Kestrel/, "Restrict"],
+      [/Lift restriction for Worker Kestrel/, "Lift restriction"],
+      [/Show legal name for Worker Kestrel/, "Show legal name"],
+    ] as const) {
+      const dialog = await openDialog(trigger);
+      if (submitName === "Lift restriction")
+        fireEvent.click(
+          within(dialog).getByRole("radio", { name: "Standard" }),
+        );
+      const submit = within(dialog).getByRole("button", {
+        name: submitName,
+      }) as HTMLButtonElement;
+      expect(submit.disabled).toBe(false);
+      fireEvent.click(submit);
+      const reason = within(dialog).getByLabelText("Reason");
+      await waitFor(() =>
+        expect(reason.getAttribute("aria-invalid")).toBe("true"),
+      );
+      expect(document.activeElement).toBe(reason);
+      expect(within(dialog).getByText("Give a reason.")).toBeTruthy();
+      fireEvent.click(within(dialog).getByRole("button", { name: "Cancel" }));
+      await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull());
+    }
+    expect(posts).toEqual([]);
+  });
+
+  it("validates on submit: Restrict to a restricted level with no stored alias and an alias of invisible characters marks the alias invalid and focuses it; Lift with nothing chosen marks the level choice and focuses its first level; nothing is sent (WP5 rest 2b, issue 2835 item 1; red: the button is disabled)", async () => {
+    current = worker({ securityLevel: "standard", publicAlias: null });
+    show();
+    let dialog = await openDialog(/Restrict Worker Kestrel/);
+    fillReason(dialog);
+    fireEvent.click(within(dialog).getByRole("radio", { name: "Restricted" }));
+    fireEvent.change(within(dialog).getByLabelText("Public alias"), {
+      target: { value: "​ " },
+    });
+    fireEvent.click(within(dialog).getByRole("button", { name: "Restrict" }));
+    const alias = within(dialog).getByLabelText("Public alias");
+    await waitFor(() =>
+      expect(alias.getAttribute("aria-invalid")).toBe("true"),
+    );
+    expect(document.activeElement).toBe(alias);
+    expect(
+      within(dialog).getByText(
+        "A restricted or high-risk worker needs a public alias.",
+      ),
+    ).toBeTruthy();
+    fireEvent.click(within(dialog).getByRole("button", { name: "Cancel" }));
+    await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull());
+
+    current = worker({
+      securityLevel: "restricted",
+      securityLevelSource: "manual",
+      publicAlias: "Birch",
+    });
+    await act(async () => {
+      await client.invalidateQueries();
+    });
+    dialog = await openDialog(/Lift restriction for Worker Kestrel/);
+    fillReason(dialog);
+    fireEvent.click(
+      within(dialog).getByRole("button", { name: "Lift restriction" }),
+    );
+    await waitFor(() =>
+      expect(within(dialog).getByText("Choose what to change.")).toBeTruthy(),
+    );
+    expect(document.activeElement).toBe(
+      within(dialog).getAllByRole("radio")[0],
+    );
+    expect(posts).toEqual([]);
   });
 
   const MAY_HAVE_SAVED =
