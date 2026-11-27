@@ -15,10 +15,10 @@ export const REPO_ROOT = path.resolve(
 
 export const PROOF_CONFIG = "playwright.n2-on.config.ts";
 
-export const TENANT_A = "00000000-0000-0000-0000-000000000001";
-export const TENANT_B = "00000000-0000-0000-0000-000000000002";
-export const PERSON_P = "11111111-1111-1111-1111-111111111111";
-export const PERSON_Q = "55555555-5555-5555-5555-555555555555";
+export const ORGANIZATION_A_SLUG = "give-hope-demo";
+export const ORGANIZATION_B_SLUG = "harbor-light-mission";
+export const PERSON_P_EMAIL = "demo-owner@givehope.test";
+export const PERSON_Q_EMAIL = "member-care@givehope.test";
 export const NAME_A = "give-hope-demo.localhost";
 export const NAME_B = "harbor-light-mission.localhost";
 
@@ -167,25 +167,125 @@ function sql(dbUrl: string, statement: string): string {
   }).trim();
 }
 
-export const SCRATCH_ROWS: ReadonlyArray<
-  [tenant: string, role: string, staffRole: string | null]
+export interface ProofSeed {
+  tenantA: string;
+  tenantB: string;
+  personP: string;
+  personQ: string;
+}
+
+const SEED_LOOKUPS: ReadonlyArray<
+  [key: keyof ProofSeed, what: string, sql: string]
 > = [
-  [TENANT_A, "staff", "finance"],
-  [TENANT_B, "staff", "development"],
-  [TENANT_B, "missionary", null],
+  [
+    "tenantA",
+    ORGANIZATION_A_SLUG,
+    `SELECT id FROM public.tenants WHERE slug = '${ORGANIZATION_A_SLUG}'`,
+  ],
+  [
+    "tenantB",
+    ORGANIZATION_B_SLUG,
+    `SELECT id FROM public.tenants WHERE slug = '${ORGANIZATION_B_SLUG}'`,
+  ],
+  [
+    "personP",
+    PERSON_P_EMAIL,
+    `SELECT id FROM auth.users WHERE email = '${PERSON_P_EMAIL}'`,
+  ],
+  [
+    "personQ",
+    PERSON_Q_EMAIL,
+    `SELECT id FROM auth.users WHERE email = '${PERSON_Q_EMAIL}'`,
+  ],
 ];
 
-export function scratchRowsSql(): string {
-  const values = SCRATCH_ROWS.map(
-    ([tenant, role, staffRole]) =>
-      `('${PERSON_P}', '${tenant}', '${role}', ${staffRole ? `'${staffRole}'` : "NULL"}, true, now(), now())`,
-  ).join(", ");
+export function readProofSeed(query: (statement: string) => string): ProofSeed {
+  const statement = `SELECT ${SEED_LOOKUPS.map(([, , lookup]) => `coalesce((${lookup})::text, '')`).join(" || '|' || ")}`;
+  const values = query(statement).trim().split("|");
+  const seed = {} as ProofSeed;
+  SEED_LOOKUPS.forEach(([key, what], index) => {
+    const value = values[index]?.trim();
+    if (!value) {
+      throw new Error(
+        `the scratch database has no ${what}; reset the stack from the seed`,
+      );
+    }
+    seed[key] = value;
+  });
+  return seed;
+}
+
+export function scratchRowsSql(seed: ProofSeed): string {
+  const rows: ReadonlyArray<
+    [tenant: string, role: string, staffRole: string | null]
+  > = [
+    [seed.tenantA, "staff", "finance"],
+    [seed.tenantB, "staff", "development"],
+    [seed.tenantB, "missionary", null],
+  ];
+  const values = rows
+    .map(
+      ([tenant, role, staffRole]) =>
+        `('${seed.personP}', '${tenant}', '${role}', ${staffRole ? `'${staffRole}'` : "NULL"}, true, now(), now())`,
+    )
+    .join(", ");
   return `INSERT INTO authz.memberships (user_id, tenant_id, role, staff_role, is_active, created_at, updated_at) VALUES ${values} ON CONFLICT DO NOTHING RETURNING id`;
 }
 
-interface Restore {
+export interface ProofDatabase {
+  query(statement: string): string;
+  setPassword(userId: string, password: string): Promise<void>;
+}
+
+export interface Restore {
   scratchRowIds: string[];
   passwordHashes: Array<[id: string, hash: string]>;
+}
+
+export function emptyRestore(): Restore {
+  return { scratchRowIds: [], passwordHashes: [] };
+}
+
+export async function prepareRows(
+  database: ProofDatabase,
+  seed: ProofSeed,
+  password: string,
+  restore: Restore,
+): Promise<void> {
+  restore.passwordHashes = database
+    .query(
+      `SELECT id || '|' || encrypted_password FROM auth.users WHERE id IN ('${seed.personP}', '${seed.personQ}') ORDER BY id`,
+    )
+    .split("\n")
+    .filter(Boolean)
+    .map((line) => line.split("|") as [string, string]);
+  for (const id of database.query(scratchRowsSql(seed)).split("\n")) {
+    if (id) restore.scratchRowIds.push(id);
+  }
+  for (const userId of [seed.personP, seed.personQ]) {
+    await database.setPassword(userId, password);
+  }
+}
+
+export function restoreRows(database: ProofDatabase, restore: Restore): void {
+  if (restore.scratchRowIds.length > 0) {
+    database.query(
+      `DELETE FROM authz.memberships WHERE id IN (${restore.scratchRowIds.map((id) => `'${id}'`).join(", ")})`,
+    );
+  }
+  for (const [id, hash] of restore.passwordHashes) {
+    database.query(
+      `UPDATE auth.users SET encrypted_password = '${hash.replace(/'/g, "''")}' WHERE id = '${id}'`,
+    );
+  }
+}
+
+export function finish(restore: () => void, stop: () => void): void {
+  try {
+    restore();
+  } finally {
+    stop();
+  }
 }
 
 async function setPassword(
@@ -210,40 +310,11 @@ async function setPassword(
   }
 }
 
-async function prepareRows(
-  stack: StackValues,
-  secrets: RunSecrets,
-): Promise<Restore> {
-  const hashes = sql(
-    stack.dbUrl,
-    `SELECT id || '|' || encrypted_password FROM auth.users WHERE id IN ('${PERSON_P}', '${PERSON_Q}') ORDER BY id`,
-  )
-    .split("\n")
-    .filter(Boolean)
-    .map((line) => line.split("|") as [string, string]);
-  const scratchRowIds = sql(stack.dbUrl, scratchRowsSql())
-    .split("\n")
-    .filter(Boolean);
-  const restore = { scratchRowIds, passwordHashes: hashes };
-  for (const userId of [PERSON_P, PERSON_Q]) {
-    await setPassword(stack, userId, secrets.password);
-  }
-  return restore;
-}
-
-function restoreRows(stack: StackValues, restore: Restore): void {
-  if (restore.scratchRowIds.length > 0) {
-    sql(
-      stack.dbUrl,
-      `DELETE FROM authz.memberships WHERE id IN (${restore.scratchRowIds.map((id) => `'${id}'`).join(", ")})`,
-    );
-  }
-  for (const [id, hash] of restore.passwordHashes) {
-    sql(
-      stack.dbUrl,
-      `UPDATE auth.users SET encrypted_password = '${hash.replace(/'/g, "''")}' WHERE id = '${id}'`,
-    );
-  }
+function stackDatabase(stack: StackValues): ProofDatabase {
+  return {
+    query: (statement) => sql(stack.dbUrl, statement),
+    setPassword: (userId, password) => setPassword(stack, userId, password),
+  };
 }
 
 function loadAverage(): number {
@@ -375,6 +446,8 @@ export async function main(
     action: "write the proof's scratch rows",
     psqlBin: "psql",
   });
+  const database = stackDatabase(stack);
+  const seed = readProofSeed(database.query);
   const ports = proofPorts();
   const secrets = freshSecrets();
   const env = appEnvironment(stack, ports, secrets);
@@ -397,7 +470,7 @@ export async function main(
   if (seeded !== 0) throw new Error(`the CMS seed failed; see ${logDir}`);
 
   const servers: ChildProcess[] = [];
-  let restore: Restore | null = null;
+  const restore = emptyRestore();
   try {
     for (const [app, port] of [
       ["donor", ports.front],
@@ -411,7 +484,7 @@ export async function main(
     for (const port of [ports.front, ports.admin, ports.missionary]) {
       await waitForServer(port);
     }
-    restore = await prepareRows(stack, secrets);
+    await prepareRows(database, seed, secrets.password, restore);
     if (options.serveOnly) {
       process.stdout.write(
         `[n2-on] serving at http://${NAME_A}:${ports.front}; stop with Ctrl-C\n`,
@@ -441,8 +514,12 @@ export async function main(
     );
     return result.status ?? 1;
   } finally {
-    if (restore) restoreRows(stack, restore);
-    for (const server of servers) server.kill("SIGTERM");
+    finish(
+      () => restoreRows(database, restore),
+      () => {
+        for (const server of servers) server.kill("SIGTERM");
+      },
+    );
   }
 }
 
