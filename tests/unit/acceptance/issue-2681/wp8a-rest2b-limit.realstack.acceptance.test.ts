@@ -223,6 +223,36 @@ describe.skipIf(!ADMIN_URL)(
         }));
     });
 
+    it("only service_role may take an attempt or purge; a blank address is refused 22023 and writes nothing", () =>
+      inTx(db, async () => {
+        const { fx, hosts } = await world();
+        await role(db, null);
+        const privileges = (
+          await db.query(
+            `SELECT r, has_function_privilege(r, 'public.take_intake_attempt(text,text,text,text,uuid)', 'EXECUTE') AS attempt,
+                    has_function_privilege(r, 'public.purge_intake_attempts()', 'EXECUTE') AS purge
+               FROM unnest(ARRAY['anon', 'authenticated', 'service_role']) AS r ORDER BY r`,
+          )
+        ).rows;
+        expect(privileges).toEqual([
+          { r: "anon", attempt: false, purge: false },
+          { r: "authenticated", attempt: false, purge: false },
+          { r: "service_role", attempt: true, purge: true },
+        ]);
+        const before = await attemptRows(fx.A.tenant);
+        await role(db, "service_role");
+        const blank = await attempt(
+          db,
+          ATTEMPT_SQL,
+          attemptArgs({ host: hosts.site, address: "  " }),
+        );
+        await role(db, null);
+        expect(!blank.ok && `${blank.code} ${blank.message}`).toBe(
+          "22023 rate_limit_address_required",
+        );
+        expect(await attemptRows(fx.A.tenant)).toBe(before);
+      }));
+
     describe("the person bucket: a signed-in gift's user, rolling ten minutes", () => {
       it("a signed-in giver's 7th unpaid attempt across seven addresses is refused, while a guest from a fresh address passes", () =>
         inTx(db, async () => {

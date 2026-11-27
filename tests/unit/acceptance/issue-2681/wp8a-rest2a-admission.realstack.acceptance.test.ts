@@ -416,7 +416,7 @@ describe.skipIf(!ADMIN_URL)(
         }));
     });
     describe("the fix round of 27 November: the home must serve the account area; an unconfirmed e-mail still gives signed in", () => {
-      it("T2: a home name that does not serve donor_account refuses the account path 42501 host_not_admitted, before the organization's status, and writes nothing", () =>
+      it("T2: a home name that does not serve donor_account refuses the account path 42501 host_not_admitted, before the organization's status, and writes nothing (AL-2681 PR 2b, issue 2857 item 39: the organization is suspended, so the order is proved)", () =>
         inTx(db, async () => {
           const w = await world();
           const host = await dualHost(db, w.A, w.hostsA);
@@ -424,6 +424,10 @@ describe.skipIf(!ADMIN_URL)(
           await db.query(
             "UPDATE public.site_domains SET surfaces = ARRAY['website'] WHERE host = $1",
             [host],
+          );
+          await db.query(
+            "UPDATE public.tenants SET status = 'suspended' WHERE id = $1",
+            [w.A.tenant],
           );
           const before = await intakeCounts(db, w.A.tenant);
           const a = await begin(db, {

@@ -2937,6 +2937,35 @@ describe("W8-R41: one reviewed lookup may anchor a worker wrapper's tenant (AL-2
     );
   });
 
+  it("AL-2681 PR 2b, issue 2857 item 39: another overload of the lookup on the allowlist does not stand for the reviewed signature: refused", () => {
+    const other = "public.resolve_verified_host(p_host text, p_surface text)";
+    expect(
+      codes(
+        evaluate(
+          [],
+          listed(),
+          [
+            definer(other, "postgres", true, {
+              volatility: "s",
+              anon_execute: true,
+            }),
+          ],
+          lanes,
+          allow(other),
+          {
+            wrappers: [
+              worker(sig, body("public.resolve_verified_host(p_host)")),
+            ],
+          },
+        ),
+      ),
+    ).toEqual(
+      expect.arrayContaining([
+        `WORKER_WRAPPER_ANCHOR_LOOKUP_UNREVIEWED ${sig}`,
+      ]),
+    );
+  });
+
   it("an unlisted lookup is still a call the wrapper may not make", () => {
     expect(
       codes(judge([worker(sig, body("public.lookup_owner(p_host)"))])),
