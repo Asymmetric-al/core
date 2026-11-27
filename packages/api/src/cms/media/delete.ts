@@ -6,7 +6,7 @@ import { withOperation } from "../../shared/with-operation";
 
 const deleteMediaAssetBodySchema = z
   .object({
-    assetId: z.string().uuid(),
+    assetId: z.guid().transform((value) => value.toLowerCase()),
   })
   .strict();
 

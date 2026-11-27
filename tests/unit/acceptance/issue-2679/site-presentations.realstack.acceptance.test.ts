@@ -45,7 +45,7 @@ it.runIf(IN_MIGRATE_JOB && !ADMIN_URL)(
 );
 
 describe.skipIf(!ADMIN_URL)(
-  "AL-2679 WP6 rest: every Site has exactly one presentation (real stack)",
+  "AL-2679 WP6 rest: every Site has exactly one presentation (real stack; it sets a cluster-wide role password, so it runs only on a local cluster of its own)",
   { timeout: 240_000 },
   () => {
     let s: CmsStack;
@@ -84,7 +84,39 @@ describe.skipIf(!ADMIN_URL)(
           [made.tenants, made.sites],
         ],
         [
+          "delete from platform.tenant_provisioning where tenant_id = any($1::uuid[])",
+          [made.tenants],
+        ],
+        [
+          "delete from public.membership_invitations where tenant_id = any($1::uuid[])",
+          [made.tenants],
+        ],
+        [
+          "delete from public.donor_account_brands where tenant_id = any($1::uuid[])",
+          [made.tenants],
+        ],
+        [
+          "delete from public.donor_portal_hosts where tenant_id = any($1::uuid[])",
+          [made.tenants],
+        ],
+        [
           "delete from public.sites where tenant_id = any($1::uuid[])",
+          [made.tenants],
+        ],
+        [
+          "delete from public.contribution_approval_policies where tenant_id = any($1::uuid[])",
+          [made.tenants],
+        ],
+        [
+          "delete from public.funds where tenant_id = any($1::uuid[])",
+          [made.tenants],
+        ],
+        [
+          "delete from public.legal_entities where tenant_id = any($1::uuid[])",
+          [made.tenants],
+        ],
+        [
+          "delete from public.audit_logs where tenant_id = any($1::uuid[])",
           [made.tenants],
         ],
         [

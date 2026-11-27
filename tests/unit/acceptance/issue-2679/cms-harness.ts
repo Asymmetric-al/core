@@ -176,6 +176,7 @@ export async function bootCmsStack() {
     method: string,
     path: string,
     body?: unknown,
+    options: { tenantHeader?: string; signedIn?: boolean } = {},
   ) => {
     const identity = await e2e.createE2EAuthCookieValue({
       userId: user.id,
@@ -195,13 +196,17 @@ export async function bootCmsStack() {
       tenantId: user.tenantId,
       assignmentId: user.assignmentId,
     });
+    const cookies = [`${selection.name}=${selection.value}`];
+    if (options.signedIn !== false) {
+      cookies.unshift(`${e2e.E2E_AUTH_COOKIE_NAME}=${identity}`);
+    }
     const request = new Request(`${ORIGIN}${path}`, {
       method,
       headers: {
         origin: ORIGIN,
         host: new URL(ORIGIN).host,
-        cookie: `${e2e.E2E_AUTH_COOKIE_NAME}=${identity}; ${selection.name}=${selection.value}`,
-        "x-asym-tenant": user.tenantId,
+        cookie: cookies.join("; "),
+        "x-asym-tenant": options.tenantHeader ?? user.tenantId,
         "x-asym-assignment": user.assignmentId,
         "content-type": "application/json",
       },
@@ -222,7 +227,11 @@ export async function bootCmsStack() {
     } catch {
       json = null;
     }
-    return { status: response.status, json };
+    return {
+      status: response.status,
+      json,
+      refusal: response.headers.get("x-asym-web-studio-refusal"),
+    };
   };
 
   const settle = async <T>(attempt: Promise<T>) => {

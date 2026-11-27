@@ -17,6 +17,7 @@ import {
   MEDIA_MAX_CONCURRENT_TRANSFORMS,
   MEDIA_MAX_PIXELS,
   MEDIA_MAX_VARIANT_BYTES,
+  MEDIA_STATUSES,
   MEDIA_VARIANT_DESCENDING_ORDER,
   MEDIA_VARIANT_WIDTHS,
   selectBoundedVariantWidths,
@@ -107,26 +108,28 @@ function createBoundedMediaStream(
       reader = upstream.getReader();
     },
     async pull(controller) {
-      if (!reader) {
+      const current = reader;
+      if (!current) {
         controller.close();
         return;
       }
       try {
-        const { done, value } = await reader.read();
+        const { done, value } = await current.read();
+        if (reader !== current) return;
         if (done) {
-          controller.close();
-          reader.releaseLock();
           reader = null;
+          current.releaseLock();
+          controller.close();
           return;
         }
         if (value) {
           totalBytes += value.byteLength;
           if (totalBytes > maxBytes) {
-            await reader
+            reader = null;
+            await current
               .cancel("Media variant exceeded maximum byte ceiling")
               .catch(() => undefined);
-            reader.releaseLock();
-            reader = null;
+            current.releaseLock();
             controller.error(
               new ApiHttpError(
                 502,
@@ -138,20 +141,19 @@ function createBoundedMediaStream(
           controller.enqueue(value);
         }
       } catch (error) {
-        if (reader) {
-          await reader.cancel(error).catch(() => undefined);
-          reader.releaseLock();
-          reader = null;
-        }
+        if (reader !== current) return;
+        reader = null;
+        await current.cancel(error).catch(() => undefined);
+        current.releaseLock();
         controller.error(error);
       }
     },
     async cancel(reason) {
-      if (reader) {
-        await reader.cancel(reason).catch(() => undefined);
-        reader.releaseLock();
-        reader = null;
-      }
+      const current = reader;
+      reader = null;
+      if (!current) return;
+      await current.cancel(reason).catch(() => undefined);
+      current.releaseLock();
     },
   });
 }
@@ -260,7 +262,7 @@ function requireValidUuid(value: string): string {
   if (typeof value !== "string" || !UUID_RE.test(value)) {
     throw new ApiHttpError(404, "Media asset not found");
   }
-  return value;
+  return value.toLowerCase();
 }
 
 function requireMediaAdminClient() {
@@ -299,6 +301,48 @@ function normalizeVariants(
     }
   }
   return result;
+}
+
+const isText = (value: unknown): value is string => typeof value === "string";
+const isTextOrNull = (value: unknown) => value === null || isText(value);
+const isCount = (value: unknown) =>
+  (typeof value === "number" && Number.isFinite(value)) ||
+  (isText(value) && /^\d+$/.test(value));
+const isCountOrNull = (value: unknown) => value === null || isCount(value);
+const isDimensionOrNull = (value: unknown) =>
+  value === null || (typeof value === "number" && Number.isFinite(value));
+
+function parseMediaAssetRow(data: unknown): MediaAssetRow {
+  const row = (data ?? {}) as Record<string, unknown>;
+  const variants = row.variants;
+  if (
+    !data ||
+    typeof data !== "object" ||
+    !isText(row.id) ||
+    !UUID_RE.test(row.id) ||
+    !isText(row.tenant_id) ||
+    !(MEDIA_STATUSES as readonly unknown[]).includes(row.status) ||
+    !isCount(row.declared_byte_size) ||
+    !isText(row.declared_mime_type) ||
+    !isTextOrNull(row.mime_type) ||
+    !isTextOrNull(row.content_hash) ||
+    !isTextOrNull(row.master_key) ||
+    !(
+      variants === null ||
+      (typeof variants === "object" && !Array.isArray(variants))
+    ) ||
+    !isCountOrNull(row.byte_size) ||
+    !isDimensionOrNull(row.width) ||
+    !isDimensionOrNull(row.height) ||
+    !isTextOrNull(row.created_by) ||
+    !isText(row.created_at) ||
+    !isText(row.updated_at) ||
+    !isTextOrNull(row.deleted_at) ||
+    !isTextOrNull(row.purge_after)
+  ) {
+    throw new ApiHttpError(500, "Malformed media asset custody record");
+  }
+  return row as unknown as MediaAssetRow;
 }
 
 function toMediaAssetRecord(row: MediaAssetRow): MediaAssetRecord {
@@ -391,11 +435,13 @@ function matchesIfNoneMatch(
   if (!headerValue) {
     return false;
   }
+  if (headerValue.trim() === "*") {
+    return true;
+  }
   const normalizedTarget = normalizeEtagToken(etag);
-  return headerValue.split(",").some((part) => {
-    const token = part.trim();
-    return token === "*" || normalizeEtagToken(token) === normalizedTarget;
-  });
+  return headerValue
+    .split(",")
+    .some((part) => normalizeEtagToken(part) === normalizedTarget);
 }
 
 async function fetchMediaAssetRow(
@@ -412,7 +458,7 @@ async function fetchMediaAssetRow(
   if (error) {
     throw new ApiHttpError(500, "Failed to read media asset custody record");
   }
-  return (data as MediaAssetRow | null) ?? null;
+  return data === null || data === undefined ? null : parseMediaAssetRow(data);
 }
 
 async function markFailedIfUploading(
@@ -742,9 +788,9 @@ function parseFinalizeRpcResult(data: unknown): FinalizeRpcResult {
     outcome: String(record.outcome),
     status: typeof record.status === "string" ? record.status : undefined,
     row:
-      record.row && typeof record.row === "object"
-        ? (record.row as MediaAssetRow)
-        : undefined,
+      record.row === undefined || record.row === null
+        ? undefined
+        : parseMediaAssetRow(record.row),
   };
 }
 

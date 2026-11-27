@@ -20,9 +20,22 @@ const mocks = vi.hoisted(() => ({
   sessionRpc: vi.fn(),
   requestScopeOf: vi.fn(),
   requireCapability: vi.fn(),
+  getSupabasePublicConfig: vi.fn(),
 }));
 
 vi.mock("@asym/lib/monitoring/sentry", () => ({ captureError: vi.fn() }));
+
+vi.mock("@asym/database/supabase/config", async (importOriginal) => {
+  const original =
+    await importOriginal<typeof import("@asym/database/supabase/config")>();
+  mocks.getSupabasePublicConfig.mockImplementation(
+    original.getSupabasePublicConfig,
+  );
+  return {
+    ...original,
+    getSupabasePublicConfig: mocks.getSupabasePublicConfig,
+  };
+});
 
 vi.mock("@asym/lib/audit/logger", () => ({
   createAuditLogger: vi.fn(() => ({
@@ -740,6 +753,145 @@ describe("surface proxy + /api/media/[assetId] route mount end-to-end", () => {
       });
       expect(staffMountRes.status, `${surface.name}:staff`).toBe(200);
       expect(Buffer.from(await staffMountRes.arrayBuffer())).toEqual(payload);
+    }
+  });
+});
+
+describe("#2773 and ruling 2b-uuid (WP6 rest, pull request 2): the media routes' own statuses and any hex id", () => {
+  const tenantA = randomUUID();
+  const assignmentA = randomUUID();
+  const assetId = randomUUID();
+  const fixtureId = "A1B2C3D4-0000-1111-2222-333344445555";
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    const authA = makeStaffAuth(tenantA, assignmentA);
+    mocks.getAuthContext.mockResolvedValue(authA);
+    mocks.requestScopeOf.mockReturnValue({
+      tenantId: tenantA,
+      assignmentId: assignmentA,
+    });
+    mocks.createRequestSessionClient.mockResolvedValue({
+      auth: { getUser: mocks.sessionGetUser },
+      rpc: mocks.sessionRpc,
+    });
+    mocks.requireCapability.mockImplementation(() => undefined);
+  });
+
+  const get = (id = assetId) =>
+    mediaGet(new NextRequest(`http://localhost:3000/api/media/${id}`), {
+      params: Promise.resolve({ assetId: id }),
+    });
+
+  it("answers 503, not 401, when the auth service cannot be reached to read the session", async () => {
+    mocks.createRequestSessionClient.mockRejectedValueOnce(
+      new Error("auth service unreachable"),
+    );
+    mocks.getSupabasePublicConfig.mockReturnValueOnce({ url: "", key: "" });
+    const unreachable = await get();
+    expect(unreachable.status).toBe(503);
+    expect(await unreachable.arrayBuffer()).toHaveProperty("byteLength", 0);
+
+    mocks.sessionGetUser.mockResolvedValueOnce({
+      data: { user: null },
+      error: Object.assign(new Error("fetch failed"), {
+        name: "AuthRetryableFetchError",
+        status: 0,
+      }),
+    });
+    const retryable = await get();
+    expect(retryable.status).toBe(503);
+    expect(mocks.sessionRpc).not.toHaveBeenCalled();
+    expect(mocks.readMediaVariant).not.toHaveBeenCalled();
+  });
+
+  it("still answers 401 to a request with no session or an invalid one", async () => {
+    mocks.sessionGetUser.mockResolvedValueOnce({
+      data: { user: null },
+      error: Object.assign(new Error("invalid JWT"), {
+        name: "AuthApiError",
+        status: 401,
+      }),
+    });
+    expect((await get()).status).toBe(401);
+    mocks.sessionGetUser.mockResolvedValueOnce({
+      data: { user: null },
+      error: null,
+    });
+    expect((await get()).status).toBe(401);
+  });
+
+  it("answers 503, not 404, when the access read itself fails", async () => {
+    mocks.sessionGetUser.mockResolvedValue({
+      data: { user: { id: randomUUID() } },
+      error: null,
+    });
+    mocks.sessionRpc.mockResolvedValueOnce({
+      data: null,
+      error: { code: "XX000", message: "connection reset" },
+    });
+    const response = await get();
+    expect(response.status).toBe(503);
+    expect(await response.arrayBuffer()).toHaveProperty("byteLength", 0);
+    expect(mocks.readMediaVariant).not.toHaveBeenCalled();
+  });
+
+  it("finalize and delete accept a hex id that is not RFC 4122, in either case, as the same lower-case asset", async () => {
+    const lower = fixtureId.toLowerCase();
+    mocks.finalizeMediaUpload.mockResolvedValue({ id: lower, status: "ready" });
+    const finalized = await finalizeMediaPost(
+      new NextRequest("http://localhost:3001/api/cms/media/finalize", {
+        method: "POST",
+        headers: {
+          authorization: "Bearer test-jwt-token",
+          "content-type": "application/json",
+        },
+        body: JSON.stringify({ assetId: fixtureId }),
+      }),
+    );
+    expect(finalized.status).toBe(200);
+    expect(mocks.finalizeMediaUpload).toHaveBeenCalledWith(
+      expect.objectContaining({ tenantId: tenantA }),
+      { assetId: lower, signal: expect.any(AbortSignal) },
+    );
+
+    mocks.sessionRpc.mockResolvedValueOnce({
+      data: {
+        asset_id: lower,
+        deleted_at: "2026-11-27T10:00:00.000Z",
+        purge_after: "2027-01-01T10:00:00.000Z",
+        already_deleted: false,
+      },
+      error: null,
+    });
+    const deleted = await deleteMediaPost(
+      new NextRequest("http://localhost:3001/api/cms/media/delete", {
+        method: "POST",
+        headers: {
+          authorization: "Bearer test-jwt-token",
+          "content-type": "application/json",
+        },
+        body: JSON.stringify({ assetId: fixtureId }),
+      }),
+    );
+    expect(deleted.status).toBe(200);
+    expect(mocks.sessionRpc).toHaveBeenCalledWith("delete_media_asset", {
+      p_tenant_id: tenantA,
+      p_asset_id: lower,
+    });
+
+    for (const bad of ["a1b2c3d4", "g1b2c3d4-0000-1111-2222-333344445555"]) {
+      const refused = await deleteMediaPost(
+        new NextRequest("http://localhost:3001/api/cms/media/delete", {
+          method: "POST",
+          headers: {
+            authorization: "Bearer test-jwt-token",
+            "content-type": "application/json",
+          },
+          body: JSON.stringify({ assetId: bad }),
+        }),
+      );
+      expect(refused.status, bad).toBe(400);
     }
   });
 });

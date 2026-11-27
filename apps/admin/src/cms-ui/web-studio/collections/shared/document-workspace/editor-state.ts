@@ -35,6 +35,25 @@ type NativeDocumentStateItemsInput = NativeDocumentPrimaryStateInput & {
   unpublishedVersionCount: number;
 };
 
+export function isLockedByAnotherEditor({
+  currentEditor,
+  documentIsLocked,
+  userId,
+}: {
+  currentEditor: unknown;
+  documentIsLocked: boolean;
+  userId: unknown;
+}): boolean {
+  if (!documentIsLocked) return false;
+  const editor =
+    currentEditor && typeof currentEditor === "object"
+      ? (currentEditor as { id?: unknown }).id
+      : currentEditor;
+  if (editor === null || editor === undefined) return true;
+  if (userId === null || userId === undefined) return true;
+  return String(editor) !== String(userId);
+}
+
 export function resolveNativeDocumentPrimaryState(
   input: NativeDocumentPrimaryStateInput,
 ): NativeDocumentPrimaryState {
