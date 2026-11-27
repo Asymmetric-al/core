@@ -201,6 +201,7 @@ describe("createMissionaryPost: the missionary submits through the own-ministry 
       status: 403,
       error:
         "Your worker record is not linked to your sign-in yet: ask your organization’s staff.",
+      code: "worker_not_linked",
     });
   });
 

@@ -172,9 +172,11 @@ describe("PATCH /api/posts/[postId]: an edit goes through the own-ministry lane 
     });
     const unlinked = await PATCH(request(body), params);
     expect(unlinked.status).toBe(403);
-    expect(((await unlinked.json()) as { error: string }).error).toBe(
-      "Your worker record is not linked to your sign-in yet: ask your organization’s staff.",
-    );
+    expect(await unlinked.json()).toEqual({
+      error:
+        "Your worker record is not linked to your sign-in yet: ask your organization’s staff.",
+      code: "worker_not_linked",
+    });
   });
 
   it("answers a fixed sentence, never the database's words, when the command fails otherwise", async () => {

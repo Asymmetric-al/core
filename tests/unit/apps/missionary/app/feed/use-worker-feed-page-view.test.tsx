@@ -968,3 +968,51 @@ describe("withdrawing one's own update (AL-2680, WP7 pull request 1)", () => {
     );
   });
 });
+
+describe("what the page says after a save (AL-2680, round 2, G2)", () => {
+  const NOT_LINKED =
+    "Your worker record is not linked to your sign-in yet: ask your organization’s staff.";
+  function serve(answer: () => Response) {
+    fetchMock.mockImplementation(async (input, init) => {
+      const url = String(input);
+      if (url === "/api/posts" && init?.method === "POST") return answer();
+      if (url.startsWith("/api/posts")) return jsonResponse(200, { posts: [] });
+      if (url.startsWith("/api/follower-requests"))
+        return jsonResponse(200, { requests: [] });
+      throw new Error(`unexpected fetch ${url}`);
+    });
+  }
+
+  it("keeps what the missionary typed and says the update is saved, never published, when the answer carries only its id", async () => {
+    serve(() => jsonResponse(201, { post: { id: "post-9" } }));
+    const { result } = renderHook(() => useWorkerFeedPageView());
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+    act(() => result.current.setPostContent("<p>Rainy season</p>"));
+
+    await act(() => result.current.handlePost("published"));
+
+    expect(toast.success).toHaveBeenCalledWith("Update saved");
+    expect(vi.mocked(toast.success).mock.calls.flat()).not.toContain(
+      "Update published",
+    );
+    const saved = result.current.posts.find((post) => post.id === "post-9");
+    expect(saved?.content).toBe("<p>Rainy season</p>");
+    expect(saved?.status).toBe("published");
+    expect(Number.isNaN(Date.parse(saved?.created_at ?? ""))).toBe(false);
+  });
+
+  it("shows the route's sentence and keeps the draft and the composer writable when the worker record is not linked", async () => {
+    serve(() =>
+      jsonResponse(403, { error: NOT_LINKED, code: "worker_not_linked" }),
+    );
+    const { result } = renderHook(() => useWorkerFeedPageView());
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+    act(() => result.current.setPostContent("<p>Rainy season</p>"));
+
+    await act(() => result.current.handlePost("published"));
+
+    expect(toast.error).toHaveBeenCalledWith(NOT_LINKED);
+    expect(result.current.canWrite).toBe(true);
+    expect(result.current.postContent).toBe("<p>Rainy season</p>");
+  });
+});
