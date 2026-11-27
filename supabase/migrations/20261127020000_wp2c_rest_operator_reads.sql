@@ -15,7 +15,13 @@
 --    (on the list, a session at aal2), the organization asked for is the
 --    request's own organization as authz.request_tenant_id() reads
 --    x-asym-tenant (absent, blank or not a UUID counts as none, as D-226's
---    check reads it), and the caller holds a live staff row there.
+--    check reads it), and the caller holds a live staff row there, found as
+--    the organization's other reads find it (authz.request_assignment,
+--    authz.caller_assignment): the organization is active, and when the
+--    request names an assignment (x-asym-assignment) that assignment is
+--    the staff row; a malformed or foreign one refuses. A suspended or
+--    closed organization, a named row that is not the caller's live staff
+--    row there, and no such row at all get one and the same refusal.
 -- 2. platform.eve_history(p_limit) and public.platform_eve_history(integer):
 --    the assistant runtime's changes recorded with no organization (D-88: a
 --    global kill switch, a global model-policy change), for every confirmed
@@ -43,9 +49,10 @@
 -- row is missing", with this check and this file's version, 20261127020000.
 --
 -- Down (only after the build that calls them is rolled back; in one
--- transaction): DROP FUNCTION public.platform_eve_history(integer),
--- platform.eve_history(integer), public.tenant_operators(uuid),
--- platform.tenant_operators(uuid). No row was written.
+-- transaction; no row was written): DROP FUNCTION
+-- public.platform_eve_history(integer), platform.eve_history(integer),
+-- public.tenant_operators(uuid), platform.tenant_operators(uuid); then
+-- NOTIFY pgrst, 'reload schema';
 
 BEGIN;
 SET LOCAL lock_timeout = '5s';
@@ -61,11 +68,19 @@ AS $$
 DECLARE
   v_operator uuid := platform.require_operator();
   v_request_tenant_id uuid;
+  v_named uuid;
+  v_named_readable boolean := true;
 BEGIN
   BEGIN
     v_request_tenant_id := authz.request_tenant_id();
   EXCEPTION WHEN invalid_text_representation THEN
     v_request_tenant_id := NULL;
+  END;
+
+  BEGIN
+    v_named := authz.request_assignment_id();
+  EXCEPTION WHEN invalid_text_representation THEN
+    v_named_readable := false;
   END;
 
   IF p_tenant_id IS NULL
@@ -75,16 +90,18 @@ BEGIN
       USING ERRCODE = '42501';
   END IF;
 
-  IF NOT EXISTS (
+  IF NOT v_named_readable OR NOT EXISTS (
     SELECT 1
       FROM authz.memberships AS m
+      JOIN public.tenants AS t ON t.id = m.tenant_id AND t.status = 'active'
      WHERE m.user_id = v_operator
        AND m.tenant_id = p_tenant_id
        AND m.role = 'staff'::authz.membership_role
        AND m.is_active
        AND m.revoked_at IS NULL
+       AND (v_named IS NULL OR m.id = v_named)
   ) THEN
-    RAISE EXCEPTION 'platform: the caller holds no live staff row in this organization'
+    RAISE EXCEPTION 'platform: the request has no live staff assignment of the caller in this organization'
       USING ERRCODE = '42501';
   END IF;
 
@@ -122,7 +139,8 @@ COMMENT ON FUNCTION platform.tenant_operators(uuid) IS
   'assert_eve_launch_profile(tenant, profile, ''super_admin'') accepts in the '
   'request''s own organization, as {id, display_name, email}. Refuses (42501) '
   'unless the caller passes the shared operator check, the organization is '
-  'the request''s x-asym-tenant, and the caller holds a live staff row there.';
+  'the request''s x-asym-tenant and active, and the caller holds a live staff '
+  'row there, the one x-asym-assignment names when it names one.';
 
 ALTER FUNCTION platform.tenant_operators(uuid) OWNER TO postgres;
 REVOKE ALL ON FUNCTION platform.tenant_operators(uuid) FROM PUBLIC, anon, authenticated, service_role;
