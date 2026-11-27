@@ -49,16 +49,17 @@ export function createGivingConfigHandler(deps: GivingConfigDeps) {
   return async function POST(request: Request): Promise<Response> {
     let enabled: boolean;
     let publishableKey: string | undefined;
+    let rpc: GivingConfigRpc | null;
     try {
       enabled = deps.enabled();
       publishableKey = enabled ? deps.publishableKey()?.trim() : undefined;
+      rpc = enabled ? deps.rpc() : null;
     } catch {
       return unavailable();
     }
     if (!enabled) return unavailable();
     if (!publishableKey || !/^pk_test_[A-Za-z0-9]+$/.test(publishableKey))
       return unavailable();
-    const rpc = deps.rpc();
     if (!rpc) return unavailable();
     const host = request.headers.get("host")?.trim();
     if (!host) return unavailable();

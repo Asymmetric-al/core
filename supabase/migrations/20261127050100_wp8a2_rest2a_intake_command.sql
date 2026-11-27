@@ -71,11 +71,13 @@
 --    key, the intake, its lines, its contact row, one audit row and,
 --    through money_enqueue_payment_request, one queued create_payment
 --    request with no donor. Each refusal changes nothing. Its answer names
---    the gift's state (gift_state): 'paid' once the intake is completed or
---    a success is recorded for it (never 'closed', whatever else holds);
---    'closed' once it is abandoned or its create request ended for good
---    (refused, dead_letter, abandoned); otherwise 'open', a new gift and a
---    declined card's gift (on its PaymentIntent) included.
+--    the gift's state (gift_state): 'paid' on any recorded evidence that
+--    money was taken (the intake completed, a success observation, or a
+--    paid_after_abandon or paid_while_parked case), never 'closed',
+--    whatever else holds; 'closed' once it is abandoned, its create
+--    request ended for good (refused, dead_letter, abandoned) or its
+--    PaymentIntent was reported cancelled; otherwise 'open', a new gift and
+--    a declined card's gift (on its PaymentIntent) included.
 -- 7. public.begin_line_gift(host, ..., source Site): the wrapper takes the
 --    host (and, for a hand-off, the source Site) and no organization. It reads the organization from the reviewed single-host
 --    lookup public.resolve_verified_host(p_host) (state active), refuses
@@ -837,9 +839,23 @@ BEGIN
                               AND p.donation_id = v_replay.id
                               AND p.effect_kind = 'succeeded'
                          )
+                      OR EXISTS (
+                           SELECT 1
+                             FROM public.payment_event_cases AS c
+                            WHERE c.tenant_id = p_tenant_id
+                              AND c.donation_id = v_replay.id
+                              AND c.kind IN ('paid_after_abandon', 'paid_while_parked')
+                         )
                     THEN 'paid'
                     WHEN v_replay.status = 'abandoned'
                       OR v_operation_status IN ('refused', 'dead_letter', 'abandoned')
+                      OR EXISTS (
+                           SELECT 1
+                             FROM public.payment_observations AS p
+                            WHERE p.tenant_id = p_tenant_id
+                              AND p.donation_id = v_replay.id
+                              AND p.effect_kind = 'canceled'
+                         )
                     THEN 'closed'
                     ELSE 'open'
                   END

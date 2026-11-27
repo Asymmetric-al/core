@@ -59,6 +59,7 @@
 -- 20261127050200.
 --
 -- Down, in one transaction:
+--   SET LOCAL lock_timeout = '5s';
 --   DROP FUNCTION public.money_due_work(integer);
 --   DROP FUNCTION public.checkout_giving_config(text, jsonb);
 --   DROP FUNCTION public.take_intake_rate_token(text);

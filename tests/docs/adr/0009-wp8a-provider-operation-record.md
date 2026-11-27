@@ -394,10 +394,13 @@ NO KEY UPDATE` first.
 amount_out_of_range`), before any write; keeps the client key and the
     request as SHA-256 digests only; answers a replay with its first
     intake and refuses the key with another request (`23505`); and names
-    the gift's state (`gift_state`): `paid` once the intake is completed or
-    a success is recorded (answered `409 gift_already_completed`, never
-    `gift_closed`), `closed` once it is abandoned or its create request is
-    `refused`, `dead_letter` or `abandoned` (answered `409 gift_closed`),
+    the gift's state (`gift_state`): `paid` on any recorded evidence that
+    money was taken, the intake completed, a success observation or a
+    `paid_after_abandon` or `paid_while_parked` case (answered `409
+gift_already_completed`, never `gift_closed`), `closed` once it is
+    abandoned, its create request is `refused`, `dead_letter` or
+    `abandoned`, or its PaymentIntent was reported cancelled (answered
+    `409 gift_closed`),
     otherwise `open`, a declined card's gift included (answered its
     PaymentIntent). No browser total, tenant, entity or binding is read.
 50. **The rate limit is a Postgres counter of digests.** Ten requests per
