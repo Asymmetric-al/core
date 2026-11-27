@@ -363,6 +363,7 @@ const REAL_DATABASE_FILES = [
     "issue-2677/export-audit.realstack",
     "issue-2677/field-policy-reader.realstack",
     "issue-2678/account-claims.realstack",
+    "issue-2678/add-partner-digest.realstack",
     "issue-2678/add-partner.realstack",
     "issue-2678/assignment-keys-migration.realstack",
     "issue-2678/assignment-keys-race.realstack",
