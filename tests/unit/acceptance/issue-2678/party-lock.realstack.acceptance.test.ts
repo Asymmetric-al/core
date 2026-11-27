@@ -164,6 +164,7 @@ async function inWorld(run: (w: World) => Promise<void>) {
 async function session(user?: string, tenant?: string) {
   const c = new pg.Client({ connectionString: ADMIN_URL });
   await c.connect();
+  const pid = await backendPid(c);
   await c.query("begin");
   if (user && tenant)
     await c.query(
@@ -172,7 +173,7 @@ async function session(user?: string, tenant?: string) {
               set_config('request.jwt.claim.sub', '', true),
               set_config('request.headers', '${JSON.stringify({ "x-asym-tenant": tenant })}', true);`,
     );
-  return c;
+  return Object.assign(c, { pid });
 }
 
 const gift = (
@@ -252,8 +253,8 @@ describe.skipIf(!ADMIN_URL)(
           const waited = await blockedOrSettled(
             w.admin,
             pending,
-            await backendPid(giver),
-            await backendPid(claim),
+            giver.pid,
+            claim.pid,
           );
           await claim.query("commit");
           const made = await pending;
@@ -283,8 +284,8 @@ describe.skipIf(!ADMIN_URL)(
           const waited = await blockedOrSettled(
             w.admin,
             pending,
-            await backendPid(claim),
-            await backendPid(giver),
+            claim.pid,
+            giver.pid,
           );
           await giver.query("commit");
           const answer = await pending;
@@ -305,7 +306,7 @@ describe.skipIf(!ADMIN_URL)(
           expect(
             (
               await w.admin.query(
-                "select email, status from public.donors d join public.account_claim_requests c on c.donor_id = d.id where d.id = $1",
+                "select d.email, c.status from public.donors d join public.account_claim_requests c on c.donor_id = d.id where d.id = $1",
                 [donor],
               )
             ).rows,
@@ -379,12 +380,7 @@ describe.skipIf(!ADMIN_URL)(
             "atomic_create_donation_with_audit",
           );
           expect(
-            await blockedOrSettled(
-              w.admin,
-              pending,
-              await backendPid(second),
-              await backendPid(first),
-            ),
+            await blockedOrSettled(w.admin, pending, second.pid, first.pid),
           ).toBe(true);
           await first.query("commit");
           const two = await pending;
@@ -418,8 +414,8 @@ describe.skipIf(!ADMIN_URL)(
           const waited = await blockedOrSettled(
             w.admin,
             pending,
-            await backendPid(second),
-            await backendPid(first),
+            second.pid,
+            first.pid,
           );
           await first.query("commit");
           const two = await pending;
