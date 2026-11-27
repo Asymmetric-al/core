@@ -346,47 +346,55 @@ NO KEY UPDATE` first.
     `isSettledGift` (Paid or Received) feeds this year's total, the last
     supported, the missionaries supported, the monthly series and the year
     summary.
-48. **The intake's organization comes from the host (ruling W8-R41, with
-    the coordinator's amendment of 27 November).** `public.begin_line_gift`
+48. **The intake's organization comes from the host (ruling W8-R41), and
+    who may give where follows the six admission cases of the ruling on
+    signed-in giving of 27 November (section 3).** `public.begin_line_gift`
     takes the host the request was made to and no organization, reads the
     organization from the reviewed lookup `public.resolve_verified_host`
     (state active), the one entry of `WORKER_WRAPPER_ANCHOR_LOOKUPS`, and
     refuses `42501 host_not_admitted` without one. The guard command locks
     the organization `FOR SHARE`, admits the host again under locks (the
     claimed name, the Site `FOR SHARE`, or the home record `FOR SHARE`) and
-    refuses a host before it judges the organization's status, so no answer
-    tells whether another organization's name exists. On a Site's
-    checkout a source Site is always `22023`, and a signed-in giver is
-    refused (`22023 actor_not_admitted`) while one named check,
-    `private.site_checkout_serves_guests()`, answers true: the plan's "A
-    Site's checkout serves guests" (line 179), under the owner's review of
-    outcome 3. Replaced to answer false, it lets a verified giver give in
-    place where the Site's name is also the organization's home domain,
-    with the account area's checks and the Site frozen from the host.
-    A signed-in gift on the home domain may name the Site it was
-    handed off from; it is kept only when it is an active Site of the home
-    organization, and otherwise the gift carries no Site, silently; the
-    entry surface is the donor portal's either way (plan lines 179, 1152,
-    1179). The handler takes the host only from `Host`. Plan lines 169,
-    179, 201, 210 and 221 are amended to say so.
+    refuses a host or surface before it judges the organization's status,
+    so no answer tells whether another organization's name exists. The six
+    cases: (1) a verified actor on a name that is both a Site's and the
+    organization's home gives in place, with the host's Site and the
+    `website` surface; (2) a signed-in gift at home handed off from a
+    current Site of the organization keeps that Site, `donor_account`;
+    (3) one whose source Site is absent, another organization's, unknown
+    or inactive carries no Site, silently, `donor_account`; (4) a gift
+    started inside the account carries no Site, `donor_account`; (5) a
+    guest on any admitted Site name gets the host's Site, `website`, no
+    actor; (6) an actor on a Site name that is not the home is
+    `22023 actor_not_admitted`. A required or supplied actor without a
+    user ID or the e-mail's confirmation is `22023 actor_required`, and a
+    source Site on a Site's checkout is `22023 source_site_not_admitted`;
+    a refusal writes nothing. The handler takes the host only from `Host`,
+    reads the session only for a submission to the organization's home,
+    takes the actor only from it, and lets "give as a guest instead" only
+    remove it. Plan lines 169, 179, 201, 210, 221 and 1179 are amended to
+    say so.
 49. **The intake command** freezes the Site, the entry surface, the source
     code (an active listed code by its id; a well-formed code off the list
     kept apart for triage; a malformed or absent one stays absent) and
     anonymity; takes the entity from the lines (one entity; no donor line
     on the reserved fund), the active test-mode binding `FOR SHARE` before
     the intake, and the fee line from the fee cover the server computes with
-    `fee-policy.ts`; refuses bank debit; keeps the client key and the
-    request as SHA-256 digests only; answers a replay with its first intake
-    and refuses the key with another request (`23505`). No browser total,
-    tenant, entity or binding is read.
+    `fee-policy.ts`; admits a card only (bank debit and wallets are
+    `22023 payment_method_refused`, the ruling on intent conflicts of
+    27 November, section 3), so its one create request names
+    `payment_method_types: ["card"]` and never `automatic_payment_methods`;
+    keeps the client key and the request as SHA-256 digests only; answers a
+    replay with its first intake and refuses the key with another request
+    (`23505`). No browser total, tenant, entity or binding is read.
 50. **The rate limit is a Postgres counter of digests.** Ten requests per
     address in a ten-minute window pass, the eleventh is refused; each call
     removes up to 200 rows of ended windows (`SKIP LOCKED`), so the table
     holds the current window's addresses. The address is the first entry of
     `x-forwarded-for`, which Vercel sets and overwrites so a client cannot
     add to it (https://vercel.com/docs/headers/request-headers). The handler
-    checks the challenge first (no write), then takes the token (its own
-    row only), then calls the command.
+    checks the challenge first (no write), then the home and the session,
+    then takes the token (its own row only), then calls the command.
 51. **The config read is anonymous (W8-R18).** `public.checkout_giving_config`
     answers one connected account or nothing, the same nothing for every
     reason; its route answers one generic "giving unavailable" while
@@ -410,7 +418,10 @@ NO KEY UPDATE` first.
     thirty-day month and 1,488 in a thirty-one-day month per deployed
     environment at zero traffic, and nothing per gift, because the person at
     checkout is served by the route's inline first send and the
-    destination's inline apply, never by the schedule. The plan enforces a
+    destination's inline apply, never by the schedule. The three recovery
+    scans already on the same cadence keep their own counts until part 2b
+    retires the saga's and the legacy events' scans in the same release
+    that opens checkout. The plan enforces a
     cap of 50,000 executions a month (1,519 used on 27 November); at the cap
     Inngest stops running functions until the period resets. Nothing is
     lost: payments still become gifts through the destination; queued and

@@ -515,7 +515,6 @@ not change.
 | `public.checkout_giving_config(text, jsonb)`                                                                         | DEFINER  | `postgres` (owner), `anon`, `authenticated` |
 | `public.money_due_work(integer)`                                                                                     | INVOKER  | `postgres` (owner), `service_role`          |
 | `private.donation_intake_requests_sealed()` (trigger)                                                                | INVOKER  | `postgres` (owner)                          |
-| `private.site_checkout_serves_guests()`                                                                              | INVOKER  | `postgres` (owner), `tenant_guard`          |
 
 `public.begin_line_gift` reads its organization from the reviewed host lookup
 `public.resolve_verified_host` (ruling W8-R41) and takes no tenant;
