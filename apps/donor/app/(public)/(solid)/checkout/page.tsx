@@ -1,4 +1,7 @@
-import { createAnonymousClient } from "@asym/database/supabase/server";
+import {
+  createAnonymousClient,
+  createClient,
+} from "@asym/database/supabase/server";
 import { clientEnv } from "@asym/env";
 import { pageMetadata } from "@asym/lib/seo";
 import { headers } from "next/headers";
@@ -66,6 +69,18 @@ async function hostFacts(host: string): Promise<HostFacts> {
   };
 }
 
+async function signedInEmail(): Promise<string | null> {
+  try {
+    const supabase = await createClient(null);
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    return user?.email ?? null;
+  } catch {
+    return null;
+  }
+}
+
 export default async function CheckoutPage({
   searchParams,
 }: {
@@ -73,6 +88,10 @@ export default async function CheckoutPage({
 }) {
   const [params, requestHeaders] = await Promise.all([searchParams, headers()]);
   const facts = await hostFacts(requestHeaders.get("host")?.trim() ?? "");
+  const email =
+    facts.isHome || facts.surface === "donor_account"
+      ? await signedInEmail()
+      : null;
   return (
     <CheckoutPageClient
       link={readCheckoutLink(params)}
@@ -81,6 +100,7 @@ export default async function CheckoutPage({
       homeHost={facts.homeHost}
       siteId={facts.siteId}
       turnstileSiteKey={clientEnv.NEXT_PUBLIC_TURNSTILE_SITE_KEY ?? ""}
+      signedInEmail={email}
     />
   );
 }

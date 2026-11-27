@@ -2,7 +2,6 @@
 
 import { quoteGiftProcessingFee } from "@asym/api/donate/fee-policy";
 import { ownApiFetch } from "@asym/database/own-api";
-import { createBrowserClient } from "@asym/database/supabase";
 import { formatCurrency } from "@asym/lib/utils";
 import { Alert, AlertDescription } from "@asym/ui/components/shadcn/alert";
 import { Button } from "@asym/ui/components/shadcn/button";
@@ -423,34 +422,12 @@ export function CheckoutPageClient(props: CheckoutPageClientProps) {
   const [config, setConfig] = useState<Config>({
     state: link.target ? "loading" : "idle",
   });
-  const [email, setEmail] = useState<string | null>(
-    props.signedInEmail ?? null,
-  );
+  const email = props.signedInEmail ?? null;
   const [mode, setMode] = useState<"guest" | "signed_in">(
     props.signedInEmail && (props.isHome || props.surface === "donor_account")
       ? "signed_in"
       : "guest",
   );
-
-  useEffect(() => {
-    if (
-      props.signedInEmail !== undefined ||
-      !(props.isHome || props.surface === "donor_account")
-    )
-      return;
-    let active = true;
-    void createBrowserClient()
-      .auth.getUser()
-      .then(({ data }) => {
-        if (!active || !data.user?.email) return;
-        setEmail(data.user.email);
-        setMode("signed_in");
-      })
-      .catch(() => undefined);
-    return () => {
-      active = false;
-    };
-  }, [props.signedInEmail, props.isHome, props.surface]);
 
   useEffect(() => {
     if (!link.target) return;
