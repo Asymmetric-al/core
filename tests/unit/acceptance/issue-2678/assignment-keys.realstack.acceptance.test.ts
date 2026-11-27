@@ -398,7 +398,7 @@ describe.skipIf(!ADMIN_URL)(
             out.push(
               ...(
                 await db.query(
-                  `select id::text || ':' || xmin::text as v from public.${table} where ministry_assignment_id is not null or missionary_id is not null order by id`,
+                  `select id::text || ':' || xmin::text || ':' || ctid::text as v from public.${table} where ministry_assignment_id is not null or missionary_id is not null order by id`,
                 )
               ).rows.map((row: { v: string }) => `${table}:${row.v}`),
             );
@@ -673,6 +673,47 @@ describe.skipIf(!ADMIN_URL)(
         expect(await failure(lines(source, 260, 283))).toMatchObject({
           code: "42P13",
         });
+      });
+    });
+
+    it("13. issue 2834 item 2: missionary_task_write ignores a malformed ministry_assignment_id in a create or an update patch, as before r3, and the task's key is still the derived one (red: 22P02)", async () => {
+      await within(async () => {
+        const created = await db.query(
+          "select id, ministry_assignment_id from public.missionary_task_write($1, $2, $3, 'create', null, $4::jsonb)",
+          [
+            id.UM,
+            id.TA,
+            id.mM,
+            JSON.stringify({
+              title: "acc2678r3 malformed key",
+              ministry_assignment_id: "not-a-uuid",
+            }),
+          ],
+        );
+        expect(created.rows).toEqual([
+          { id: expect.any(String), ministry_assignment_id: id.mA },
+        ]);
+        const task = created.rows[0].id as string;
+        const updated = await db.query(
+          "select id, title, ministry_assignment_id from public.missionary_task_write($1, $2, $3, 'update', $4, $5::jsonb)",
+          [
+            id.UM,
+            id.TA,
+            id.mM,
+            task,
+            JSON.stringify({
+              title: "acc2678r3 malformed key 2",
+              ministry_assignment_id: "{nope",
+            }),
+          ],
+        );
+        expect(updated.rows).toEqual([
+          {
+            id: task,
+            title: "acc2678r3 malformed key 2",
+            ministry_assignment_id: id.mA,
+          },
+        ]);
       });
     });
 
