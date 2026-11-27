@@ -472,6 +472,7 @@ its owner and grantee (`tenant_guard`) unchanged.
 | `private.money_norm(text)`, `private.money_entered_name(text, text)`, `private.money_duplicate_donors(uuid, text, text, jsonb, uuid)`, `private.money_large_gift_hold(bigint, text, bigint)` | INVOKER  | `postgres` (owner), `tenant_guard`      |
 | `public.line_based_gift_lines(uuid, uuid[])`                                                                                                                                                 | DEFINER  | `postgres` (owner), `service_role`      |
 | `public.actor_gifts_without_donor(uuid, uuid)`                                                                                                                                               | DEFINER  | `postgres` (owner), `service_role`      |
+| `public.donor_portal_lifetime(uuid, uuid, uuid[])`                                                                                                                                           | DEFINER  | `postgres` (owner), `service_role`      |
 | `private.staged_gifts_hold_guard()` (trigger)                                                                                                                                                | DEFINER  | `postgres` (owner)                      |
 
 `public.actor_gifts_without_donor(uuid, uuid)` (fix round F2) is a
@@ -479,6 +480,11 @@ its owner and grantee (`tenant_guard`) unchanged.
 ids of a login's counted line-based gifts that have no donor yet, for the
 donor portal. `public.admin_contributions_summary(uuid)` is replaced (F5)
 with its owner and grants unchanged and its search path emptied.
+`public.donor_portal_lifetime(uuid, uuid, uuid[])` (pull request 2a, issue
+2857 item 8, `20261127050000_wp8a2_rest2a_item_zero.sql`) is a
+`postgres`-owned STABLE definer with EXECUTE for `service_role` only: the
+sum and count of a person's settled gifts, by the portal list's ownership
+filters, so the lifetime figures do not depend on the 250 rows it shows.
 
 Each revokes `PUBLIC`, `anon`, `authenticated` and `service_role` by name
 before granting (`20261127030100_wp8a2_rest_holds.sql`,

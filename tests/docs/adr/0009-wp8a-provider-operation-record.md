@@ -296,6 +296,54 @@ NO KEY UPDATE` first.
 38. **The large-gift threshold compares the charged total, fee cover
     included** (inventory 8.3, accepted 27 November 2026): no ruling fixes
     the amount, and the charged total is the cautious reading.
+39. **A paid event on a disconnected account opens a case (issue 2857
+    item 1).** A success that names or matches a create request a
+    disconnect parked (its outcome is known, so it has no repair case)
+    opens one `paid_while_parked` case in `public.payment_event_cases` on
+    the intake, with one `payment_while_parked` task and one link, and
+    stages nothing; a replay answers the same case. A success for a request
+    with an open repair case stays that case's evidence (decision 37).
+40. **Every success after a staff abandonment opens `paid_after_abandon`
+    (item 2)**, also when the create request is parked: the abandonment
+    branches run before anything is read of the create request. Refusing
+    the abandonment of an intake whose create is parked, the issue's other
+    choice, was not taken, so staff can always close an intake.
+41. **The apply audits the cancels it changed (item 14)**:
+    `cancel_requests_abandoned` lists the ids its update returned.
+42. **The enqueue takes the binding before the intake (item 15)**, decision
+    32's order: it reads the intake's binding id without a lock, takes the
+    binding `FOR SHARE`, then the intake `FOR NO KEY UPDATE` with that
+    binding matched, and answers `not_found` when the binding moved
+    meanwhile.
+43. **A staff correction's receipt (items 3 to 7).** The key is looked up
+    before the revision check, so a retry after a committed correction
+    reaches the replay (item 6). A key used on another gift is refused with
+    `409`, and nothing is written or sent (item 3). One snapshot per
+    correction and kind, a partial unique index; the loser of that race
+    replays the winner's (item 4). A replay sends its own correction's
+    snapshot and reports `superseded` once a later correction of the gift
+    is applied (item 5). A send that failed, or a snapshot with no send log
+    after five minutes, is sent again; one inside those five minutes
+    reports `pending` (item 7).
+44. **The portal's lifetime is a settled aggregate (item 8)**:
+    `public.donor_portal_lifetime` sums and counts the gifts the list
+    admits (the donor's, and the login's gifts with no donor yet), legacy
+    in a settled status and line-based once paid, so the figures hold past
+    the 250 the list shows. It replaces decision 35's addition to the
+    donor's stored totals.
+45. **The fee-cover fund is compared in canonical form (item 10)**, lower
+    case, and the fee lookup's rows are parsed at the boundary (item 11).
+46. **The manifest says what the grants say on `donations` (item 13).**
+    `authenticated` selects `donations` whole because `donationsCollection`
+    reads `select=*`, so donor and missionary read `is_anonymous` and
+    `abandoned_by` (no login, no address: a flag and `'sweep'` or
+    `'staff'`). The narrowing to column grants is WP8b's contract; the
+    item-zero suite fails when `field_policies` and
+    `has_column_privilege` disagree on either.
+47. **The donor app counts settled gifts with one predicate (item 16)**:
+    `isSettledGift` (Paid or Received) feeds this year's total, the last
+    supported, the missionaries supported, the monthly series and the year
+    summary.
 
 ## Pins moved (D-18), each with the reason in the edited title
 
@@ -332,3 +380,8 @@ NO KEY UPDATE` first.
 | `issue-2406/profile-url.acceptance`, criterion 18 (fix round)                                                     | Its fake answers `public.actor_gifts_without_donor`, which the portal now calls (F2), with none                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
 | `packages/api/donor-portal/snapshot-gift-cap.test.ts` (fix round)                                                 | Its fake answers the same read, with none (F2)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
 | `apps/donor/history-receipt-links.test.ts` (fix round)                                                            | The Receipt control downloads the row's link and shows none without one, as a line-based gift has none until WP8b (F6)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
+| `issue-2681/wp8a-rest1-unpaid.realstack…`, F10 (item zero)                                                        | With no open repair case, a success for a parked create opens one `paid_while_parked` case (decision 39)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
+| `issue-2406/profile-url.acceptance`, criterion 18 (item zero)                                                     | Its fake answers `public.donor_portal_lifetime`, which the portal now calls (decision 44), with zero                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
+| `packages/api/admin/contribution-receipt-worker-names.test.ts`, F11 (item zero)                                   | The later retry reports the receipt's state, not `null` (decision 43)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
+| `shared/realstack-step.test.ts`, `REAL_DATABASE_FILES` (item zero)                                                | The item-zero real-stack file                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
+| `packages/api/admin/contribution-adjustment-operations.test.ts`, "#260 stale retry" (item zero)                   | A retry with the same key replays its correction although the revision moved; a new key on a stale revision is still refused with `409` (decision 43). Its fake now honours the key filter, which the earlier lookup reads                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
