@@ -29,6 +29,8 @@ copyMaplibreWorkerAssetsForApp({
 const BONEYARD_JS_ALIAS = "apps/donor/node_modules/boneyard-js";
 const BONEYARD_JS_REACT_ALIAS = `${BONEYARD_JS_ALIAS}/dist/react.js`;
 
+const NOT_API_OR_AUTH = "(?!(?:api|auth)(?:/|$))";
+
 /**
  * The two flags Instant Navigation needs are pinned in the type, not just set
  * in the literal: dropping either one, or flipping it to false, then fails
@@ -160,7 +162,7 @@ const nextConfig: NextConfig & {
           ],
         },
         {
-          source: "/:all*(svg|jpg|jpeg|png|gif|ico|webp|avif)",
+          source: `/(${NOT_API_OR_AUTH}.*(?:svg|jpg|jpeg|png|gif|ico|webp|avif))`,
           headers: [
             {
               key: "Cache-Control",
@@ -169,7 +171,7 @@ const nextConfig: NextConfig & {
           ],
         },
         {
-          source: "/:all*(js|css)",
+          source: `/(${NOT_API_OR_AUTH}.*(?:js|css))`,
           headers: [
             {
               key: "Cache-Control",
@@ -178,7 +180,7 @@ const nextConfig: NextConfig & {
           ],
         },
         {
-          source: "/:all*(woff|woff2|ttf|otf|eot)",
+          source: `/(${NOT_API_OR_AUTH}.*(?:woff|woff2|ttf|otf|eot))`,
           headers: [
             {
               key: "Cache-Control",

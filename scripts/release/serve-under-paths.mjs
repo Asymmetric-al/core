@@ -124,8 +124,9 @@ export function serveUnderPathsDonorHeaders(rules, env) {
     return rules;
   }
   return rules.map((rule) => {
-    if (rule.source === "/(.*)") {
-      return { ...rule, source: `/(${DASHBOARD_SKIP_PREFIX}.*)` };
+    const group = /^\/\((.*)\)$/.exec(rule.source);
+    if (group) {
+      return { ...rule, source: `/(${DASHBOARD_SKIP_PREFIX}${group[1]})` };
     }
     const assetMatch = /^\/:all\*\(([^)]+)\)$/.exec(rule.source);
     if (assetMatch) {
