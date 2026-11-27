@@ -23,7 +23,8 @@
 --    Paid means the key's intake is completed. A key that already began an
 --    intake of the organization, or was already admitted in the bucket, is
 --    free. A refusal answers retry_after_seconds (1 to 600), when the oldest
---    attempt that holds the bucket full leaves the window.
+--    attempt that holds the bucket full leaves the window, and which bucket
+--    refused ('address' or 'person', the one that holds longer).
 -- 3. public.checkout_giving_config(host, targets, surface, source Site):
 --    replaces checkout_giving_config(host, targets). 'website' needs a name
 --    serving website with an active Site; 'donor_account' needs the
@@ -107,6 +108,7 @@ DECLARE
   v_oldest TIMESTAMPTZ;
   v_until TIMESTAMPTZ;
   v_refused_until TIMESTAMPTZ;
+  v_refused_bucket TEXT;
 BEGIN
   v_address := pg_catalog.btrim(p_address);
   IF (v_address <> '' AND pg_catalog.char_length(v_address) <= 100) IS NOT TRUE THEN
@@ -213,8 +215,9 @@ BEGIN
     IF v_total >= v_limits[v_index * 2] THEN
       v_until := GREATEST(v_until, v_oldest + INTERVAL '10 minutes');
     END IF;
-    IF v_until IS NOT NULL THEN
-      v_refused_until := GREATEST(v_refused_until, v_until);
+    IF v_until IS NOT NULL AND (v_refused_until IS NULL OR v_until > v_refused_until) THEN
+      v_refused_until := v_until;
+      v_refused_bucket := CASE WHEN v_index = 1 THEN 'address' ELSE 'person' END;
     END IF;
   END LOOP;
 
@@ -222,7 +225,8 @@ BEGIN
     RETURN pg_catalog.jsonb_build_object(
       'admitted', false,
       'retry_after_seconds', LEAST(600, GREATEST(1, pg_catalog.ceil(
-        EXTRACT(EPOCH FROM v_refused_until - pg_catalog.clock_timestamp()))::INTEGER))
+        EXTRACT(EPOCH FROM v_refused_until - pg_catalog.clock_timestamp()))::INTEGER)),
+      'bucket', v_refused_bucket
     );
   END IF;
 

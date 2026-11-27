@@ -73,7 +73,7 @@ function setup(
         data:
           (over.token ?? true)
             ? { admitted: true, retry_after_seconds: null }
-            : { admitted: false, retry_after_seconds: 60 },
+            : { admitted: false, retry_after_seconds: 60, bucket: "address" },
         error: null,
       };
     return (
@@ -170,6 +170,7 @@ describe("AL-2681 PR 2a: the guest intake handler (tested directly; not mounted 
     expect(await res.json()).toEqual({
       error: "too_many_requests",
       retryAfterSeconds: 60,
+      bucket: "address",
     });
     expect(s.calls.map((c) => c.fn)).toEqual(["take_intake_attempt"]);
     expect(s.calls[0]!.args).toMatchObject({ p_address: "198.51.100.4" });
