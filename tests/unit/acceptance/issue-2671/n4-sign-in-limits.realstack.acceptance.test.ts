@@ -57,27 +57,42 @@ describe.skipIf(!ADMIN_URL)(
         ),
       );
 
-    const fail = (account: string) =>
+    const fail = (account: string, address: string) =>
       asService(async () => {
-        await db.query("SELECT public.record_sign_in_failure($1)", [account]);
+        await db.query("SELECT public.record_sign_in_failure($1, $2)", [
+          account,
+          address,
+        ]);
       });
 
-    it("thirty attempts from one address pass across accounts, the thirty-first is refused, and another address is unaffected", () =>
+    it("attempts alone count nothing: forty sign-ins from one address across accounts all pass", () =>
+      inTx(async () => {
+        const address = "198.51.100.70";
+        const answers: boolean[] = [];
+        for (let i = 0; i < 40; i += 1)
+          answers.push(await take(`signed-in-${i}@example.test`, address));
+        expect(answers).toEqual(Array(40).fill(true));
+      }));
+
+    it("thirty refused passwords from one address, across thirty accounts, refuse that address for every account, while another address passes", () =>
       inTx(async () => {
         const address = "198.51.100.77";
-        const answers: boolean[] = [];
-        for (let i = 0; i < 31; i += 1)
-          answers.push(await take(`person-${i}@example.test`, address));
-        expect(answers).toEqual([...Array(30).fill(true), false]);
+        for (let i = 0; i < 29; i += 1)
+          await fail(`person-${i}@example.test`, address);
+        expect(await take("fresh@example.test", address)).toBe(true);
+        await fail("person-29@example.test", address);
+        expect(await take("fresh@example.test", address)).toBe(false);
+        expect(await take("person-0@example.test", address)).toBe(false);
+        expect(await take("fresh@example.test", "203.0.113.8")).toBe(true);
         expect(await take("person-0@example.test", "203.0.113.8")).toBe(true);
       }));
 
-    it("ten refused passwords for one account refuse it from every address, while another account and the same addresses still pass", () =>
+    it("ten refused passwords for one account, from several addresses, refuse it from every address, while another account and the same addresses still pass", () =>
       inTx(async () => {
         const account = "target@example.test";
-        for (let i = 0; i < 9; i += 1) await fail(account);
-        expect(await take(account, "198.51.100.1")).toBe(true);
-        await fail(account);
+        for (let i = 0; i < 9; i += 1) await fail(account, `198.51.100.${i}`);
+        expect(await take(account, "203.0.113.50")).toBe(true);
+        await fail(account, "198.51.100.9");
         for (const address of ["198.51.100.1", "198.51.100.2", "203.0.113.9"])
           expect(await take(account, address), address).toBe(false);
         expect(await take("other@example.test", "198.51.100.1")).toBe(true);
@@ -99,12 +114,12 @@ describe.skipIf(!ADMIN_URL)(
         expect(ended).toBe(0);
       }));
 
-    it("stores digests only: no account address or client address in any row", () =>
+    it("stores digests only: no account address or client address in any row, and one refusal counts once for each", () =>
       inTx(async () => {
         const account = "stored@example.test";
         const address = "198.51.100.44";
         await take(account, address);
-        await fail(account);
+        await fail(account, address);
         const rows = (
           await db.query(
             "SELECT kind, key_digest, hits FROM private.sign_in_windows WHERE key_digest IN ($1, $2) ORDER BY kind",
@@ -130,7 +145,7 @@ describe.skipIf(!ADMIN_URL)(
           await db.query(
             `SELECT r,
                     has_function_privilege(r, 'public.take_sign_in_attempt(text, text)', 'EXECUTE') AS take,
-                    has_function_privilege(r, 'public.record_sign_in_failure(text)', 'EXECUTE') AS fail
+                    has_function_privilege(r, 'public.record_sign_in_failure(text, text)', 'EXECUTE') AS fail
                FROM unnest(ARRAY['anon', 'authenticated', 'service_role']) AS r ORDER BY r`,
           )
         ).rows;
@@ -155,8 +170,8 @@ describe.skipIf(!ADMIN_URL)(
           ],
           [
             "authenticated",
-            "SELECT public.record_sign_in_failure($1)",
-            ["a@example.test"],
+            "SELECT public.record_sign_in_failure($1, $2)",
+            ["a@example.test", "198.51.100.5"],
           ],
           [
             "service_role",
@@ -167,6 +182,11 @@ describe.skipIf(!ADMIN_URL)(
             "service_role",
             "SELECT public.take_sign_in_attempt($1, $2)",
             ["a@example.test", " "],
+          ],
+          [
+            "service_role",
+            "SELECT public.record_sign_in_failure($1, $2)",
+            ["a@example.test", ""],
           ],
         ] as const) {
           await db.query("SAVEPOINT n4_limits");
