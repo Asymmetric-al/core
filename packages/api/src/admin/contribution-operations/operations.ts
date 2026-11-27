@@ -1,3 +1,4 @@
+import { stableSerialize } from "./action-runtime";
 import { correctionEffectiveValues } from "./correction-effective-values";
 import {
   correctionRequestReferenceIds,
@@ -1109,6 +1110,26 @@ function emailReceiptOutcome(
   return { ...base, status: "emailed", reason: null, snapshotId };
 }
 
+async function stagedGiftReceiptStatus(input: {
+  supabaseAdmin: SupabaseAdmin;
+  tenantId: string;
+  stagedGiftId: string;
+}): Promise<string | null> {
+  const { data, error } = await input.supabaseAdmin
+    .from("staged_gifts")
+    .select("receipt_status")
+    .eq("tenant_id", input.tenantId)
+    .eq("id", input.stagedGiftId)
+    .maybeSingle();
+  if (error) {
+    throw new Error(error.message);
+  }
+  const row = data as Record<string, unknown> | null;
+  return row && typeof row.receipt_status === "string"
+    ? row.receipt_status
+    : null;
+}
+
 async function sendExistingEmailReceipt(input: {
   supabaseAdmin: SupabaseAdmin;
   tenantId: string;
@@ -1126,6 +1147,16 @@ async function sendExistingEmailReceipt(input: {
   });
   if (last === "sent") {
     return emailReceiptOutcome(input.base, "sent", input.snapshot.id);
+  }
+  if (
+    last === null &&
+    (await stagedGiftReceiptStatus({
+      supabaseAdmin: input.supabaseAdmin,
+      tenantId: input.tenantId,
+      stagedGiftId: input.stagedGiftId,
+    })) === "suppressed"
+  ) {
+    return emailReceiptOutcome(input.base, "suppressed", input.snapshot.id);
   }
   const createdAt = input.snapshot.createdAt
     ? Date.parse(input.snapshot.createdAt)
@@ -1245,14 +1276,21 @@ async function runReceiptDelivery(input: {
   return emailReceiptOutcome(base, receipt.status, inserted.snapshot.id);
 }
 
+type StoredCorrection = {
+  id: string;
+  donationId: string;
+  actionType: string;
+  effectiveValues: unknown;
+};
+
 async function findCorrectionByKey(input: {
   supabaseAdmin: SupabaseAdmin;
   tenantId: string;
   idempotencyKey: string;
-}): Promise<{ id: string; donationId: string } | null> {
+}): Promise<StoredCorrection | null> {
   const { data, error } = await input.supabaseAdmin
     .from("contribution_adjustments")
-    .select("id, donation_id")
+    .select("id, donation_id, adjustment_type, effective_values")
     .eq("tenant_id", input.tenantId)
     .eq("idempotency_key", input.idempotencyKey)
     .maybeSingle();
@@ -1261,7 +1299,12 @@ async function findCorrectionByKey(input: {
   }
   const row = data as Record<string, unknown> | null;
   return row && typeof row.id === "string"
-    ? { id: row.id, donationId: String(row.donation_id ?? "") }
+    ? {
+        id: row.id,
+        donationId: String(row.donation_id ?? ""),
+        actionType: String(row.adjustment_type ?? ""),
+        effectiveValues: row.effective_values ?? null,
+      }
     : null;
 }
 
@@ -1270,6 +1313,22 @@ function refuseKeyOfAnotherGift(): never {
     409,
     "This request key was already used for another gift. Start the correction again from this gift.",
   );
+}
+
+function assertSameCorrection(
+  stored: StoredCorrection,
+  actionType: ContributionActionType,
+  effectiveValues: unknown,
+) {
+  if (
+    stored.actionType !== actionType ||
+    stableSerialize(stored.effectiveValues) !== stableSerialize(effectiveValues)
+  ) {
+    throw new ApiHttpError(
+      409,
+      "This request key was already used for a different correction of this gift. Reload the gift to see what was applied, then submit the change again.",
+    );
+  }
 }
 
 async function replayReceipt(input: {
@@ -1283,6 +1342,7 @@ async function replayReceipt(input: {
   affectedFields: string[];
   requested: ReceiptDeliverySelection | null;
   snapshotContent: ReceiptSnapshotContentV1;
+  existing?: ReceiptSnapshotRef | null;
 }): Promise<ReceiptDeliveryOutcome> {
   const base = {
     affectedFields: input.affectedFields,
@@ -1313,12 +1373,15 @@ async function replayReceipt(input: {
     return runReceiptDelivery({ ...input, adjustmentId: input.adjustmentId });
   }
   const kind = input.selection.choice === "pdf" ? "pdf" : "email";
-  const existing = await findReceiptSnapshot({
-    supabaseAdmin: input.supabaseAdmin,
-    tenantId: input.tenantId,
-    adjustmentId: input.adjustmentId,
-    kind,
-  });
+  const existing =
+    input.existing !== undefined
+      ? input.existing
+      : await findReceiptSnapshot({
+          supabaseAdmin: input.supabaseAdmin,
+          tenantId: input.tenantId,
+          adjustmentId: input.adjustmentId,
+          kind,
+        });
   if (!existing || (kind === "email" && !input.stagedGiftId)) {
     return runReceiptDelivery({ ...input, adjustmentId: input.adjustmentId });
   }
@@ -1358,7 +1421,7 @@ export async function applyContributionCorrection(input: {
     contributionId: input.contributionId,
     withHolds: false,
   };
-  const keyed = input.idempotencyKey
+  let keyed = input.idempotencyKey
     ? await findCorrectionByKey({
         supabaseAdmin: input.supabaseAdmin,
         tenantId: input.tenantId,
@@ -1375,16 +1438,32 @@ export async function applyContributionCorrection(input: {
     input.expectedRevision &&
     input.expectedRevision !== before.revision
   ) {
-    throw new ApiHttpError(
-      409,
-      "This gift changed since you loaded it. Reload the latest detail, review the changes, and submit the correction again.",
-    );
+    const late = input.idempotencyKey
+      ? await findCorrectionByKey({
+          supabaseAdmin: input.supabaseAdmin,
+          tenantId: input.tenantId,
+          idempotencyKey: input.idempotencyKey,
+        })
+      : null;
+    if (!late) {
+      throw new ApiHttpError(
+        409,
+        "This gift changed since you loaded it. Reload the latest detail, review the changes, and submit the correction again.",
+      );
+    }
+    if (late.donationId !== input.contributionId) {
+      refuseKeyOfAnotherGift();
+    }
+    keyed = late;
   }
 
   const effectiveValues = correctionEffectiveValues(
     input.actionType,
     input.payload,
   );
+  if (keyed) {
+    assertSameCorrection(keyed, input.actionType, effectiveValues);
+  }
 
   await assertCorrectionReferencesExist({
     supabaseAdmin: input.supabaseAdmin,
@@ -1439,37 +1518,53 @@ export async function applyContributionCorrection(input: {
         })
       : new Map<string, string | null>();
 
+  const storedReceipt = (adjustmentId: string) =>
+    deliverySelection &&
+    deliverySelection.choice !== "defer" &&
+    affectedFields.length > 0
+      ? findReceiptSnapshot({
+          supabaseAdmin: input.supabaseAdmin,
+          tenantId: input.tenantId,
+          adjustmentId,
+          kind: deliverySelection.choice === "pdf" ? "pdf" : "email",
+        })
+      : Promise.resolve(null);
+
   const replay = async (
     adjustmentId: string,
     current: ContributionDetail = before,
     names: ReadonlyMap<string, string | null> = workerPublicNames,
-  ) => ({
-    before: summarizeEffectiveDetail(before),
-    after: summarizeEffectiveDetail(current),
-    status: "applied" as const,
-    adjustmentId,
-    idempotentReplay: true,
-    receiptOutcome:
-      receiptAffected && deliverySelection
-        ? await replayReceipt({
-            supabaseAdmin: input.supabaseAdmin,
-            tenantId: input.tenantId,
-            contributionId: input.contributionId,
-            adjustmentId,
-            detail: current,
-            stagedGiftId: current.stagedGift?.id ?? null,
-            selection: deliverySelection,
-            affectedFields,
-            requested: requestedDelivery ?? deliverySelection,
-            snapshotContent: buildReceiptSnapshotContent({
-              detail: current,
-              workerPublicNames: names,
-              affectedFields,
+  ) => {
+    const stored = await storedReceipt(adjustmentId);
+    return {
+      before: summarizeEffectiveDetail(before),
+      after: summarizeEffectiveDetail(current),
+      status: "applied" as const,
+      adjustmentId,
+      idempotentReplay: true,
+      receiptOutcome:
+        deliverySelection && (receiptAffected || stored)
+          ? await replayReceipt({
+              supabaseAdmin: input.supabaseAdmin,
+              tenantId: input.tenantId,
+              contributionId: input.contributionId,
               adjustmentId,
-            }),
-          })
-        : null,
-  });
+              detail: current,
+              stagedGiftId: current.stagedGift?.id ?? null,
+              selection: deliverySelection,
+              affectedFields,
+              requested: requestedDelivery ?? deliverySelection,
+              snapshotContent: buildReceiptSnapshotContent({
+                detail: current,
+                workerPublicNames: names,
+                affectedFields,
+                adjustmentId,
+              }),
+              existing: stored,
+            })
+          : null,
+    };
+  };
 
   if (keyed) {
     return replay(keyed.id);
@@ -1512,6 +1607,7 @@ export async function applyContributionCorrection(input: {
     if (raced.donationId !== input.contributionId) {
       refuseKeyOfAnotherGift();
     }
+    assertSameCorrection(raced, input.actionType, effectiveValues);
     const current = await loadContributionOperationDetail(detailInput);
     const currentNames =
       receiptAffected &&

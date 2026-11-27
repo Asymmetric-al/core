@@ -90,6 +90,7 @@ export async function executeCorrection<TContribution>(
       correctionId: null,
       adjustmentId: correction.adjustmentId ?? null,
       idempotentReplay: true,
+      receiptOutcome: correction.receiptOutcome ?? null,
       taskIds: [],
     };
   }
