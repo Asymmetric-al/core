@@ -76,12 +76,13 @@ export async function PATCH(
       expected_updated_at,
     } = postUpdateSchema.parse(await ensureJsonBody(request));
     if (
+      title === undefined ||
       content === undefined ||
       visibility === undefined ||
       status === undefined
     ) {
       return NextResponse.json(
-        { error: "Send the update’s words, visibility and status." },
+        { error: "Send the update’s title, words, visibility and status." },
         { status: 400 },
       );
     }
