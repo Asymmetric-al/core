@@ -16,6 +16,7 @@ import { loadWorkerPublicNames } from "./worker-public-names";
 import { sendUpdatedReceiptSnapshotEmail } from "../../giving/receipts";
 import { ApiHttpError } from "../../shared/http-errors";
 import { asString, isRecord } from "../../shared/json-coerce";
+import { isCountedIntake, loadGiftHolds } from "../../shared/line-based-gifts";
 import { tenantMemberProfileIds } from "../../shared/tenant-members";
 import {
   loadStripeRawEventForReplay,
@@ -168,7 +169,7 @@ function uniqueReferenceIds(ids: Array<string | null | undefined>): string[] {
   );
 }
 
-async function loadDesignationSetData(input: {
+export async function loadDesignationSetData(input: {
   supabaseAdmin: SupabaseAdmin;
   tenantId: string;
   stagedGiftId: string | null;
@@ -217,7 +218,9 @@ async function loadDesignationSetData(input: {
     queryableFundIds.length > 0
       ? input.supabaseAdmin
           .from("funds")
-          .select("id, name, missionary_id, goal_amount, start_date, end_date")
+          .select(
+            "id, name, missionary_id, goal_amount, start_date, end_date, system_purpose",
+          )
           .eq("tenant_id", input.tenantId)
           .in("id", queryableFundIds)
       : Promise.resolve({ data: [], error: null }),
@@ -248,6 +251,7 @@ async function loadDesignationSetData(input: {
     goal_amount: asNullableNumber(row.goal_amount),
     start_date: asString(row.start_date),
     end_date: asString(row.end_date),
+    system_purpose: asString(row.system_purpose),
   }));
 
   const missionaries = ((missionariesResult.data ?? []) as JsonRecord[]).map(
@@ -323,17 +327,25 @@ async function loadContributionOperationDetail(input: {
   supabaseAdmin: SupabaseAdmin;
   tenantId: string;
   contributionId: string;
+  withHolds?: boolean;
 }): Promise<ContributionDetail> {
   const donationResult = await input.supabaseAdmin
     .from("donations")
     .select(
-      "id, tenant_id, donor_id, missionary_id, fund_id, amount, currency, status, donation_type, payment_method, is_recurring, recurring_interval, notes, stripe_payment_intent_id, gift_date, campaign_id, pledge_id, processed_at, completed_at, failed_at, error_code, error_message, stripe_charge_id, stripe_refund_ids, refunded_at, refund_amount, source, created_at, updated_at",
+      "id, tenant_id, donor_id, missionary_id, fund_id, amount, currency, status, donation_type, payment_method, is_recurring, recurring_interval, notes, stripe_payment_intent_id, gift_date, campaign_id, pledge_id, processed_at, completed_at, failed_at, error_code, error_message, stripe_charge_id, stripe_refund_ids, refunded_at, refund_amount, source, created_at, updated_at, intake_format",
     )
     .eq("tenant_id", input.tenantId)
     .eq("id", input.contributionId)
     .single();
 
-  if (donationResult.error || !isRecord(donationResult.data)) {
+  if (
+    donationResult.error ||
+    !isRecord(donationResult.data) ||
+    !isCountedIntake({
+      intake_format: asString(donationResult.data.intake_format),
+      status: asString(donationResult.data.status),
+    })
+  ) {
     throw new ApiHttpError(404, "Contribution not found.");
   }
 
@@ -521,6 +533,14 @@ async function loadContributionOperationDetail(input: {
         crmPostStatus: asString(stagedGiftResult.data.crm_post_status),
         reviewReason: asString(stagedGiftResult.data.review_reason),
         twentyRecordId: asString(stagedGiftResult.data.twenty_record_id),
+        holds:
+          input.withHolds === false
+            ? []
+            : await loadGiftHolds(
+                input.supabaseAdmin,
+                input.tenantId,
+                asString(stagedGiftResult.data.id) ?? "",
+              ),
       }
     : null;
 
@@ -1094,7 +1114,13 @@ export async function applyContributionCorrection(input: {
   expectedRevision?: string | null;
   idempotencyKey?: string | null;
 }) {
-  const before = await loadContributionOperationDetail(input);
+  const detailInput = {
+    supabaseAdmin: input.supabaseAdmin,
+    tenantId: input.tenantId,
+    contributionId: input.contributionId,
+    withHolds: false,
+  };
+  const before = await loadContributionOperationDetail(detailInput);
 
   if (input.expectedRevision && input.expectedRevision !== before.revision) {
     throw new ApiHttpError(
@@ -1199,22 +1225,58 @@ export async function applyContributionCorrection(input: {
       );
     }
 
+    const existingId = String(
+      (existingResult.data as Record<string, unknown>).id ?? "",
+    );
+    let resumedOutcome: ReceiptDeliveryOutcome | null = null;
+    if (
+      receiptAffected &&
+      deliverySelection &&
+      deliverySelection.choice !== "defer"
+    ) {
+      const delivered = await input.supabaseAdmin
+        .from("contribution_receipt_snapshots")
+        .select("id")
+        .eq("tenant_id", input.tenantId)
+        .eq("adjustment_id", existingId)
+        .limit(1);
+      if (delivered.error) {
+        throw new Error(delivered.error.message);
+      }
+      if ((delivered.data ?? []).length === 0) {
+        resumedOutcome = await runReceiptDelivery({
+          supabaseAdmin: input.supabaseAdmin,
+          tenantId: input.tenantId,
+          contributionId: input.contributionId,
+          adjustmentId: existingId,
+          stagedGiftId: before.stagedGift?.id ?? null,
+          selection: deliverySelection,
+          affectedFields,
+          requested: requestedDelivery ?? deliverySelection,
+          snapshotContent: buildReceiptSnapshotContent({
+            detail: before,
+            workerPublicNames,
+            affectedFields,
+            adjustmentId: existingId,
+          }),
+        });
+      }
+    }
+
     return {
       before: summarizeEffectiveDetail(before),
       after: summarizeEffectiveDetail(before),
       status: "applied" as const,
-      adjustmentId: String(
-        (existingResult.data as Record<string, unknown>).id ?? "",
-      ),
+      adjustmentId: existingId,
       idempotentReplay: true,
-      receiptOutcome: null,
+      receiptOutcome: resumedOutcome,
     };
   }
 
   const adjustmentId = String(
     ((insertResult.data ?? {}) as Record<string, unknown>).id ?? "",
   );
-  const after = await loadContributionOperationDetail(input);
+  const after = await loadContributionOperationDetail(detailInput);
 
   let receiptOutcome: ReceiptDeliveryOutcome | null = null;
   if (receiptAffected) {

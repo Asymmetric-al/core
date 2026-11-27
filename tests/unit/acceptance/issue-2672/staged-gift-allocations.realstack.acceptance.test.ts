@@ -13,7 +13,7 @@
  * rolled back; the race check commits its fixtures and deletes them after.
  */
 import { randomUUID } from "node:crypto";
-import { readFileSync } from "node:fs";
+import { readFileSync, readdirSync } from "node:fs";
 
 import pg from "pg";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
@@ -174,18 +174,37 @@ describe.skipIf(!ADMIN_URL)(
       ]);
     });
 
-    it("keeps the three-argument function's body as 20260707220134 created it", async () => {
+    it("keeps the three-argument function's legacy statements as 20260707220134 created them (D-18, AL-2681 rest PR 1: W8-R14 updates the function, which on a line-based gift hands the four-argument writer the status it locked; its text is the review migration's)", async () => {
       const source = readFileSync(
         "supabase/migrations/20260707220134_atomic_staged_gift_allocation_replace.sql",
         "utf8",
       );
       const body = /AS \$function\$([\s\S]*?)\$function\$;/.exec(source)?.[1];
       expect(body).toBeDefined();
+      const legacy = body!.slice(
+        body!.indexOf("  DELETE FROM public.staged_gift_allocations"),
+      );
+      expect(legacy.length).toBeGreaterThan(100);
+      const review = readdirSync("supabase/migrations").filter((name) =>
+        /^\d{14}_wp8a2_rest_review_and_reads\.sql$/.test(name),
+      );
+      expect(review).toHaveLength(1);
+      const reviewSource = readFileSync(
+        `supabase/migrations/${review[0]}`,
+        "utf8",
+      );
+      const threeArgument = reviewSource.slice(
+        reviewSource.indexOf("  p_allocations JSONB\n)\nRETURNS VOID"),
+      );
+      const current = /AS \$function\$([\s\S]*?)\$function\$;/.exec(
+        threeArgument,
+      )?.[1];
       const { rows } = await db.query(
         `select prosrc from pg_proc
           where oid = 'public.replace_staged_gift_allocations(uuid, uuid, jsonb)'::regprocedure`,
       );
-      expect(rows[0]?.prosrc).toBe(body);
+      expect(rows[0]?.prosrc).toBe(current);
+      expect(rows[0]?.prosrc.endsWith(legacy)).toBe(true);
     });
 
     it("still replaces the split when called as develop's handler calls it, with three named arguments", () =>

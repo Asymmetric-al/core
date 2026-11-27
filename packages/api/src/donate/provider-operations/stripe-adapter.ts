@@ -187,69 +187,138 @@ function sentAnswer(settled: StripeAnswer, send: OneSend): StripeAnswer {
   return { ...settled, status: send.status(), headers: send.headers() };
 }
 
+export type ClassifiedCancel = { payment_intent: string };
+
+export function classifyStripeCancelAnswer(
+  answer: StripeAnswer,
+  request: ClassifiedCancel,
+): PaymentProviderAnswer {
+  if (answer.kind === "timed_out") return unknownAnswer("stripe_timeout");
+  if (answer.kind === "rejected") {
+    const error = answer.error;
+    if (
+      error instanceof Stripe.errors.StripeError &&
+      error.statusCode === 400 &&
+      answer.status === 400 &&
+      error.code === "payment_intent_unexpected_state" &&
+      !replayMarked(error.headers, answer.headers)
+    )
+      return { result: "refused", errorCode: "stripe_unexpected_state" };
+    return classifyRejected(answer.error, answer.status, answer.headers);
+  }
+  const value = answer.value;
+  const status = answer.status;
+  if (
+    status !== undefined &&
+    Number.isInteger(status) &&
+    status >= 200 &&
+    status <= 299 &&
+    isRecord(value) &&
+    value.object === "payment_intent" &&
+    value.id === request.payment_intent &&
+    value.livemode === false &&
+    value.status === "canceled"
+  )
+    return { result: "succeeded", providerObjectId: request.payment_intent };
+  return unknownAnswer("stripe_unexpected_object");
+}
+
+type SendInput = {
+  account: string;
+  idempotencyKey: string;
+  timeoutMs: number;
+  remainingMs?: () => number;
+};
+
 export function createStripePaymentAdapter({
   secretKey,
   transport,
 }: StripePaymentAdapterOptions): PaymentProviderAdapter {
   const key = assertStripeTestModeKey(secretKey);
+
+  async function sendOnce(
+    { account, idempotencyKey, timeoutMs, remainingMs }: SendInput,
+    call: (
+      stripe: Stripe,
+      options: Stripe.RequestOptions & { timeout: number },
+    ) => Promise<unknown>,
+    classify: (answer: StripeAnswer) => PaymentProviderAnswer,
+  ): Promise<PaymentProviderAnswer> {
+    const asked = Math.floor(timeoutMs);
+    if (!Number.isFinite(asked) || asked < 1)
+      throw new RangeError(
+        "timeoutMs must be a finite number of at least 1 millisecond.",
+      );
+    if (typeof account !== "string" || !CONNECTED_ACCOUNT.test(account))
+      throw new TypeError("A connected account id (acct_...) is required.");
+    if (typeof idempotencyKey !== "string" || idempotencyKey === "")
+      throw new TypeError("An idempotency key is required.");
+    const left = remainingMs === undefined ? asked : remainingMs();
+    if (remainingMs !== undefined && !(left >= MIN_SEND_MS))
+      return { result: "not_performed", errorCode: "lease_budget_spent" };
+    const timeout = Math.floor(Math.min(asked, left));
+    const controller = new AbortController();
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    try {
+      const expiry = new Promise<StripeAnswer>((resolve) => {
+        timer = setTimeout(() => {
+          controller.abort();
+          resolve({ kind: "timed_out" });
+        }, timeout);
+      });
+      const send = createOneSend(
+        transport ?? fetchTransport(controller.signal),
+      );
+      const stripe = new Stripe(key, {
+        apiVersion: STRIPE_API_VERSION,
+        maxNetworkRetries: 0,
+        timeout,
+        httpClient: send.client,
+        telemetry: false,
+      });
+      const pending: Promise<StripeAnswer> = call(stripe, {
+        idempotencyKey,
+        stripeAccount: account,
+        maxNetworkRetries: 0,
+        timeout,
+      }).then(
+        (value): StripeAnswer => ({ kind: "resolved", value }),
+        (error: unknown): StripeAnswer => ({ kind: "rejected", error }),
+      );
+      const settled = await Promise.race([pending, expiry]);
+      return classify(sentAnswer(settled, send));
+    } catch {
+      return unknownAnswer("adapter_fault");
+    } finally {
+      clearTimeout(timer);
+    }
+  }
+
   return {
-    async createPayment({
-      account,
-      idempotencyKey,
-      params,
-      timeoutMs,
-      remainingMs,
-    }) {
-      const asked = Math.floor(timeoutMs);
-      if (!Number.isFinite(asked) || asked < 1)
-        throw new RangeError(
-          "timeoutMs must be a finite number of at least 1 millisecond.",
-        );
-      if (typeof account !== "string" || !CONNECTED_ACCOUNT.test(account))
-        throw new TypeError("A connected account id (acct_...) is required.");
-      if (typeof idempotencyKey !== "string" || idempotencyKey === "")
-        throw new TypeError("An idempotency key is required.");
-      const left = remainingMs === undefined ? asked : remainingMs();
-      if (remainingMs !== undefined && !(left >= MIN_SEND_MS))
-        return { result: "not_performed", errorCode: "lease_budget_spent" };
-      const timeout = Math.floor(Math.min(asked, left));
-      const controller = new AbortController();
-      let timer: ReturnType<typeof setTimeout> | undefined;
-      try {
-        const expiry = new Promise<StripeAnswer>((resolve) => {
-          timer = setTimeout(() => {
-            controller.abort();
-            resolve({ kind: "timed_out" });
-          }, timeout);
-        });
-        const send = createOneSend(
-          transport ?? fetchTransport(controller.signal),
-        );
-        const stripe = new Stripe(key, {
-          apiVersion: STRIPE_API_VERSION,
-          maxNetworkRetries: 0,
-          timeout,
-          httpClient: send.client,
-          telemetry: false,
-        });
-        const call: Promise<StripeAnswer> = stripe.paymentIntents
-          .create(params as Stripe.PaymentIntentCreateParams, {
-            idempotencyKey,
-            stripeAccount: account,
-            maxNetworkRetries: 0,
-            timeout,
-          })
-          .then(
-            (value): StripeAnswer => ({ kind: "resolved", value }),
-            (error: unknown): StripeAnswer => ({ kind: "rejected", error }),
-          );
-        const settled = await Promise.race([call, expiry]);
-        return classifyStripeAnswer(sentAnswer(settled, send), params);
-      } catch {
-        return unknownAnswer("adapter_fault");
-      } finally {
-        clearTimeout(timer);
-      }
+    createPayment({ params, ...input }) {
+      return sendOnce(
+        input,
+        (stripe, options) =>
+          stripe.paymentIntents.create(
+            params as Stripe.PaymentIntentCreateParams,
+            options,
+          ),
+        (answer) => classifyStripeAnswer(answer, params),
+      );
+    },
+    cancelPayment({ params, ...input }) {
+      if (!PAYMENT_INTENT_ID.test(params.payment_intent))
+        throw new TypeError("A PaymentIntent id (pi_...) is required.");
+      return sendOnce(
+        input,
+        (stripe, options) =>
+          stripe.paymentIntents.cancel(
+            params.payment_intent,
+            { cancellation_reason: params.cancellation_reason },
+            options,
+          ),
+        (answer) => classifyStripeCancelAnswer(answer, params),
+      );
     },
   };
 }

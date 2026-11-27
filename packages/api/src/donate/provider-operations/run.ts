@@ -11,6 +11,7 @@ import {
   REPORT_RESERVE_MS,
   claimedSchema,
   retryDelaySeconds,
+  type CancelRequest,
   type ClaimedOperation,
   type ProviderRequest,
   type ProviderResult,
@@ -57,8 +58,17 @@ export type PaymentProviderAnswer =
   | { result: "succeeded"; providerObjectId: string }
   | { result: "refused" | "not_performed" | "unknown"; errorCode: string };
 
+export type CancelPaymentInput = {
+  account: string;
+  idempotencyKey: string;
+  params: CancelRequest;
+  timeoutMs: number;
+  remainingMs?: () => number;
+};
+
 export type PaymentProviderAdapter = {
   createPayment(input: CreatePaymentInput): Promise<PaymentProviderAnswer>;
+  cancelPayment(input: CancelPaymentInput): Promise<PaymentProviderAnswer>;
 };
 
 export type ProviderOperationClock = { monotonicMs(): number };
@@ -142,16 +152,26 @@ async function invoke(call: () => Promise<RpcResponse>): Promise<RpcResponse> {
   }
 }
 
+const CANCEL_KEY =
+  /^gift:[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}:cancel_payment$/;
+
 function sendable(claimed: ClaimedOperation, operationId: string): boolean {
-  return (
-    claimed.operation_id === operationId &&
-    claimed.request_kind === "create_payment" &&
-    claimed.livemode === false &&
-    CONNECTED_ACCOUNT.test(claimed.provider_account) &&
-    claimed.request.metadata.asym_operation === operationId &&
-    claimed.idempotency_key ===
-      `gift:${claimed.request.metadata.asym_intake}:create_payment`
-  );
+  if (
+    claimed.operation_id !== operationId ||
+    claimed.livemode !== false ||
+    !CONNECTED_ACCOUNT.test(claimed.provider_account)
+  )
+    return false;
+  const request = claimed.request;
+  if (claimed.request_kind === "create_payment" && "metadata" in request)
+    return (
+      request.metadata.asym_operation === operationId &&
+      claimed.idempotency_key ===
+        `gift:${request.metadata.asym_intake}:create_payment`
+    );
+  if (claimed.request_kind === "cancel_payment" && "payment_intent" in request)
+    return CANCEL_KEY.test(claimed.idempotency_key);
+  return false;
 }
 
 function resultOf(
@@ -236,13 +256,17 @@ export async function runProviderOperation({
 
   let answer: PaymentProviderAnswer;
   try {
-    const given = await adapter.createPayment({
+    const request = checked.data.request;
+    const common = {
       account: checked.data.provider_account,
       idempotencyKey: checked.data.idempotency_key,
-      params: checked.data.request,
       timeoutMs: Math.floor(Math.min(CALL_TIMEOUT_MS, remaining)),
       remainingMs,
-    });
+    };
+    const given =
+      "payment_intent" in request
+        ? await adapter.cancelPayment({ ...common, params: request })
+        : await adapter.createPayment({ ...common, params: request });
     const parsed = answerSchema.safeParse(given);
     answer = parsed.success
       ? parsed.data

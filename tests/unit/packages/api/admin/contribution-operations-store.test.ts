@@ -324,7 +324,7 @@ describe("contribution operations store", () => {
     });
   });
 
-  it("hydrates donor, CRM, correction request, and recurring agreement detail", async () => {
+  it("hydrates donor, CRM, correction request, and recurring agreement detail (D-18, AL-2681: the detail also reads the staged gift's holds, answered empty here)", async () => {
     const tenantId = "00000000-0000-4000-8000-000000000011";
     const donationId = "00000000-0000-4000-8000-000000000012";
     const donorId = "00000000-0000-4000-8000-000000000013";
@@ -403,6 +403,7 @@ describe("contribution operations store", () => {
         },
         error: null,
       },
+      staged_gift_holds: emptyRows,
       staged_gift_allocations: {
         data: [
           {

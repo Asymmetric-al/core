@@ -623,7 +623,7 @@ describe.skipIf(!ADMIN_URL)(
         expect(inserted.rowCount).toBe(2);
       }));
 
-    it("B7: the sealed columns of a line-based intake, its delete and a change of its recorded reference are 23514 for service_role, the guard and the owner", () =>
+    it("B7: the sealed columns of a line-based intake, its delete and a change of its recorded reference are 23514 for service_role, the guard and the owner (D-18, AL-2681 rest PR 1: a changed organization is now refused first by issue 2842's rule for every row, donation_tenant_frozen)", () =>
       inTx(db, async () => {
         const fx = await seedTwoTenants(db);
         await grant(db, [
@@ -673,7 +673,7 @@ describe.skipIf(!ADMIN_URL)(
           ["service_role", "tenant_guard", "postgres"].flatMap((who) => [
             ...sealed.map(
               ([column]) =>
-                `${who} ${column}: 23514 donation_line_intake_sealed`,
+                `${who} ${column}: 23514 ${column === "tenant_id" ? "donation_tenant_frozen" : "donation_line_intake_sealed"}`,
             ),
             `${who} delete: 23514 donation_line_intake_sealed`,
           ]),

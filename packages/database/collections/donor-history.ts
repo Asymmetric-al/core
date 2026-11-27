@@ -27,8 +27,8 @@ const donorHistoryTransactionSchema = z.object({
   type: z.enum(["Recurring", "One-Time"]),
   /** How it was paid, in plain words ("Card", "Bank account (ACH)"). */
   method: z.string().min(1),
-  status: z.enum(["Paid", "Processing", "Failed", "Refunded"]),
-  receiptUrl: z.string().min(1),
+  status: z.enum(["Paid", "Received", "Processing", "Failed", "Refunded"]),
+  receiptUrl: z.string().min(1).nullable(),
 });
 
 export type DonorHistoryTransaction = z.infer<
@@ -96,7 +96,7 @@ export type DonorPortalHistoryGift = {
   type: "Recurring" | "One-Time";
   method: string;
   status: DonorHistoryTransaction["status"];
-  receiptUrl: string;
+  receiptUrl: string | null;
 };
 
 type DonorPortalResponse = {

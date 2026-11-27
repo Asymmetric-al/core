@@ -9,6 +9,10 @@ import {
   type DonorPortalSnapshot,
 } from "./model";
 import { ApiHttpError } from "../shared/http-errors";
+import {
+  COUNTED_INTAKE_FILTER,
+  loadLineBasedGiftLines,
+} from "../shared/line-based-gifts";
 import { findOwnDonor, type OwnDonorLookup } from "../shared/queries";
 
 import type { AdminSupabaseClient } from "@asym/database/supabase/admin";
@@ -70,6 +74,7 @@ const DONATION_SELECT = `
   processed_at,
   stripe_payment_intent_id,
   stripe_charge_id,
+  intake_format,
   fund:funds(id, name),
   missionary:missionaries(id, worker_public_name, profile:profiles(id, avatar_url))
 `;
@@ -153,6 +158,41 @@ function normalizeDonationRows(rows: DonorPortalDonationRow[]) {
   }));
 }
 
+async function withGiftLines(
+  supabaseAdmin: AdminSupabaseClient,
+  tenantId: string,
+  rows: DonorPortalDonationRow[],
+): Promise<DonorPortalDonationRow[]> {
+  const lineBased = rows
+    .filter((row) => row.intake_format === "line_based")
+    .map((row) => row.id);
+  if (lineBased.length === 0) return rows;
+  const [lines, gifts] = await Promise.all([
+    loadLineBasedGiftLines(supabaseAdmin, tenantId, lineBased),
+    supabaseAdmin
+      .from("staged_gifts")
+      .select("donation_id, status")
+      .eq("tenant_id", tenantId)
+      .in("donation_id", lineBased) as unknown as Promise<
+      SupabaseResult<{ donation_id: string; status: string | null }[]>
+    >,
+  ]);
+  const staged = new Map(
+    assertArrayResult(gifts, "Unable to load gift review states").map(
+      (gift) => [gift.donation_id, { status: gift.status }],
+    ),
+  );
+  return rows.map((row) =>
+    row.intake_format === "line_based"
+      ? {
+          ...row,
+          lines: lines.get(row.id) ?? [],
+          staged_gift: staged.get(row.id) ?? null,
+        }
+      : row,
+  );
+}
+
 function normalizePledgeRows(rows: DonorPortalPledgeRow[]) {
   return rows.map((row) => ({
     ...row,
@@ -164,6 +204,7 @@ function normalizePledgeRows(rows: DonorPortalPledgeRow[]) {
 export type DonorPortalContext = {
   profile: DonorPortalProfileRow;
   donor: DonorPortalDonorRow;
+  loginId: string;
 };
 
 export async function resolveDonorPortalContext(
@@ -204,7 +245,27 @@ export async function resolveDonorPortalContext(
     throw new ApiHttpError(404, "Donor record not found");
   }
 
-  return { profile, donor: lookup.donor };
+  return { profile, donor: lookup.donor, loginId };
+}
+
+async function actorGiftsWithoutDonor(
+  supabaseAdmin: AdminSupabaseClient,
+  tenantId: string,
+  loginId: string,
+): Promise<string[]> {
+  const { data, error } = (await supabaseAdmin.rpc(
+    "actor_gifts_without_donor" as never,
+    { p_tenant_id: tenantId, p_user_id: loginId } as never,
+  )) as SupabaseResult<unknown>;
+  if (error) {
+    throw new ApiHttpError(
+      500,
+      error.message || "Unable to load donor giving history",
+    );
+  }
+  return (Array.isArray(data) ? data : []).filter(
+    (id): id is string => typeof id === "string",
+  );
 }
 
 /**
@@ -220,11 +281,20 @@ export async function getDonorPortalSnapshot(input: {
   profileId: string;
   tenantId: string;
 }): Promise<DonorPortalSnapshot> {
-  const { profile, donor } = await resolveDonorPortalContext(
+  const { profile, donor, loginId } = await resolveDonorPortalContext(
     input.supabaseAdmin,
     input.profileId,
     input.tenantId,
   );
+  const actorGifts = await actorGiftsWithoutDonor(
+    input.supabaseAdmin,
+    input.tenantId,
+    loginId,
+  );
+  const ownGifts =
+    actorGifts.length > 0
+      ? `donor_id.eq.${donor.id},and(donor_id.is.null,id.in.(${actorGifts.join(",")}))`
+      : `donor_id.eq.${donor.id}`;
 
   const [donationsResult, pledgesResult, preferencesResult] = await Promise.all(
     [
@@ -232,7 +302,8 @@ export async function getDonorPortalSnapshot(input: {
         .from("donations")
         .select(DONATION_SELECT)
         .eq("tenant_id", input.tenantId)
-        .eq("donor_id", donor.id)
+        .or(ownGifts)
+        .or(COUNTED_INTAKE_FILTER)
         .order("gift_date", { ascending: false })
         .limit(RECENT_GIFT_LIMIT + 1) as unknown as Promise<
         SupabaseResult<DonorPortalDonationRow[]>
@@ -262,8 +333,10 @@ export async function getDonorPortalSnapshot(input: {
     "Unable to load donor giving history",
   );
   const donationsComplete = donationRows.length <= RECENT_GIFT_LIMIT;
-  const donations = normalizeDonationRows(
-    donationRows.slice(0, RECENT_GIFT_LIMIT),
+  const donations = await withGiftLines(
+    input.supabaseAdmin,
+    input.tenantId,
+    normalizeDonationRows(donationRows.slice(0, RECENT_GIFT_LIMIT)),
   );
   const pledgeRows = assertArrayResult(
     pledgesResult,
@@ -305,6 +378,7 @@ export async function getOwnedDonation(input: {
       .eq("id", input.donationId)
       .eq("tenant_id", input.tenantId)
       .eq("donor_id", input.donorId)
+      .eq("intake_format", "legacy_header")
       .single()) as SupabaseResult<DonorPortalDonationRow>,
     "Donation not found",
   );
@@ -325,6 +399,7 @@ export async function getOwnedStatementDonations(input: {
     .select(DONATION_SELECT)
     .eq("tenant_id", input.tenantId)
     .eq("donor_id", input.donorId)
+    .eq("intake_format", "legacy_header")
     .gte("gift_date", start)
     .lt("gift_date", end)
     .order("gift_date", {

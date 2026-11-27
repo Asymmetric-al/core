@@ -232,7 +232,7 @@ describe.skipIf(!ADMIN_URL)(
         expect(rows.audit).toHaveLength(1);
       }));
 
-    it("C12 (index section 6; contributes :1160 and :1161): a failed payment makes the intake failed with no staged gift and no donor; a later success on the same payment makes one gift; a canceled payment is final", () =>
+    it("C12 (index section 6; contributes :1160 and :1161): a failed payment makes the intake failed with no staged gift and no donor; a later success on the same payment makes one gift; a canceled payment is final (D-18, AL-2681 rest PR 1: that gift now carries the giver the apply named, matched and awaiting review)", () =>
       inTx(db, async () => {
         const fx = await seedTwoTenants(db);
         const { intake, pi } = await paid(fx);
@@ -270,11 +270,12 @@ describe.skipIf(!ADMIN_URL)(
         rows = await moneyRows(db, fx.A.tenant);
         expect(rows.gifts).toHaveLength(1);
         expect(rows.gifts[0]).toMatchObject({
-          donor_id: null,
+          donor_id: done.donor_id,
           status: "needs_review",
-          donor_match_status: "needs_review",
-          review_reason: "identity_pending",
+          donor_match_status: "matched",
+          review_reason: "awaiting_review",
         });
+        expect(done.donor_id).toEqual(expect.any(String));
 
         const second = await paid(fx);
         const canceled = await event(
@@ -312,7 +313,7 @@ describe.skipIf(!ADMIN_URL)(
         expect(await intakeStatus(second.intake.donationId)).toBe("failed");
       }));
 
-    it("C13: the copy: the allocations equal the intake's lines in number, order, targets, fee flag and amount; the gift carries the intake's tenant, entity, amount, currency, payment and Stripe event, split for more than one line, and no donor or header target", () =>
+    it("C13: the copy: the allocations equal the intake's lines in number, order, targets, fee flag and amount; the gift carries the intake's tenant, entity, amount, currency, payment and Stripe event, split for more than one line, and no header target (D-18, AL-2681 rest PR 1: the first success now names the giver, so the gift carries the donor the apply wrote, matched and awaiting review)", () =>
       inTx(db, async () => {
         const fx = await seedTwoTenants(db);
         const fee = await feeFund(db, fx.A);
@@ -335,12 +336,12 @@ describe.skipIf(!ADMIN_URL)(
             amount: "9300",
             currency: "usd",
             status: "needs_review",
-            donor_match_status: "needs_review",
+            donor_match_status: "matched",
             allocation_status: "split",
-            review_reason: "identity_pending",
+            review_reason: "awaiting_review",
             stripe_payment_intent_id: pi,
             stripe_event_id: e.stripeEventId,
-            donor_id: null,
+            donor_id: r.donor_id,
             fund_id: null,
             missionary_id: null,
             intake_format: "line_based",
@@ -375,6 +376,11 @@ describe.skipIf(!ADMIN_URL)(
               status_before: "pending",
               status_after: "completed",
               staged_gift_id: r.staged_gift_id,
+              donor_id: r.donor_id,
+              giver_resolved_by: "new_party",
+              donor_membership_granted: false,
+              holds: [],
+              cancel_requests_abandoned: [],
             },
           },
         ]);
