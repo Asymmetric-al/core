@@ -1,4 +1,6 @@
+import { EventEmitter } from "node:events";
 import { readFileSync } from "node:fs";
+import { createServer, type AddressInfo } from "node:net";
 import path from "node:path";
 
 import { describe, expect, it, vi } from "vitest";
@@ -9,9 +11,13 @@ import defaultConfig, {
 import proofConfig from "../../../playwright.n2-on.config";
 import {
   appEnvironment,
+  assertPortsFree,
   emptyRestore,
   finish,
   freshSecrets,
+  holdInterrupts,
+  waitForServer,
+  watchServers,
   parseOptions,
   prepareRows,
   proofEnvironment,
@@ -195,6 +201,58 @@ describe("the runner names the seed's organizations and people by their slugs an
     expect(statement).toContain(
       `'${SEED.personP}', '${SEED.tenantB}', 'missionary', NULL`,
     );
+  });
+});
+
+describe("the runner never runs against a server it did not start (#2858 items 4 and 5)", () => {
+  it("refuses a port another process holds, and passes a free one", async () => {
+    const holder = createServer();
+    await new Promise<void>((resolve) =>
+      holder.listen(0, "localhost", () => resolve()),
+    );
+    const { port } = holder.address() as AddressInfo;
+    await expect(assertPortsFree([port])).rejects.toThrow(
+      new RegExp(`port ${port} is in use`),
+    );
+    await new Promise<void>((resolve) => holder.close(() => resolve()));
+    await expect(assertPortsFree([port])).resolves.toBeUndefined();
+  });
+
+  it("reports a server that exits or fails to start", () => {
+    const admin = new EventEmitter();
+    const donor = new EventEmitter();
+    const watch = watchServers([
+      { name: "admin", process: admin },
+      { name: "donor", process: donor },
+    ]);
+    expect(watch.failure()).toBeNull();
+    admin.emit("exit", 1, null);
+    expect(watch.failure()).toMatch(/admin exited \(code 1\)/);
+    donor.emit("error", new Error("spawn ENOENT"));
+    expect(watch.failure()).toMatch(/admin exited/);
+
+    const missionary = new EventEmitter();
+    const second = watchServers([{ name: "missionary", process: missionary }]);
+    missionary.emit("error", new Error("spawn ENOENT"));
+    expect(second.failure()).toMatch(
+      /missionary could not start: spawn ENOENT/,
+    );
+  });
+
+  it("stops waiting for a server as soon as one has failed", async () => {
+    await expect(
+      waitForServer(1, () => "admin exited (code 1)", 60_000),
+    ).rejects.toThrow("admin exited (code 1)");
+  });
+
+  it("holds an interrupt until the restore has run, and then lets it go", () => {
+    const before = process.listenerCount("SIGINT");
+    const hold = holdInterrupts();
+    expect(process.listenerCount("SIGINT")).toBe(before + 1);
+    process.emit("SIGINT");
+    expect(hold.signal()).toBe("SIGINT");
+    hold.release();
+    expect(process.listenerCount("SIGINT")).toBe(before);
   });
 });
 
