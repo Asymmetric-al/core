@@ -1,9 +1,24 @@
 import { redact } from "../../release/lib/postgres.mjs";
 
+function spellings(secret) {
+  const forms = [secret, encodeURIComponent(secret)];
+  try {
+    forms.push(
+      new URL(`postgresql://u:${encodeURIComponent(secret)}@h/d`).password,
+    );
+  } catch {
+    forms.push(secret);
+  }
+  return [...new Set(forms)].sort((a, b) => b.length - a.length);
+}
+
 export function scrubbed(text, secrets = []) {
   let out = String(text ?? "");
   for (const secret of secrets) {
-    if (secret) out = out.split(secret).join("[redacted]");
+    if (!secret) continue;
+    for (const form of spellings(secret)) {
+      out = out.split(form).join("[redacted]");
+    }
   }
   return redact(out);
 }

@@ -1,3 +1,6 @@
+import { readFileSync } from "node:fs";
+import path from "node:path";
+
 import { describe, expect, it, vi } from "vitest";
 
 const LOOPBACK =
@@ -97,4 +100,32 @@ describe("AL-2679 WP6 rest: a real-stack suite changes a role's password only on
     ).rejects.toThrow(/plain role name/);
     expect(sql.sent).toEqual([]);
   });
+});
+
+describe("#2839's last comment, items 1 and 2 (WP6 rest, pull request 2): every suite that sets a CMS role's password does it through the guard, and says it needs a cluster of its own", () => {
+  const read = (file: string) =>
+    readFileSync(path.join(process.cwd(), file), "utf8");
+  const suites = [
+    "tests/unit/cms/cms-database-roles.realstack.test.ts",
+    "tests/unit/acceptance/issue-2679/site-presentations.realstack.acceptance.test.ts",
+  ];
+
+  it.each(suites)(
+    "%s sets cms_owner's and cms_runtime's passwords only through setDisposableRolePassword",
+    (file) => {
+      const source = read(file);
+      expect(source).not.toMatch(/ALTER ROLE cms_(?:owner|runtime) PASSWORD/);
+      expect(source).toContain("setDisposableRolePassword(");
+      expect(source).toMatch(/requireDisposableAdmin\(ADMIN_URL\)/);
+    },
+  );
+
+  it.each(suites)(
+    "%s names, in its header, the limit: a role's password belongs to the whole cluster",
+    (file) => {
+      expect(read(file)).toMatch(
+        /describe(?:\.skipIf\([^)]*\))?\(\s*"[^"]*on a local cluster of its own[^"]*"/,
+      );
+    },
+  );
 });

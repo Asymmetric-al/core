@@ -4,6 +4,7 @@ import {
   type APIRequestContext,
   type Page,
 } from "@playwright/test";
+import sharp from "sharp";
 
 import { adminBaseURL, donorBaseURL } from "./base-urls";
 import { siteOf, writeHeaders } from "./helpers/web-studio";
@@ -444,5 +445,126 @@ test.describe("@cms-local strict local CMS happy path", () => {
       );
       await expect(page.getByText(title).first()).toBeVisible();
     }
+  });
+  test("an editor uploads an image to the media library, sees its thumbnail from /api/media, previews it in a draft, edits its alt text and deletes it; signed out, its address is refused (WP6 rest, pull request 2)", async ({
+    page,
+    browser,
+  }) => {
+    await signInAsLocalDemoAdmin(page, "/web-studio/collections/media");
+    const stamp = `Uploaded ${Date.now()}`;
+    const jpeg = await sharp({
+      create: { width: 640, height: 480, channels: 3, background: "#2c70b8" },
+    })
+      .jpeg()
+      .toBuffer();
+
+    const registered = page.waitForResponse(
+      (response) =>
+        new URL(response.url()).pathname ===
+          "/web-studio/api/web-studio/media/register" &&
+        response.request().method() === "POST",
+    );
+    await page.getByRole("button", { name: "Upload image" }).click();
+    const dialog = page.getByRole("dialog", { name: "Upload image" });
+    await dialog.getByLabel("Image file").setInputFiles({
+      name: "well.jpg",
+      mimeType: "image/jpeg",
+      buffer: jpeg,
+    });
+    await dialog.getByLabel("Alt text").fill(stamp);
+    await dialog.getByRole("button", { name: "Upload" }).click();
+    const registration = await registered;
+    expect(registration.status()).toBe(200);
+    expect(registration.request().headers()["x-asym-tenant"]).toBeTruthy();
+    const { id } = (await registration.json()) as { id: string };
+    await expect(dialog).toHaveCount(0);
+
+    const thumbnail = page.locator(`img[src*="/api/media/${id}"]`).first();
+    await expect(thumbnail).toBeVisible();
+    const thumbnailRead = await page.request.get(
+      `${adminBaseURL}/api/media/${id}?variant=w320`,
+    );
+    expect(thumbnailRead.status()).toBe(200);
+    expect(thumbnailRead.headers()["content-type"]).toMatch(/^image\//);
+
+    const anonymous = await browser.newContext();
+    try {
+      const refused = await anonymous.request.get(
+        `${adminBaseURL}/api/media/${id}?variant=w320`,
+      );
+      expect(refused.status()).toBe(401);
+    } finally {
+      await anonymous.close();
+    }
+
+    const site = await siteOf(page, adminBaseURL);
+    const draft = await page.request.post(
+      `${adminBaseURL}/web-studio/api/pages?draft=true`,
+      {
+        headers: await writeHeaders(page, adminBaseURL),
+        data: {
+          title: `Preview ${stamp}`,
+          slug: `preview-${Date.now()}`,
+          site,
+          family: "standard",
+          _status: "draft",
+          layout: [
+            {
+              blockType: "media-feature",
+              title: "From the field",
+              media: id,
+            },
+          ],
+        },
+      },
+    );
+    expect(draft.ok(), await draft.text()).toBe(true);
+    const pageId = String(
+      ((await draft.json()) as { doc: { id: string } }).doc.id,
+    );
+    await page.goto(`${adminBaseURL}/web-studio/preview/pages/${pageId}`);
+    const previewImage = page.locator(`img[src*="/api/media/${id}"]`).first();
+    await expect(previewImage).toBeVisible();
+    await expect
+      .poll(() =>
+        previewImage.evaluate(
+          (image) => (image as HTMLImageElement).naturalWidth,
+        ),
+      )
+      .toBeGreaterThan(0);
+
+    await page.goto(`${adminBaseURL}/web-studio/collections/media/${id}`);
+    const alt = page.getByRole("textbox", { name: /Alt/ });
+    await expect(alt).toHaveValue(stamp);
+    await alt.fill(`${stamp} edited`);
+    const saved = page.waitForResponse(
+      (response) =>
+        new URL(response.url()).pathname === `/web-studio/api/media/${id}` &&
+        response.request().method() === "PATCH",
+    );
+    await page.getByRole("button", { name: /^Save$/ }).click();
+    expect((await saved).status()).toBe(200);
+
+    await page.request.delete(
+      `${adminBaseURL}/web-studio/api/pages/${pageId}`,
+      {
+        headers: await writeHeaders(page, adminBaseURL),
+      },
+    );
+    await page.getByRole("button", { name: "Delete image" }).click();
+    await page
+      .getByRole("alertdialog", { name: "Delete this image?" })
+      .getByRole("button", { name: "Delete" })
+      .click();
+    await page.waitForURL((url) =>
+      url.pathname.endsWith("/web-studio/collections/media"),
+    );
+    await expect(
+      page.getByRole("link", { name: `${stamp} edited` }),
+    ).toHaveCount(0);
+    const gone = await page.request.get(
+      `${adminBaseURL}/api/media/${id}?variant=w320`,
+    );
+    expect(gone.status()).toBe(404);
   });
 });

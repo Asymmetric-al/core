@@ -44,15 +44,28 @@ export type SignOutClientSessionResult =
 
 let sharedBrowserClient: ClientSessionSupabase | null = null;
 let queryCacheUserId: string | null | undefined;
-const sessionCleanup = new Set<() => () => boolean>();
+const sessionCleanup = new Set<() => () => boolean | void>();
 
 export function registerClientSessionCleanup(
-  captureCleanup: () => () => boolean,
+  captureCleanup: () => () => boolean | void,
 ) {
   sessionCleanup.add(captureCleanup);
   return () => {
     sessionCleanup.delete(captureCleanup);
   };
+}
+
+const sessionChangeCleanup = new Set<() => void>();
+
+export function registerSessionChangeCleanup(cleanup: () => void) {
+  sessionChangeCleanup.add(cleanup);
+  return () => {
+    sessionChangeCleanup.delete(cleanup);
+  };
+}
+
+export function runSessionChangeCleanups() {
+  for (const cleanup of [...sessionChangeCleanup]) cleanup();
 }
 
 export function getClientSessionSupabase() {
@@ -236,7 +249,9 @@ export async function signOutClientSession(
     return { ok: false, message, redirected: false };
   }
 
-  const cleanedOwners = cleanups.map((cleanup) => cleanup());
+  const cleanedOwners = cleanups
+    .map((cleanup) => cleanup())
+    .filter((owned) => typeof owned === "boolean");
   if (
     signingOutUserId !== queryCacheUserId ||
     (cleanedOwners.length > 0 && !cleanedOwners.some(Boolean))

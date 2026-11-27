@@ -1,5 +1,6 @@
 import { POST as signOutSession } from "@asym/api/auth/signout";
 
+import { clipboardResetCookie } from "@/src/cms/clipboard-reset";
 import { clearedWebStudioTenantCookie } from "@/src/cms/web-studio-tenant-cookie";
 
 /**
@@ -11,6 +12,9 @@ import { clearedWebStudioTenantCookie } from "@/src/cms/web-studio-tenant-cookie
  */
 export async function POST(request: Request) {
   const response = await signOutSession(request);
-  if (response.ok) response.cookies.set(clearedWebStudioTenantCookie());
+  if (response.ok) {
+    response.cookies.set(clearedWebStudioTenantCookie());
+    response.cookies.set(clipboardResetCookie());
+  }
   return response;
 }
