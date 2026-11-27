@@ -207,7 +207,7 @@ describe.skipIf(!required && ![url, database, anon, service].some(Boolean))(
         expect(JSON.stringify([workerRows, postRows])).not.toMatch(FORBIDDEN);
       });
 
-      it("anonymous, a donor and a staff member reach neither computed column nor its function: as a column, and over rpc with valid row arguments that the service key's call binds and answers (B4), each is refused 42501, and no name comes back", async () => {
+      it("anonymous, a donor and a staff member reach neither computed column nor its function: as a column, and over rpc with valid row arguments that the service key's call binds and answers (B4), each is refused 42501, and no name comes back (AL-2680 fix round S5: anon reads only the posts columns that existed before review, so the column over the whole row is refused at the table)", async () => {
         const rpcCalls = (): [string, Record<string, unknown>][] => [
           ["worker_public_name", { p_worker: { id: ids.mW, tenant_id: TA } }],
           [
@@ -258,7 +258,9 @@ describe.skipIf(!required && ![url, database, anon, service].some(Boolean))(
           ).toBe(label === "anon" ? 401 : 403);
           expect([postBody.code, postBody.message], `${label} posts`).toEqual([
             "42501",
-            "permission denied for function post_author_public_name",
+            label === "anon"
+              ? "permission denied for table posts"
+              : "permission denied for function post_author_public_name",
           ]);
           for (const [fn, args] of rpcCalls()) {
             const rpc = await call(`rest/v1/rpc/${fn}`, { body: args });
@@ -710,16 +712,32 @@ describe.skipIf(!required && ![url, database, anon, service].some(Boolean))(
           expect(JSON.stringify([rows, routeBody])).not.toMatch(FORBIDDEN);
         });
 
-        it("r2a test 3: GraphQL addComment returns its caller as the author, with the request's organization and role: a donor and a worker each get their own profile", async () => {
-          for (const [who, assignmentId, role] of [
-            [user.giver, ids.mGiver!, "donor"],
-            [worker.W, wMembership, "missionary"],
+        it("r2a test 3: GraphQL addComment returns its caller as the author, with the request's organization and role: a donor and a worker each get their own profile (AL-2680 fix round S8: each sends their own token, on which addComment first reads the post)", async () => {
+          const password = randomUUID();
+          const reset = await api(`auth/v1/admin/users/${worker.W}`, {
+            key: service,
+            bearer: service,
+            method: "PUT",
+            body: { password },
+          });
+          expect(reset.ok, `worker password: ${reset.status}`).toBe(true);
+          const login = await api("auth/v1/token?grant_type=password", {
+            body: { email: `wp5-worker-W-${TA}@example.test`, password },
+          });
+          expect(login.ok, `worker sign-in: ${login.status}`).toBe(true);
+          const workerToken = (await login.json()).access_token as string;
+          for (const [who, assignmentId, role, bearer] of [
+            [user.giver, ids.mGiver!, "donor", token.giver],
+            [worker.W, wMembership, "missionary", workerToken],
           ] as const) {
             s.auth = asMember(who, assignmentId, role);
             const graph = await createGraphQLHandler().POST(
               new Request("http://localhost/api/graphql", {
                 method: "POST",
-                headers: { "content-type": "application/json" },
+                headers: {
+                  "content-type": "application/json",
+                  authorization: `Bearer ${bearer}`,
+                },
                 body: JSON.stringify({
                   query: `mutation { addComment(postId: "${postV}", content: "r2a ${role}") { id postId content author { id tenantId role } } }`,
                 }),
