@@ -156,6 +156,8 @@ interface State {
   ops?: string[];
   failHoldsOnceCorrected?: boolean;
   failSnapshotInserts?: number;
+  snapshotConflictOnce?: boolean;
+  winnerRow?: Row;
 }
 
 class QueryBuilder {
@@ -327,6 +329,20 @@ class QueryBuilder {
             error: { message: "snapshots are unavailable" },
           };
         }
+        if (state.snapshotConflictOnce) {
+          state.snapshotConflictOnce = false;
+          state.snapshots.push({
+            id: `snap-${state.snapshots.length + 1}`,
+            ...this.payload,
+          });
+          return {
+            data: null,
+            error: {
+              code: "23505",
+              message: "duplicate key value violates unique constraint",
+            },
+          };
+        }
         const row = {
           id: `snap-${state.snapshots.length + 1}`,
           ...this.payload,
@@ -335,7 +351,19 @@ class QueryBuilder {
         return { data: { id: row.id }, error: null };
       }
       case "email_send_logs": {
-        if (this.operation !== "insert") return { data: [], error: null };
+        if (this.operation !== "insert")
+          return {
+            data: state.emailSendLogs.filter((row) =>
+              this.eqs.every(([column, value]) =>
+                column.startsWith("metadata->>")
+                  ? (row.metadata as Row | undefined)?.[
+                      column.slice("metadata->>".length)
+                    ] === value
+                  : row[column] === value,
+              ),
+            ),
+            error: null,
+          };
         const row = {
           id: `send-log-${state.emailSendLogs.length + 1}`,
           ...this.payload,
@@ -350,6 +378,14 @@ class QueryBuilder {
       case "contribution_adjustments": {
         if (this.operation === "insert") {
           const key = this.payload?.idempotency_key;
+          if (state.winnerRow && state.winnerRow.idempotency_key === key) {
+            state.adjustments.push(state.winnerRow);
+            state.winnerRow = undefined;
+            return {
+              data: null,
+              error: { code: "23505", message: "duplicate idempotency key" },
+            };
+          }
           if (
             typeof key === "string" &&
             state.adjustments.some((row) => row.idempotency_key === key)
@@ -360,16 +396,21 @@ class QueryBuilder {
             };
           const row = {
             id: `adj-${state.adjustments.length + 1}`,
-            created_at: "2026-06-01T00:00:00.000Z",
+            created_at: new Date(
+              Date.UTC(2026, 5, 1, 0, 0, state.adjustments.length),
+            ).toISOString(),
             ...this.payload,
           };
           state.adjustments.push(row);
           return { data: { id: row.id }, error: null };
         }
+        const adjustments = state.adjustments.filter((row) =>
+          this.eqs.every(
+            ([column, value]) => !(column in row) || row[column] === value,
+          ),
+        );
         return {
-          data: this.wantsSingle
-            ? (state.adjustments[0] ?? null)
-            : state.adjustments,
+          data: this.wantsSingle ? (adjustments[0] ?? null) : adjustments,
           error: null,
         };
       }
@@ -424,6 +465,7 @@ async function correct(
   state: State,
   choice: "pdf" | "email" | "defer",
   idempotencyKey?: string,
+  expectedRevision?: string,
 ) {
   return applyContributionCorrection({
     supabaseAdmin: stub(state),
@@ -442,6 +484,7 @@ async function correct(
     sourceSurface: "contribution_hub",
     actorCapabilities: ["contributions.manage_receipts"],
     idempotencyKey,
+    expectedRevision,
   });
 }
 
@@ -598,7 +641,7 @@ describe("AL-2681 fix round F11: a correction that has committed always reaches 
     ]);
   });
 
-  it("the delivery fails after the adjustment commits: the retry with the same key resumes it, once", async () => {
+  it("the delivery fails after the adjustment commits: the retry with the same key resumes it, once, and a later retry reports the receipt (D-18, AL-2681 issue 2857 item 7: the replay reports the receipt's state, not null)", async () => {
     const state = { ...freshState(true), failSnapshotInserts: 1 };
     await expect(correct(state, "pdf", "key-f11-resume")).rejects.toThrow(
       "snapshots are unavailable",
@@ -613,7 +656,10 @@ describe("AL-2681 fix round F11: a correction that has committed always reaches 
     ]);
     const again = await correct(state, "pdf", "key-f11-resume");
     expect(again.idempotentReplay).toBe(true);
-    expect(again.receiptOutcome).toBeNull();
+    expect(again.receiptOutcome).toMatchObject({
+      status: "pdf_generated",
+      snapshotId: state.snapshots[0]!.id,
+    });
     expect(state.snapshots).toHaveLength(1);
   });
 });
@@ -706,6 +752,148 @@ describe("AL-2678 r2a last round L2: the worker a receipt names through a fund i
       expect(namesOf(state.snapshots[0]!.content)).toEqual([[null, null]]);
       expect(workerNameLookups(state)).toBe(0);
       expect(JSON.stringify(state.snapshots)).not.toContain("Other Worker");
+    }
+  });
+});
+
+describe("AL-2681 issue 2857 items 3 to 7: a correction's retry belongs to its gift, delivers once, carries its own values and reports its receipt", () => {
+  it("item 3: a key already used on another gift is a conflict: 409, and nothing is written or sent", async () => {
+    const state = freshState(true);
+    state.adjustments.push({
+      id: "adj-other",
+      tenant_id: TENANT_ID,
+      donation_id: "other-gift",
+      idempotency_key: "key-3",
+      status: "applied",
+      adjustment_type: "amount_correction",
+      effective_values: { amountCents: 1_000 },
+      created_at: "2026-05-30T00:00:00.000Z",
+    });
+    await expect(correct(state, "pdf", "key-3")).rejects.toMatchObject({
+      status: 409,
+    });
+    expect(state.adjustments).toHaveLength(1);
+    expect(state.snapshots).toEqual([]);
+    expect(sendEmailMock).not.toHaveBeenCalled();
+  });
+
+  it("item 6: a retry with the same key and the revision its first attempt was given reaches the replay, not a 409", async () => {
+    const state = { ...freshState(true), failSnapshotInserts: 1 };
+    const { revision } = await loadContributionDetailFromSupabase({
+      supabaseAdmin: stub(state),
+      tenantId: TENANT_ID,
+      contributionId: DONATION_ID,
+    });
+    await expect(correct(state, "pdf", "key-6", revision)).rejects.toThrow(
+      "snapshots are unavailable",
+    );
+    const retried = await correct(state, "pdf", "key-6", revision);
+    expect(retried).toMatchObject({
+      idempotentReplay: true,
+      receiptOutcome: { status: "pdf_generated" },
+    });
+    expect(state.snapshots).toHaveLength(1);
+  });
+
+  it("item 5: the replay of a correction a later one superseded sends nothing and says superseded", async () => {
+    const state = { ...freshState(true), failSnapshotInserts: 1 };
+    await correct(state, "pdf", "key-5a").catch(() => undefined);
+    await correct(state, "pdf", "key-5b");
+    expect(state.snapshots).toHaveLength(1);
+    const replay = await correct(state, "pdf", "key-5a");
+    expect(replay).toMatchObject({
+      idempotentReplay: true,
+      receiptOutcome: { status: "superseded", snapshotId: null },
+    });
+    expect(state.snapshots).toHaveLength(1);
+  });
+
+  it("item 4: when the database refuses a second snapshot of one correction and kind, the replay reports the receipt being sent and sends nothing", async () => {
+    const state = { ...freshState(true), failSnapshotInserts: 1 };
+    await correct(state, "email", "key-4").catch(() => undefined);
+    state.snapshotConflictOnce = true;
+    sendEmailMock.mockClear();
+    const replay = await correct(state, "email", "key-4");
+    expect(state.snapshots).toHaveLength(1);
+    expect(replay.receiptOutcome).toMatchObject({
+      status: "pending",
+      snapshotId: state.snapshots[0]!.id,
+    });
+    expect(sendEmailMock).not.toHaveBeenCalled();
+  });
+
+  it("item 7: a receipt whose send failed is not delivered: the replay sends it again and reports what happened", async () => {
+    sendEmailMock.mockResolvedValueOnce({
+      success: false,
+      messageId: null,
+      correlationId: "corr-failed",
+      recipientCount: 0,
+      retryCount: 0,
+      errors: [{ code: "provider_down", message: "The provider is down." }],
+    });
+    const state = freshState(true);
+    const first = await correct(state, "email", "key-7");
+    expect(first.receiptOutcome).toMatchObject({ status: "failed" });
+    const replay = await correct(state, "email", "key-7");
+    expect(replay.receiptOutcome).toMatchObject({
+      status: "emailed",
+      snapshotId: state.snapshots[0]!.id,
+    });
+    expect(state.snapshots).toHaveLength(1);
+    expect(state.emailSendLogs.map((log) => log.status)).toEqual([
+      "failed",
+      "sent",
+    ]);
+  });
+});
+
+describe("AL-2681 part 2a fix round F1: the receipt a correction's retry seals and mails carries the correction", () => {
+  it("two requests with one key race and the loser seals the receipt first: the snapshot, the mail and the loser's answer carry the corrected amount", async () => {
+    const winner = freshState(true);
+    await correct(winner, "defer", "key-race");
+    const loser = { ...freshState(true), winnerRow: winner.adjustments[0] };
+    sendEmailMock.mockClear();
+    const answer = await correct(loser, "email", "key-race");
+    expect(answer.idempotentReplay).toBe(true);
+    expect(loser.adjustments).toHaveLength(1);
+    expect(loser.snapshots).toHaveLength(1);
+    const sealed = loser.snapshots[0]!.content as ReceiptSnapshotContentV1;
+    expect(sealed.effective.amountCents).toBe(20_000);
+    expect(JSON.stringify(answer.after)).toContain("20000");
+    expect(sendEmailMock).toHaveBeenCalledTimes(1);
+    const mailed = JSON.stringify(sendEmailMock.mock.calls[0]);
+    expect(mailed).toContain("200.00");
+    expect(mailed).not.toContain("250.00");
+  });
+
+  it("a retry after a failed send mails the snapshot it stored, though a worker's public name changed in between", async () => {
+    sendEmailMock.mockResolvedValueOnce({
+      success: false,
+      messageId: null,
+      correlationId: "corr-failed",
+      recipientCount: 0,
+      retryCount: 0,
+      errors: [{ code: "provider_down", message: "The provider is down." }],
+    });
+    const state = freshState(true);
+    await correct(state, "email", "key-stored");
+    expect(state.snapshots).toHaveLength(1);
+    expect(JSON.stringify(state.snapshots[0]!.content)).toContain("Cedar");
+    const original = WORKER_ROWS[W]!.worker_public_name;
+    WORKER_ROWS[W]!.worker_public_name = "Cedar Renamed";
+    try {
+      sendEmailMock.mockClear();
+      const replay = await correct(state, "email", "key-stored");
+      expect(replay.receiptOutcome).toMatchObject({
+        status: "emailed",
+        snapshotId: state.snapshots[0]!.id,
+      });
+      expect(sendEmailMock).toHaveBeenCalledTimes(1);
+      const mailed = JSON.stringify(sendEmailMock.mock.calls[0]);
+      expect(mailed).toContain("Cedar");
+      expect(mailed).not.toContain("Cedar Renamed");
+    } finally {
+      WORKER_ROWS[W]!.worker_public_name = original;
     }
   });
 });

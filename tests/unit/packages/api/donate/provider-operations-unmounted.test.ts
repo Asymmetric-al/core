@@ -220,7 +220,7 @@ describe("WP8a part 2 R1b: the provider worker stays unmounted (ruling Q4)", () 
     ).toEqual(["contract.ts", "one-send.ts", "run.ts", "stripe-adapter.ts"]);
   });
 
-  it("D2 (guard): no JS or TS file under apps/, packages/ (outside the module), scripts/, supabase/ or tooling/ imports, re-exports, import()s or require()s the module or the fake, read with the TypeScript compiler; package exports name neither and carry no ./donate/* wildcard", () => {
+  it("D2 (guard, moved by ruling W8-R40 of 27 November): outside the module, only the money schedule's runner imports the worker and only its Inngest function imports the adapter; no other JS or TS file under apps/, packages/, scripts/, supabase/ or tooling/ imports, re-exports, import()s or require()s the module or the fake, read with the TypeScript compiler; package exports name neither and carry no ./donate/* wildcard", () => {
     const offenders: string[] = [];
     let scanned = 0;
     for (const top of ["apps", "packages", "scripts", "supabase", "tooling"]) {
@@ -235,7 +235,10 @@ describe("WP8a part 2 R1b: the provider worker stays unmounted (ruling Q4)", () 
       }
     }
     expect(scanned).toBeGreaterThan(1000);
-    expect(offenders).toEqual([]);
+    expect(offenders.sort()).toEqual([
+      "packages/api/src/donate/money-schedule.ts: ./provider-operations/run",
+      "packages/api/src/workflows/functions/money-schedule.ts: ../../donate/provider-operations/stripe-adapter",
+    ]);
     const manifest = JSON.parse(
       readFileSync(join(ROOT, "packages/api/package.json"), "utf8"),
     ) as { exports: unknown };

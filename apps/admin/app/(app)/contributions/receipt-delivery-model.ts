@@ -42,6 +42,8 @@ const RECEIPT_OUTCOME_STATUS_LABELS: Record<
   blocked: "Blocked",
   not_required: "Not required",
   failed: "Failed",
+  pending: "Being sent",
+  superseded: "Superseded by a later correction",
 };
 
 function isKnownReceiptOutcomeStatus(

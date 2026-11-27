@@ -86,6 +86,7 @@ describe.skipIf(!ready)(
     const ids: Record<string, string> = {};
     const amounts: Record<string, number> = {};
     const logins: Record<string, Login> = {};
+    const createdUsers: string[] = [];
     const assignments: Record<string, string> = {};
     const manyGifts: string[] = [];
 
@@ -119,6 +120,7 @@ describe.skipIf(!ready)(
       });
       if (!created.ok) throw new Error(`auth user ${label}: ${created.status}`);
       const id = ((await created.json()) as { id: string }).id;
+      createdUsers.push(id);
       const login = await fetch(`${url}/auth/v1/token?grant_type=password`, {
         method: "POST",
         headers: { apikey: anon!, "content-type": "application/json" },
@@ -338,6 +340,38 @@ describe.skipIf(!ready)(
           "development",
         );
 
+        ids.carol = (
+          await db.query(
+            "INSERT INTO auth.users (id, email, email_confirmed_at) VALUES (gen_random_uuid(), 'rest1-reads-carol-' || gen_random_uuid() || '@example.test', now()) RETURNING id",
+          )
+        ).rows[0].id;
+        const carolParty = await linkedParty(ids.carol, "Carol Many");
+        await membership(ids.carol, "donor");
+        ids.carolDonor = (
+          await db.query(
+            "INSERT INTO public.donors (tenant_id, party_id, name) VALUES ($1, $2, 'Carol Many') RETURNING id",
+            [fx.A.tenant, carolParty],
+          )
+        ).rows[0].id;
+        await db.query(
+          `INSERT INTO public.donations (tenant_id, donor_id, fund_id, amount, currency, status, gift_date, created_at)
+           SELECT $1, $2, $3, 1000, 'usd', 'completed',
+                  timestamptz '2020-06-01' - make_interval(days => g),
+                  timestamptz '2020-06-01' - make_interval(days => g)
+             FROM generate_series(1, 251) AS g`,
+          [fx.A.tenant, ids.carolDonor, fx.A.fund],
+        );
+        const carolEmail = (
+          await db.query("SELECT email FROM auth.users WHERE id = $1", [
+            ids.carol,
+          ])
+        ).rows[0].email as string;
+        const carolLine = await giftIntake(db, fx.A, {
+          actor: { user: ids.carol, email: carolEmail, confirmed: true },
+        });
+        await pay(db, carolLine);
+        amounts.carolLine = carolLine.amount;
+
         ids.feeFund = await feeFund(db, fx.A);
         const feeCovered = await giftIntake(db, fx.A, {
           lines: [
@@ -364,10 +398,7 @@ describe.skipIf(!ready)(
     afterAll(async () => {
       try {
         if (fx) await removeTwoTenants(db, fx);
-        const users = [
-          ids.bee,
-          ...Object.values(logins).map((login) => login.id),
-        ].filter(Boolean);
+        const users = [ids.bee, ids.carol, ...createdUsers].filter(Boolean);
         if (users.length)
           await db.query("DELETE FROM auth.users WHERE id = ANY($1::uuid[])", [
             users,
@@ -423,7 +454,7 @@ describe.skipIf(!ready)(
           staffRole: "finance",
           isTenantAdmin: false,
         },
-      }) as unknown as AuthContext;
+      }) satisfies AuthContext;
 
     async function portal(tenant: string, user = ids.login!) {
       s.auth = authFor(tenant, user);
@@ -643,7 +674,7 @@ describe.skipIf(!ready)(
       });
     });
 
-    it("F7: finance reviews a fee-covered line-based gift through PATCH /api/admin/contributions/staged-gifts/:id: keeping the fee-cover line as stored is admitted; changing it or leaving it out is refused 400 with nothing written", async () => {
+    it("F7: finance reviews a fee-covered line-based gift through PATCH /api/admin/contributions/staged-gifts/:id: keeping the fee-cover line as stored is admitted, its fund named in any letter case (issue 2857 item 10); changing it or leaving it out is refused 400 with no allocation, metadata or audit event written (item 12)", async () => {
       const allocationsOf = async () =>
         (
           await db.query(
@@ -671,7 +702,18 @@ describe.skipIf(!ready)(
         );
         return response.status;
       };
+      const giftState = async () =>
+        (
+          await db.query(
+            `SELECT g.status, g.review_reason, g.updated_at,
+                    (SELECT count(*)::int FROM public.staged_gift_audit_events AS e
+                      WHERE e.staged_gift_id = g.id) AS audits
+               FROM public.staged_gifts AS g WHERE g.id = $1`,
+            [ids.feeGift],
+          )
+        ).rows[0];
       const before = await allocationsOf();
+      const stateBefore = await giftState();
       expect(
         await review([
           { fundId: fx.A.fund, amount: 10100 },
@@ -680,10 +722,11 @@ describe.skipIf(!ready)(
       ).toBe(400);
       expect(await review([{ fundId: fx.A.fund, amount: 10300 }])).toBe(400);
       expect(await allocationsOf()).toEqual(before);
+      expect(await giftState()).toEqual(stateBefore);
       expect(
         await review([
           { fundId: fx.A.fund, amount: 10000, memo: "reviewed" },
-          { fundId: ids.feeFund, amount: 300 },
+          { fundId: ids.feeFund!.toUpperCase(), amount: 300 },
         ]),
       ).toBe(200);
       expect(await allocationsOf()).toEqual([
@@ -701,6 +744,24 @@ describe.skipIf(!ready)(
           is_fee_cover: true,
         }),
       ]);
+      await db.query(
+        "DELETE FROM public.staged_gift_audit_events WHERE staged_gift_id = $1",
+        [ids.feeGift],
+      );
+    });
+
+    it("issue 2857 item 8: lifetime given and the gift count cover every settled gift of the person, not the newest 250 the list shows", async () => {
+      const { status, body } = await portal(fx.A.tenant, ids.carol);
+      expect(status).toBe(200);
+      const portalBody = body.portal as {
+        donations: unknown[];
+        summary: { lifetimeGivenCents: number; giftCount: number };
+      };
+      expect(portalBody.donations).toHaveLength(250);
+      expect(portalBody.summary).toMatchObject({
+        lifetimeGivenCents: 251 * 1000 + amounts.carolLine!,
+        giftCount: 252,
+      });
     });
 
     it("F12: the gift-lines read returns every line past the Data API's 1,000-row cap: 250 gifts of five lines are 1,250 lines", async () => {
