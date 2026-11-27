@@ -288,14 +288,6 @@ function refusedAddress(): NextResponse {
   return new NextResponse(null, { status: 404 });
 }
 
-function notFoundKeepingSession(cookieSource: NextResponse): NextResponse {
-  const response = frontNotFound();
-  cookieSource.cookies.getAll().forEach((cookie) => {
-    response.cookies.set(cookie);
-  });
-  return response;
-}
-
 function chooserUrl(
   request: NextRequest,
   tenantId: string | null,
@@ -671,8 +663,14 @@ export function createAuthMiddleware(options: AuthMiddlewareOptions = {}) {
               buildRedirectUrl(request, unauthorizedRedirectTo),
               supabaseResponse,
             );
-          case "not_found":
-            return notFoundKeepingSession(supabaseResponse);
+          case "without_sub_role": {
+            const response = redirectWithCookies(
+              buildRedirectUrl(request, withSearch(request, pathname)),
+              supabaseResponse,
+            );
+            response.headers.set("Cache-Control", "no-store");
+            return response;
+          }
           case "choose":
             return redirectWithCookies(
               chooserUrl(request, null, withSearch(request, pathname)),

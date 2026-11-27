@@ -244,9 +244,11 @@ surface)` in `verified-name.ts` calls `resolve_verified_host` with the
     with several rows there works under `/~<sub-role>`, prefix
     `/~<sub-role>`. `decideNameAddress` in `tenant-address-decisions.ts`
     decides over the name's rows only: none is `/no-access` as before; one row
-    with a `/~<sub-role>` is `404 no-store` (R5); several rows with no or an
-    unheld sub-role go to `/choose-organization` with `next` kept and no
-    `tenant`; nothing switches organization. A sub-role is the bytes after `~`
+    with a `/~<sub-role>` gets, after the membership read, `307 no-store` to
+    the same path without the sub-role, query kept, never the named row
+    (ruling 2 of 27 November, the plan's line 876, superseding R5); several
+    rows with no or an unheld sub-role go to `/choose-organization` with
+    `next` kept and no `tenant`; nothing switches organization. A sub-role is the bytes after `~`
     up to `/` or the end, equal to one staff sub-role name byte for byte
     (`parseSubRoleAddress`); anything else is an ordinary path.
     `x-asym-address-prefix` is set only by the proxy, to `""` or
@@ -261,8 +263,9 @@ surface)` in `verified-name.ts` calls `resolve_verified_host` with the
     `/` or `~`; percent-encoded forms are not decoded and reach the ordinary
     not-found), the name's or another's, is `404 no-store` (R4), so a trailing
     slash never earns its `308` first; so is a `/~<sub-role>` in front of a
-    root of `OUTSIDE_TENANT_SEGMENT_ROOTS` (raw or decoded once), and any
-    `/~<sub-role>` in the missionary workspace. `admitOperatorArea` stays
+    root of `OUTSIDE_TENANT_SEGMENT_ROOTS` (raw or decoded once), in the
+    staff app and in the missionary workspace alike; any other
+    `/~<sub-role>` is left to decision 21. `admitOperatorArea` stays
     first in the staff proxy and refuses `/~<sub-role>/operator` as it refuses
     `/<id>/operator`. The missionary table's form with an ID therefore answers
     nothing on.

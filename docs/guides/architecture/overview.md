@@ -101,8 +101,9 @@ dashboards' addresses carry no organization ID: a person with one row of the
 surface works at `/admin/…` or `/missionary/…`, a staff member with several
 staff rows at `/admin/~<sub-role>/…`; an ID first segment and a sub-role over
 a path outside the tenant segment answer `404` (`no-store`) before a session
-is read, a one-row person's sub-role once their rows are read, and the
-choosers list the name's rows only. Web Studio's entry carries
+is read, a one-row person's sub-role leads, once their rows are read, to the
+same path without it (`307`, `no-store`), and the choosers list the name's
+rows only. Web Studio's entry carries
 `role=<sub-role>` alone, and its REST calls and server functions carry the
 name's generation, refused `scope_mismatch` without it before any of
 Payload's handlers runs
