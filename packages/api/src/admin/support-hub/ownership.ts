@@ -81,7 +81,7 @@ export function matchSupportAgentId(
 /**
  * Who may change what in Support Hub's per-agent settings.
  *
- * Support admins (admin, super_admin) manage everything. Other agents manage
+ * The tenant administrator manages everything. Other agents manage
  * only their own notification preferences and their own personal saved
  * views. Workspace views and legacy personal views with no owner stay
  * visible to everyone but are read-only for them. The browser hides what it

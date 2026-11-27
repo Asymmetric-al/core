@@ -57,20 +57,13 @@ const PATTERNS = [
   /\bprofileRole\b/g,
 ];
 
-/** Remaining hits, by file, with the reason each stays. */
+/**
+ * Remaining hits, by file, with the reason each stays. Amended by WP2c's
+ * rest (AL-2675, pull request B; record D-18): the three super_admin
+ * branches of the CRM's access, the fund directory and Support Hub's context
+ * are gone, so their entries are too.
+ */
 const ALLOWED: Record<string, [number, string]> = {
-  "packages/api/src/crm/auth/access.ts": [
-    1,
-    "WP2c: isSuperAdmin, the cross-tenant CRM branch",
-  ],
-  "packages/api/src/admin/fund-directory.ts": [
-    1,
-    "WP2c: the super_admin cross-tenant directory",
-  ],
-  "packages/api/src/admin/support-hub/route-helpers.ts": [
-    1,
-    "WP2c: isSuperAdmin on the Support Hub context",
-  ],
   "packages/api/src/auth/demo-account.ts": [
     1,
     "the demo persona to create; grants nothing",

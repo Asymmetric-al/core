@@ -70,7 +70,6 @@ describe("requireSupportHubAccess", () => {
       tenantId: "tenant-1",
       userId: "user-1",
       userEmail: "user-1@example.com",
-      isSuperAdmin: false,
       canManageAll: false,
     });
   });

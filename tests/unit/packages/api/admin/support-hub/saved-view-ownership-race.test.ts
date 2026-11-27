@@ -93,7 +93,6 @@ const agentA: SupportHubContext = {
   tenantId: TENANT,
   userId: "user-a",
   userEmail: "a@example.test",
-  isSuperAdmin: false,
   canManageAll: false,
 };
 const filter = {
