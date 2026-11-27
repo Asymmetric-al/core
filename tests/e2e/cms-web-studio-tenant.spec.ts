@@ -2378,12 +2378,13 @@ test("@cms what was copied after the sign-in page opened is gone once the next p
   await openLayoutClipboard(stale);
   await stale.getByRole("menuitem", { name: "Copy Field" }).click();
   await expect.poll(() => storedIn(stale)).not.toBeNull();
-  await stale.close();
 
   const next = fixturePerson("demoAdmin");
   const watcher = await page.context().newPage();
   try {
     await watcher.goto(`${base}/icon.svg`);
+    await expect.poll(() => storedIn(watcher)).not.toBeNull();
+    await stale.close();
     await page.route(isAuthService, (route) =>
       new URL(route.request().url()).pathname === "/auth/v1/token"
         ? route.fulfill({ json: passwordSession(next.userId) })
@@ -2422,6 +2423,7 @@ test("@cms what was copied after the organization chooser opened is gone once an
 
   const stale = await page.context().newPage();
   await copyLayoutIn(stale);
+  await expect.poll(() => clipboardOf(page)).not.toBeNull();
   await stale.close();
 
   await chooseOrganization(page, SECOND);
