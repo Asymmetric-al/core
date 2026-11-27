@@ -140,6 +140,9 @@ export interface State {
   winnerRow?: Row;
   stagedGift: Row;
   commitOnFirstKeyLookup?: Row;
+  commitOnSecondKeyLookup?: Row;
+  keyLookups?: number;
+  donorDoNotEmail?: boolean;
   suppressionTypes?: string[];
 }
 
@@ -150,6 +153,7 @@ export class QueryBuilder {
   private wantsSingle = false;
   private inValues: unknown[] = [];
   private eqs: Array<[string, unknown]> = [];
+  private neqs: Array<[string, unknown]> = [];
 
   constructor(
     private readonly table: string,
@@ -175,6 +179,10 @@ export class QueryBuilder {
   }
   eq(column: string, value: unknown) {
     this.eqs.push([column, value]);
+    return this;
+  }
+  neq(column: string, value: unknown) {
+    this.neqs.push([column, value]);
     return this;
   }
   ilike() {
@@ -247,7 +255,7 @@ export class QueryBuilder {
             profile_id: null,
             name: "Ada Lovelace",
             email: "donor@example.com",
-            do_not_email: false,
+            do_not_email: state.donorDoNotEmail === true,
             do_not_contact: false,
           },
           error: null,
@@ -301,10 +309,29 @@ export class QueryBuilder {
       case "contribution_receipt_snapshots": {
         if (this.operation !== "insert")
           return {
-            data: state.snapshots.filter((row) =>
-              this.eqs.every(([column, value]) => row[column] === value),
-            ),
+            data: state.snapshots
+              .filter((row) =>
+                this.eqs.every(([column, value]) => row[column] === value),
+              )
+              .map((row) => structuredClone(row)),
             error: null,
+          };
+        if (
+          this.payload?.adjustment_id &&
+          !state.snapshotConflictOnce &&
+          state.snapshots.some(
+            (row) =>
+              row.adjustment_id === this.payload?.adjustment_id &&
+              row.kind === this.payload?.kind,
+          )
+        )
+          return {
+            data: null,
+            error: {
+              code: "23505",
+              message:
+                "duplicate key value violates unique constraint contribution_receipt_snapshots_adjustment_kind_key",
+            },
           };
         if ((state.failSnapshotInserts ?? 0) > 0) {
           state.failSnapshotInserts! -= 1;
@@ -317,7 +344,8 @@ export class QueryBuilder {
           state.snapshotConflictOnce = false;
           state.snapshots.push({
             id: `snap-${state.snapshots.length + 1}`,
-            ...this.payload,
+            created_at: new Date().toISOString(),
+            ...structuredClone(this.payload),
           });
           return {
             data: null,
@@ -329,31 +357,68 @@ export class QueryBuilder {
         }
         const row = {
           id: `snap-${state.snapshots.length + 1}`,
-          ...this.payload,
+          created_at: new Date().toISOString(),
+          ...structuredClone(this.payload),
         };
         state.snapshots.push(row);
         return { data: { id: row.id }, error: null };
       }
       case "email_send_logs": {
-        if (this.operation !== "insert")
-          return {
-            data: state.emailSendLogs.filter((row) =>
-              this.eqs.every(([column, value]) =>
-                column.startsWith("metadata->>")
-                  ? (row.metadata as Row | undefined)?.[
-                      column.slice("metadata->>".length)
-                    ] === value
-                  : row[column] === value,
+        const cell = (row: Row, column: string) =>
+          column.startsWith("metadata->>")
+            ? (row.metadata as Row | undefined)?.[
+                column.slice("metadata->>".length)
+              ]
+            : row[column];
+        const matching = () =>
+          state.emailSendLogs
+            .filter(
+              (row) =>
+                this.eqs.every(
+                  ([column, value]) => cell(row, column) === value,
+                ) &&
+                this.neqs.every(
+                  ([column, value]) => cell(row, column) !== value,
+                ),
+            )
+            .sort((a, b) =>
+              String(b.requested_at ?? "").localeCompare(
+                String(a.requested_at ?? ""),
               ),
-            ),
+            );
+        if (this.operation === "update") {
+          for (const row of matching())
+            Object.assign(row, structuredClone(this.payload));
+          return { data: null, error: null };
+        }
+        if (this.operation === "select") {
+          const rows = matching().map((row) => structuredClone(row));
+          return {
+            data: this.wantsSingle ? (rows[0] ?? null) : rows,
             error: null,
+          };
+        }
+        if (
+          state.emailSendLogs.some(
+            (row) =>
+              row.tenant_id === this.payload?.tenant_id &&
+              row.idempotency_key === this.payload?.idempotency_key,
+          )
+        )
+          return {
+            data: null,
+            error: {
+              code: "23505",
+              message:
+                "duplicate key value violates unique constraint email_send_logs_tenant_idempotency_unique",
+            },
           };
         const row = {
           id: `send-log-${state.emailSendLogs.length + 1}`,
-          ...this.payload,
+          ...structuredClone(this.payload),
         };
         state.emailSendLogs.push(row);
-        return { data: { id: row.id }, error: null };
+        return { data: { id: row.id, status: row.status }, error: null };
       }
       case "email_suppressions":
         return {
@@ -393,6 +458,13 @@ export class QueryBuilder {
           };
           state.adjustments.push(row);
           return { data: { id: row.id }, error: null };
+        }
+        if (this.eqs.some(([column]) => column === "idempotency_key")) {
+          state.keyLookups = (state.keyLookups ?? 0) + 1;
+          if (state.keyLookups === 2 && state.commitOnSecondKeyLookup) {
+            state.adjustments.push(state.commitOnSecondKeyLookup);
+            state.commitOnSecondKeyLookup = undefined;
+          }
         }
         const adjustments = state.adjustments.filter((row) =>
           this.eqs.every(

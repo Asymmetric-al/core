@@ -14,8 +14,12 @@ vi.mock("../../../../../packages/api/src/email/settings-store", () => ({
 vi.mock("../../../../../packages/api/src/email/crypto", () => ({
   decryptResendApiKey: decryptResendApiKeyMock,
 }));
+const { auditMock } = vi.hoisted(() => ({
+  auditMock: vi.fn().mockResolvedValue(undefined),
+}));
+
 vi.mock("@asym/lib/audit/logger", () => ({
-  logSystemAuditEvent: vi.fn().mockResolvedValue(undefined),
+  logSystemAuditEvent: auditMock,
 }));
 
 import { executeContributionActionFromBag as executeContributionAction } from "./contribution-operations-test-helpers";
@@ -42,10 +46,12 @@ async function correctWith(
     key: string;
     amount?: number;
     actionType?: ContributionActionType;
-    choice?: "email" | "pdf";
+    choice?: "email" | "pdf" | "defer" | "none";
     expectedRevision?: string;
+    capabilities?: string[];
   },
 ) {
+  const choice = options.choice ?? "email";
   const actionType = options.actionType ?? "amount_correction";
   return applyContributionCorrection({
     supabaseAdmin: stub(state),
@@ -56,12 +62,21 @@ async function correctWith(
       ...(actionType === "amount_correction"
         ? { amount: options.amount ?? 20_000 }
         : { fundId: null }),
-      receiptDelivery: { choice: options.choice ?? "email" },
+      ...(choice === "none"
+        ? {}
+        : {
+            receiptDelivery:
+              choice === "defer"
+                ? { choice, deferReason: "The donor asked to wait" }
+                : { choice },
+          }),
     },
     reason: "data entry error",
     actorProfileId: "profile-1",
     sourceSurface: "contribution_hub",
-    actorCapabilities: ["contributions.manage_receipts"],
+    actorCapabilities: options.capabilities ?? [
+      "contributions.manage_receipts",
+    ],
     idempotencyKey: options.key,
     expectedRevision: options.expectedRevision,
   });
@@ -295,5 +310,225 @@ describe("AL-2681 issue 2857 item 31: the direct correction's replay answer carr
       adjustmentId: "adj-1",
       receiptOutcome,
     });
+  });
+});
+
+const providerDown = {
+  success: false,
+  messageId: null,
+  correlationId: "corr-failed",
+  recipientCount: 0,
+  retryCount: 0,
+  errors: [{ code: "provider_down", message: "The provider is down." }],
+};
+
+async function failedFirstSend(state: State, key: string) {
+  sendEmailMock.mockResolvedValueOnce(providerDown);
+  const first = await correctWith(state, { key });
+  expect(first.receiptOutcome).toMatchObject({ status: "failed" });
+  expect(sendEmailMock).toHaveBeenCalledTimes(1);
+}
+
+describe("AL-2681 PR 2b A fix round, F1: a replay that sends passes the checks of a first send, at this request", () => {
+  it("after a failed send the donor is marked do-not-email: the same key with e-mail sends nothing and answers blocked with the reason", async () => {
+    const state = freshState(true);
+    await failedFirstSend(state, "key-f1-dne");
+    state.donorDoNotEmail = true;
+    const replay = await correctWith(state, { key: "key-f1-dne" });
+    expect(replay).toMatchObject({
+      idempotentReplay: true,
+      status: "applied",
+      receiptOutcome: { status: "blocked", snapshotId: null },
+    });
+    expect(replay.receiptOutcome?.reason).toMatch(/opted out of email/i);
+    expect(sendEmailMock).toHaveBeenCalledTimes(1);
+  });
+
+  it("after a failed send an actor without the e-mail capability retries the key: nothing is sent and the answer is blocked", async () => {
+    const state = freshState(true);
+    await failedFirstSend(state, "key-f1-cap");
+    const replay = await correctWith(state, {
+      key: "key-f1-cap",
+      capabilities: [],
+    });
+    expect(replay).toMatchObject({
+      idempotentReplay: true,
+      receiptOutcome: { status: "blocked" },
+    });
+    expect(sendEmailMock).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe("AL-2681 PR 2b A fix round, F2: one send-log row for each snapshot", () => {
+  it("a failed send, then the same key: the stored snapshot is mailed once and answers emailed; one row reading sent; the gift reads sent; a third retry mails nothing", async () => {
+    const state = freshState(true);
+    await failedFirstSend(state, "key-f2");
+    const second = await correctWith(state, { key: "key-f2" });
+    expect(second.receiptOutcome).toMatchObject({
+      status: "emailed",
+      snapshotId: state.snapshots[0]!.id,
+    });
+    expect(sendEmailMock).toHaveBeenCalledTimes(2);
+    expect(state.emailSendLogs.map((row) => row.status)).toEqual(["sent"]);
+    expect(state.stagedGift.receipt_status).toBe("sent");
+    expect(state.stagedGift.receipt_send_log_id).toBe(
+      state.emailSendLogs[0]!.id,
+    );
+    const third = await correctWith(state, { key: "key-f2" });
+    expect(third.receiptOutcome).toMatchObject({ status: "emailed" });
+    expect(sendEmailMock).toHaveBeenCalledTimes(2);
+    const keys = sendEmailMock.mock.calls.map(
+      (call) => (call[1] as { idempotencyKey: string }).idempotencyKey,
+    );
+    expect(new Set(keys).size).toBe(1);
+  });
+});
+
+describe("AL-2681 PR 2b A fix round, F3: a replay never seals or sends from a read that lacks its own correction", () => {
+  it("the key's correction commits on the second lookup, after an unrelated change moved the revision: the answer and the sealed snapshot carry the corrected amount", async () => {
+    const state = freshState(true);
+    const { revision } = await loadContributionDetailFromSupabase({
+      supabaseAdmin: stub(state),
+      tenantId: TENANT_ID,
+      contributionId: DONATION_ID,
+    });
+    state.stagedGift.review_reason = "an unrelated change";
+    state.commitOnSecondKeyLookup = committed("key-f3", {
+      amountCents: 20_000,
+    });
+    const replay = await correctWith(state, {
+      key: "key-f3",
+      expectedRevision: revision,
+    });
+    expect(replay.idempotentReplay).toBe(true);
+    expect(JSON.stringify(replay.after)).toContain("20000");
+    expect(state.snapshots).toHaveLength(1);
+    expect(
+      (state.snapshots[0]!.content as { effective: { amountCents: number } })
+        .effective.amountCents,
+    ).toBe(20_000);
+    const mailed = JSON.stringify(sendEmailMock.mock.calls);
+    expect(mailed).toContain("200.00");
+    expect(mailed).not.toContain("250.00");
+  });
+});
+
+describe("AL-2681 PR 2b A fix round, F4: the replay answers from the snapshot's own latest attempt", () => {
+  it("a suppressed send, the suppression lifted and another send setting the gift to sent: the same key answers blocked and sends nothing", async () => {
+    const state: State = { ...freshState(true), suppressionTypes: ["bounce"] };
+    const first = await correctWith(state, { key: "key-f4a" });
+    expect(first.receiptOutcome).toMatchObject({ status: "blocked" });
+    state.suppressionTypes = [];
+    state.stagedGift.receipt_status = "sent";
+    const replay = await correctWith(state, { key: "key-f4a" });
+    expect(replay.receiptOutcome).toMatchObject({ status: "blocked" });
+    expect(sendEmailMock).not.toHaveBeenCalled();
+  });
+
+  it("failed, then suppressed, then the key a third time: blocked, no send call, no second suppression record, and the same answer with the provider disconnected", async () => {
+    const state = freshState(true);
+    await failedFirstSend(state, "key-f4b");
+    state.suppressionTypes = ["bounce"];
+    const second = await correctWith(state, { key: "key-f4b" });
+    expect(second.receiptOutcome).toMatchObject({ status: "blocked" });
+    const audits = auditMock.mock.calls.length;
+    const third = await correctWith(state, { key: "key-f4b" });
+    expect(third.receiptOutcome).toMatchObject({ status: "blocked" });
+    expect(auditMock.mock.calls.length).toBe(audits);
+    readTenantEmailSettingsMock.mockResolvedValue({ is_connected: false });
+    const disconnected = await correctWith(state, { key: "key-f4b" });
+    expect(disconnected.receiptOutcome).toMatchObject({ status: "blocked" });
+    expect(sendEmailMock).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe("AL-2681 PR 2b A fix round, F5: the answer is the stored correction's receipt state, whatever the retry's choice", () => {
+  it("e-mailed, then the key with defer, with PDF and with no choice: each answers emailed, one snapshot, one send", async () => {
+    const state = freshState(true);
+    await correctWith(state, { key: "key-f5" });
+    for (const choice of ["defer", "pdf", "none"] as const) {
+      const replay = await correctWith(state, { key: "key-f5", choice });
+      expect(replay.receiptOutcome, choice).toMatchObject({
+        status: "emailed",
+        snapshotId: state.snapshots[0]!.id,
+      });
+    }
+    expect(state.snapshots).toHaveLength(1);
+    expect(sendEmailMock).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe("AL-2681 PR 2b A fix round, F6: a snapshot whose send never logged", () => {
+  it("guard (passes at the tip): older than the window, it is sent exactly once on a same-key retry with e-mail", async () => {
+    const state = freshState(true);
+    readTenantEmailSettingsMock.mockRejectedValueOnce(
+      new Error("the request died"),
+    );
+    await expect(correctWith(state, { key: "key-f6" })).rejects.toThrow(
+      "the request died",
+    );
+    expect(state.snapshots).toHaveLength(1);
+    expect(state.emailSendLogs).toEqual([]);
+    state.snapshots[0]!.created_at = new Date(
+      Date.now() - 10 * 60 * 1000,
+    ).toISOString();
+    const replay = await correctWith(state, { key: "key-f6" });
+    expect(replay.receiptOutcome).toMatchObject({ status: "emailed" });
+    expect(sendEmailMock).toHaveBeenCalledTimes(1);
+    await correctWith(state, { key: "key-f6" });
+    expect(sendEmailMock).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe("AL-2681 PR 2b A fix round: the replay's audit event records what it reported", () => {
+  it("a replayed correction's audit event carries the receipt outcome and the snapshot it reports", async () => {
+    const receiptOutcome = {
+      status: "emailed" as const,
+      reason: null,
+      snapshotId: "snap-1",
+      affectedFields: ["amount"],
+      requested: { choice: "email" as const },
+      confirmed: { choice: "email" as const },
+    };
+    const appendAuditEvent = vi.fn().mockResolvedValue("audit_1");
+    await executeContributionAction({
+      tenantId: "tenant_1",
+      actorProfileId: "profile_1",
+      actorPermissions: ["finance:manage_contributions"],
+      sourceSurface: "contribution_hub",
+      contributionId: "donation_1",
+      actionType: "amount_correction",
+      reason: "Corrected imported check amount",
+      confirmationToken: "confirm",
+      payload: { amount: 1200 },
+      approvalPolicy: resolveCorrectionApprovalPolicy({
+        ownership_mode: "no_approval_required",
+        suppressed_gates: [],
+        stronger_approval_categories: [],
+      }),
+      dependencies: {
+        applyCorrection: vi.fn().mockResolvedValue({
+          before: { amount: 1000 },
+          after: { amount: 1200 },
+          status: "applied",
+          adjustmentId: "adj-1",
+          idempotentReplay: true,
+          receiptOutcome,
+        }),
+        createCorrectionRecord: vi.fn().mockResolvedValue("correction_1"),
+        appendAuditEvent,
+        loadContributionDetail: vi.fn().mockResolvedValue({ id: "donation_1" }),
+      },
+    });
+    expect(appendAuditEvent).toHaveBeenCalledWith(
+      expect.objectContaining({
+        afterSummary: { amount: 1200 },
+        downstreamEffects: expect.objectContaining({
+          idempotentReplay: true,
+          receiptOutcome: "emailed",
+          receiptSnapshotId: "snap-1",
+        }),
+      }),
+    );
   });
 });

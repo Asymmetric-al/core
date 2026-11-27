@@ -368,7 +368,7 @@ describe("AL-2681 issue 2857 items 3 to 7: a correction's retry belongs to its g
     expect(sendEmailMock).not.toHaveBeenCalled();
   });
 
-  it("item 7: a receipt whose send failed is not delivered: the replay sends it again and reports what happened", async () => {
+  it("item 7: a receipt whose send failed is not delivered: the replay sends it again and reports what happened (D-18, AL-2681 PR 2b A fix round F2: one send-log row for the snapshot, which the re-send writes onto)", async () => {
     sendEmailMock.mockResolvedValueOnce({
       success: false,
       messageId: null,
@@ -386,10 +386,7 @@ describe("AL-2681 issue 2857 items 3 to 7: a correction's retry belongs to its g
       snapshotId: state.snapshots[0]!.id,
     });
     expect(state.snapshots).toHaveLength(1);
-    expect(state.emailSendLogs.map((log) => log.status)).toEqual([
-      "failed",
-      "sent",
-    ]);
+    expect(state.emailSendLogs.map((log) => log.status)).toEqual(["sent"]);
   });
 });
 
