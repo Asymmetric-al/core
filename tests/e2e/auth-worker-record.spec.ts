@@ -403,7 +403,7 @@ test.describe("AL-2678 WP5 part 2-r2b1: the worker's record in Mission Control o
       page.getByRole("alert").filter({ hasText: "Worker not found." }),
     ).toBeVisible();
   });
-  test("W6 (issue 2835's title, the zero count): the Home summary waits for the count's answer, goes once every unreviewed worker is confirmed, and comes back as 1 worker when staff add a worker with no level (WP5 rest 2b; red: the summary never returns, since no worker can be added)", async ({
+  test("W6 (issue 2835's title, the zero count): the Home summary waits for the count's answer, goes once every unreviewed worker is confirmed, and comes back as 1 worker when staff add a worker with no level (WP5 rest 2b; red on a stack without part B's migrations: the confirm's entry and create_worker are missing, 500)", async ({
     page,
   }) => {
     await signIn(page, SEEDED.owner.email, SEEDED_PASSWORD);

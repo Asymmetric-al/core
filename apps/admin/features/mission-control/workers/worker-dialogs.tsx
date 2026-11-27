@@ -947,7 +947,7 @@ export function InviteDialog({ worker }: { worker: Worker }) {
   return (
     <ActionDialog
       trigger="Invite to sign in"
-      triggerLabel={`Invite ${worker.displayName} to sign in`}
+      triggerLabel={`Invite to sign in: ${worker.displayName}`}
       title={
         created
           ? "Invitation link created"

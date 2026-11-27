@@ -798,7 +798,7 @@ describe("AL-2678 r2b1: a worker's record in Mission Control", () => {
     const view = show();
     fireEvent.click(
       await screen.findByRole("button", {
-        name: "Invite Worker Kestrel to sign in",
+        name: "Invite to sign in: Worker Kestrel",
       }),
     );
     const dialog = await screen.findByRole("dialog");
@@ -841,7 +841,7 @@ describe("AL-2678 r2b1: a worker's record in Mission Control", () => {
     expect(await screen.findByText("Linked")).toBeTruthy();
     expect(
       screen.queryByRole("button", {
-        name: "Invite Worker Kestrel to sign in",
+        name: "Invite to sign in: Worker Kestrel",
       }),
     ).toBeNull();
     linked.unmount();
@@ -852,7 +852,7 @@ describe("AL-2678 r2b1: a worker's record in Mission Control", () => {
     expect((await screen.findAllByText("None")).length).toBeGreaterThan(0);
     expect(
       screen.queryByRole("button", {
-        name: "Invite Worker Kestrel to sign in",
+        name: "Invite to sign in: Worker Kestrel",
       }),
     ).toBeNull();
   });
