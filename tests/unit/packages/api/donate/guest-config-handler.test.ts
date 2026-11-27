@@ -75,7 +75,10 @@ describe("AL-2681 PR 2a: the anonymous config read's route (W8-R18)", () => {
       ["no row", setup({ rows: [] }), { targets: [{ fundId: FUND }] }],
       [
         "an error",
-        setup({ rows: null, error: { message: "boom" } }),
+        setup({
+          rows: [{ connected_account_id: "acct_alpha1" }],
+          error: { message: "boom" },
+        }),
         { targets: [{ fundId: FUND }] },
       ],
       [
@@ -129,6 +132,27 @@ describe("AL-2681 PR 2a: the anonymous config read's route (W8-R18)", () => {
       p_host: "give.example.test",
       p_targets: [{ fund_id: FUND }],
     });
+  });
+
+  it("F6 (a): a throw from reading the switch or the publishable key is the same generic unavailable", async () => {
+    for (const over of [
+      {
+        enabled: () => {
+          throw new Error("environment unreadable");
+        },
+      },
+      {
+        publishableKey: () => {
+          throw new Error("environment unreadable");
+        },
+      },
+    ] as Array<Partial<GivingConfigDeps>>) {
+      const s = setup(over);
+      const res = await s.handler(request({ targets: [{ fundId: FUND }] }));
+      expect(res.status).toBe(503);
+      expect(await res.json()).toEqual(UNAVAILABLE);
+      expect(s.rpc).not.toHaveBeenCalled();
+    }
   });
 
   it("asks nothing of the database while the switch is off", async () => {

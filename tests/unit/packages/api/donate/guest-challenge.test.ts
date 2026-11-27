@@ -39,6 +39,33 @@ describe("AL-2681 PR 2a: the server-verified challenge (plan :1149)", () => {
     });
   });
 
+  it("F6 (e): Turnstile's own internal error is unavailable (retryable), while a rejected token stays a failed challenge", async () => {
+    const internal = answering(200, {
+      success: false,
+      "error-codes": ["internal-error"],
+    });
+    expect(
+      await verifyGuestChallenge({
+        token: "token-1",
+        remoteIp: "198.51.100.4",
+        secret: SECRET,
+        fetchImpl: internal,
+      }),
+    ).toEqual({ ok: false, reason: "unavailable" });
+    const rejected = answering(200, {
+      success: false,
+      "error-codes": ["invalid-input-response"],
+    });
+    expect(
+      await verifyGuestChallenge({
+        token: "token-1",
+        remoteIp: "198.51.100.4",
+        secret: SECRET,
+        fetchImpl: rejected,
+      }),
+    ).toEqual({ ok: false, reason: "invalid" });
+  });
+
   it("a missing or blank token is refused without asking anyone", async () => {
     const fetchImpl = answering(200, { success: true });
     for (const token of [null, undefined, "", "   "]) {

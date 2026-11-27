@@ -1,11 +1,12 @@
 import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
 import path from "node:path";
+import { fileURLToPath } from "node:url";
 
 import { describe, expect, it } from "vitest";
 
 import { STAFF_EXEMPT_PATHS } from "../../../../packages/auth/front";
 
-const ROOT = path.resolve(new URL("../../../../", import.meta.url).pathname);
+const ROOT = fileURLToPath(new URL("../../../../", import.meta.url));
 const read = (file: string) => readFileSync(path.join(ROOT, file), "utf8");
 
 function sourceFiles(dir: string): string[] {

@@ -11,6 +11,12 @@ const adminClient = vi.hoisted(() => ({
   }),
 }));
 
+const createStripeClientMock = vi.hoisted(() => vi.fn(() => ({})));
+
+vi.mock("../../../../../packages/api/src/stripe/client", () => ({
+  createStripeClient: createStripeClientMock,
+}));
+
 vi.mock("../../../../../packages/api/src/workflows/admin-client", () => ({
   requireWorkflowAdminClient: () => adminClient,
 }));
@@ -21,6 +27,7 @@ import {
   type MoneyScheduleDeps,
 } from "../../../../../packages/api/src/donate/money-schedule";
 import {
+  accountReaderFor,
   moneySchedule,
   moneyScheduleHandler,
 } from "../../../../../packages/api/src/workflows/functions/money-schedule";
@@ -31,6 +38,8 @@ const EVENT = "33333333-3333-4333-8333-333333333333";
 const ACCOUNT_EVENT = "44444444-4444-4444-8444-444444444444";
 const ACCOUNT_ROW = "55555555-5555-4555-8555-555555555555";
 const TENANT = "66666666-6666-4666-8666-666666666666";
+const OP2 = "77777777-7777-4777-8777-777777777777";
+const OP3 = "88888888-8888-4888-8888-888888888888";
 
 type Due = {
   kind: string;
@@ -341,5 +350,135 @@ describe("AL-2681 PR 2a: the money schedule, one step-free function on the */30 
     ]);
     expect(adminClient.from).not.toHaveBeenCalled();
     expect(result.parts.every((p) => p.status === "idle")).toBe(true);
+  });
+});
+
+describe("AL-2681 part 2a fix round: the schedule tells the truth and keeps its time", () => {
+  it("F7 (a): a provider operation whose claim or whose result report came back as an RPC error is a failure, not handled; a benign skip is handled; each runs once", async () => {
+    const { rpc } = fakeRpc(
+      [OP, OP2, OP3].map((id) => ({
+        kind: "operation",
+        id,
+        tenant_id: TENANT,
+        detail: "create_payment",
+      })),
+    );
+    const runOperation = vi.fn(
+      async ({ operationId }: { operationId: string }) =>
+        operationId === OP
+          ? {
+              sent: false,
+              claim: { data: null, error: { message: "claim failed" } },
+            }
+          : operationId === OP2
+            ? {
+                sent: true,
+                claim: { data: { outcome: "claimed" }, error: null },
+                attempt: 1,
+                answer: { result: "succeeded" },
+                report: { data: null, error: { message: "report failed" } },
+              }
+            : {
+                sent: false,
+                claim: { data: { outcome: "not_due" }, error: null },
+              },
+    );
+    const result = await runMoneySchedule(
+      deps({ runOperation: runOperation as never }, rpc),
+    );
+    expect(result.parts[0]).toMatchObject({
+      part: "worker",
+      status: "done",
+      handled: 1,
+      failures: 2,
+    });
+    expect(runOperation).toHaveBeenCalledTimes(3);
+  });
+
+  it("F7 (b): no provider read starts when less than the reader's deadline remains of the budget", async () => {
+    const { rpc, calls } = fakeRpc([
+      {
+        kind: "account",
+        id: ACCOUNT_ROW,
+        tenant_id: TENANT,
+        detail: "acct_alpha1",
+      },
+      {
+        kind: "account_event",
+        id: ACCOUNT_EVENT,
+        tenant_id: TENANT,
+        detail: "v2.core.account.updated|acct_alpha1",
+      },
+    ]);
+    let now = 0;
+    const timed = vi.fn(async (fn: string, args: Record<string, unknown>) => {
+      const answer = await rpc(fn, args);
+      if (fn === "money_due_work") now = 40_000;
+      return answer;
+    });
+    const retrieve = vi.fn(async (id: string) => ({ id, livemode: false }));
+    const result = await runMoneySchedule(
+      deps(
+        {
+          clock: () => now,
+          budgetMs: 45_000,
+          readerDeadlineMs: 10_000,
+          accountReader: () => ({ retrieve }),
+        },
+        timed as never,
+      ),
+    );
+    expect(retrieve).not.toHaveBeenCalled();
+    expect(calls.map((c) => c.fn)).toEqual(["money_due_work"]);
+    expect(result.parts.find((p) => p.part === "events")).toMatchObject({
+      handled: 0,
+      deferred: 1,
+    });
+    expect(result.parts.find((p) => p.part === "reconciliation")).toMatchObject(
+      {
+        handled: 0,
+        deferred: 1,
+      },
+    );
+  });
+
+  it("F7 (b): the schedule's account reader has a ten-second deadline and no automatic retry", () => {
+    createStripeClientMock.mockClear();
+    accountReaderFor("sk_test_schedule_reader");
+    expect(createStripeClientMock).toHaveBeenCalledWith(
+      "sk_test_schedule_reader",
+      { timeout: 10_000, maxNetworkRetries: 0 },
+    );
+  });
+
+  it("F5: a reconciliation whose provider read throws hands the failure to the reconcile command and counts it failed", async () => {
+    const { rpc, calls } = fakeRpc([
+      {
+        kind: "account",
+        id: ACCOUNT_ROW,
+        tenant_id: TENANT,
+        detail: "acct_alpha1",
+      },
+    ]);
+    const retrieve = vi.fn(async () => {
+      throw new Error("Stripe timed out");
+    });
+    const result = await runMoneySchedule(
+      deps({ accountReader: () => ({ retrieve }) }, rpc),
+    );
+    expect(calls.map((c) => c.fn)).toEqual([
+      "money_due_work",
+      "reconcile_payment_account",
+    ]);
+    expect(calls[1]!.args).toEqual({
+      p_account_id: ACCOUNT_ROW,
+      p_snapshot: { id: "acct_alpha1", livemode: false, read_failed: true },
+    });
+    expect(result.parts.find((p) => p.part === "reconciliation")).toMatchObject(
+      {
+        handled: 0,
+        failures: 1,
+      },
+    );
   });
 });

@@ -2878,6 +2878,21 @@ describe("W8-R41: one reviewed lookup may anchor a worker wrapper's tenant (AL-2
     );
   });
 
+  it("F8: a quoted call of the lookup is the same call: it is refused while the lookup is not on the allowlist", () => {
+    expect(
+      codes(
+        judge(
+          [worker(sig, body('public."resolve_verified_host"(p_host)'))],
+          allow(),
+        ),
+      ),
+    ).toEqual(
+      expect.arrayContaining([
+        `WORKER_WRAPPER_ANCHOR_LOOKUP_UNREVIEWED ${sig}`,
+      ]),
+    );
+  });
+
   it("an unlisted lookup is still a call the wrapper may not make", () => {
     expect(
       codes(judge([worker(sig, body("public.lookup_owner(p_host)"))])),

@@ -318,7 +318,19 @@ describe("AL-2681 PR 2a: the payment-event destination (mounted; refuses without
     await handlerWith(db)(request(raw, signed(raw)));
     const res = await handlerWith(db)(request(raw, signed(raw)));
     expect(res.status).toBe(200);
+    expect(await res.json()).toEqual({
+      received: true,
+      eventId: "evt_pay_001",
+      outcome: "processed",
+    });
     expect(db.stored).toHaveLength(1);
+    expect(db.rpcCalls.map((c) => c.fn)).toEqual([
+      "claim_provider_event",
+      "claim_provider_event",
+    ]);
+    expect(db.rpcCalls[1]!.args).toMatchObject({
+      p_event_id: db.stored[0]!.id,
+    });
   });
 
   it("a failed apply records the failure and asks the provider to deliver again", async () => {

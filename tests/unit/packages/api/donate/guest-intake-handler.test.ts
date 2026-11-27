@@ -13,6 +13,18 @@ const OPERATION = "44444444-4444-4444-8444-444444444444";
 
 type Call = { fn: string; args: Record<string, unknown> };
 
+const CREATED = {
+  outcome: "created",
+  donation_id: INTAKE,
+  operation_id: OPERATION,
+  tenant_id: "55555555-5555-4555-8555-555555555555",
+  amount: 10330,
+  currency: "usd",
+  provider_account: "acct_alpha1",
+  payment_intent: null,
+  payable: true,
+};
+
 function body(overrides: Record<string, unknown> = {}) {
   return {
     key: "browser-key-0001",
@@ -69,6 +81,7 @@ function setup(
           currency: "usd",
           provider_account: "acct_alpha1",
           payment_intent: null,
+          payable: true,
         },
         error: null,
       }
@@ -262,6 +275,7 @@ describe("AL-2681 PR 2a: the guest intake handler (tested directly; not mounted 
           currency: "usd",
           provider_account: "acct_alpha1",
           payment_intent: "pi_first1",
+          payable: true,
         },
         error: null,
       },
@@ -310,6 +324,41 @@ describe("AL-2681 PR 2a: the guest intake handler (tested directly; not mounted 
         { error: "reserved_fund_line" },
       ],
       [
+        { code: "22023", message: "target_not_found" },
+        400,
+        { error: "target_not_found" },
+      ],
+      [
+        { code: "22023", message: "contact_required" },
+        400,
+        { error: "contact_required" },
+      ],
+      [
+        { code: "22023", message: "client_key_invalid" },
+        400,
+        { error: "client_key_invalid" },
+      ],
+      [
+        { code: "22023", message: "actor_not_admitted" },
+        400,
+        { error: "actor_not_admitted" },
+      ],
+      [
+        { code: "22023", message: "actor_required" },
+        400,
+        { error: "actor_required" },
+      ],
+      [
+        { code: "22023", message: "amount_out_of_range" },
+        400,
+        { error: "amount_out_of_range" },
+      ],
+      [
+        { code: "22023", message: "fee_cover_out_of_range" },
+        400,
+        { error: "fee_cover_out_of_range" },
+      ],
+      [
         { code: "22023", message: "something unexpected" },
         400,
         { error: "invalid_request" },
@@ -346,82 +395,120 @@ describe("AL-2681 PR 2a: the guest intake handler (tested directly; not mounted 
   };
   const actorSent = (s: ReturnType<typeof setup>) =>
     s.calls.find((c) => c.fn === "begin_line_gift")!.args.p_actor;
+  const commandCalled = (s: ReturnType<typeof setup>) =>
+    s.calls.some((c) => c.fn === "begin_line_gift");
+  const tokenTaken = (s: ReturnType<typeof setup>) =>
+    s.calls.some((c) => c.fn === "take_intake_rate_token");
 
-  it("the account area needs a signed-in giver on the organization's home and passes the session's actor, never the body's; off the home it reads no session and is unavailable", async () => {
-    const none = setup();
-    const res = await none.handler(request(body({ surface: "donor_account" })));
-    expect(res.status).toBe(401);
-    expect(await res.json()).toEqual({ error: "sign_in_required" });
-    expect(none.calls).toEqual([]);
-
-    const signed = setup({ resolveActor: async () => sessionActor });
-    await signed.handler(
-      request(body({ surface: "donor_account", actor: forgedActor })),
-    );
-    const begin = signed.calls.find((c) => c.fn === "begin_line_gift")!;
-    expect(begin.args.p_entry_surface).toBe("donor_account");
-    expect(begin.args.p_actor).toEqual(sessionActor);
-
-    const resolveActor = vi.fn(async () => sessionActor);
-    const away = setup({ isHomeHost: async () => false, resolveActor });
-    const res2 = await away.handler(
-      request(body({ surface: "donor_account" })),
-    );
-    expect(res2.status).toBe(503);
-    expect(await res2.json()).toEqual({ error: "giving_unavailable" });
-    expect(resolveActor).not.toHaveBeenCalled();
-    expect(away.calls).toEqual([]);
-  });
-
-  it("row 1: on the organization's home a signed-in giver gives in place on the website surface with the session's actor; a forged body actor is never read (ruling of 27 November, section 3)", async () => {
-    const isHomeHost = vi.fn(async () => true);
-    const signed = setup({
-      isHomeHost,
-      resolveActor: async () => sessionActor,
-    });
-    await signed.handler(request(body({ actor: forgedActor })));
-    expect(isHomeHost).toHaveBeenCalledWith("give.example.test");
-    const begin = signed.calls.find((c) => c.fn === "begin_line_gift")!;
-    expect(begin.args.p_entry_surface).toBe("website");
-    expect(begin.args.p_actor).toEqual(sessionActor);
-
-    const anonymous = setup({ resolveActor: async () => null });
-    await anonymous.handler(request(body({ actor: forgedActor })));
-    expect(actorSent(anonymous)).toBeNull();
-  });
-
-  it("'give as a guest instead' can only remove the actor: no session is read and the command gets none; it cannot be combined with the account area (section 5)", async () => {
+  it("F3: the request names its path and the server never changes it; with no path named, the donor is a guest", async () => {
     const resolveActor = vi.fn(async () => sessionActor);
     const s = setup({ resolveActor });
-    const res = await s.handler(
-      request(body({ asGuest: true, actor: forgedActor })),
-    );
-    expect(res.status).toBe(200);
-    expect(resolveActor).not.toHaveBeenCalled();
-    expect(actorSent(s)).toBeNull();
-    expect(
-      s.calls.find((c) => c.fn === "begin_line_gift")!.args.p_entry_surface,
-    ).toBe("website");
-
-    const both = setup({ resolveActor });
-    const res2 = await both.handler(
-      request(body({ asGuest: true, surface: "donor_account" })),
-    );
-    expect(res2.status).toBe(400);
-    expect(await res2.json()).toEqual({ error: "invalid_request" });
-    expect(both.calls).toEqual([]);
-  });
-
-  it("row 6: off the organization's home a session is never read, so a cookie on another Site's name is ignored and the gift is a guest's", async () => {
-    const resolveActor = vi.fn(async () => sessionActor);
-    const s = setup({ isHomeHost: async () => false, resolveActor });
     const res = await s.handler(request(body({ actor: forgedActor })));
     expect(res.status).toBe(200);
     expect(resolveActor).not.toHaveBeenCalled();
     expect(actorSent(s)).toBeNull();
   });
 
-  it("a failed home lookup reads no session, writes nothing and asks for a retry", async () => {
+  it("F3: on a shared website and home name, the signed-in path with no session answers 401 sign_in_required before the rate token and the command; the same request on the guest path is a guest gift", async () => {
+    const signedIn = setup({ resolveActor: async () => null });
+    const res = await signedIn.handler(request(body({ mode: "signed_in" })));
+    expect(res.status).toBe(401);
+    expect(await res.json()).toEqual({ error: "sign_in_required" });
+    expect(tokenTaken(signedIn)).toBe(false);
+    expect(commandCalled(signedIn)).toBe(false);
+
+    const guest = setup({ resolveActor: async () => null });
+    const res2 = await guest.handler(request(body({ mode: "guest" })));
+    expect(res2.status).toBe(200);
+    expect(actorSent(guest)).toBeNull();
+  });
+
+  it("F3: a live session on the guest path gives a guest gift and is never read (section 5: the choice only removes the actor)", async () => {
+    const resolveActor = vi.fn(async () => sessionActor);
+    const isHomeHost = vi.fn(async () => true);
+    const s = setup({ resolveActor, isHomeHost });
+    const res = await s.handler(
+      request(body({ mode: "guest", actor: forgedActor })),
+    );
+    expect(res.status).toBe(200);
+    expect(resolveActor).not.toHaveBeenCalled();
+    expect(isHomeHost).not.toHaveBeenCalled();
+    expect(actorSent(s)).toBeNull();
+    expect(
+      s.calls.find((c) => c.fn === "begin_line_gift")!.args.p_entry_surface,
+    ).toBe("website");
+  });
+
+  it("F3: the guest path cannot ask for the account area: 400 invalid_request, nothing called", async () => {
+    for (const mode of ["guest", undefined]) {
+      const s = setup({ resolveActor: async () => sessionActor });
+      const res = await s.handler(
+        request(body({ mode, surface: "donor_account" })),
+      );
+      expect(res.status, String(mode)).toBe(400);
+      expect(await res.json()).toEqual({ error: "invalid_request" });
+      expect(s.calls).toEqual([]);
+    }
+  });
+
+  it("F3 (row 1): on the organization's home the signed-in path gives in place on the website surface with the session's actor, never the body's", async () => {
+    const isHomeHost = vi.fn(async () => true);
+    const s = setup({ isHomeHost, resolveActor: async () => sessionActor });
+    await s.handler(request(body({ mode: "signed_in", actor: forgedActor })));
+    expect(isHomeHost).toHaveBeenCalledWith("give.example.test");
+    const begin = s.calls.find((c) => c.fn === "begin_line_gift")!;
+    expect(begin.args.p_entry_surface).toBe("website");
+    expect(begin.args.p_actor).toEqual(sessionActor);
+  });
+
+  it("F3: the account area on the home takes the session's actor; with no session it answers 401 before the token and the command", async () => {
+    const signed = setup({ resolveActor: async () => sessionActor });
+    await signed.handler(
+      request(
+        body({
+          mode: "signed_in",
+          surface: "donor_account",
+          actor: forgedActor,
+        }),
+      ),
+    );
+    const begin = signed.calls.find((c) => c.fn === "begin_line_gift")!;
+    expect(begin.args.p_entry_surface).toBe("donor_account");
+    expect(begin.args.p_actor).toEqual(sessionActor);
+
+    const none = setup({ resolveActor: async () => null });
+    const res = await none.handler(
+      request(body({ mode: "signed_in", surface: "donor_account" })),
+    );
+    expect(res.status).toBe(401);
+    expect(await res.json()).toEqual({ error: "sign_in_required" });
+    expect(none.calls).toEqual([]);
+  });
+
+  it("F3 (row 6): off the organization's home the session is never read: the signed-in path answers 401 on the website surface and 503 giving_unavailable in the account area; the guest path is a guest gift", async () => {
+    const resolveActor = vi.fn(async () => sessionActor);
+    const website = setup({ isHomeHost: async () => false, resolveActor });
+    const res = await website.handler(request(body({ mode: "signed_in" })));
+    expect(res.status).toBe(401);
+    expect(await res.json()).toEqual({ error: "sign_in_required" });
+    expect(website.calls).toEqual([]);
+
+    const account = setup({ isHomeHost: async () => false, resolveActor });
+    const res2 = await account.handler(
+      request(body({ mode: "signed_in", surface: "donor_account" })),
+    );
+    expect(res2.status).toBe(503);
+    expect(await res2.json()).toEqual({ error: "giving_unavailable" });
+    expect(account.calls).toEqual([]);
+
+    const guest = setup({ isHomeHost: async () => false, resolveActor });
+    const res3 = await guest.handler(request(body({ actor: forgedActor })));
+    expect(res3.status).toBe(200);
+    expect(actorSent(guest)).toBeNull();
+    expect(resolveActor).not.toHaveBeenCalled();
+  });
+
+  it("a failed home lookup on the signed-in path reads no session, writes nothing and asks for a retry", async () => {
     const resolveActor = vi.fn(async () => sessionActor);
     const s = setup({
       isHomeHost: async () => {
@@ -429,7 +516,7 @@ describe("AL-2681 PR 2a: the guest intake handler (tested directly; not mounted 
       },
       resolveActor,
     });
-    const res = await s.handler(request(body()));
+    const res = await s.handler(request(body({ mode: "signed_in" })));
     expect(res.status).toBe(503);
     expect(await res.json()).toEqual({
       error: "payment_not_started",
@@ -437,6 +524,66 @@ describe("AL-2681 PR 2a: the guest intake handler (tested directly; not mounted 
     });
     expect(resolveActor).not.toHaveBeenCalled();
     expect(s.calls).toEqual([]);
+  });
+
+  it("F6 (a): a rejected first send or client-secret read is a structured 503 payment_not_started with retry; the stored gift stays for the same key", async () => {
+    const failedSend = setup({
+      sendFirst: vi.fn(async () => {
+        throw new Error("Stripe is unreachable");
+      }),
+    });
+    const res = await failedSend.handler(request(body()));
+    expect(res.status).toBe(503);
+    expect(await res.json()).toEqual({
+      error: "payment_not_started",
+      retry: true,
+    });
+    expect(commandCalled(failedSend)).toBe(true);
+
+    const failedSecret = setup({
+      clientSecret: vi.fn(async () => {
+        throw new Error("Stripe is unreachable");
+      }),
+    });
+    const res2 = await failedSecret.handler(request(body()));
+    expect(res2.status).toBe(503);
+    expect(await res2.json()).toEqual({
+      error: "payment_not_started",
+      retry: true,
+    });
+  });
+
+  it("F6 (b): a key replayed for a gift that can no longer be paid answers 409 gift_closed with no retry flag and no provider call; a declined card's gift answers its PaymentIntent again", async () => {
+    const closed = setup({
+      begin: {
+        data: { ...CREATED, outcome: "replayed", payable: false },
+        error: null,
+      },
+    });
+    const res = await closed.handler(request(body()));
+    expect(res.status).toBe(409);
+    expect(await res.json()).toEqual({ error: "gift_closed" });
+    expect(closed.sendFirst).not.toHaveBeenCalled();
+    expect(closed.clientSecret).not.toHaveBeenCalled();
+
+    const declined = setup({
+      begin: {
+        data: {
+          ...CREATED,
+          outcome: "replayed",
+          payable: true,
+          payment_intent: "pi_declined1",
+        },
+        error: null,
+      },
+    });
+    const res2 = await declined.handler(request(body()));
+    expect(res2.status).toBe(200);
+    expect(declined.sendFirst).not.toHaveBeenCalled();
+    expect(declined.clientSecret).toHaveBeenCalledWith({
+      account: "acct_alpha1",
+      paymentIntentId: "pi_declined1",
+    });
   });
 
   it("answers only the intake, the client secret, the account and the amount, whatever else the command's answer carries: no Party id, donor or match flag (section 6)", async () => {
@@ -451,6 +598,7 @@ describe("AL-2681 PR 2a: the guest intake handler (tested directly; not mounted 
           currency: "usd",
           provider_account: "acct_alpha1",
           payment_intent: null,
+          payable: true,
           party_id: "88888888-8888-4888-8888-888888888888",
           donor_id: "99999999-9999-4999-8999-999999999999",
           matched: true,

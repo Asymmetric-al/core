@@ -6,7 +6,7 @@ vi.mock("@asym/database/hooks", () => ({
 
 const { givenThisYear, lastSupported, supportedMissionaries } =
   await import("../../../../apps/donor/features/donor/components/overview/overview-model");
-const { monthlyGivingSeries, yearSummary } =
+const { monthlyGivingSeries, receiptPendingNote, unsettledNote, yearSummary } =
   await import("../../../../apps/donor/app/(dashboard)/donor-dashboard/history/page-content");
 
 const NOW = new Date(2026, 10, 11, 12);
@@ -72,5 +72,19 @@ describe("AL-2681 issue 2857 item 16: every donor view counts a settled gift ali
         "2026",
       ),
     ).toBe("1 gift to Jordan Hale so far this year.");
+  });
+});
+
+describe("AL-2681 part 2a fix round F9: a Received gift is counted, so it is not listed under Not counted", () => {
+  it("the Not counted note names processing, failed and refunded gifts and never a Received one; the Received gift's receipt state is said apart", () => {
+    const year = [
+      gift("Received"),
+      gift("Processing", { id: "d-p" }),
+      gift("Failed", { id: "d-f" }),
+    ];
+    expect(unsettledNote(year)).toBe("1 processing · 1 failed");
+    expect(unsettledNote([gift("Received")])).toBeNull();
+    expect(receiptPendingNote(year)).toBe("1 received, not yet receipted");
+    expect(receiptPendingNote([gift("Paid")])).toBeNull();
   });
 });
