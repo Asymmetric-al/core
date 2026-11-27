@@ -100,7 +100,8 @@ async function homeMembershipClass(
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const code = searchParams.get("code");
-  const next = safeNextParam(searchParams.get("next")) ?? "/";
+  const requestedNext = safeNextParam(searchParams.get("next"));
+  const next = requestedNext ?? "/";
 
   if (code) {
     // Auth and the person's own rows in every tenant: no tenant is chosen yet.
@@ -120,6 +121,10 @@ export async function GET(request: Request) {
       if (user) {
         const role = await homeMembershipClass(supabase, request);
         const roleRoute = routeForRole(role);
+        const surface = parseRoleClass(request.headers.get(ROLE_CLASS_HEADER));
+        if (role && role === surface && requestedNext) {
+          return markSharedOriginSessionChange(callbackRedirect(requestedNext));
+        }
         if (role && roleRoute) {
           if (isServeUnderPathsEnabled()) {
             const app = role === "staff" ? "admin" : role;

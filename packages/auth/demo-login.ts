@@ -24,14 +24,32 @@ const BLOCKED_NEXT_PREFIXES = [
   "/login",
   "/register",
   "/auth/callback",
+  "/forgot-password",
+  "/admin/login",
+  "/missionary/login",
+  "/admin/register",
+  "/missionary/register",
 ] as const;
 
 const OTHER_APP_SEGMENTS = new Set(["admin", "missionary"]);
 
+const API_PATH = /^(?:\/(?:admin|missionary))?\/api(?:\/|$)/i;
+
+const DOORWAY_PATH = /^\/invite(?:\/|$)/;
+
 function isBlockedNextPath(pathname: string): boolean {
-  if (pathname.startsWith("/api/auth/")) return true;
-  return BLOCKED_NEXT_PREFIXES.some(
-    (prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`),
+  let decoded: string;
+  try {
+    decoded = decodeURIComponent(pathname);
+  } catch {
+    return true;
+  }
+  return [pathname, decoded].some(
+    (form) =>
+      API_PATH.test(form) ||
+      BLOCKED_NEXT_PREFIXES.some(
+        (prefix) => form === prefix || form.startsWith(`${prefix}/`),
+      ),
   );
 }
 
@@ -50,7 +68,7 @@ function leavesTheDonorApp(pathname: string): boolean {
   } catch {
     return true;
   }
-  if (/[?#]/.test(decoded) || /(?:^|\/)\.\.?(?:\/|$)/.test(decoded))
+  if (/[?#%\t\n\r]/.test(decoded) || /(?:^|\/)\.\.?(?:\/|$)/.test(decoded))
     return true;
   return namesAnotherApp(pathname) || namesAnotherApp(decoded);
 }
@@ -97,5 +115,6 @@ export function safeNextParam(value: string | null): string | null {
   if (isBlockedNextPath(parsed.pathname)) return null;
   if (leavesTheDonorApp(parsed.pathname)) return null;
 
-  return `${parsed.pathname}${parsed.search}${parsed.hash}`;
+  if (DOORWAY_PATH.test(parsed.pathname)) return parsed.pathname;
+  return `${parsed.pathname}${parsed.search}`;
 }
