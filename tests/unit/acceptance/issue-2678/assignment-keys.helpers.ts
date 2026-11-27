@@ -89,6 +89,19 @@ export function downSql(file: string) {
     .join("\n");
 }
 
+export function checkSql(file: string) {
+  const text = readFileSync(file, "utf8");
+  const start = text.indexOf("-- Check begins\n");
+  const end = text.indexOf("-- Check ends\n");
+  if (start < 0 || end < start) throw new Error(`${file} has no Check block`);
+  return text
+    .slice(start, end)
+    .split("\n")
+    .filter((line) => line.startsWith("--   "))
+    .map((line) => line.slice("--   ".length))
+    .join("\n");
+}
+
 export async function repairOnDisposable(client: pg.Client) {
   const present = await client.query(
     "select to_regprocedure('platform.environment_kind()') is not null as present",
