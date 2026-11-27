@@ -68,6 +68,8 @@ const SERVICE_PORT_SPECIFIER =
 const SOURCE_EXTENSION = /\.[cm]?[jt]sx?$/;
 const OVERRIDE_KEY = "overrideAccess";
 const LOCAL_API_METHODS = new Set([
+  "cancel",
+  "cancelByID",
   "count",
   "countGlobalVersions",
   "countVersions",
@@ -89,6 +91,8 @@ const LOCAL_API_METHODS = new Set([
   "resetPassword",
   "restoreGlobalVersion",
   "restoreVersion",
+  "run",
+  "runByID",
   "unlock",
   "update",
   "updateGlobal",

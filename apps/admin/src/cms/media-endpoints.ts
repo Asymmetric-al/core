@@ -1,7 +1,9 @@
 import { ApiHttpError, ensureJsonBody } from "@asym/api/shared/http-errors";
+import { Forbidden } from "payload";
 import { z } from "zod";
 
-import { readEditingActor } from "./access/tenant-context";
+import { markWebStudioRefusal } from "./auth/web-studio-refusal";
+import { requireEditingActor } from "./ports/actor-port";
 import { deleteMediaRecord, registerMediaRecord } from "./ports/service-port";
 import { openCoreSession, readMediaCustody } from "./tenancy/core-session";
 
@@ -33,8 +35,6 @@ const registerSchema = z
 
 const removeSchema = z.object({ assetId }).strict();
 
-const NO_SESSION_MESSAGE =
-  "Web Studio needs your signed-in session to check this file. Sign in again and retry.";
 const UNREADABLE_MESSAGE =
   "The media library could not read this file just now. Try again.";
 const ANOTHER_ORGANIZATION = /belongs to another organization/;
@@ -44,6 +44,13 @@ function json(body: unknown, status = 200) {
 }
 
 type Parsed<T> = { ok: true; value: T } | { ok: false; response: Response };
+
+async function openSession(req: PayloadRequest) {
+  const session = await openCoreSession(req);
+  if (session) return session;
+  markWebStudioRefusal(req, "no_session");
+  throw new Forbidden(req.t);
+}
 
 async function readBody<T>(
   req: PayloadRequest,
@@ -70,12 +77,10 @@ export const webStudioMediaRegisterEndpoint: Endpoint = {
   method: "post",
   path: "/web-studio/media/register",
   handler: async (req): Promise<Response> => {
-    const actor = readEditingActor(req);
-    if (!actor) return json({ error: "Forbidden" }, 403);
+    const actor = requireEditingActor(req);
     const body = await readBody(req, registerSchema);
     if (!body.ok) return body.response;
-    const session = await openCoreSession(req);
-    if (!session) return json({ error: NO_SESSION_MESSAGE }, 403);
+    const session = await openSession(req);
     const custody = await readMediaCustody(session, body.value.assetId);
     if (custody.kind === "unreadable") {
       return json({ error: UNREADABLE_MESSAGE }, 503);
@@ -120,12 +125,10 @@ export const webStudioMediaRemoveEndpoint: Endpoint = {
   method: "post",
   path: "/web-studio/media/remove",
   handler: async (req): Promise<Response> => {
-    const actor = readEditingActor(req);
-    if (!actor) return json({ error: "Forbidden" }, 403);
+    const actor = requireEditingActor(req);
     const body = await readBody(req, removeSchema);
     if (!body.ok) return body.response;
-    const session = await openCoreSession(req);
-    if (!session) return json({ error: NO_SESSION_MESSAGE }, 403);
+    const session = await openSession(req);
     const custody = await readMediaCustody(session, body.value.assetId);
     if (custody.kind === "unreadable") {
       return json({ error: UNREADABLE_MESSAGE }, 503);

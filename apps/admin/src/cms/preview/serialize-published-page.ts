@@ -1,3 +1,4 @@
+import { withAppBasePath } from "@asym/database/app-base-path";
 import { resolvePublicCmsCtaHref } from "@asym/lib/cms/public-page";
 
 import type { SerializedPublicMedia } from "@asym/api/cms/public";
@@ -198,7 +199,7 @@ const HEX_UUID =
 function mediaRoute(id: unknown, variant?: "w320") {
   if (typeof id !== "string" || !HEX_UUID.test(id)) return null;
   const path = `/api/media/${id.toLowerCase()}`;
-  return variant ? `${path}?variant=${variant}` : path;
+  return withAppBasePath(variant ? `${path}?variant=${variant}` : path);
 }
 
 function serializePublicMedia(value: unknown) {

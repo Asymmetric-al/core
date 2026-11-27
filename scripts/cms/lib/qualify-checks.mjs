@@ -1,7 +1,11 @@
+const LOOPBACK_NAMES = /^(localhost|127(\.\d{1,3}){3}|\[::1\])$/;
+
 function serverOf(address) {
   try {
     const url = new URL(address);
-    return `${url.hostname.toLowerCase()}:${url.port || "5432"}`;
+    const host = url.hostname.toLowerCase();
+    const name = LOOPBACK_NAMES.test(host) ? "loopback" : host;
+    return `${name}:${url.port || "5432"}`;
   } catch {
     return null;
   }
@@ -24,7 +28,7 @@ export function poolingPlan({ poolerUrl, directUrl }) {
     return {
       kind: "skipped",
       reason:
-        "the pooler address is the direct server: the run is on direct Postgres",
+        "the pooler address names the direct server: the pooler was not tested",
     };
   }
   return { kind: "run", url: pooler };
