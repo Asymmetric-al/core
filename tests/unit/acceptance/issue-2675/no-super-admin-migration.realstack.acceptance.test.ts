@@ -51,7 +51,7 @@ describe("AL-2675 WP2c rest B: the migration's form", () => {
     expect(body.indexOf("DROP FUNCTION")).toBe(drop);
     expect(
       body.slice(drop + "DROP FUNCTION authz.is_super_admin();".length),
-    ).toMatch(/^\s*(DO \$\$[\s\S]*?\$\$;\s*)*COMMIT;\s*$/);
+    ).toMatch(/^\s*COMMIT;\s*$/);
     expect(body).not.toMatch(/\bCASCADE\b/i);
   });
 
@@ -128,16 +128,41 @@ describe.skipIf(!ADMIN_URL)(
       expect(onHelper).toHaveLength(59);
     });
 
+    const assertRestoredPolicies = (
+      before: Map<string, Record<string, unknown>>,
+      after: Record<string, unknown>[],
+    ) => {
+      let branches = 0;
+      for (const p of after) {
+        const was = before.get(p.key as string)!;
+        expect(was, `${p.key} existed before`).toBeDefined();
+        const back = (was.using_text as string).replaceAll(HELPER, BARE);
+        if ((p.using_text as string).startsWith(`(${BRANCH} OR `)) {
+          branches += 1;
+          expect(p.using_text, p.key as string).toBe(`(${BRANCH} OR ${back})`);
+        } else expect(p.using_text, p.key as string).toBe(back);
+        expect(p.check_text, p.key as string).toBe(was.check_text);
+      }
+      expect(after).toHaveLength(before.size);
+      expect(branches).toBe(37);
+    };
+
+    const downSql = () =>
+      downOf(read(file()))
+        .replace(/^BEGIN;/, "")
+        .replace(/COMMIT;\s*$/, "");
+
     it("the Down, run in a transaction that is rolled back, restores the function with its grants and every branch, and drops the helper", async () => {
       const before = new Map(
         (await rows(POLICIES)).map((p) => [p.key as string, p]),
       );
-      const down = downOf(read(file()))
-        .replace(/^BEGIN;/, "")
-        .replace(/COMMIT;\s*$/, "");
       await db.query("begin");
       try {
-        await db.query(down);
+        await db.query(
+          "insert into supabase_migrations.schema_migrations (version) values ($1) on conflict (version) do nothing",
+          [version()],
+        );
+        await db.query(downSql());
         const [fn] =
           await rows(`select l.lanname, p.provolatile::text v, p.proparallel::text par, p.prosecdef,
             p.proconfig, pg_get_userbyid(p.proowner) owner,
@@ -162,22 +187,70 @@ describe.skipIf(!ADMIN_URL)(
         expect(
           (await rows("select to_regprocedure('authz.staff_read()') r"))[0]!.r,
         ).toBeNull();
+        assertRestoredPolicies(before, await rows(POLICIES));
+      } finally {
+        await db.query("rollback");
+      }
+    });
+
+    it("the Down proof rejects a swapped policy pair in the Down VALUES list", async () => {
+      const before = new Map(
+        (await rows(POLICIES)).map((p) => [p.key as string, p]),
+      );
+      const swapped = downSql().replace(
+        "('support_teams', 'support hub staff select')",
+        "('funds', 'tenant scoped read')",
+      );
+      expect(swapped).not.toBe(downSql());
+      await db.query("begin");
+      try {
+        await db.query(
+          "insert into supabase_migrations.schema_migrations (version) values ($1) on conflict (version) do nothing",
+          [version()],
+        );
+        await db.query(swapped);
         const after = await rows(POLICIES);
-        let branches = 0;
-        for (const p of after) {
-          const was = before.get(p.key as string)!;
-          expect(was, `${p.key} existed before`).toBeDefined();
-          const back = (was.using_text as string).replaceAll(HELPER, BARE);
-          if ((p.using_text as string).startsWith(`(${BRANCH} OR `)) {
-            branches += 1;
-            expect(p.using_text, p.key as string).toBe(
-              `(${BRANCH} OR ${back})`,
-            );
-          } else expect(p.using_text, p.key as string).toBe(back);
-          expect(p.check_text, p.key as string).toBe(was.check_text);
-        }
-        expect(after).toHaveLength(before.size);
-        expect(branches).toBe(37);
+        expect(() => assertRestoredPolicies(before, after)).toThrow();
+      } finally {
+        await db.query("rollback");
+      }
+    });
+
+    it("the Down refuses without changing the helper or any policy when a newer migration is recorded, the ledger is empty, or the ledger is missing", async () => {
+      const before = await rows(POLICIES);
+      const newer = String(BigInt(version()) + 10000n);
+      await db.query("begin");
+      try {
+        const expectRefused = async (setup: string, pattern: RegExp) => {
+          await db.query("savepoint guard_case");
+          await db.query(setup);
+          await db.query("savepoint guard_run");
+          await expect(db.query(downSql())).rejects.toThrow(pattern);
+          await db.query("rollback to savepoint guard_run");
+          expect(
+            (await rows("select to_regprocedure('authz.staff_read()') r"))[0]!
+              .r,
+          ).toBe("authz.staff_read()");
+          expect(
+            (
+              await rows("select to_regprocedure('authz.is_super_admin()') r")
+            )[0]!.r,
+          ).toBeNull();
+          expect(await rows(POLICIES)).toEqual(before);
+          await db.query("rollback to savepoint guard_case");
+        };
+        await expectRefused(
+          `insert into supabase_migrations.schema_migrations (version) values ('${version()}'), ('${newer}') on conflict (version) do nothing`,
+          /Reverse every later migration first/,
+        );
+        await expectRefused(
+          "delete from supabase_migrations.schema_migrations",
+          /newest migration recorded is none/,
+        );
+        await expectRefused(
+          "drop table supabase_migrations.schema_migrations",
+          /no migration ledger/,
+        );
       } finally {
         await db.query("rollback");
       }

@@ -32,6 +32,8 @@ const TABLES = [
   table("crm_notes"),
   table("member_care_goals"),
   table("support_saved_views"),
+  table("donor_feed_preferences"),
+  table("missionaries"),
   table("currency_metadata", { tenant: false }),
   table("thread_notes", { tenant: false, parent_scoped: true }),
 ];
@@ -96,6 +98,7 @@ function run(
     functions?: Record<string, unknown>[];
     helpers?: object[];
     published?: string[];
+    keptReads?: readonly string[] | undefined;
   } = {},
 ) {
   const snapshot = {
@@ -115,14 +118,24 @@ function run(
     every_policy: [...policies.map((p) => everyRow(p)), ...(more.every ?? [])],
     policy_functions: more.functions ?? [],
   };
-  return evaluateTenantRlsCatalog(
+  const args: unknown[] = [
     snapshot,
     { entries: [] },
     { entries: [] },
     { entries: [] },
     [],
     { entries: [] },
-  );
+  ];
+  if ("keptReads" in more) {
+    if (more.keptReads !== undefined) args.push(more.keptReads);
+  } else {
+    args.push([]);
+  }
+  return (
+    evaluateTenantRlsCatalog as (
+      ...a: unknown[]
+    ) => ReturnType<typeof evaluateTenantRlsCatalog>
+  )(...args);
 }
 const codes = (r: ReturnType<typeof run>) =>
   r.failures
@@ -189,6 +202,29 @@ describe("evaluateTenantRlsCatalog: no super-admin branch (AL-2675, WP2c rest B)
         functions: [commented],
       }).failures,
     ).toEqual([]);
+  });
+
+  it("fails a policy that reaches a super_admin test two levels deep through a helper chain", () => {
+    const via = policy(
+      "donors",
+      `(${T} AND ( SELECT public.can_read() AS can_read))`,
+    );
+    const outer = {
+      function: "public.can_read()",
+      body: "SELECT private.role_test()",
+    };
+    const inner = {
+      function: "private.role_test()",
+      body: "SELECT EXISTS (SELECT 1 FROM public.profiles p WHERE p.user_id = auth.uid() AND p.role = 'super_admin')",
+    };
+    expect(
+      codes(
+        run([], {
+          every: [everyRow(via, "public", [outer.function])],
+          functions: [outer, inner],
+        }),
+      ),
+    ).toEqual(["POLICY_SUPER_ADMIN_BRANCH donors"]);
   });
 });
 
@@ -287,6 +323,72 @@ describe("evaluateTenantRlsCatalog: the staff-read helper (AL-2675, WP2c rest B;
       codes(run([policy("support_saved_views", views, { policy: "another" })])),
     ).toEqual(["STAFF_READ_ON_BARE_STAFF_CHECK support_saved_views"]);
   });
+
+  it("fails a write policy and a narrowed read that reach authz.staff_read() through a wrapper function", () => {
+    const writePol = policy("donors", null, {
+      policy: "donors indirect write",
+      cmd: "INSERT",
+      check: `(${T} AND ( SELECT public.can_write() AS can_write))`,
+    });
+    const writeFn = {
+      function: "public.can_write()",
+      body: "SELECT authz.staff_read()",
+    };
+    expect(
+      codes(
+        run([], {
+          every: [everyRow(writePol, "public", [writeFn.function])],
+          functions: [writeFn],
+        }),
+      ),
+    ).toEqual(["STAFF_READ_HELPER_IN_WRITE donors"]);
+    const narrowedPol = policy(
+      "crm_notes",
+      `(${T} AND ( SELECT public.can_read_notes() AS can_read_notes))`,
+      { policy: "crm_notes_tenant_select" },
+    );
+    const narrowedFn = {
+      function: "public.can_read_notes()",
+      body: "SELECT authz.staff_read()",
+    };
+    expect(
+      codes(
+        run([narrowedPol], {
+          every: [everyRow(narrowedPol, "public", [narrowedFn.function])],
+          functions: [narrowedFn],
+        }),
+      ),
+    ).toEqual(["STAFF_READ_HELPER_ON_NARROWED_READ crm_notes"]);
+  });
+
+  it("fails either kept own-row read if it calls authz.staff_read(), and fails when a named kept read is missing from the catalog", () => {
+    const feedOwn = policy(
+      "donor_feed_preferences",
+      `(${T} AND (${DONOR_OWN} OR ${HELPER}))`,
+      { policy: "donor_feed_preferences_own_select" },
+    );
+    expect(codes(run([feedOwn]))).toEqual([
+      "STAFF_READ_HELPER_ON_NARROWED_READ donor_feed_preferences",
+    ]);
+    const misOwn = policy(
+      "missionaries",
+      `(${T} AND (${DONOR_OWN} OR ${HELPER}))`,
+      { policy: "missionaries own row key read" },
+    );
+    expect(codes(run([misOwn]))).toEqual([
+      "STAFF_READ_HELPER_ON_NARROWED_READ missionaries",
+    ]);
+    const allButMissionaries = [
+      ...STAFF_NARROWED_READS,
+      "donor_feed_preferences|donor_feed_preferences_own_select",
+    ].map((key) => {
+      const [t, name] = key.split("|");
+      return policy(t!, `(${T} AND ${CARE})`, { policy: name! });
+    });
+    expect(codes(run(allButMissionaries, { keptReads: undefined }))).toEqual([
+      "KEPT_READ_STALE missionaries",
+    ]);
+  });
 });
 
 describe("evaluateTenantRlsCatalog: blind spots (b), (c) and (e) (record D-82, D-109, section 9 'WP2c part 3')", () => {
@@ -331,6 +433,16 @@ describe("evaluateTenantRlsCatalog: blind spots (b), (c) and (e) (record D-82, D
 
   it("(c) reads tenant_guard.request_claims() as a read of the claims, in a policy and in a helper", () => {
     const viaGuard = `(${T} AND ((tenant_guard.request_claims() ->> 'role'::text) = 'staff'::text))`;
+    const upperSub = {
+      function: "private.upper_sub()",
+      body: "SELECT (current_setting('request.jwt.claims', true)::jsonb ->> 'SUB')::uuid",
+      search_path: '""',
+      root: false,
+    };
+    expect(codes(run([], { helpers: [...HELPERS, UID, upperSub] }))).toEqual([
+      "TENANT_HELPER_READS_CLAIM private.upper_sub()",
+    ]);
+    expect(run([], { helpers: [...HELPERS, UID] }).failures).toEqual([]);
     expect(codes(run([policy("donors", viaGuard)]))).toEqual([
       "POLICY_READS_TOKEN_CLAIM donors",
     ]);

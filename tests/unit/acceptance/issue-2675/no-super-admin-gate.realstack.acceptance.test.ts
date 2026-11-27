@@ -75,6 +75,13 @@ describe.skipIf(!ADMIN_URL)(
             create policy acc2675b on public.donors for select to authenticated using (${TENANT} and (select public.acc2675b_platform_admin()));`),
         ),
       ).toEqual(["POLICY_SUPER_ADMIN_BRANCH donors"]);
+      expect(
+        named(
+          gate(`create function private.acc2675b_role_test() returns boolean language sql stable set search_path = '' as $f$ select exists (select 1 from public.profiles p where p.user_id = auth.uid() and p.role = 'super_admin') $f$;
+            create function public.acc2675b_can_read() returns boolean language sql stable set search_path = '' as $f$ select private.acc2675b_role_test() $f$;
+            create policy acc2675b on public.donors for select to authenticated using (${TENANT} and (select public.acc2675b_can_read()));`),
+        ),
+      ).toEqual(["POLICY_SUPER_ADMIN_BRANCH donors"]);
     });
 
     it("fails a write policy that calls the staff-read helper, and a staff-wide read on the bare staff check", () => {
@@ -92,6 +99,19 @@ describe.skipIf(!ADMIN_URL)(
           ),
         ),
       ).toEqual(["STAFF_READ_ON_BARE_STAFF_CHECK funds"]);
+      expect(
+        named(
+          gate(`create function public.acc2675b_can_write() returns boolean language sql stable set search_path = '' as $f$ select authz.staff_read() $f$;
+            create policy acc2675b on public.crm_notes for insert to authenticated with check (${TENANT} and (select public.acc2675b_can_write()));`),
+        ),
+      ).toEqual(["STAFF_READ_HELPER_IN_WRITE crm_notes"]);
+      expect(
+        named(
+          gate(
+            `alter policy "missionaries own row key read" on public.missionaries rename to acc2675b_renamed_own_read;`,
+          ),
+        ),
+      ).toEqual(["KEPT_READ_STALE missionaries"]);
     });
 
     it("(d) does not count a restrictive policy as admitting a grant", () => {
@@ -126,6 +146,23 @@ describe.skipIf(!ADMIN_URL)(
             create policy acc2675b on public.acc2675b_leaf for select to authenticated using (true);`),
         ),
       ).toEqual(["PARENT_SCOPED_POLICY_NOT_PINNED acc2675b_leaf"]);
+      expect(
+        named(
+          gate(`create table public.acc2675b_org (id uuid primary key, org_id uuid references public.tenants (id) on delete restrict);
+            alter table public.acc2675b_org enable row level security;
+            grant select on public.acc2675b_org to authenticated;
+            create policy acc2675b on public.acc2675b_org for select to authenticated using (true);`),
+        ),
+      ).toEqual(["PARENT_SCOPED_POLICY_NOT_PINNED acc2675b_org"]);
+      expect(
+        named(
+          gate(`create table public.acc2675b_org (id uuid primary key, org_id uuid references public.tenants (id) on delete restrict);
+            create table public.acc2675b_org_leaf (id int, acc_org_id uuid references public.acc2675b_org (id));
+            alter table public.acc2675b_org_leaf enable row level security;
+            grant select on public.acc2675b_org_leaf to authenticated;
+            create policy acc2675b on public.acc2675b_org_leaf for select to authenticated using (true);`),
+        ),
+      ).toEqual(["PARENT_SCOPED_POLICY_NOT_PINNED acc2675b_org_leaf"]);
     });
 
     it("(f) follows a helper's call however a comment sits between the schema, its dot and the name", () => {

@@ -1147,14 +1147,17 @@ console.log(JSON.stringify(await m.runTenantRlsCatalogGate({ databaseUrl: proces
       );
       const verdict = JSON.parse(
         gate.stdout.trim().split("\n").pop() || "{}",
-      ) as { ok?: boolean; failures?: { code: string; table?: string }[] };
+      ) as {
+        ok?: boolean;
+        failures?: { code: string; table?: string; detail?: string }[];
+      };
       expect(verdict.failures, gate.stderr).toBeInstanceOf(Array);
       const superAdminTables = new Set(
         verdict
           .failures!.filter((f) => f.code === "POLICY_SUPER_ADMIN_BRANCH")
           .map((f) => f.table),
       );
-      const later = (f: { code: string; table?: string }) =>
+      const later = (f: { code: string; table?: string; detail?: string }) =>
         f.code === "SERVICE_ROLE_UNSAFE_PRIVILEGE" ||
         (f.code === "SERVICE_ROLE_SCHEMA_CREATE" && f.table === "authz") ||
         f.code === "POLICY_SUPER_ADMIN_BRANCH" ||
@@ -1162,6 +1165,27 @@ console.log(JSON.stringify(await m.runTenantRlsCatalogGate({ databaseUrl: proces
         (f.code === "TENANT_CONDITION_MISSING" &&
           superAdminTables.has(f.table)) ||
         (f.code === "POLICY_EXCEPTION_CHANGED" && f.table === "field_policies");
+      expect(
+        later({
+          code: "TENANT_CONDITION_MISSING",
+          table: "donations",
+          detail: 'policy "planted" (SELECT) admits a row without tenant',
+        }),
+      ).toBe(false);
+      expect(
+        later({
+          code: "STAFF_READ_ON_BARE_STAFF_CHECK",
+          table: "profiles",
+          detail: 'policy "planted" admits staff',
+        }),
+      ).toBe(false);
+      expect(
+        later({
+          code: "POLICY_EXCEPTION_CHANGED",
+          table: "field_policies",
+          detail: 'policy "planted" differs',
+        }),
+      ).toBe(false);
       expect(
         verdict.failures!.filter((f) => !later(f)),
         gate.stderr,

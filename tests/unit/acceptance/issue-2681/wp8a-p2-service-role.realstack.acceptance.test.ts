@@ -692,12 +692,33 @@ describe.skipIf(!ADMIN_URL)(
           .filter((f) => f.code === "POLICY_SUPER_ADMIN_BRANCH")
           .map((f) => f.table),
       );
-      const later = (f: { code: string; table?: string }) =>
+      const later = (f: { code: string; table?: string; detail?: string }) =>
         f.code === "POLICY_SUPER_ADMIN_BRANCH" ||
         f.code === "STAFF_READ_ON_BARE_STAFF_CHECK" ||
         (f.code === "TENANT_CONDITION_MISSING" &&
           superAdminTables.has(f.table)) ||
         (f.code === "POLICY_EXCEPTION_CHANGED" && f.table === "field_policies");
+      expect(
+        later({
+          code: "TENANT_CONDITION_MISSING",
+          table: "donations",
+          detail: 'policy "planted" (SELECT) admits a row without tenant',
+        }),
+      ).toBe(false);
+      expect(
+        later({
+          code: "STAFF_READ_ON_BARE_STAFF_CHECK",
+          table: "profiles",
+          detail: 'policy "planted" admits staff',
+        }),
+      ).toBe(false);
+      expect(
+        later({
+          code: "POLICY_EXCEPTION_CHANGED",
+          table: "field_policies",
+          detail: 'policy "planted" differs',
+        }),
+      ).toBe(false);
       expect(gate.failures.filter((f) => !later(f))).toEqual([]);
     });
   },
