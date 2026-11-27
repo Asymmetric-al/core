@@ -16,7 +16,7 @@ import { headers } from "next/headers";
 import Image from "next/image";
 import { notFound } from "next/navigation";
 import { connection } from "next/server";
-import { createPayloadRequest } from "payload";
+import { createPayloadRequest, executeAuthStrategies } from "payload";
 
 import type { Metadata } from "next";
 
@@ -63,11 +63,7 @@ export default async function WebStudioAuthenticatedPreviewPage({
 
   const headerStore = await headers();
   const payload = await getPayloadClient();
-  const req = await createPayloadRequest({
-    payload,
-    req: { headers: headerStore },
-  });
-  const auth = await payload.auth({ headers: headerStore, req });
+  const auth = await executeAuthStrategies({ headers: headerStore, payload });
 
   if (!auth.user) {
     return redirectInTenant(
