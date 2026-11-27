@@ -2392,7 +2392,7 @@ test("@cms what was copied after the sign-in page opened is gone once the next p
     await page.route(isDataService, (route) => route.abort());
     await page.route(isAdminServer, (route) => route.abort());
     await page.getByLabel("Email").fill(`${next.userId}@example.test`);
-    await page.getByLabel("Password").fill("e2e-password");
+    await page.getByLabel("Password", { exact: true }).fill("e2e-password");
     await page.getByRole("button", { name: "Sign in" }).click();
     await expect.poll(() => storedIn(watcher)).toBeNull();
   } finally {
