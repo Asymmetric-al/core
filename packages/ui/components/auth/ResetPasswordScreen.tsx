@@ -1,5 +1,6 @@
 "use client";
 
+import { runSessionChangeCleanups } from "@asym/auth/client-session";
 import {
   getDefaultPostLoginPathForApp,
   type AppId,
@@ -205,6 +206,7 @@ function NewPasswordForm({
         password,
       });
       if (saveError) throw saveError;
+      runSessionChangeCleanups();
       replace(getDefaultPostLoginPathForApp(appId));
       refresh();
     } catch (cause) {

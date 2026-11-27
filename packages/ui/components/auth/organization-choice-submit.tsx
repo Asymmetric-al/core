@@ -1,5 +1,6 @@
 "use client";
 
+import { runSessionChangeCleanups } from "@asym/auth/client-session";
 import { useFormStatus } from "react-dom";
 
 import { Button } from "../shadcn/button";
@@ -30,7 +31,11 @@ export function OrganizationChoiceSubmit({
       aria-disabled={pending || undefined}
       aria-busy={pending || undefined}
       onClick={(event) => {
-        if (pending) event.preventDefault();
+        if (pending) {
+          event.preventDefault();
+          return;
+        }
+        runSessionChangeCleanups();
       }}
     >
       {pending ? <Spinner aria-hidden="true" data-icon="inline-start" /> : null}

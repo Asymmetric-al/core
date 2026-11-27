@@ -1,5 +1,6 @@
 "use client";
 
+import { runSessionChangeCleanups } from "@asym/auth/client-session";
 import {
   getDefaultPostLoginPathForApp,
   getDemoRoleForApp,
@@ -136,6 +137,7 @@ export function LoginScreen({
         throw new Error(payload?.error ?? "Demo login unavailable.");
       }
 
+      runSessionChangeCleanups();
       replace(targetPath);
       refresh();
     } catch (cause) {
@@ -164,6 +166,7 @@ export function LoginScreen({
           throw new Error(signInError.message);
         }
 
+        runSessionChangeCleanups();
         replace(targetPath);
         refresh();
       } catch (cause) {

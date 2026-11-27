@@ -1,6 +1,9 @@
 "use client";
 
-import { registerClientSessionCleanup } from "@asym/auth/client-session";
+import {
+  registerClientSessionCleanup,
+  registerSessionChangeCleanup,
+} from "@asym/auth/client-session";
 import { useEffect } from "react";
 
 import { CLIPBOARD_RESET_COOKIE } from "../../../cms/clipboard-reset";
@@ -36,7 +39,12 @@ export function PayloadClipboardReset() {
 export function PayloadClipboardGuard() {
   useEffect(() => {
     if (takeClipboardResetMark()) clearPayloadClipboard();
-    return registerClientSessionCleanup(() => clearPayloadClipboard);
+    const atSignOut = registerClientSessionCleanup(() => clearPayloadClipboard);
+    const atSessionChange = registerSessionChangeCleanup(clearPayloadClipboard);
+    return () => {
+      atSignOut();
+      atSessionChange();
+    };
   }, []);
   return null;
 }

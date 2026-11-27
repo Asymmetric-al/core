@@ -55,6 +55,19 @@ export function registerClientSessionCleanup(
   };
 }
 
+const sessionChangeCleanup = new Set<() => void>();
+
+export function registerSessionChangeCleanup(cleanup: () => void) {
+  sessionChangeCleanup.add(cleanup);
+  return () => {
+    sessionChangeCleanup.delete(cleanup);
+  };
+}
+
+export function runSessionChangeCleanups() {
+  for (const cleanup of [...sessionChangeCleanup]) cleanup();
+}
+
 export function getClientSessionSupabase() {
   sharedBrowserClient ??= createBrowserClient();
   return sharedBrowserClient;
