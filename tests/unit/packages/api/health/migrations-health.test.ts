@@ -54,6 +54,36 @@ async function call(
 }
 
 describe("migration health route", () => {
+  it.each(["0", "1"])(
+    "reports the built switch %s only in authenticated release detail",
+    async (value) => {
+      vi.stubEnv("CORE_SERVE_UNDER_PATHS", value);
+      try {
+        const {
+          getClient,
+          connection,
+          readBuildHeads,
+          readSupabaseUrl,
+          readBypassSecret,
+        } = deps({
+          data: { environment: "shared", expected_heads: build },
+        }).deps;
+        const get = createMigrationHealthHandler("donor", {
+          getClient,
+          connection,
+          readBuildHeads,
+          readSupabaseUrl,
+          readBypassSecret,
+        });
+        expect((await call(get)).body.release.serveUnderPaths).toBe(
+          value === "1",
+        );
+        expect((await call(get, "none")).body).toEqual({ status: "ok" });
+      } finally {
+        vi.unstubAllEnvs();
+      }
+    },
+  );
   it("calls the release health function with the service key and passes an equal database", async () => {
     const { rpc, deps: d } = deps({
       data: { environment: "shared", expected_heads: build },

@@ -145,7 +145,7 @@ describe("on: host handling, lookup unavailability, dashboard handoff and no cro
     expect(state.lookups).toEqual([HOME_A]);
   });
 
-  it("routes /admin/... and /missionary/... through routeToDashboard with zero donor lookups", async () => {
+  it("routes /admin/... and /missionary/... through routeToDashboard with one lookup of the name for its surface and no donor lookup (D-18, N3 PR 1: the front admits a dashboard by the verified-name lookup; FRONT_NAMES is gone)", async () => {
     for (const [path, upstream] of [
       ["/admin/donors", "http://localhost:25161/admin/donors"],
       ["/missionary/donors", "http://localhost:25162/missionary/donors"],
@@ -154,8 +154,8 @@ describe("on: host handling, lookup unavailability, dashboard handoff and no cro
       state.lookupClients = 0;
       const res = await donorModule.proxy(donorRequest(HOME_A, path));
       expect(res.headers.get("x-middleware-rewrite"), path).toBe(upstream);
-      expect(state.lookups, path).toEqual([]);
-      expect(state.lookupClients, path).toBe(0);
+      expect(state.lookups, path).toEqual([HOME_A]);
+      expect(state.lookupClients, path).toBe(1);
     }
   });
 

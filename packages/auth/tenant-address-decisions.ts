@@ -124,7 +124,7 @@ export type NameAddressDecision<Row extends AddressRow = AddressRow> =
   | { kind: "allow"; assignment: Row; prefix: string }
   | { kind: "choose" }
   | { kind: "refuse" }
-  | { kind: "not_found" };
+  | { kind: "without_sub_role" };
 
 export function decideNameAddress<Row extends AddressRow>(input: {
   assignments: readonly Row[];
@@ -139,7 +139,7 @@ export function decideNameAddress<Row extends AddressRow>(input: {
   );
   if (rows.length === 0) return { kind: "refuse" };
   if (rows.length === 1 || input.roleClass !== "staff") {
-    if (input.subRole !== null) return { kind: "not_found" };
+    if (input.subRole !== null) return { kind: "without_sub_role" };
     return rows.length === 1
       ? { kind: "allow", assignment: rows[0]!, prefix: "" }
       : { kind: "refuse" };

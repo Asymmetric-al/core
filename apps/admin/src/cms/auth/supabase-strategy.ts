@@ -198,7 +198,8 @@ export type WebStudioCaller =
       strategy: string;
       generation: NameGenerationState;
     }
-  | { kind: "refuse"; refusal: WebStudioRefusal | null };
+  | { kind: "refuse"; refusal: WebStudioRefusal | null }
+  | { kind: "unavailable" };
 
 export type WebStudioCallerInput = {
   headers: Headers;
@@ -383,9 +384,9 @@ export function createWebStudioCallerResolver(
       // the person can retry; only the resolver's own refusal of the row is
       // "choose an organization" (JR2's rule; last read of the first
       // release, L3).
-      return refuse(
-        resolution.reason === "reader_error" ? null : "no_selection",
-      );
+      return resolution.reason === "reader_error"
+        ? { kind: "unavailable" }
+        : refuse("no_selection");
     }
     const { assignment } = resolution;
     if (
@@ -431,7 +432,7 @@ export function createSupabaseAuthStrategy(
               assignment: caller.assignment,
               strategy: caller.strategy,
             })
-          : refused(caller.refusal);
+          : refused(caller.kind === "refuse" ? caller.refusal : null);
       if (outcome.user === null && outcome.refusal) {
         // Payload then refuses the anonymous operation; the afterError hook
         // turns that into the refusal's JSON answer (web-studio-refusal.ts).

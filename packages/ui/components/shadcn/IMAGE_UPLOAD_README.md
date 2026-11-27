@@ -116,7 +116,7 @@ Dialog-based image cropper using `react-easy-crop`:
 ## Validation Rules
 
 - **Allowed types**: JPEG, PNG, WebP, GIF
-- **Max file size**: 10MB
+- **Source file limit**: 50 MiB before cropping. The cropped function upload accepts up to 4 MB.
 - **Corrupt image detection**: Image must successfully load before cropping
 
 ## Error Handling
@@ -124,7 +124,7 @@ Dialog-based image cropper using `react-easy-crop`:
 All errors surface as toast notifications:
 
 - `"Unsupported file type..."` - Invalid MIME/extension
-- `"File is too large..."` - Exceeds 10MB limit
+- `"File is too large..."` - Source image exceeds 50 MiB
 - `"The image appears to be corrupt..."` - Failed to load
 - `"Not authenticated"` - User not logged in
 - `"Failed to upload image"` - Supabase Storage error
@@ -156,7 +156,7 @@ Both the missionary and donor apps mount `POST /api/upload/image` as a one-line 
 - **Auth**: a missing bearer, or one that does not resolve to an authenticated profile, gets `401`. The write uses a Supabase client scoped to the caller's token, never the service role.
 - **Purpose**: `path` must be `avatars` or `covers` (otherwise `400`). Only a missionary may upload a cover (`403`).
 - **Bucket**: `bucket` must be absent or `profiles` (otherwise `400`).
-- **File**: required (`400`); JPEG, PNG, WebP or GIF whose leading bytes match the declared type (`415`); at most 5 MB, measured on the cropped upload (`413`).
+- **File**: required (`400`); JPEG, PNG, WebP or GIF whose leading bytes match the declared type (`415`); at most 4 MB, measured on the cropped upload (`413`).
 - **Storage key**: chosen by the server as `{purpose}/{tenantId}/{userId}/{uuid}.{ext}` from the caller's auth context, written once (`upsert: false`). Replaced photos are left in place.
 - **Response**: `201 { url, path }`. Errors are JSON `{ error }`, including `503` when the public Supabase config is missing and `502` (`"Image upload failed."`) when storage rejects the write.
 

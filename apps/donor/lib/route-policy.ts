@@ -2,6 +2,32 @@ import {
   hasDotOrBackslashSegment,
   matchesDashboardPrefix,
 } from "@asym/auth/front";
+import {
+  isReservedPublicPageSlug,
+  publicPageFirstSegment,
+} from "@asym/lib/cms/public-page";
+
+export const DONOR_ROUTED_FIRST_SEGMENTS = [
+  "about",
+  "api",
+  "auth",
+  "checkout",
+  "cookies",
+  "donor-dashboard",
+  "faq",
+  "financials",
+  "forgot-password",
+  "help",
+  "login",
+  "no-access",
+  "privacy",
+  "register",
+  "sign",
+  "terms",
+  "ways-to-give",
+  "where-we-work",
+  "workers",
+] as const;
 
 export const DONOR_EXEMPT_PATHS = [
   "/api/webhooks/stripe",
@@ -143,6 +169,16 @@ export function resolveDonorPath(pathname: string): ResolvedDonorPath | null {
 
 export function normalizeDonorPath(pathname: string): string | null {
   return resolveDonorPath(pathname)?.pathname ?? null;
+}
+
+export function isUnroutedReservedPath(pathname: string): boolean {
+  return (
+    pathname !== "/" &&
+    isReservedPublicPageSlug(pathname) &&
+    !(DONOR_ROUTED_FIRST_SEGMENTS as readonly string[]).includes(
+      publicPageFirstSegment(pathname),
+    )
+  );
 }
 
 export function isDonorExemptPath(normalizedPathname: string): boolean {

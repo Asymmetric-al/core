@@ -13,8 +13,11 @@ import {
   ApiResponseContractError,
   toErrorResponse,
 } from "../shared/http-errors";
-
-const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
+import {
+  IMAGE_TOO_LARGE,
+  MAX_PROFILE_IMAGE_BYTES,
+  readForm,
+} from "../upload/image";
 const ALLOWED_IMAGE_TYPES = new Set([
   "image/png",
   "image/jpeg",
@@ -58,8 +61,8 @@ function validateImageFile(value: FormDataEntryValue | null): File {
   if (!ALLOWED_IMAGE_TYPES.has(value.type)) {
     throw new ApiHttpError(415, "Unsupported image type.");
   }
-  if (value.size > MAX_IMAGE_BYTES) {
-    throw new ApiHttpError(413, "Image file must be 5 MB or smaller.");
+  if (value.size > MAX_PROFILE_IMAGE_BYTES) {
+    throw new ApiHttpError(413, IMAGE_TOO_LARGE);
   }
   return value;
 }
@@ -177,11 +180,7 @@ async function uploadToSupabaseStorage(input: {
 export async function POST(request: NextRequest) {
   try {
     const ctx = await requireAdminContext(request);
-    // The multipart parser needs the request's type; a body without one is
-    // refused here, before any storage call (fix check G1).
-    const formData = await request.formData().catch(() => {
-      throw new ApiHttpError(400, "Invalid form data.");
-    });
+    const formData = await readForm(request);
     const file = validateImageFile(formData.get("file"));
     const templateIdValue = formData.get("templateId");
     const templateId =

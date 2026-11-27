@@ -133,7 +133,6 @@ beforeEach(() => {
   vi.stubEnv("FRONT_MISSIONARY_ORIGIN", MISSIONARY_ORIGIN);
   vi.stubEnv("FRONT_STAMP_KEY_ADMIN", adminKey);
   vi.stubEnv("FRONT_STAMP_KEY_MISSIONARY", missionaryKey);
-  vi.stubEnv("FRONT_NAMES", "one.example.test,two.example.test");
 });
 
 afterEach(() => {
@@ -298,7 +297,7 @@ describe("other dashboard paths are routed as today", () => {
     );
   });
 
-  it("sends nothing to a dashboard with the switch off", async () => {
+  it("sends nothing to a dashboard with the switch off (an /admin address now answers the donor app's reserved 404 instead of reaching its auth proxy: N3 rest PR 1, F2)", async () => {
     vi.stubEnv("CORE_SERVE_UNDER_PATHS", "0");
     for (const [method, path] of [
       ["POST", "/admin/eve/v1/session"],
@@ -307,7 +306,8 @@ describe("other dashboard paths are routed as today", () => {
     ] as const) {
       const response = await donorModule.proxy(frontRequest(method, path));
       expect(response.headers.get("x-middleware-rewrite"), path).toBeNull();
-      expect(response.status, path).not.toBe(404);
+      expect(response.status, path).toBe(404);
+      expect(response.headers.get("cache-control"), path).toBe("no-store");
     }
   });
 });

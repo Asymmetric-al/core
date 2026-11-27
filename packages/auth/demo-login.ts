@@ -1,3 +1,8 @@
+import {
+  appBasePath,
+  isServeUnderPathsEnabled,
+} from "@asym/database/app-base-path";
+
 import { defaultRouteForRole, type AppRole } from "./roles";
 
 export const APP_IDS = ["admin", "missionary", "donor"] as const;
@@ -21,11 +26,21 @@ const BLOCKED_NEXT_PREFIXES = [
   "/auth/callback",
 ] as const;
 
+const OTHER_APP_SEGMENTS = new Set(["admin", "missionary"]);
+
 function isBlockedNextPath(pathname: string): boolean {
   if (pathname.startsWith("/api/auth/")) return true;
   return BLOCKED_NEXT_PREFIXES.some(
     (prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`),
   );
+}
+
+function leavesTheDonorApp(pathname: string): boolean {
+  if (!isServeUnderPathsEnabled() || appBasePath() !== "") return false;
+  const first = pathname
+    .split("/", 2)[1]!
+    .replace(/[A-Z]/g, (letter) => letter.toLowerCase());
+  return OTHER_APP_SEGMENTS.has(first);
 }
 
 export function getDemoRoleForApp(appId: AppId): AppRole {
@@ -68,6 +83,7 @@ export function safeNextParam(value: string | null): string | null {
   if (parsed.origin !== "http://localhost") return null;
   if (hasEmptySegmentOrBackslash(parsed.pathname)) return null;
   if (isBlockedNextPath(parsed.pathname)) return null;
+  if (leavesTheDonorApp(parsed.pathname)) return null;
 
   return `${parsed.pathname}${parsed.search}${parsed.hash}`;
 }

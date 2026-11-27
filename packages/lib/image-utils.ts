@@ -13,6 +13,8 @@ export const ALLOWED_EXTENSIONS = [
   ".gif",
 ] as const;
 
+export const MAX_FUNCTION_IMAGE_BYTES = 4_000_000;
+
 export const MAX_SAFEGUARD_SIZE_MB = 50;
 export const MAX_SAFEGUARD_SIZE_BYTES = MAX_SAFEGUARD_SIZE_MB * 1024 * 1024;
 
