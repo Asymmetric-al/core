@@ -9,6 +9,8 @@ import {
   locationsOf,
   moveNameToB,
   P_EMAIL,
+  P_ID,
+  Q_EMAIL,
   proofReady,
   recordOwnApi,
   recordReloadNotices,
@@ -149,16 +151,53 @@ test("a tab left open after the name's generation moved cannot read or write, sh
   }
 });
 
-test("a tab left open after the name moved to another organization cannot read or write and never renders that organization's page", async ({
+test("a moved name refuses A's old document; a fresh navigation redirects a one-row member to B's bare address (D-18, the one-row redirect replaces the old 404)", async ({
   page,
+  browser,
 }) => {
   const tabs = await openTabs(page);
   const tab = tabs.development;
   const rowInB = sql(
-    `SELECT coalesce(string_agg(id::text, ','), '') FROM authz.memberships WHERE user_id = '11111111-1111-1111-1111-111111111111' AND tenant_id = '${TB}'`,
-  ).split(",");
+    `SELECT id FROM authz.memberships WHERE user_id = '${P_ID}' AND tenant_id = '${TB}' AND role = 'staff' AND is_active`,
+  );
+  expect(rowInB).toMatch(/^[0-9a-f-]{36}$/);
+  const visitor = await browser.newContext({
+    baseURL: process.env.N2_ON_BASE_URL,
+  });
+  const q = await visitor.newPage();
   const saved = saveName();
   try {
+    await signIn(q, Q_EMAIL);
+    await tab.page.evaluate((otherRow) => {
+      const selector = `[data-tenant-assignment="${otherRow}"]`;
+      const observer = new MutationObserver((changes) => {
+        for (const change of changes) {
+          if (
+            document.querySelector(selector) ||
+            [...change.addedNodes].some(
+              (node) =>
+                node instanceof Element &&
+                (node.matches(selector) || node.querySelector(selector)),
+            )
+          ) {
+            sessionStorage.setItem(
+              "n2-on:old-document-rendered-another-row",
+              "yes",
+            );
+          }
+        }
+      });
+      observer.observe(document.documentElement, {
+        childList: true,
+        subtree: true,
+        attributes: true,
+      });
+      window.addEventListener(
+        "pagehide",
+        () => sessionStorage.setItem("n2-on:replaced-document", "yes"),
+        { once: true },
+      );
+    }, rowInB);
     moveNameToB();
     const { read, write, written } = await readAndWrite(tab);
     expect(read.status).toBe(401);
@@ -167,20 +206,63 @@ test("a tab left open after the name moved to another organization cannot read o
     expect(write.refused).not.toBeNull();
     expect(written).toBe(0);
 
-    const answers: number[] = [];
-    tab.page.on("response", (response) => {
-      if (response.request().isNavigationRequest())
-        answers.push(response.status());
-    });
+    const oldAddress = "/admin/~development/workers";
+    const redirected = tab.page.waitForResponse(
+      (answer) =>
+        answer.request().isNavigationRequest() &&
+        answer.status() === 307 &&
+        new URL(answer.url()).pathname === oldAddress,
+    );
     await softNavigateToWorkers(tab, "development");
-    await expect.poll(() => answers.length).toBeGreaterThan(0);
-    expect(answers.at(-1)).toBe(404);
-    await expect(tab.page.locator("[data-tenant-scope]")).toHaveCount(0);
-    for (const call of tab.calls) {
-      expect(rowInB).not.toContain(call.headers["x-asym-assignment"]);
+    const answer = await redirected;
+    expect(answer.headers()["cache-control"]).toContain("no-store");
+    expect(new URL(answer.headers().location!, answer.url()).pathname).toBe(
+      "/admin/workers",
+    );
+    await expect(tab.page).toHaveURL(/\/admin\/workers$/);
+    expect(await documentScope(tab.page)).toEqual({
+      prefix: "",
+      assignment: rowInB,
+    });
+    expect(
+      await tab.page.evaluate(() => [
+        sessionStorage.getItem("n2-on:replaced-document"),
+        sessionStorage.getItem("n2-on:old-document-rendered-another-row"),
+      ]),
+    ).toEqual(["yes", null]);
+
+    for (const rsc of [true, false]) {
+      const denied = q.waitForResponse(
+        (response) =>
+          new URL(response.url()).pathname === oldAddress &&
+          (rsc
+            ? response.request().headers().rsc === "1"
+            : response.request().isNavigationRequest()),
+      );
+      if (rsc) {
+        const body = await q.evaluate(async (path) => {
+          const res = await fetch(path, {
+            headers: { RSC: "1" },
+            cache: "no-store",
+            redirect: "manual",
+          });
+          return res.text();
+        }, oldAddress);
+        expect(body).not.toContain(rowInB);
+      } else {
+        await q.goto(oldAddress);
+        await expect(q).toHaveURL(/\/admin\/no-access$/);
+        await expect(q.locator("[data-tenant-scope]")).toHaveCount(0);
+      }
+      const refusal = await denied;
+      expect(refusal.status()).toBe(307);
+      expect(new URL(refusal.headers().location!, refusal.url()).pathname).toBe(
+        "/admin/no-access",
+      );
     }
   } finally {
     restoreName(saved);
+    await visitor.close();
   }
 });
 

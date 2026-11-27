@@ -2,7 +2,10 @@ import { expect, test, type Page } from "@playwright/test";
 
 import {
   bumpGeneration,
+  generation,
+  moveNameToB,
   P_EMAIL,
+  TB,
   proofReady,
   restoreName,
   saveName,
@@ -303,4 +306,51 @@ test("Web Studio left open after the name's generation moved refuses a list read
       restoreName(saved);
     }
   });
+});
+
+test("moving the name to B refuses both a Web Studio REST request and a server function from A's open documents", async ({
+  page,
+}) => {
+  await enterWebStudio(page);
+  const rest = await page.context().newPage();
+  await rest.goto("/admin/web-studio");
+  await documentFetchInPlace(rest);
+  const card = page.getByRole("region", { name: "Your documents" });
+  await expect(card.getByRole("tabpanel")).toBeVisible();
+  const saved = saveName();
+  try {
+    const priorGeneration = String(generation());
+    moveNameToB();
+    const current = await page.context().newPage();
+    await current.goto("/admin/web-studio");
+    await current
+      .getByRole("button", { name: "Open Harbor Light Mission" })
+      .click();
+    await expect(current.locator("[data-web-studio-scope]")).toHaveAttribute(
+      "data-web-studio-scope",
+      TB,
+    );
+    const slug = `moved-${Date.now()}`;
+    const rejection = await createFromTemplate(rest, slug);
+    expect(rejection.id).toBeNull();
+    expect(rejection.status).toBe(409);
+    expect(rejection.refusal).toBe("scope_mismatch");
+    expect(pagesWithSlug(`n2-on-template-${slug}`)).toBe("0");
+    const call = page.waitForResponse(
+      (answer) =>
+        answer.request().method() === "POST" &&
+        new URL(answer.url()).pathname === "/admin/web-studio" &&
+        Boolean(answer.request().headers()["next-action"]),
+    );
+    await card.getByRole("tab", { name: "Recently viewed" }).click();
+    const refused = await call;
+    expect(refused.status()).toBe(500);
+    expect(refused.request().headers()["x-asym-web-studio-generation"]).toBe(
+      priorGeneration,
+    );
+    await expect(page.getByRole("alertdialog")).toContainText(STALE_MESSAGE);
+  } finally {
+    restoreName(saved);
+    await rest.close();
+  }
 });
