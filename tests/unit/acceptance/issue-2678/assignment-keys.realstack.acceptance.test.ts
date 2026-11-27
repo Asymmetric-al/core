@@ -1087,7 +1087,7 @@ describe.skipIf(!ADMIN_URL)(
       }
     });
 
-    it("10. the committed check is false before the file and true after; a second run stops at its first ADD COLUMN (42701) and changes nothing; the Down, in the header's order, restores the task functions and search_crm_donors byte for byte, removes the key's five field-policy rows (which the schema fingerprint does not see) so the table's contents are the base's again, and the catalog gate passes but for service_role's table privileges and CREATE on authz, which 20261126190000, later in the chain than this scratch database, closes (D-18, issue 2841: the gate holds service_role since then)", async () => {
+    it("10. the committed check is false before the file and true after; a second run stops at its first ADD COLUMN (42701) and changes nothing; the Down, in the header's order, restores the task functions and search_crm_donors byte for byte, removes the key's five field-policy rows (which the schema fingerprint does not see) so the table's contents are the base's again, and the catalog gate passes but for service_role's table privileges and CREATE on authz, which 20261126190000, later in the chain than this scratch database, closes (D-18, issue 2841: the gate holds service_role since then; D-18, AL-2675: and the super-admin branches, bare staff reads and field_policies_read pin, which 20261127040000, later in the chain, closes)", async () => {
       const sources = await definitions();
       const base = captureFingerprint({ databaseUrl: url });
       const basePolicies = await policies();
@@ -1147,11 +1147,63 @@ console.log(JSON.stringify(await m.runTenantRlsCatalogGate({ databaseUrl: proces
       );
       const verdict = JSON.parse(
         gate.stdout.trim().split("\n").pop() || "{}",
-      ) as { ok?: boolean; failures?: { code: string; table?: string }[] };
+      ) as {
+        ok?: boolean;
+        failures?: { code: string; table?: string; detail?: string }[];
+      };
       expect(verdict.failures, gate.stderr).toBeInstanceOf(Array);
-      const later = (f: { code: string; table?: string }) =>
+      const noSuperAdminBody = readFileSync(
+        migration("_wp2c_rest_no_super_admin"),
+        "utf8",
+      )
+        .split("\n")
+        .filter((line) => !/^\s*--/.test(line))
+        .join("\n");
+      const alteredByWp2cB = new Set(
+        [
+          ...noSuperAdminBody.matchAll(
+            /^ALTER POLICY "([^"]+)" ON public\.([a-z_]+)$/gm,
+          ),
+        ].map((m) => `${m[2]}|${m[1]}`),
+      );
+      expect(alteredByWp2cB.size).toBe(62);
+      const isAltered = (f: { table?: string; detail?: string }) => {
+        const policy = /^policy "([^"]+)"/.exec(f.detail ?? "")?.[1];
+        return (
+          policy !== undefined && alteredByWp2cB.has(`${f.table}|${policy}`)
+        );
+      };
+      const later = (f: { code: string; table?: string; detail?: string }) =>
         f.code === "SERVICE_ROLE_UNSAFE_PRIVILEGE" ||
-        (f.code === "SERVICE_ROLE_SCHEMA_CREATE" && f.table === "authz");
+        (f.code === "SERVICE_ROLE_SCHEMA_CREATE" && f.table === "authz") ||
+        ((f.code === "POLICY_SUPER_ADMIN_BRANCH" ||
+          f.code === "TENANT_CONDITION_MISSING" ||
+          f.code === "STAFF_READ_ON_BARE_STAFF_CHECK") &&
+          isAltered(f)) ||
+        (f.code === "POLICY_EXCEPTION_CHANGED" &&
+          f.table === "field_policies" &&
+          /^policy "field_policies_read"/.test(f.detail ?? ""));
+      expect(
+        later({
+          code: "TENANT_CONDITION_MISSING",
+          table: "donations",
+          detail: 'policy "planted" (SELECT) admits a row without tenant',
+        }),
+      ).toBe(false);
+      expect(
+        later({
+          code: "STAFF_READ_ON_BARE_STAFF_CHECK",
+          table: "profiles",
+          detail: 'policy "planted" admits staff',
+        }),
+      ).toBe(false);
+      expect(
+        later({
+          code: "POLICY_EXCEPTION_CHANGED",
+          table: "field_policies",
+          detail: 'policy "planted" differs',
+        }),
+      ).toBe(false);
       expect(
         verdict.failures!.filter((f) => !later(f)),
         gate.stderr,

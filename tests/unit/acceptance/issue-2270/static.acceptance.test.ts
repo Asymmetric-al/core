@@ -94,7 +94,7 @@ describe("#2270 C6/C7: authz grant-list guard across every forward migration", (
 });
 
 describe("#2270 C12 and §7 pins", () => {
-  it(`C12: ${DOC} has the §1.2 table and a "Production deploy" section`, () => {
+  it(`C12: ${DOC} has the §1.2 table for every standing function and a "Production deploy" section (D-18, AL-2675: WP2c rest B dropped authz.is_super_admin(), so its row left the table and the document records its drop and authz.staff_read() in its place)`, () => {
     const doc = read(DOC);
     expect(existsSync(DOC), DOC).toBe(true);
     expect(doc).toMatch(/^#+\s*Production deploy\b/im);
@@ -104,6 +104,12 @@ describe("#2270 C12 and §7 pins", () => {
       const row = rows.filter((l) =>
         new RegExp(`\`(public\\.)?${name.replace(".", "\\.")}\\(`).test(l),
       );
+      if (fn === "authz.is_super_admin()") {
+        expect(row, `${fn} left the §1.2 table`).toHaveLength(0);
+        expect(doc).toMatch(/authz\.is_super_admin\(\)[^\n]*\n[^\n]*dropped/);
+        expect(doc).toContain("authz.staff_read()");
+        continue;
+      }
       expect(row, `one §1.2 table row for ${fn}`).toHaveLength(1);
       const cells = row[0]!.split("|").map((c) => c.trim());
       expect(

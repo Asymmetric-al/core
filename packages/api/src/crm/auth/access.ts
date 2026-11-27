@@ -3,7 +3,6 @@ import {
   isTenantAdministrator,
   ScopeRefusedError,
 } from "@asym/auth/context";
-import { hasAnyRole } from "@asym/auth/permissions";
 
 import { ApiHttpError } from "../../shared/api-http-error";
 
@@ -17,7 +16,7 @@ export interface RequireCrmAccessOptions {
 }
 
 export function assertCrmTenantAccess(actor: ActorContext): void {
-  if (!actor.isSuperAdmin && actor.tenantId !== actor.authTenantId) {
+  if (actor.tenantId !== actor.authTenantId) {
     throw new ApiHttpError(403, "Forbidden: CRM tenant mismatch.");
   }
 }
@@ -47,13 +46,9 @@ export function requireCrmAccess(
     throw new Error("Forbidden: requires admin.crm.manage");
   }
 
-  // WP2c moves this to the operator list; no membership yields it.
-  const isSuperAdmin = hasAnyRole({ memberships: authenticated.memberships }, [
-    "super_admin",
-  ]);
   const resourceTenantId = options.resourceTenantId ?? authenticated.tenantId;
 
-  if (!isSuperAdmin && resourceTenantId !== authenticated.tenantId) {
+  if (resourceTenantId !== authenticated.tenantId) {
     throw new Error(
       "Forbidden: CRM tenant does not match authenticated tenant",
     );
@@ -62,7 +57,6 @@ export function requireCrmAccess(
   return {
     action: options.action,
     authTenantId: authenticated.tenantId,
-    isSuperAdmin,
     isTenantAdministrator: isTenantAdministrator(authenticated),
     profileId: authenticated.profileId,
     role: authenticated.role,

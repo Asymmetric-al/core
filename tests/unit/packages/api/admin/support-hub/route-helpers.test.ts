@@ -53,7 +53,7 @@ describe("requireSupportHubAccess", () => {
     expect(result.response.status).toBe(403);
   });
 
-  it("returns the typed context for a staff caller", async () => {
+  it("returns the typed context for a staff caller (D-18, AL-2675: the context no longer carries isSuperAdmin; no membership ever set it)", async () => {
     getAuthContextMock.mockResolvedValue({
       isAuthenticated: true,
       userId: "user-1",
@@ -70,9 +70,24 @@ describe("requireSupportHubAccess", () => {
       tenantId: "tenant-1",
       userId: "user-1",
       userEmail: "user-1@example.com",
-      isSuperAdmin: false,
       canManageAll: false,
     });
+  });
+
+  it("carries no super-admin flag in the context, even for a context labelled super_admin", async () => {
+    getAuthContextMock.mockResolvedValue({
+      isAuthenticated: true,
+      userId: "user-3",
+      email: "user-3@example.com",
+      tenantId: "tenant-1",
+      role: "super_admin",
+      memberships: membershipsForRole("staff", "tenant-1"),
+    });
+    const result = await requireSupportHubAccess(authRequest);
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.context).not.toHaveProperty("isSuperAdmin");
+    expect(result.context.canManageAll).toBe(false);
   });
 
   it("lets the tenant administrator manage every agent's per-agent settings", async () => {

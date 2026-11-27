@@ -23,22 +23,22 @@ const OLD_OWN_MISSIONARY =
 const OLD_POLICIES: Record<string, [string, string, string | null]> = {
   donors: [
     "donors owner or staff select",
-    "(SELECT authz.is_super_admin()) OR (tenant_id = (SELECT authz.current_tenant_id()) AND ((SELECT authz.assignment_is('staff')) OR ((SELECT authz.assignment_is('donor')) AND profile_id IN (SELECT authz.caller_profile_ids()))))",
+    "(tenant_id = (SELECT authz.current_tenant_id()) AND ((SELECT authz.assignment_is('staff')) OR ((SELECT authz.assignment_is('donor')) AND profile_id IN (SELECT authz.caller_profile_ids()))))",
     null,
   ],
   donations: [
     "donations owner or staff select",
-    `(SELECT authz.is_super_admin()) OR (tenant_id = (SELECT authz.current_tenant_id()) AND ((SELECT authz.assignment_is('staff')) OR ((SELECT authz.assignment_is('donor')) AND ${OLD_OWN_DONOR}) OR ((SELECT authz.assignment_is('missionary')) AND ${OLD_OWN_MISSIONARY})))`,
+    `(tenant_id = (SELECT authz.current_tenant_id()) AND ((SELECT authz.assignment_is('staff')) OR ((SELECT authz.assignment_is('donor')) AND ${OLD_OWN_DONOR}) OR ((SELECT authz.assignment_is('missionary')) AND ${OLD_OWN_MISSIONARY})))`,
     null,
   ],
   donor_pledges: [
     "donor pledges owner or staff select",
-    `(SELECT authz.is_super_admin()) OR (tenant_id = (SELECT authz.current_tenant_id()) AND ((SELECT authz.assignment_is('staff')) OR ((SELECT authz.assignment_is('donor')) AND ${OLD_OWN_DONOR}) OR ((SELECT authz.assignment_is('missionary')) AND ${OLD_OWN_MISSIONARY})))`,
+    `(tenant_id = (SELECT authz.current_tenant_id()) AND ((SELECT authz.assignment_is('staff')) OR ((SELECT authz.assignment_is('donor')) AND ${OLD_OWN_DONOR}) OR ((SELECT authz.assignment_is('missionary')) AND ${OLD_OWN_MISSIONARY})))`,
     null,
   ],
   donor_activities: [
     "donor activities owner or staff select",
-    "(SELECT authz.is_super_admin()) OR EXISTS (SELECT 1 FROM public.donors AS d WHERE d.id = donor_activities.donor_id AND d.tenant_id = (SELECT authz.current_tenant_id()) AND ((SELECT authz.assignment_is('staff')) OR ((SELECT authz.assignment_is('donor')) AND d.profile_id IN (SELECT authz.caller_profile_ids()))))",
+    "EXISTS (SELECT 1 FROM public.donors AS d WHERE d.id = donor_activities.donor_id AND d.tenant_id = (SELECT authz.current_tenant_id()) AND ((SELECT authz.assignment_is('staff')) OR ((SELECT authz.assignment_is('donor')) AND d.profile_id IN (SELECT authz.caller_profile_ids()))))",
     null,
   ],
   missionaries: [
@@ -271,7 +271,7 @@ describe.skipIf(!ADMIN_URL)(
       }
     });
 
-    it("compared with the policies of the base, every caller but the claimed donor reads exactly the same rows, and the claimed donor gains only their own", async () => {
+    it("compared with the policies of the base, every caller but the claimed donor reads exactly the same rows, and the claimed donor gains only their own (D-18, AL-2675: the base's texts lose their super-admin branch, whose function WP2c rest B dropped; no fixture caller's profile says super_admin, so each comparison reads the same rows with or without it)", async () => {
       for (const [table, [policy, using]] of Object.entries(OLD_POLICIES)) {
         const people = Object.keys(who) as Who[];
         const now: Record<string, string[]> = {};
@@ -301,7 +301,7 @@ describe.skipIf(!ADMIN_URL)(
       }
     });
 
-    it("for every seeded membership, each own-row table reads the same rows under the base's policy and the new one, except the seeded donor record linked without a profile, which only its own login gains", async () => {
+    it("for every seeded membership, each own-row table reads the same rows under the base's policy and the new one, except the seeded donor record linked without a profile, which only its own login gains (D-18, AL-2675: the base's texts lose their super-admin branch, as above)", async () => {
       const seeded = {
         owner: "11111111-1111-1111-1111-111111111111",
         morgan: "33333333-3333-3333-3333-333333333333",

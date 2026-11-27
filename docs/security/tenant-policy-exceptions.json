@@ -7,11 +7,11 @@
       "cmd": "SELECT",
       "roles": ["authenticated"],
       "permissive": true,
-      "using": "(( SELECT authz.is_super_admin() AS is_super_admin) OR (((tenant_id IS NULL) OR (tenant_id = ( SELECT authz.current_tenant_id() AS current_tenant_id))) AND (( SELECT authz.current_tenant_id() AS current_tenant_id) IS NOT NULL)))",
+      "using": "(((tenant_id IS NULL) OR (tenant_id = ( SELECT authz.current_tenant_id() AS current_tenant_id))) AND (( SELECT authz.current_tenant_id() AS current_tenant_id) IS NOT NULL))",
       "check": null,
-      "reason": "It carries the tenant condition and also admits the global rows (tenant_id IS NULL), which belong to no tenant, to a member of the active tenant: a donor row and a missionary row still read field_policies.",
-      "ends": "WP2c removes its super-admin branch; the global rows are permanent",
-      "ruling": "plan 5.4 and WP2's acceptance list"
+      "reason": "It carries the tenant condition and also admits the global rows (tenant_id IS NULL), which belong to no tenant, to a member of the active tenant: a donor row and a missionary row still read field_policies. Reviewed again for WP2c's rest (AL-2675, pull request B): its super-admin branch is gone and it stays on authz.current_tenant_id() alone, which admits every member with a resolved assignment; a staff-read branch would add nothing.",
+      "ends": "Permanent: the global rows belong to no tenant",
+      "ruling": "plan 5.4 and WP2's acceptance list; brief stage5/wp2c-rest.md, part B, invariant 3"
     },
     {
       "table": "locations",

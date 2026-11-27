@@ -23,7 +23,6 @@ function staff(email: string): SupportHubContext {
     tenantId: "00000000-0000-0000-0000-000000000001",
     userId: `user-${email}`,
     userEmail: email,
-    isSuperAdmin: false,
     canManageAll: false,
   };
 }
