@@ -130,7 +130,7 @@ const allow = (...fns: string[]) => ({
 });
 
 describe("WP4 command boundaries", () => {
-  it("pins the complete pre-membership list and its independent review", () => {
+  it("pins the complete pre-membership list and its independent review (D-18, AL-2678 WP5 rest 2a: the claim redemption's reviewed digest moves with item zero (b) and fix round F4 of pull request 2859, which take the donor writer's lock and offer a linked login's pair to staff)", () => {
     expect(preMembershipEntries.map((entry) => entry.function)).toEqual([
       "tenant_guard.accept_membership_invitation(p_selector text, p_verifier text)",
       "tenant_guard.start_account_claim(p_tenant_id uuid)",

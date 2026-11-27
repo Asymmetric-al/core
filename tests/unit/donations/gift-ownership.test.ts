@@ -125,7 +125,7 @@ describe("a gift read back is the caller's when its donor is theirs by profile, 
   it("accepts the donor of the Party of the caller's sole worker row when no account link names a donor, as the gift writer resolves it (WP5 rest 2a, fix round F1; red: profile)", async () => {
     const { supabase, calls } = tables({
       missionaries: { data: [{ party_id: "party-w" }] },
-      donors: { data: { party_id: "party-w" } },
+      donors: { data: [{ id: "donor-w" }] },
     });
     expect(
       await callerGiftMismatches(
@@ -135,24 +135,29 @@ describe("a gift read back is the caller's when its donor is theirs by profile, 
         PERSON,
       ),
     ).toEqual([]);
-    expect(calls).toEqual(["account_links", "missionaries", "donors"]);
+    expect(calls).toEqual([
+      "account_links",
+      "account_links",
+      "missionaries",
+      "donors",
+    ]);
   });
 
   it("refuses a gift on another Party than the caller's sole worker row's, and any gift when the caller has several worker rows (WP5 rest 2a, fix round F1; guard)", async () => {
     for (const rows of [
       {
         missionaries: { data: [{ party_id: "party-x" }] },
-        donors: { data: { party_id: "party-w" } },
+        donors: { data: [{ id: "donor-x" }] },
       },
       {
         missionaries: {
           data: [{ party_id: "party-w" }, { party_id: "party-w2" }],
         },
-        donors: { data: { party_id: "party-w" } },
+        donors: { data: [{ id: "donor-w" }] },
       },
       {
         missionaries: { data: [{ party_id: null }] },
-        donors: { data: { party_id: null } },
+        donors: { data: [{ id: "donor-w" }] },
       },
       { missionaries: { data: [{ party_id: "party-w" }] } },
     ])
