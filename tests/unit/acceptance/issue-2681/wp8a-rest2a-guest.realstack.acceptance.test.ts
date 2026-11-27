@@ -511,6 +511,7 @@ describe.skipIf(!ADMIN_URL)(
               "donation_id",
               "operation_id",
               "outcome",
+              "payable",
               "payment_intent",
               "provider_account",
               "tenant_id",
