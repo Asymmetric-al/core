@@ -45,6 +45,22 @@ it("reserves every donor route and redirect while it owns that address", () => {
     expect(owned.has(name), name).toBe(true);
 });
 
+describe("the reserved check reads a slug as the public lookup reads a request", () => {
+  it.each([" admin", "api ", " /admin", "give /x", "%61dmin", "%41PI/x"])(
+    "reserves %j: decoded once, each segment trimmed, empty segments dropped",
+    (slug) => {
+      expect(publicPage.isReservedPublicPageSlug(slug)).toBe(true);
+    },
+  );
+
+  it.each(["about-us", "administration", "admins", " about-us", "give%20x"])(
+    "does not reserve %j (guard)",
+    (slug) => {
+      expect(publicPage.isReservedPublicPageSlug(slug)).toBe(false);
+    },
+  );
+});
+
 describe("blocking public catch-all", () => {
   it("has no loading fallback and opts out of instant navigation until publishing admission moves", async () => {
     const page =

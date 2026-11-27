@@ -1264,6 +1264,11 @@ describe.skipIf(!ADMIN_URL)(
         "donate",
         "give/monthly",
         "lang/en",
+        " admin",
+        "api ",
+        " /admin",
+        "give /x",
+        "%61dmin",
       ])(
         "refuses %s on create, update and historical version restore at the slug field",
         async (slug) => {
