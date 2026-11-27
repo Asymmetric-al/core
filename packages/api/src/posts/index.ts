@@ -146,7 +146,9 @@ export async function POST(request: NextRequest) {
     });
     if (!result.ok) {
       return NextResponse.json(
-        { error: result.error },
+        result.code
+          ? { error: result.error, code: result.code }
+          : { error: result.error },
         { status: result.status },
       );
     }

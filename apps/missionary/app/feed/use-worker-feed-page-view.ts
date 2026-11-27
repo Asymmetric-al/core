@@ -137,6 +137,38 @@ const composerFields = new Set<keyof WorkerFeedUiState>([
   "selectedMedia",
 ]);
 
+type TypedUpdate = Pick<
+  Post,
+  "title" | "content" | "post_type" | "visibility" | "status" | "media"
+>;
+
+function answeredOrTyped(
+  answered: Post,
+  earlier: Post | undefined,
+  typed: TypedUpdate,
+): { post: Post; confirmed: boolean } {
+  if (typeof answered.created_at === "string")
+    return { post: answered, confirmed: true };
+  return {
+    post: {
+      ...earlier,
+      ...typed,
+      id: answered.id,
+      created_at: earlier?.created_at ?? new Date().toISOString(),
+      review_state: undefined,
+    },
+    confirmed: false,
+  };
+}
+
+function refusedAsNotLinked(error: FetchFailure) {
+  return (
+    error.kind === "http" &&
+    error.status === 403 &&
+    (error.payload as { code?: unknown } | null)?.code === "worker_not_linked"
+  );
+}
+
 export function useWorkerFeedPageView(): WorkerFeedPageViewModel {
   const {
     value: retained,
@@ -529,7 +561,20 @@ export function useWorkerFeedPageView(): WorkerFeedPageViewModel {
         return;
       }
       if (result.ok) {
-        const { post } = result.data;
+        const { post, confirmed } = answeredOrTyped(
+          result.data.post,
+          posts.find((item) => item.id === result.data.post.id) ??
+            drafts.find((item) => item.id === result.data.post.id),
+          {
+            title: snapshot.postTitle,
+            content: snapshot.postContent,
+            post_type: snapshot.postType,
+            visibility:
+              snapshot.postPrivacy === "partners" ? "partners_only" : "public",
+            status,
+            media: snapshot.selectedMedia,
+          },
+        );
         const matched = finishSave(save, true, (current) => ({
           ...current,
           editingPostId: post.id,
@@ -542,7 +587,9 @@ export function useWorkerFeedPageView(): WorkerFeedPageViewModel {
         setPosts((prev) => placeSavedPost(prev, post, published));
         setDrafts((prev) => placeSavedPost(prev, post, !published));
 
-        if (published && post.review_state === "submitted") {
+        if (published && !confirmed) {
+          toast.success("Update saved");
+        } else if (published && post.review_state === "submitted") {
           toast.success(
             wasPublished ? "Changes sent for review" : "Update sent for review",
           );
@@ -558,7 +605,12 @@ export function useWorkerFeedPageView(): WorkerFeedPageViewModel {
         finishSave(save, false);
         if (result.error.kind === "http" && result.error.status === 401)
           revokeRead();
-        if (result.error.kind === "http" && result.error.status === 403) {
+        if (refusedAsNotLinked(result.error)) {
+          toast.error(result.error.message);
+        } else if (
+          result.error.kind === "http" &&
+          result.error.status === 403
+        ) {
           revokeWrite();
           // Matches the composer's read-only notice: retrying cannot help.
           toast.error(
@@ -580,6 +632,7 @@ export function useWorkerFeedPageView(): WorkerFeedPageViewModel {
       revokeWrite,
       postContent,
       posts,
+      drafts,
       setIsSaving,
       setLastSaved,
     ],
@@ -615,11 +668,24 @@ export function useWorkerFeedPageView(): WorkerFeedPageViewModel {
       finishSave(save, false);
       if (!result.ok && save.isCurrent() && result.error.kind === "http") {
         if (result.error.status === 401) revokeRead();
-        if (result.error.status === 403) revokeWrite();
+        if (result.error.status === 403 && !refusedAsNotLinked(result.error))
+          revokeWrite();
       }
       return;
     }
-    const { post } = result.data;
+    const { post } = answeredOrTyped(
+      result.data.post,
+      drafts.find((item) => item.id === result.data.post.id),
+      {
+        title: snapshot.postTitle,
+        content: snapshot.postContent,
+        post_type: snapshot.postType,
+        visibility:
+          snapshot.postPrivacy === "partners" ? "partners_only" : "public",
+        status: "draft",
+        media: snapshot.selectedMedia,
+      },
+    );
     finishSave(
       save,
       true,
@@ -636,6 +702,7 @@ export function useWorkerFeedPageView(): WorkerFeedPageViewModel {
     revokeRead,
     revokeWrite,
     editingPostId,
+    drafts,
     setLastSaved,
   ]);
 

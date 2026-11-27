@@ -3,6 +3,7 @@ import {
   isWorkerNotLinked,
   UPDATE_NOT_SAVED,
   WORKER_NOT_LINKED,
+  WORKER_NOT_LINKED_CODE,
   type CommandRefusal,
 } from "./command-client";
 import { normalizeStoredPostContent } from "./content";
@@ -15,11 +16,16 @@ import type { AuthenticatedContext } from "@asym/auth/context";
 
 type CreatePostResult =
   | { ok: true; post: FeedPostRow }
-  | { ok: false; status: number; error: string };
+  | { ok: false; status: number; error: string; code?: string };
 
 function refused(error: CommandRefusal): CreatePostResult {
   if (isWorkerNotLinked(error))
-    return { ok: false, status: 403, error: WORKER_NOT_LINKED };
+    return {
+      ok: false,
+      status: 403,
+      error: WORKER_NOT_LINKED,
+      code: WORKER_NOT_LINKED_CODE,
+    };
   if (error.code === "42501")
     return { ok: false, status: 403, error: "Forbidden" };
   if (error.code === "22023")

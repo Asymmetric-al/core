@@ -14,6 +14,7 @@ import {
   isWorkerNotLinked,
   UPDATE_NOT_SAVED,
   WORKER_NOT_LINKED,
+  WORKER_NOT_LINKED_CODE,
 } from "./command-client";
 import { normalizeStoredPostContent } from "./content";
 import { FEED_POST_SELECT } from "./select";
@@ -115,7 +116,10 @@ export async function PATCH(
         );
       }
       if (isWorkerNotLinked(commandError)) {
-        return NextResponse.json({ error: WORKER_NOT_LINKED }, { status: 403 });
+        return NextResponse.json(
+          { error: WORKER_NOT_LINKED, code: WORKER_NOT_LINKED_CODE },
+          { status: 403 },
+        );
       }
       if (commandError.code === "42501") {
         return NextResponse.json({ error: "Post not found" }, { status: 404 });
