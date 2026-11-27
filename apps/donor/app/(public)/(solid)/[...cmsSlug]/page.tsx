@@ -1,3 +1,4 @@
+import { isReservedPublicPageSlug } from "@asym/lib/cms/public-page";
 import { renderPublicCmsPageContent } from "@asym/lib/cms/public-page-renderer";
 import { notFound } from "next/navigation";
 
@@ -10,6 +11,8 @@ import {
   resolvePublishedCmsPageRouteState,
 } from "@/lib/cms/client";
 
+export const instant = false;
+
 type PageProps = {
   params: Promise<{
     cmsSlug: string[];
@@ -20,6 +23,8 @@ export async function generateMetadata({
   params,
 }: PageProps): Promise<Metadata> {
   const { cmsSlug } = await params;
+  if (isReservedPublicPageSlug(cmsSlug.join("/")))
+    return { title: "Page not found" };
   const result = await fetchPublishedCmsPageResult(cmsSlug);
 
   if (result.status === "unavailable") {
@@ -39,6 +44,7 @@ export async function generateMetadata({
 
 export default async function CmsPublicPage({ params }: PageProps) {
   const { cmsSlug } = await params;
+  if (isReservedPublicPageSlug(cmsSlug.join("/"))) notFound();
   const result = await fetchPublishedCmsPageResult(cmsSlug);
   const routeState = resolvePublishedCmsPageRouteState(result);
 
