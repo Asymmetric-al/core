@@ -10,10 +10,6 @@ import {
 } from "../../packages/api/src/stripe/test-mode-key.ts";
 import { requireDisposableDatabase } from "../lib/environment-marker.mjs";
 import {
-  GUEST_GIVING_PORTS,
-  TURNSTILE_TEST_KEYS,
-} from "./run-guest-giving.mjs";
-import {
   REPO_ROOT,
   holdInterrupts,
   stackValuesFromStatus,
@@ -21,7 +17,15 @@ import {
   type StackValues,
 } from "./run-n2-on-proof.mts";
 
-export { TURNSTILE_TEST_KEYS };
+export const GUEST_GIVING_PORTS = {
+  donor: Number(process.env.GUEST_GIVING_DONOR_PORT || 3165),
+  admin: Number(process.env.GUEST_GIVING_ADMIN_PORT || 3166),
+};
+
+export const TURNSTILE_TEST_KEYS = {
+  site: "1x00000000000000000000AA",
+  secret: "1x0000000000000000000000000000000AA",
+};
 
 export const PROOF_FLAG = "GIVING_STRIPE_TEST_PROOF";
 export const PROOF_CONFIG = "playwright.guest-giving.config.ts";

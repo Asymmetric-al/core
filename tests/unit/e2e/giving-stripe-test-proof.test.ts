@@ -4,8 +4,10 @@ import path from "node:path";
 import { describe, expect, it, vi } from "vitest";
 
 import { StripeLiveModeRefusedError } from "../../../packages/api/src/stripe/test-mode-key";
+import * as journeys from "../../e2e/helpers/guest-giving";
 import {
   ACCOUNT_VARIABLES,
+  GUEST_GIVING_PORTS,
   PROOF_FLAG,
   TURNSTILE_TEST_KEYS,
   evidencePath,
@@ -188,6 +190,13 @@ describe("the runner keeps every secret out of what it writes", () => {
       site: "1x00000000000000000000AA",
       secret: "1x0000000000000000000000000000000AA",
     });
+  });
+});
+
+describe("the runner and the journeys agree", () => {
+  it("on the servers' ports and on Turnstile's test keys", () => {
+    expect(GUEST_GIVING_PORTS).toEqual(journeys.GUEST_GIVING_PORTS);
+    expect(TURNSTILE_TEST_KEYS).toEqual(journeys.TURNSTILE_TEST_KEYS);
   });
 });
 

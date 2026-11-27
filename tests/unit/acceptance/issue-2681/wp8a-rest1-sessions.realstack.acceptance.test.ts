@@ -665,7 +665,7 @@ describe.skipIf(!ADMIN_URL)(
         expect(await giftOf(db, intake.donationId)).toBeDefined();
       }));
 
-    it("F3: a worker's claim landing between the disconnect's read of its waiting requests and its parking of them: the disconnect parks only the requests it locked and commits (23514 provider_request_bad_move before) (D-18, AL-2681 PR 2b, issue 2857 item 18: the claim takes the binding FOR SHARE, so it waits for the disconnect and is refused binding_inactive, and the disconnect parks both waiting requests)", () =>
+    it("F3: a worker's claim landing between the disconnect's read of its waiting requests and its parking of them: the disconnect parks only the requests it locked and commits (23514 provider_request_bad_move before) (D-18, AL-2681 PR 2b, issue 2857 item 18: the claim takes the binding FOR SHARE, so it waits for the disconnect and is refused binding_inactive; the disconnect parks the request it locked, and the claimed one, reported after the disconnect read, stays retry_wait and is never sent on the closed account)", () =>
       committed(async (fx) => {
         const { queued, known, eventId } = await commit(async () => {
           const x = await giftIntake(db, fx.A);
@@ -721,8 +721,8 @@ describe.skipIf(!ADMIN_URL)(
           park_reason: "binding_disconnected",
         });
         expect(await requestRow(db, known)).toMatchObject({
-          status: "parked",
-          park_reason: "binding_disconnected",
+          status: "retry_wait",
+          park_reason: null,
         });
       }));
 
