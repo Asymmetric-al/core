@@ -583,7 +583,7 @@ describe("the enabled rewrites of the dashboards' static files, on raw paths", (
 });
 
 describe("the three next.config.ts files in off and on modes", () => {
-  it("keeps admin, missionary, and donor configs identical to today when off", async () => {
+  it("keeps admin, missionary, and donor configs identical to today when off (except the donor's three year-long asset rules, which no longer match /api or /auth, whose misses the donor app answers with its own uncached 404: N3 rest PR 1, F2)", async () => {
     vi.stubEnv("CORE_SERVE_UNDER_PATHS", "");
     vi.stubEnv("VERCEL_ENV", "");
     vi.stubEnv("VERCEL_TARGET_ENV", "");
@@ -632,9 +632,9 @@ describe("the three next.config.ts files in off and on modes", () => {
     expect(donorCfg.env?.CORE_SERVE_UNDER_PATHS).toBe("0");
     expect((await donorCfg.headers?.())?.map((h) => h.source)).toEqual([
       "/(.*)",
-      "/:all*(svg|jpg|jpeg|png|gif|ico|webp|avif)",
-      "/:all*(js|css)",
-      "/:all*(woff|woff2|ttf|otf|eot)",
+      "/((?!(?:api|auth)(?:/|$)).*(?:svg|jpg|jpeg|png|gif|ico|webp|avif))",
+      "/((?!(?:api|auth)(?:/|$)).*(?:js|css))",
+      "/((?!(?:api|auth)(?:/|$)).*(?:woff|woff2|ttf|otf|eot))",
       "/sitemap.xml",
       "/robots.txt",
     ]);
