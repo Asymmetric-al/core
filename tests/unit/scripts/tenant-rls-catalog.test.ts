@@ -4,7 +4,10 @@ import { CAPABILITY_REGISTRY } from "../../../packages/auth/capabilities/registr
 import { EXCLUDED_SCHEMA_PATTERN } from "../../../scripts/release/schema-fingerprint.mjs";
 import keys from "../../../scripts/verify/command-capabilities.json";
 import {
+  ownMinistryEntries,
+  ownMinistryExceptions,
   preMembershipEntries,
+  reviewedOwnMinistry,
   reviewedPreMembership,
   preMembershipExceptions,
 } from "../../../scripts/verify/command-entry-boundaries.mjs";
@@ -2790,5 +2793,133 @@ describe("WP8a worker wrapper rules (TP2 section 11)", () => {
     expect(failure?.detail).toContain(
       "the qualifier is the relation's alias, or its name when it has none",
     );
+  });
+});
+
+describe("WP7 (AL-2680) PR 1: the own-ministry lane admits only reviewed commands opening with begin_human_command(<tenant>, NULL)", () => {
+  const OWN_BODY = `
+DECLARE
+  v_ctx tenant_guard.command_context;
+BEGIN
+  v_ctx := tenant_guard.begin_human_command(p_tenant_id, NULL);
+  IF v_ctx.role IS DISTINCT FROM 'missionary' THEN
+    RAISE EXCEPTION 'own ministry only' USING ERRCODE = '42501';
+  END IF;
+  RETURN NULL;
+END;
+`;
+  const name = "tenant_guard.submit_example(p_tenant_id uuid, p_title text)";
+  const entry = { function: name, reason: "fixture: own ministry" };
+  const reviewedFor = (body: string) => ({
+    [name]: {
+      reason: entry.reason,
+      digest: createHash("sha256").update(body.trim()).digest("hex"),
+    },
+  });
+  const run = (
+    row: ReturnType<typeof human>,
+    list?: { entries: (typeof entry)[]; reviewed: Record<string, unknown> },
+  ) =>
+    codes(
+      evaluateTenantRlsCatalog(
+        {
+          tables: [],
+          definers: [],
+          commands: [row],
+          wrappers: [],
+          grants: [],
+          policies: [],
+          published: [],
+        },
+        listed(),
+        allow(),
+        { entries: [] },
+        [],
+        { entries: [] },
+        list,
+      ),
+    );
+
+  it("fails a planted unlisted command that opens with a NULL capability (a guard: refused today too)", () => {
+    expect(run(human(name, { body: OWN_BODY }))).toContain(
+      `COMMAND_CAPABILITY ${name}`,
+    );
+  });
+
+  it("passes a listed one whose body is the reviewed body", () => {
+    expect(
+      run(human(name, { body: OWN_BODY }), {
+        entries: [entry],
+        reviewed: reviewedFor(OWN_BODY),
+      }),
+    ).toEqual([]);
+  });
+
+  it("fails a listed one whose body changed since its review", () => {
+    const changed = OWN_BODY.replace("RETURN NULL;", "RETURN 1;");
+    const result = run(human(name, { body: changed }), {
+      entries: [entry],
+      reviewed: reviewedFor(OWN_BODY),
+    });
+    expect(result).toContain(`COMMAND_EXCEPTION_UNREVIEWED ${name}`);
+    expect(result).toContain(`COMMAND_CAPABILITY ${name}`);
+  });
+
+  it.each([
+    [
+      "a capability literal",
+      OWN_BODY.replace(
+        "begin_human_command(p_tenant_id, NULL)",
+        "begin_human_command(p_tenant_id, 'people.manage_members')",
+      ),
+    ],
+    [
+      "one argument",
+      OWN_BODY.replace(
+        "begin_human_command(p_tenant_id, NULL)",
+        "begin_human_command(p_tenant_id)",
+      ),
+    ],
+    [
+      "a declaration initialiser first",
+      OWN_BODY.replace(
+        "v_ctx tenant_guard.command_context;",
+        "v_ctx tenant_guard.command_context;\n  v_x int := 1;",
+      ),
+    ],
+  ])(
+    "fails a listed one that opens with %s instead of begin_human_command(<tenant>, NULL)",
+    (_label, body) => {
+      expect(
+        run(human(name, { body }), {
+          entries: [entry],
+          reviewed: reviewedFor(body),
+        }),
+      ).toContain(`COMMAND_EXCEPTION_UNREVIEWED ${name}`);
+    },
+  );
+
+  it("fails a listed one that service_role may also execute", () => {
+    expect(
+      run(human(name, { body: OWN_BODY, service_role: true }), {
+        entries: [entry],
+        reviewed: reviewedFor(OWN_BODY),
+      }),
+    ).toContain(`COMMAND_EXCEPTION_UNREVIEWED ${name}`);
+  });
+
+  it("keeps every shipped entry reviewed: same names, reasons and one entry each", () => {
+    expect(ownMinistryEntries.map((e) => e.function).sort()).toEqual(
+      Object.keys(reviewedOwnMinistry).sort(),
+    );
+    for (const e of ownMinistryEntries)
+      expect(reviewedOwnMinistry[e.function]?.reason).toBe(e.reason);
+    const res = ownMinistryExceptions(
+      [human(name, { body: OWN_BODY })],
+      [entry],
+      reviewedFor(OWN_BODY),
+    );
+    expect([...res.allowed]).toEqual([name]);
+    expect(res.failures).toEqual([]);
   });
 });
