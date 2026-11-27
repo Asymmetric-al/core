@@ -30,6 +30,28 @@ describe("Local Supabase Stack workflow: the replay matches the platform's image
       "bun run test:e2e:auth-mail",
     );
   });
+  it("runs the guest giving journeys with the switch on after the auth round trips, and gives them no Stripe key (AL-2681)", () => {
+    const command = "bun run test:e2e:guest-giving";
+    const run = step(command);
+    expect(run).toBeDefined();
+    expect(run).toContain("steps.chromium.outcome == 'success'");
+    expect(run).not.toMatch(/STRIPE_SECRET_KEY|GIVING_STRIPE_TEST_PROOF/);
+    expect(at(command)).toBeGreaterThan(at("bun run test:e2e:auth-mail"));
+    for (const path of [
+      "playwright.guest-giving.config.ts",
+      "tests/e2e/guest-giving.spec.ts",
+      "tests/e2e/helpers/guest-giving.ts",
+      "scripts/e2e/run-guest-giving.mjs",
+      "apps/donor/app/(public)/(solid)/checkout/**",
+      "apps/donor/lib/route-policy.ts",
+      "packages/api/src/donate/**",
+    ])
+      expect(workflow).toContain(`- ${path}`);
+    expect(workflow).toContain("test-results/guest-giving/");
+    expect(readFileSync("playwright.guest-giving.config.ts", "utf8")).toContain(
+      'testMatch: ["**/guest-giving.spec.ts"]',
+    );
+  });
   it("requires the CRM caller-token suite on the seeded stack", () => {
     const run = step("Verify CRM reads through scoped PostgREST sessions");
     expect(run).toContain('CRM_READ_IT_REQUIRED: "1"');
