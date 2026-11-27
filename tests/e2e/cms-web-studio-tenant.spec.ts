@@ -2365,6 +2365,8 @@ test("@cms what was copied after the sign-in page opened is gone once the next p
 }) => {
   await signIn(page);
   await enter(page, SECOND);
+  const watcher = await page.context().newPage();
+  await watcher.goto(`${base}/icon.svg`);
   const stale = await page.context().newPage();
   await stale.goto(
     `${base}/web-studio/collections/pages/${await draftPreviewPage(stale)}`,
@@ -2377,14 +2379,11 @@ test("@cms what was copied after the sign-in page opened is gone once the next p
 
   await openLayoutClipboard(stale);
   await stale.getByRole("menuitem", { name: "Copy Field" }).click();
-  await expect.poll(() => storedIn(stale)).not.toBeNull();
+  await expect.poll(() => storedIn(watcher)).not.toBeNull();
+  await stale.close();
 
   const next = fixturePerson("demoAdmin");
-  const watcher = await page.context().newPage();
   try {
-    await watcher.goto(`${base}/icon.svg`);
-    await expect.poll(() => storedIn(watcher)).not.toBeNull();
-    await stale.close();
     await page.route(isAuthService, (route) =>
       new URL(route.request().url()).pathname === "/auth/v1/token"
         ? route.fulfill({ json: passwordSession(next.userId) })
