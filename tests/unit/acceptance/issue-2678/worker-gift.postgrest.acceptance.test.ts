@@ -67,17 +67,26 @@ vi.mock("../../../../packages/api/src/donate/saga", () => ({
   },
 }));
 
-const PEOPLE = ["worker", "other"] as const;
+const PEOPLE = ["worker", "other", "split"] as const;
 type Person = (typeof PEOPLE)[number];
 
 describe.skipIf(!required && ![url, database, service].some(Boolean))(
-  "AL-2678 WP5 rest 2a, fix round F1: a gift the call stored is answered as stored on /api/donate, POST /api/donations and GraphQL createDonation, also for a login that reaches its donor through its sole worker row; a key of another person's gift stays refused (real saga, real PostgREST)",
+  "AL-2678 WP5 rest 2a, fix rounds F1 and F5: a gift the call stored is answered as stored on /api/donate, POST /api/donations and GraphQL createDonation, also for a login that reaches its donor through its sole worker row; a key of another person's gift stays refused; a refusal for a donor on another Party leaves an operator's line (real saga, real PostgREST)",
   () => {
     const TA = randomUUID();
     const k = Object.fromEntries(
-      ["pWorker", "pOther", "pTo", "worker", "to", "dWorker", "dOther"].map(
-        (key) => [key, randomUUID()],
-      ),
+      [
+        "pWorker",
+        "pOther",
+        "pTo",
+        "worker",
+        "to",
+        "dWorker",
+        "dOther",
+        "pSplitLink",
+        "pSplitOwn",
+        "dSplit",
+      ].map((key) => [key, randomUUID()]),
     ) as Record<string, string>;
     const user = {} as Record<Person, string>;
     const db = new pg.Client({ connectionString: database });
@@ -230,6 +239,24 @@ describe.skipIf(!required && ![url, database, service].some(Boolean))(
           "insert into public.donors (id, tenant_id, party_id, profile_id, name, email) values ($1, $3, $4, null, 'Worker as donor', null), ($2, $3, $5, $6, 'Other donor', null)",
           [k.dWorker, k.dOther, TA, k.pWorker, k.pOther, user.other],
         );
+        await db.query(
+          "insert into public.parties (id, tenant_id, display_name) values ($1, $3, 'Split linked'), ($2, $3, 'Split own')",
+          [k.pSplitLink, k.pSplitOwn, TA],
+        );
+        await db.query(
+          "insert into public.donors (id, tenant_id, party_id, profile_id, name, email) values ($1, $2, $3, $4, 'Split donor', $5)",
+          [
+            k.dSplit,
+            TA,
+            k.pSplitOwn,
+            user.split,
+            `wp5rest2-gift-split-${TA}@example.test`,
+          ],
+        );
+        await db.query(
+          "insert into public.account_links (tenant_id, user_id, party_id, linked_via) values ($1, $2, $3, 'account_claim')",
+          [TA, user.split, k.pSplitLink],
+        );
         await db.query("commit");
       } catch (error) {
         await db.query("rollback");
@@ -328,6 +355,38 @@ describe.skipIf(!required && ![url, database, service].some(Boolean))(
         expect(byOther.id).toBeUndefined();
         expect(s.payments).toEqual([]);
         expect((await stored(mine)).map((r) => r.donor_id)).toEqual([k.dOther]);
+      });
+
+      it(`${name}: a login refused because its Party has no donor while it holds one on another Party leaves one line an operator can find, with the organization and login and nothing personal, and reads the same answer (fix round F5; red: no line)`, async () => {
+        const spy = vi.spyOn(console, "error").mockImplementation(() => {});
+        try {
+          const refusal = await call("split", `split-${name}-${randomUUID()}`);
+          const logged = spy.mock.calls.map((args) => JSON.stringify(args));
+          expect(refusal.status).toBe(
+            name === "GraphQL createDonation" ? "MULTIPLE_DONORS" : 409,
+          );
+          expect(JSON.stringify(refusal.body)).toContain(
+            "Multiple donor records for this account",
+          );
+          expect(
+            logged.filter(
+              (line) => line.includes(user.split) && line.includes(TA),
+            ),
+            logged.join("\n"),
+          ).toHaveLength(1);
+          expect(logged.join("\n")).not.toContain("@example.test");
+          expect(logged.join("\n")).not.toContain("Split");
+        } finally {
+          spy.mockRestore();
+        }
+        expect(
+          (
+            await db.query(
+              "select count(*)::int n from public.donations where tenant_id = $1 and donor_id = $2",
+              [TA, k.dSplit],
+            )
+          ).rows[0].n,
+        ).toBe(0);
       });
     }
   },

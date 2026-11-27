@@ -104,6 +104,29 @@ describe("beginGiftIntake", () => {
     expect(blank.ok && blank.donorId).toBeUndefined();
   });
 
+  it("leaves one line an operator can find when the saga refuses 21000, with the organization and login ids alone, and answers as before (AL-2678 WP5 rest 2a, fix round F5; red: no line)", async () => {
+    const spy = vi.spyOn(console, "error").mockImplementation(() => {});
+    try {
+      const result = await beginGiftIntake({
+        ...BASE_INPUT,
+        rpc: mockRpc({
+          data: null,
+          error: {
+            code: "21000",
+            message: "Multiple donor records for this account",
+          },
+        }),
+      });
+      expect(result).toEqual({ ok: false, code: "multiple_donors" });
+      expect(spy).toHaveBeenCalledTimes(1);
+      const [line, fields] = spy.mock.calls[0]!;
+      expect(typeof line).toBe("string");
+      expect(fields).toEqual({ tenantId: "tenant-1", loginId: "user-1" });
+    } finally {
+      spy.mockRestore();
+    }
+  });
+
   it("trims then lowercases currency before the saga RPC", async () => {
     const rpc = mockRpc({
       data: {
