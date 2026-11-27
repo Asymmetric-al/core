@@ -67,11 +67,29 @@ describe("auth/demo-login: next stays a same-app path", () => {
   });
 
   it.each([
+    "/.%2fadmin/donors",
+    "/..%2fadmin/donors",
+    "/x/..%2fadmin/donors",
+    "/admin%3fx",
+    "/admin%23x",
+    "/%2e/admin",
+    "/.%2fmissionary/x",
+  ])(
+    "on, the donor app refuses %s, which could leave it after decoding",
+    (next) => {
+      onTheDonorApp();
+      expect(safeNextParam(next)).toBeNull();
+    },
+  );
+
+  it.each([
     "/administration",
     "/admins/x",
     "/missionary-stories",
     "/donor-dashboard/x",
     "/workers/admin",
+    "/workers/jos%C3%A9",
+    "/checkout?gift=1#pay",
   ])("on, the donor app keeps %s (guard)", (next) => {
     onTheDonorApp();
     expect(safeNextParam(next)).toBe(next);
@@ -85,6 +103,10 @@ describe("auth/demo-login: next stays a same-app path", () => {
       expect(safeNextParam("/admin/donors")).toBe("/admin/donors");
       expect(safeNextParam("/%61dmin/donors")).toBe("/%61dmin/donors");
       expect(safeNextParam("/admin%2fdonors")).toBe("/admin%2fdonors");
+      expect(safeNextParam("/admin%3fx")).toBe("/admin%3fx");
+      expect(safeNextParam("/x/..%2fadmin/donors")).toBe(
+        "/x/..%2fadmin/donors",
+      );
     },
   );
 
