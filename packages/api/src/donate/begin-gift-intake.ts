@@ -112,6 +112,10 @@ export async function beginGiftIntake(
       return { ok: false, code: "conflict" };
     }
     if (error.code === "21000") {
+      console.error(
+        "[gift-intake] Gift refused: the login's Party has several donors, or none while the login holds a donor on another Party",
+        { tenantId: input.tenantId, loginId: input.actorUserId },
+      );
       return { ok: false, code: "multiple_donors" };
     }
     if (error.code === "22023") {
