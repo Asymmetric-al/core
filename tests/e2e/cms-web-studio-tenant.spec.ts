@@ -2363,22 +2363,15 @@ async function copyLayoutIn(tab: Page) {
 test("@cms what was copied after the sign-in page opened is gone once the next person signs in there with a password, and that person has nothing to paste (WP6 rest, pull request 2, round 2, G1)", async ({
   page,
 }) => {
-  await signIn(page);
-  await enter(page, SECOND);
   const watcher = await page.context().newPage();
   await watcher.goto(`${base}/icon.svg`);
-  const stale = await page.context().newPage();
-  await stale.goto(
-    `${base}/web-studio/collections/pages/${await draftPreviewPage(stale)}`,
-  );
-  await page.goto(`${base}/${SECOND}`);
-  await page.getByRole("button", { name: "Open profile menu" }).click();
-  await page.getByRole("menuitem", { name: "Sign out" }).click();
-  await page.waitForURL((url) => url.pathname === "/login");
+  await page.goto(`${base}/login`);
   await expect.poll(() => clipboardOf(page)).toBeNull();
 
-  await openLayoutClipboard(stale);
-  await stale.getByRole("menuitem", { name: "Copy Field" }).click();
+  await signInAs(page, "admin", "twoTenants", base);
+  const stale = await page.context().newPage();
+  await enter(stale, SECOND);
+  await copyLayoutIn(stale);
   await expect.poll(() => storedIn(watcher)).not.toBeNull();
   await stale.close();
 
