@@ -11,6 +11,6 @@ describe("Mission Control's account page (AL-2671 N4)", () => {
     expect(html).toContain("Your account");
     expect(html).toContain('aria-label="Change password"');
     expect(html).toContain("Current password");
-    expect(html).toContain('autoComplete="current-password"'.toLowerCase());
+    expect(html).toContain('autoComplete="current-password"');
   });
 });

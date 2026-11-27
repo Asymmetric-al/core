@@ -100,6 +100,12 @@ const AGENT_PERMISSIONS: AgentPermission[] = [
   { component: "sortable-list", label: "Macro actions", actions: ["move"] },
 ];
 
+const ACCOUNT_MENU_ITEM: ProfileDropdownMenuItem = {
+  label: "Account",
+  href: "/account",
+  icon: UserRound,
+};
+
 const ABOUT_MENU_ITEM: ProfileDropdownMenuItem = {
   label: "About",
   href: "/help/about",
@@ -114,11 +120,12 @@ function profileMenuItems(
   const administration = getNavItemsByRole(role, capabilities).find(
     (item) => item.id === "admin",
   );
-  if (!administration) return [ABOUT_MENU_ITEM];
+  if (!administration) return [ACCOUNT_MENU_ITEM, ABOUT_MENU_ITEM];
   const staffDirectory = administration.items?.find(
     (item) => item.id === "admin-teams",
   );
   return [
+    ACCOUNT_MENU_ITEM,
     { label: "Administration", href: "/settings", icon: Shield },
     ...(staffDirectory
       ? [
