@@ -75,6 +75,24 @@ describe("requireSupportHubAccess", () => {
     });
   });
 
+  // AL-2675 (WP2c rest B; brief part B, invariant 5): the context carries no
+  // super-admin flag, whatever the role label says.
+  it("carries no super-admin flag in the context, even for a context labelled super_admin", async () => {
+    getAuthContextMock.mockResolvedValue({
+      isAuthenticated: true,
+      userId: "user-3",
+      email: "user-3@example.com",
+      tenantId: "tenant-1",
+      role: "super_admin",
+      memberships: membershipsForRole("staff", "tenant-1"),
+    });
+    const result = await requireSupportHubAccess(authRequest);
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.context).not.toHaveProperty("isSuperAdmin");
+    expect(result.context.canManageAll).toBe(false);
+  });
+
   it("lets the tenant administrator manage every agent's per-agent settings", async () => {
     getAuthContextMock.mockResolvedValue({
       isAuthenticated: true,
