@@ -219,7 +219,7 @@ const PATH_VALUES: Record<string, Record<string, string>> = {
 function projectReport(
   key: "admin" | "missionary" | "donor",
   values: Record<string, string>,
-  releaseCommit: string | undefined = "built",
+  releaseCommit: string | null = "built",
 ) {
   return summarizeProjectReadiness({
     project: {
@@ -246,7 +246,7 @@ function projectReport(
     health: {
       url: `https://${key}.asymmetric.al/api/health/migrations`,
       status: 200,
-      releaseCommit,
+      releaseCommit: releaseCommit ?? undefined,
       serveUnderPaths: values.CORE_SERVE_UNDER_PATHS === "1" ? true : undefined,
     },
     productionBranch: "production",
@@ -290,7 +290,7 @@ describe("#2845 item 6: readiness compares the switch across the three projects"
 });
 
 describe("#2845 item 8: in path mode the live commit must be the target commit", () => {
-  it.each([undefined, "unknown", "older"])(
+  it.each([null, "unknown", "older"])(
     "an app on paths reporting commit %s is not ready",
     (commit) => {
       expect(projectReport("admin", PATH_VALUES.admin!, commit).ready).toBe(
@@ -305,7 +305,7 @@ describe("#2845 item 8: in path mode the live commit must be the target commit",
     );
   });
 
-  it.each([undefined, "unknown"])(
+  it.each([null, "unknown"])(
     "off keeps today's tolerance for commit %s (guard)",
     (commit) => {
       expect(projectReport("admin", {}, commit).ready).toBe(true);
