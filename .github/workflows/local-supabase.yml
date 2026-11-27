@@ -137,6 +137,13 @@ on:
       - tests/e2e/auth-two-organizations.spec.ts
       - tests/e2e/helpers/auth-mail.ts
       - scripts/e2e/run-auth-mail.mjs
+      - playwright.guest-giving.config.ts
+      - tests/e2e/guest-giving.spec.ts
+      - tests/e2e/helpers/guest-giving.ts
+      - scripts/e2e/run-guest-giving.mjs
+      - apps/donor/app/(public)/(solid)/checkout/**
+      - apps/donor/lib/route-policy.ts
+      - packages/api/src/donate/**
       - scripts/lib/psql.mjs
       - scripts/release/lib/database-target.mjs
       - packages/env/src/database-url.mjs
@@ -579,6 +586,13 @@ jobs:
           OPERATOR_MFA_SERVICE_KEY="$(jq -er '.SERVICE_ROLE_KEY | select(length > 0)' <<< "$status")"
           export OPERATOR_MFA_ANON_KEY OPERATOR_MFA_SERVICE_KEY
           bunx vitest run --maxWorkers=1 tests/unit/acceptance/issue-2676/tenant-provisioning.localstack.test.ts
+      - name: Give as a guest with the switch on and Stripe.js stubbed at the network (AL-2681)
+        if: ${{ !cancelled() && steps.stack.outcome == 'success' && steps.chromium.outcome == 'success' }}
+        timeout-minutes: 30
+        env:
+          CI: "1"
+          PLAYWRIGHT_REUSE_EXISTING_SERVER: "0"
+        run: bun run test:e2e:guest-giving
       - name: Show Auth logs on failure
         if: failure()
         run: docker logs --tail 200 "$(docker ps --filter name=supabase_auth_ --format '{{.Names}}' | head -n 1)" || true
@@ -587,5 +601,7 @@ jobs:
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: local-supabase-results
-          path: test-results/auth-mail/
+          path: |
+            test-results/auth-mail/
+            test-results/guest-giving/
           retention-days: 7
