@@ -1,6 +1,7 @@
 import { spawn, spawnSync, type ChildProcess } from "node:child_process";
 import { randomBytes } from "node:crypto";
 import { createWriteStream, mkdirSync, readFileSync } from "node:fs";
+import { createServer } from "node:net";
 import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -388,9 +389,88 @@ function startServer(
   return child;
 }
 
-async function waitForServer(port: number): Promise<void> {
-  const deadline = Date.now() + 180_000;
+export async function assertPortsFree(
+  ports: readonly number[],
+  host = "localhost",
+): Promise<void> {
+  for (const port of ports) {
+    await new Promise<void>((resolve, reject) => {
+      const probe = createServer();
+      probe.once("error", (error: NodeJS.ErrnoException) => {
+        reject(
+          error.code === "EADDRINUSE"
+            ? new Error(
+                `port ${port} is in use; stop the server there before the proof starts its own`,
+              )
+            : error,
+        );
+      });
+      probe.listen(port, host, () => probe.close(() => resolve()));
+    });
+  }
+}
+
+interface WatchedProcess {
+  once(
+    event: "exit",
+    listener: (code: number | null, signal: string | null) => void,
+  ): unknown;
+  once(event: "error", listener: (error: Error) => void): unknown;
+}
+
+export function watchServers(
+  servers: ReadonlyArray<{ name: string; process: WatchedProcess }>,
+): { failure(): string | null } {
+  let failure: string | null = null;
+  for (const { name, process: child } of servers) {
+    child.once("exit", (code, signal) => {
+      failure ??= `${name} exited (code ${code ?? signal ?? "unknown"})`;
+    });
+    child.once("error", (error) => {
+      failure ??= `${name} could not start: ${error.message}`;
+    });
+  }
+  return { failure: () => failure };
+}
+
+const HELD_SIGNALS = ["SIGINT", "SIGTERM"] as const;
+
+export function holdInterrupts(): {
+  signal(): NodeJS.Signals | null;
+  wait(): Promise<NodeJS.Signals>;
+  release(): void;
+} {
+  let received: NodeJS.Signals | null = null;
+  const waiting: Array<(signal: NodeJS.Signals) => void> = [];
+  const handlers = HELD_SIGNALS.map((name) => {
+    const handler = () => {
+      received ??= name;
+      for (const resolve of waiting.splice(0)) resolve(name);
+    };
+    process.on(name, handler);
+    return [name, handler] as const;
+  });
+  return {
+    signal: () => received,
+    wait: () =>
+      received
+        ? Promise.resolve(received)
+        : new Promise((resolve) => waiting.push(resolve)),
+    release: () => {
+      for (const [name, handler] of handlers) process.off(name, handler);
+    },
+  };
+}
+
+export async function waitForServer(
+  port: number,
+  failure: () => string | null,
+  timeoutMs = 180_000,
+): Promise<void> {
+  const deadline = Date.now() + timeoutMs;
   while (Date.now() < deadline) {
+    const failed = failure();
+    if (failed) throw new Error(failed);
     try {
       await fetch(`http://localhost:${port}/`, { redirect: "manual" });
       return;
@@ -471,31 +551,40 @@ export async function main(
 
   const servers: ChildProcess[] = [];
   const restore = emptyRestore();
+  await assertPortsFree([ports.front, ports.admin, ports.missionary]);
+  const interrupts = holdInterrupts();
   try {
+    const started: Array<{ name: string; process: ChildProcess }> = [];
     for (const [app, port] of [
       ["donor", ports.front],
       ["admin", ports.admin],
       ["missionary", ports.missionary],
     ] as const) {
-      servers.push(
-        startServer(app, port, serverEnvironment(app, env, secrets), logDir),
+      const server = startServer(
+        app,
+        port,
+        serverEnvironment(app, env, secrets),
+        logDir,
       );
+      servers.push(server);
+      started.push({ name: app, process: server });
     }
+    const watch = watchServers(started);
     for (const port of [ports.front, ports.admin, ports.missionary]) {
-      await waitForServer(port);
+      await waitForServer(port, watch.failure);
     }
     await prepareRows(database, seed, secrets.password, restore);
     if (options.serveOnly) {
       process.stdout.write(
         `[n2-on] serving at http://${NAME_A}:${ports.front}; stop with Ctrl-C\n`,
       );
-      await new Promise<void>((resolve) => {
-        process.once("SIGINT", () => resolve());
-        process.once("SIGTERM", () => resolve());
-      });
+      await interrupts.wait();
       return 0;
     }
     await waitForQuietMachine(10);
+    const failed = watch.failure();
+    if (failed) throw new Error(failed);
+    if (interrupts.signal()) return 130;
     const result = spawnSync(
       "node",
       [
@@ -512,14 +601,18 @@ export async function main(
         shell: false,
       },
     );
-    return result.status ?? 1;
+    return interrupts.signal() ? 130 : (result.status ?? 1);
   } finally {
-    finish(
-      () => restoreRows(database, restore),
-      () => {
-        for (const server of servers) server.kill("SIGTERM");
-      },
-    );
+    try {
+      finish(
+        () => restoreRows(database, restore),
+        () => {
+          for (const server of servers) server.kill("SIGTERM");
+        },
+      );
+    } finally {
+      interrupts.release();
+    }
   }
 }
 
