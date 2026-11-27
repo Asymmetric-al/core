@@ -46,7 +46,7 @@
 -- back. This file has committed when this read-only check is true: SELECT
 -- to_regprocedure('public.platform_eve_history(integer)') IS NOT NULL. Then
 -- follow docs/ops/release-job.md, "If the migration committed but its ledger
--- row is missing", with this check and this file's version, 20261127020000.
+-- row is missing", with this check and this file's version, 20261127035000.
 --
 -- Down (only after the build that calls them is rolled back; in one
 -- transaction; no row was written): DROP FUNCTION

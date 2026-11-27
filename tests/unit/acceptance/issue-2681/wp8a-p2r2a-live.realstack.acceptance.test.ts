@@ -264,7 +264,7 @@ describe.skipIf(!ADMIN_URL)(
         expect(holdings).toEqual({ any: false, service_normalize: true });
       }));
 
-    it("F1 (guard; ruling Q-C): after the apply has completed an intake, a replayed gift:<id>:create_payment key on POST /api/donate still answers 409 Idempotency key already used, and nothing is written: the counts, the intake and its request are as they were (D-18, AL-2678 WP5 rest: the saga now refuses that key with 23505 instead of answering it as a replay, and the double answers that refusal as supabase-js does, an error in the result, rolled back to a savepoint)", () =>
+    it("F1 (guard; ruling Q-C): after the apply has completed an intake, a replayed gift:<id>:create_payment key on POST /api/donate still answers 409 Idempotency key already used, and nothing is written: the counts, the intake and its request are as they were (D-18, AL-2678 WP5 rest: the saga now refuses that key with 23505 instead of answering it as a replay, and the double answers that refusal as supabase-js does, an error in the result, rolled back to a savepoint; D-18, AL-2681 rest PR 1, ruling Q-C: beginGiftIntake now refuses a key that begins gift: before the saga is called, so the route answers 400 and the saga is never reached)", () =>
       inTx(db, async () => {
         const fx = await seedTwoTenants(db);
         await grant(db, HOSTED_SERVICE_GRANTS);
@@ -409,9 +409,9 @@ describe.skipIf(!ADMIN_URL)(
             }),
           }),
         );
-        expect(response.status).toBe(409);
+        expect(response.status).toBe(400);
         expect(await response.json()).toMatchObject({
-          error: "Idempotency key already used",
+          error: "Idempotency keys that begin with gift: are reserved.",
         });
         expect(create).not.toHaveBeenCalled();
         expect(

@@ -3,7 +3,7 @@ import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 
 const MIGRATION = readFileSync(
-  "supabase/migrations/20261127020000_wp2c_rest_operator_reads.sql",
+  "supabase/migrations/20261127035000_wp2c_rest_operator_reads.sql",
   "utf8",
 );
 

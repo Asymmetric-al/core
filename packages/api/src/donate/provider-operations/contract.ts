@@ -66,6 +66,13 @@ export const providerRequestSchema = z
 
 export type ProviderRequest = z.infer<typeof providerRequestSchema>;
 
+export const cancelRequestSchema = z.strictObject({
+  payment_intent: z.string().regex(PAYMENT_INTENT_ID),
+  cancellation_reason: z.literal("abandoned"),
+});
+
+export type CancelRequest = z.infer<typeof cancelRequestSchema>;
+
 export const claimedSchema = z.strictObject({
   outcome: z.literal("claimed"),
   operation_id: z.string().regex(LOWER_UUID),
@@ -75,7 +82,7 @@ export const claimedSchema = z.strictObject({
   send_deadline: z.string(),
   request_kind: z.string(),
   idempotency_key: z.string(),
-  request: providerRequestSchema,
+  request: z.union([providerRequestSchema, cancelRequestSchema]),
   request_digest: z.string(),
   provider_account: z.string(),
   livemode: z.boolean(),

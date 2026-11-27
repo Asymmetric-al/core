@@ -615,7 +615,7 @@ committed, and its version. This section gives them for `20261119135300`,
 the worked example below. Each of `20261125050000` to `20261125050500`
 (WP5 part 1) gives its own three in its header, under "Recovery."; use them
 in place of the example's. `20261126010000`, `20261126020000`,
-`20261126020100`, `20261126020200` and `20261127020000` give their own three
+`20261126020100`, `20261126020200` and `20261127035000` give their own three
 in their headers too. `20261125010000`, `20261125010100`, `20261125040000`, `20261125070000`,
 `20261125070100` and `20261125080000` give none: work the three out from the
 file, as the worked example does, before any repair.

@@ -102,6 +102,7 @@ const TYPE_OPTIONS = [
 const STATUS_OPTIONS = [
   { value: "All", label: "All statuses" },
   { value: "Paid", label: "Paid" },
+  { value: "Received", label: "Received, not yet receipted" },
   { value: "Processing", label: "Processing" },
   { value: "Failed", label: "Failed" },
   { value: "Refunded", label: "Refunded" },
@@ -117,6 +118,7 @@ export function unsettledNote(
   const count = (status: string) =>
     transactions.filter((t) => t.status === status).length;
   const parts = [
+    ["received, not yet receipted", count("Received")],
     ["processing", count("Processing")],
     ["failed", count("Failed")],
     ["refunded", count("Refunded")],

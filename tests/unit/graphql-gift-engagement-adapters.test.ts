@@ -109,7 +109,7 @@ describe("GraphQL Gift intake adapter", () => {
     ).rejects.toThrow("Failed to create donation");
   });
 
-  it("throws Idempotency key already used when the saga refuses a key another kind of request holds (AL-2678 WP5 rest, ruling Q-C: 23505)", async () => {
+  it("throws Idempotency key already used when the saga refuses a key another kind of request holds (AL-2678 WP5 rest, ruling Q-C: 23505; D-18, AL-2681: keys beginning gift: are now refused before the saga, so the held key is a plain one)", async () => {
     rpc.mockResolvedValue({
       data: null,
       error: {
@@ -128,7 +128,7 @@ describe("GraphQL Gift intake adapter", () => {
         missionaryId: "missionary-1",
         amountCents: 2500,
         currency: "usd",
-        idempotencyKey: "gift:don_1:create_payment",
+        idempotencyKey: "idem-held-by-another-request",
         ipAddress: null,
         userAgent: null,
       }),

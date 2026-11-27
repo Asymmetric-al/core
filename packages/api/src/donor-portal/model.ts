@@ -1,3 +1,4 @@
+import type { LineBasedGiftLine } from "../shared/line-based-gifts";
 const SETTLED_DONATION_STATUSES = new Set([
   "completed",
   "succeeded",
@@ -69,6 +70,9 @@ export type DonorPortalDonationRow = {
   stripe_charge_id: string | null;
   fund: { id: string; name: string | null } | null;
   missionary: DonorPortalWorkerRow | null;
+  intake_format?: string | null;
+  staged_gift?: { status: string | null } | null;
+  lines?: LineBasedGiftLine[];
 };
 
 export type DonorPortalWorkerRow = {
@@ -173,12 +177,12 @@ export type DonorPortalDonation = {
   refundedAmountCents: number;
   refundedAmount: number;
   currency: string;
-  /** Glossary status words: Paid, Processing, Failed, Refunded. */
-  status: "Paid" | "Processing" | "Failed" | "Refunded";
+  /** Glossary status words: Paid, Received, Processing, Failed, Refunded. */
+  status: "Paid" | "Received" | "Processing" | "Failed" | "Refunded";
   type: "Recurring" | "One-Time";
   method: string;
-  receiptUrl: string;
-  statementYear: number;
+  receiptUrl: string | null;
+  statementYear: number | null;
   designation: {
     id: string | null;
     name: string;
@@ -255,9 +259,28 @@ function displayNameFromParts(row: {
   return parts.join(" ");
 }
 
+function donorLine(donation: DonorPortalDonationRow) {
+  return (donation.lines ?? []).find((line) => !line.is_fee_cover) ?? null;
+}
+
 function designationFromDonation(
   donation: DonorPortalDonationRow,
 ): DonorPortalDonation["designation"] {
+  const line = donorLine(donation);
+  if (line?.missionary_id)
+    return {
+      id: line.missionary_id,
+      name: line.worker_public_name?.trim() || "Missionary support",
+      type: "missionary",
+      avatarUrl: null,
+    };
+  if (line?.fund_id)
+    return {
+      id: line.fund_id,
+      name: line.fund_name?.trim() || "Designated fund",
+      type: "fund",
+      avatarUrl: null,
+    };
   if (donation.fund) {
     return {
       id: donation.fund.id,
@@ -304,6 +327,29 @@ function giftMissionary(row: GiftTargetRow): DonorPortalGiftMissionary | null {
   };
 }
 
+function lineMissionary(
+  donation: DonorPortalDonationRow,
+): DonorPortalGiftMissionary | null {
+  const line = donorLine(donation);
+  if (!line?.missionary_id) return null;
+  return {
+    id: line.missionary_id,
+    name: line.worker_public_name?.trim() || "Missionary support",
+    avatarUrl: null,
+  };
+}
+
+function lineFund(
+  donation: DonorPortalDonationRow,
+): DonorPortalGiftFund | null {
+  const line = donorLine(donation);
+  if (!line?.fund_id) return null;
+  return {
+    id: line.fund_id,
+    name: line.fund_name?.trim() || "Designated fund",
+  };
+}
+
 function giftFund(row: GiftTargetRow): DonorPortalGiftFund | null {
   if (!row.fund) return null;
   return { id: row.fund.id, name: row.fund.name || "Designated fund" };
@@ -338,8 +384,16 @@ function designationFromPledge(
   };
 }
 
-function donationStatus(status: string | null): DonorPortalDonation["status"] {
-  const normalized = status?.toLowerCase() ?? "";
+function donationStatus(
+  donation: DonorPortalDonationRow,
+): DonorPortalDonation["status"] {
+  const normalized = donation.status?.toLowerCase() ?? "";
+  if (
+    donation.intake_format === "line_based" &&
+    normalized === "completed" &&
+    donation.staged_gift?.status !== "posted"
+  )
+    return "Received";
   if (SETTLED_DONATION_STATUSES.has(normalized)) return "Paid";
   if (FAILED_DONATION_STATUSES.has(normalized)) return "Failed";
   if (REFUNDED_DONATION_STATUSES.has(normalized)) return "Refunded";
@@ -396,9 +450,15 @@ export function buildDonorPortalSnapshot(input: {
 }): DonorPortalSnapshot {
   const now = input.now ?? new Date();
   const currentYear = now.getUTCFullYear();
+  const lineBased = new Set(
+    input.donations
+      .filter((donation) => donation.intake_format === "line_based")
+      .map((donation) => donation.id),
+  );
   const donationModels = input.donations.map((donation) => {
     const date = donationDate(donation);
     const amountCents = donation.amount ?? 0;
+    const receipted = !lineBased.has(donation.id);
     return {
       id: donation.id,
       date,
@@ -407,14 +467,14 @@ export function buildDonorPortalSnapshot(input: {
       refundedAmountCents: Math.max(0, donation.refund_amount ?? 0),
       refundedAmount: centsToDollars(Math.max(0, donation.refund_amount ?? 0)),
       currency: normalizeCurrency(donation.currency),
-      status: donationStatus(donation.status),
+      status: donationStatus(donation),
       type: donationType(donation),
       method: paymentLabel(donation.payment_method),
-      receiptUrl: `/api/donor/receipts/${donation.id}`,
-      statementYear: new Date(date).getUTCFullYear(),
+      receiptUrl: receipted ? `/api/donor/receipts/${donation.id}` : null,
+      statementYear: receipted ? new Date(date).getUTCFullYear() : null,
       designation: designationFromDonation(donation),
-      missionary: giftMissionary(donation),
-      fund: giftFund(donation),
+      missionary: lineMissionary(donation) ?? giftMissionary(donation),
+      fund: lineFund(donation) ?? giftFund(donation),
     } satisfies DonorPortalDonation;
   });
 
@@ -443,20 +503,30 @@ export function buildDonorPortalSnapshot(input: {
   });
 
   const settledDonations = donationModels.filter(
-    (donation) => donation.status === "Paid",
+    (donation) => donation.status === "Paid" || donation.status === "Received",
   );
-  const yearToDateCents = settledDonations
-    .filter((donation) => donation.statementYear === currentYear)
-    .reduce((sum, donation) => sum + donation.amountCents, 0);
+  const settledLegacy = settledDonations.filter(
+    (donation) => !lineBased.has(donation.id),
+  );
+  const settledLineBased = settledDonations.filter((donation) =>
+    lineBased.has(donation.id),
+  );
+  const centsOf = (donations: DonorPortalDonation[]) =>
+    donations.reduce((sum, donation) => sum + donation.amountCents, 0);
+  const yearOf = (donation: DonorPortalDonation) =>
+    new Date(donation.date).getUTCFullYear();
+  const yearToDateCents = centsOf(
+    settledDonations.filter((donation) => yearOf(donation) === currentYear),
+  );
   const activeRecurringGiftCount = recurringGifts.filter((gift) =>
     ["active", "processing", "trialing"].includes(gift.status.toLowerCase()),
   ).length;
-  const statementYears = [
-    ...new Set(settledDonations.map((donation) => donation.statementYear)),
-  ].sort((a, b) => b - a);
+  const statementYears = [...new Set(settledLegacy.map(yearOf))].sort(
+    (a, b) => b - a,
+  );
   const supportedDesignations = new Set<string>();
 
-  donationModels.forEach((donation) => {
+  settledDonations.forEach((donation) => {
     supportedDesignations.add(
       `${donation.designation.type}:${donation.designation.id ?? donation.designation.name}`,
     );
@@ -529,18 +599,17 @@ export function buildDonorPortalSnapshot(input: {
     summary: {
       yearToDateCents,
       lifetimeGivenCents:
-        input.donor.total_given ??
-        settledDonations.reduce(
-          (sum, donation) => sum + donation.amountCents,
-          0,
-        ),
-      giftCount: input.donor.gift_count ?? donationModels.length,
+        (input.donor.total_given ?? centsOf(settledLegacy)) +
+        centsOf(settledLineBased),
+      giftCount:
+        (input.donor.gift_count ?? settledLegacy.length) +
+        settledLineBased.length,
       activeRecurringGiftCount,
       supportedDesignationCount: supportedDesignations.size,
-      receiptCount: settledDonations.length,
+      receiptCount: settledLegacy.length,
       statementYears,
       latestImpactLabel:
-        donationModels[0]?.designation.name ??
+        settledDonations[0]?.designation.name ??
         recurringGifts[0]?.designation.name ??
         null,
     },

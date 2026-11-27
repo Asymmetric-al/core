@@ -154,6 +154,8 @@ interface State {
   funds?: Row[];
   failFundWorkers?: number;
   ops?: string[];
+  failHoldsOnceCorrected?: boolean;
+  failSnapshotInserts?: number;
 }
 
 class QueryBuilder {
@@ -306,8 +308,25 @@ class QueryBuilder {
           error: null,
         };
       }
+      case "staged_gift_holds":
+        return state.failHoldsOnceCorrected && state.adjustments.length > 0
+          ? { data: null, error: { message: "gift holds are unavailable" } }
+          : { data: [], error: null };
       case "contribution_receipt_snapshots": {
-        if (this.operation !== "insert") return { data: null, error: null };
+        if (this.operation !== "insert")
+          return {
+            data: state.snapshots.filter((row) =>
+              this.eqs.every(([column, value]) => row[column] === value),
+            ),
+            error: null,
+          };
+        if ((state.failSnapshotInserts ?? 0) > 0) {
+          state.failSnapshotInserts! -= 1;
+          return {
+            data: null,
+            error: { message: "snapshots are unavailable" },
+          };
+        }
         const row = {
           id: `snap-${state.snapshots.length + 1}`,
           ...this.payload,
@@ -565,6 +584,37 @@ describe("AL-2678 r2a B1: a failed worker-name lookup cannot lose the updated re
     expect(result.receiptOutcome).toMatchObject({ status: "deferred" });
     expect(state.snapshots).toEqual([]);
     expect(workerNameLookups(state)).toBe(0);
+  });
+});
+
+describe("AL-2681 fix round F11: a correction that has committed always reaches its receipt delivery", () => {
+  it("the gift's holds cannot be read once the adjustment is written: the updated receipt is still made, because the correction does not read holds", async () => {
+    const state = { ...freshState(true), failHoldsOnceCorrected: true };
+    const result = await correct(state, "pdf", "key-f11-holds");
+    expect(result.receiptOutcome).toMatchObject({ status: "pdf_generated" });
+    expect(state.adjustments).toHaveLength(1);
+    expect(state.snapshots).toEqual([
+      expect.objectContaining({ adjustment_id: "adj-1", kind: "pdf" }),
+    ]);
+  });
+
+  it("the delivery fails after the adjustment commits: the retry with the same key resumes it, once", async () => {
+    const state = { ...freshState(true), failSnapshotInserts: 1 };
+    await expect(correct(state, "pdf", "key-f11-resume")).rejects.toThrow(
+      "snapshots are unavailable",
+    );
+    expect(state.adjustments).toHaveLength(1);
+    expect(state.snapshots).toEqual([]);
+    const retried = await correct(state, "pdf", "key-f11-resume");
+    expect(retried.idempotentReplay).toBe(true);
+    expect(retried.receiptOutcome).toMatchObject({ status: "pdf_generated" });
+    expect(state.snapshots).toEqual([
+      expect.objectContaining({ adjustment_id: "adj-1", kind: "pdf" }),
+    ]);
+    const again = await correct(state, "pdf", "key-f11-resume");
+    expect(again.idempotentReplay).toBe(true);
+    expect(again.receiptOutcome).toBeNull();
+    expect(state.snapshots).toHaveLength(1);
   });
 });
 

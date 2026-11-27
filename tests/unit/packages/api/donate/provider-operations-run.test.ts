@@ -103,7 +103,10 @@ function stubAdapter(answer: PaymentProviderAnswer | Error) {
     if (answer instanceof Error) throw answer;
     return answer;
   });
-  const adapter: PaymentProviderAdapter = { createPayment };
+  const adapter: PaymentProviderAdapter = {
+    createPayment,
+    cancelPayment: vi.fn(),
+  };
   return { adapter, createPayment };
 }
 
@@ -623,6 +626,7 @@ describe("WP8a part 2 R1b: runProviderOperation, one request from claim to repor
         );
         return { result: "succeeded", providerObjectId: "pi_3Validated0001" };
       },
+      cancelPayment: vi.fn(),
     };
     await runProviderOperation({ rpc, adapter, operationId: OPERATION });
     expect(seen).toEqual([10300, true]);
