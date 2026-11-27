@@ -43,20 +43,21 @@ async function submit(
     },
     body: JSON.stringify(toPartnerCommandBody(values)),
   });
-  if (response.status < 500) {
+  if (response.status >= 400 && response.status < 500) {
     submissionKeys.delete(intent);
   }
   if (!response.ok) {
     throw new AddPartnerRefused(response.status);
   }
 
-  const payload = (await response.json()) as Partial<AddedPartner>;
+  const payload = (await response.json()) as Partial<AddedPartner> | null;
   if (
-    typeof payload.donorId !== "string" ||
+    typeof payload?.donorId !== "string" ||
     typeof payload.partyId !== "string"
   ) {
     throw new TypeError("Add Partner answered without the stored partner");
   }
+  submissionKeys.delete(intent);
   return {
     donorId: payload.donorId,
     partyId: payload.partyId,
