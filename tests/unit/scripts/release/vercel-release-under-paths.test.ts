@@ -658,7 +658,7 @@ describe("release state convergence", () => {
     ["0", { dpl_3: 500 }, ["dpl_1", "dpl_3"], "missionary: not promoted"],
     ["1", { dpl_1: "transport" }, ["dpl_2", "dpl_1"], "admin: outcome unknown"],
   ] as const)(
-    "orders promotions and stops on the first failed call, mode %s, %j",
+    "orders promotions and stops on the first failed call, mode %s, %j (each app is seen live before the next is promoted, so the one promoted before the failure is read once on its production host: F4)",
     async (mode, failures, expected, reason) => {
       const { call, calls } = fakeVercel({ promoteAnswers: { ...failures } });
       const answers: Record<string, Answer> = {};
@@ -704,7 +704,17 @@ describe("release state convergence", () => {
           mode === "1" ? "missionary: not attempted" : "donor: not attempted",
         );
         expect(error?.message).not.toContain("private");
-        expect(urlsOf(health)).toHaveLength(3);
+        const first = mode === "1" ? "donor" : "admin";
+        const productionReads = urlsOf(health).filter((url) =>
+          Object.values(PRODUCTION_HOSTS).includes(
+            new URL(url)
+              .host as (typeof PRODUCTION_HOSTS)[keyof typeof PRODUCTION_HOSTS],
+          ),
+        );
+        expect(productionReads).toEqual([
+          `https://${PRODUCTION_HOSTS[first]}/api/health/migrations`,
+        ]);
+        expect(urlsOf(health)).toHaveLength(4);
       } else {
         await run;
       }
@@ -713,6 +723,119 @@ describe("release state convergence", () => {
           .filter((c) => c.path.includes("/promote/"))
           .map((c) => c.path.match(/\/promote\/(dpl_\w+)/)?.[1]),
       ).toEqual(expected);
+      expect(calls.some((c) => /rollback|alias/.test(c.path))).toBe(false);
+    },
+  );
+
+  function promotedThenLive(
+    call: ReturnType<typeof fakeVercel>["call"],
+    mode: "0" | "1",
+    neverLive: string | null,
+  ) {
+    const events: string[] = [];
+    const promoted = new Set<string>();
+    const appOf = (id: string) => releaseApps[Number(id.slice(4)) - 1]!;
+    const answer = (deploymentId: string) =>
+      json(
+        healthy({
+          release: { commit: sha, deploymentId, serveUnderPaths: mode === "1" },
+        }),
+      );
+    const request = vi.fn(
+      async (input: URL | RequestInfo, init?: RequestInit) => {
+        const url = new URL(String(input));
+        if (url.host === "api.vercel.com") {
+          const body = await call(
+            `${url.pathname}${url.search}`,
+            init?.method ?? "GET",
+            init?.body ? JSON.parse(String(init.body)) : undefined,
+          );
+          const id = /\/promote\/(dpl_\w+)/.exec(url.pathname)?.[1];
+          if (id) {
+            events.push(`promote ${appOf(id)}`);
+            promoted.add(appOf(id));
+          }
+          return body instanceof Response
+            ? body
+            : new Response(JSON.stringify(body), { status: 200 });
+        }
+        const staged = releaseApps.findIndex(
+          (app, i) => url.host === `${app}-${i + 1}.vercel.app`,
+        );
+        if (staged >= 0) return answer(`dpl_${staged + 1}`);
+        const app = releaseApps.find((a) => PRODUCTION_HOSTS[a] === url.host)!;
+        const live =
+          promoted.has(app) && app !== neverLive
+            ? `dpl_${releaseApps.indexOf(app) + 1}`
+            : "dpl_old";
+        events.push(`live ${app} ${live}`);
+        return answer(live);
+      },
+    );
+    return { request, events };
+  }
+
+  const deployEnv = (mode: string) => ({
+    CORE_SERVE_UNDER_PATHS: mode,
+    RELEASE_SHA: sha,
+    RELEASE_SUPABASE_PROJECT_REF: ref,
+    RELEASE_APPS: releaseApps.join(","),
+    VERCEL_TOKEN: "fixture",
+  });
+
+  it.each([
+    ["1", ["donor", "admin", "missionary"]],
+    ["0", ["admin", "missionary", "donor"]],
+  ] as const)(
+    "mode %s: requests no promotion before the app promoted before it is seen live, in the order %j",
+    async (mode, order) => {
+      const { call } = fakeVercel();
+      const { request, events } = promotedThenLive(call, mode, null);
+      await runCli(["deploy"], deployEnv(mode), silent, {
+        request: asFetch(request),
+        sleep: noSleep,
+      });
+      expect(events).toEqual(
+        order.flatMap((app) => [
+          `promote ${app}`,
+          `live ${app} dpl_${releaseApps.indexOf(app) + 1}`,
+        ]),
+      );
+    },
+  );
+
+  it.each([
+    ["1", ["donor", "admin", "missionary"]],
+    ["0", ["admin", "missionary", "donor"]],
+  ] as const)(
+    "mode %s: a first app never seen live stops the job, names all three outcomes and promotes nothing more",
+    async (mode, order) => {
+      const [first, second, third] = order;
+      const { call, calls } = fakeVercel();
+      const { request, events } = promotedThenLive(call, mode, first);
+      const error = await runCli(["deploy"], deployEnv(mode), silent, {
+        request: asFetch(request),
+        sleep: noSleep,
+      }).then(
+        () => null,
+        (err: Error) => err,
+      );
+      const id = `dpl_${releaseApps.indexOf(first) + 1}`;
+      expect(error?.message).toMatch(/^promotion stopped part way:/);
+      expect(error?.message).toContain(
+        `${first}: promoted ${id}, not seen live`,
+      );
+      expect(error?.message).toContain(`${second}: not attempted`);
+      expect(error?.message).toContain(`${third}: not attempted`);
+      expect(error?.message).toContain(
+        "Dispatch Release anew from production, operation release, the same apps value; plan builds all three if their switch states differ. Do not roll back.",
+      );
+      expect(events.filter((e) => e.startsWith("promote"))).toEqual([
+        `promote ${first}`,
+      ]);
+      expect(new Set(events.filter((e) => e.startsWith("live")))).toEqual(
+        new Set([`live ${first} dpl_old`]),
+      );
       expect(calls.some((c) => /rollback|alias/.test(c.path))).toBe(false);
     },
   );
