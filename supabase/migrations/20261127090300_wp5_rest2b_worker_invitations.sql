@@ -95,10 +95,10 @@
 --   SET LOCAL ROLE tenant_guard;
 --   CREATE OR REPLACE FUNCTION tenant_guard.accept_membership_invitation(
 --   \lines 424-638 of 20261123040100_wp3c_invitation_and_operator_commands.sql
+--   DROP FUNCTION tenant_guard.invite_worker(UUID, TEXT, UUID, TEXT, TEXT, TEXT, TEXT, UUID, TEXT);
 --   RESET ROLE;
 --   REVOKE CREATE ON SCHEMA tenant_guard FROM tenant_guard;
 --   DROP FUNCTION public.invite_worker(UUID, TEXT, UUID, TEXT, TEXT, TEXT, TEXT, UUID, TEXT);
---   DROP FUNCTION tenant_guard.invite_worker(UUID, TEXT, UUID, TEXT, TEXT, TEXT, TEXT, UUID, TEXT);
 --   DROP FUNCTION private.accept_worker_invitation(UUID, UUID, UUID);
 --   UPDATE public.membership_invitations SET status = 'revoked', revoked_at = pg_catalog.now(), updated_at = pg_catalog.now() WHERE party_id IS NOT NULL AND status = 'issued';
 --   DELETE FROM public.field_policies WHERE record_type = 'membership_invitations' AND field_key = 'party_id';

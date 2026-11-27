@@ -51,7 +51,9 @@
 --   BEGIN;
 --   SET LOCAL lock_timeout = '5s';
 --   DROP FUNCTION public.create_worker(UUID, TEXT, TEXT, TEXT, TEXT, TEXT, TEXT, UUID, TEXT);
+--   SET LOCAL ROLE tenant_guard;
 --   DROP FUNCTION tenant_guard.create_worker(UUID, TEXT, TEXT, TEXT, TEXT, TEXT, TEXT, UUID, TEXT);
+--   RESET ROLE;
 --   DROP FUNCTION private.insert_worker(UUID, TEXT, UUID);
 --   COMMIT;
 --   SELECT pg_notify('pgrst', 'reload schema');

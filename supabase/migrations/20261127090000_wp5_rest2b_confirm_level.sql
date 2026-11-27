@@ -41,7 +41,9 @@
 --   BEGIN;
 --   SET LOCAL lock_timeout = '5s';
 --   DROP FUNCTION public.confirm_worker_security_level(UUID, UUID, TEXT, TEXT, TEXT);
+--   SET LOCAL ROLE tenant_guard;
 --   DROP FUNCTION tenant_guard.confirm_worker_security_level(UUID, UUID, TEXT, TEXT, TEXT);
+--   RESET ROLE;
 --   COMMIT;
 --   SELECT pg_notify('pgrst', 'reload schema');
 -- Down ends
