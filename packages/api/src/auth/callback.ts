@@ -1,3 +1,4 @@
+import { markSharedOriginSessionChange } from "@asym/auth/clipboard-reset";
 import { safeNextParam } from "@asym/auth/demo-login";
 import { createRpcAssignmentReader } from "@asym/auth/principal";
 import {
@@ -113,9 +114,11 @@ export async function GET(request: Request) {
         if (role && roleRoute) {
           if (isServeUnderPathsEnabled()) {
             const app = role === "staff" ? "admin" : role;
-            return callbackRedirect(crossAppHref(app, roleRoute), {
-              sameApp: false,
-            });
+            return markSharedOriginSessionChange(
+              callbackRedirect(crossAppHref(app, roleRoute), {
+                sameApp: false,
+              }),
+            );
           }
           return callbackRedirect(roleRoute, {
             sameApp: roleRoute !== ROLE_HOME.donor,
@@ -123,7 +126,7 @@ export async function GET(request: Request) {
         }
       }
 
-      return callbackRedirect(next);
+      return markSharedOriginSessionChange(callbackRedirect(next));
     }
   }
 
