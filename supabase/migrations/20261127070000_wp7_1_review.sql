@@ -13,11 +13,12 @@
 --    from the writer only through the lane (submit_ministry_update);
 --    otherwise it is the login of the post's missionary_id profile. A
 --    change of the text, title, media, image, visibility, type or status
---    moves content_version by one and sets the review state again; under
---    automatic an update a reviewer rejected or withdrew, or its author
---    withdrew, goes back to submitted, never straight to approved. Any
---    other change, the key's among them, keeps the review columns, the
---    author and the version, and recomputes worker_withheld.
+--    moves content_version by one and sets the review state again: under
+--    automatic an approved update stays approved, and a submitted,
+--    rejected or withdrawn one goes to (or stays) submitted, so only a
+--    reviewer's decision approves it; under review every one goes to
+--    submitted. Any other change, the key's among them, keeps the review
+--    columns, the author and the version, and recomputes worker_withheld.
 -- 2. posts.worker_withheld mirrors the worker's Party: restricted,
 --    high-risk or do-not-publish withholds every update of the worker from
 --    every feed but the author's and a reviewer's; a lift serves them
@@ -336,7 +337,7 @@ BEGIN
     NEW.content_version := OLD.content_version + 1;
   END IF;
   IF NEW.ministry_assignment_id IS NOT NULL
-     AND (TG_OP = 'INSERT' OR OLD.review_state NOT IN ('rejected', 'withdrawn'))
+     AND (TG_OP = 'INSERT' OR OLD.review_state = 'approved')
      AND private.ministry_update_mode(NEW.tenant_id, NEW.ministry_assignment_id) = 'automatic' THEN
     NEW.review_state := 'approved';
     NEW.reviewed_at := pg_catalog.now();
