@@ -298,11 +298,13 @@ test named under "Changing a classification" compares the manifest with them.
 
 ## RLS
 
-Baseline reads require a real active membership in the claimed tenant context or
-`authz.is_super_admin()`. Other tenant rows are excluded for ordinary members.
-Claims alone and inactive memberships grant nothing. All policy writes require
-super-admin authority; ordinary Mission Control admins/finance members cannot
-manage baseline. No non-super tenant writer is activated. The reader ignores
+Baseline reads require a live membership resolved for the request's tenant
+(`field_policies_read`, on `authz.current_tenant_id()` alone; WP2c's rest,
+AL-2675, removed its super-admin branch, so no profile role reads across
+organizations). Other tenant rows are excluded for ordinary members. Claims
+alone and inactive memberships grant nothing. No signed-in user writes a
+policy row: Mission Control administrators and finance members cannot manage
+the baseline, and no tenant writer is activated. The reader ignores
 `tenantId` and selects only `tenant_id IS NULL`. RLS permission to inspect policy
 metadata does not grant permission to inspect classified record values. The
 database tests `supabase/tests/field_policies*.sql` exercise these policies; run

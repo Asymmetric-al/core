@@ -12,7 +12,6 @@ const NOTE = "44444444-4444-4444-8444-444444444444";
 const actor: ActorContext = {
   action: "crm.note.create",
   authTenantId: TENANT,
-  isSuperAdmin: false,
   isTenantAdministrator: false,
   profileId: "profile-from-session",
   role: "staff",

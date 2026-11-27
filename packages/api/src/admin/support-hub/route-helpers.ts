@@ -16,7 +16,6 @@ export type SupportHubContext = {
   tenantId: string;
   userId: string;
   userEmail: string | null;
-  isSuperAdmin: boolean;
   /** Support admins manage every agent’s preferences and saved views. */
   canManageAll: boolean;
 };
@@ -67,8 +66,6 @@ export async function requireSupportHubAccess(
       tenantId: auth.tenantId,
       userId: auth.userId,
       userEmail: auth.email,
-      // WP2c moves this to the operator list; no membership yields it.
-      isSuperAdmin: auth.role === "super_admin",
       canManageAll: isTenantAdministrator(auth),
     },
   };

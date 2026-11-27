@@ -60,17 +60,17 @@ describe("admin fund directory", () => {
     expect(tenantFilters).toEqual([["eq", "tenant_id", "tenant-own"]]);
   });
 
-  it("lets a super admin scope the directory to one tenant", async () => {
-    const { calls } = await callDirectory(
+  it("keeps a caller whose role says super_admin in their own tenant when another tenant is asked for (D-18, AL-2675: this case let a super_admin role scope the directory to the tenant asked for; the directory has no such branch now)", async () => {
+    const { calls, response } = await callDirectory(
       "http://admin.test/api/admin/funds?tenantId=00000000-0000-4000-8000-000000000002",
       { role: "super_admin", tenantId: "tenant-own" },
     );
 
-    expect(calls).toContainEqual([
-      "eq",
-      "tenant_id",
-      "00000000-0000-4000-8000-000000000002",
-    ]);
+    expect(response.status).toBe(200);
+    const tenantFilters = calls.filter(
+      ([method, column]) => method === "eq" && column === "tenant_id",
+    );
+    expect(tenantFilters).toEqual([["eq", "tenant_id", "tenant-own"]]);
   });
 
   it("rejects a malformed tenant id instead of ignoring it", async () => {

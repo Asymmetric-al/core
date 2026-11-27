@@ -35,7 +35,6 @@ function actor(overrides: Partial<ActorContext> = {}): ActorContext {
     tenantId: TENANT_A,
     authTenantId: TENANT_A,
     role: "admin",
-    isSuperAdmin: false,
     isTenantAdministrator: false,
     action: "crm.relationship.read",
     ...overrides,

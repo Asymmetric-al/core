@@ -14,6 +14,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 import { afterEach, describe, expect, it } from "vitest";
+import { KEPT_READS } from "../../../scripts/verify/tenant-rls-catalog.mjs";
 
 import { preMembershipCommandRows } from "../../fixtures/pre-membership-commands";
 import { MIGRATION } from "../acceptance/issue-2256/harness";
@@ -190,29 +191,47 @@ function runVerifier(
         path.join(root, "docs/security/tenant-policy-exceptions.json"),
         "utf8",
       ),
-    ).entries.map(
-      (entry: {
-        table: string;
-        policy: string;
-        cmd: string;
-        roles: string[];
-        permissive: boolean;
-        using: string;
-        check: string;
-      }) => ({
-        table: entry.table,
-        policy: entry.policy,
-        // Council R3: each pin names its command, roles and kind.
-        cmd: entry.cmd,
-        roles: entry.roles,
-        permissive: entry.permissive,
-        using: entry.using,
-        check: entry.check,
-        // Signed-in users hold SELECT on each excepted table.
-        granted: true,
-        writable: true,
-      }),
-    ),
+    )
+      .entries.map(
+        (entry: {
+          table: string;
+          policy: string;
+          cmd: string;
+          roles: string[];
+          permissive: boolean;
+          using: string;
+          check: string;
+        }) => ({
+          table: entry.table,
+          policy: entry.policy,
+          // Council R3: each pin names its command, roles and kind.
+          cmd: entry.cmd,
+          roles: entry.roles,
+          permissive: entry.permissive,
+          using: entry.using,
+          check: entry.check,
+          // Signed-in users hold SELECT on each excepted table.
+          granted: true,
+          writable: true,
+        }),
+      )
+      .concat(
+        KEPT_READS.map((key) => {
+          const [table, policy] = key.split("|");
+          return {
+            table: table!,
+            policy: policy!,
+            cmd: "SELECT",
+            roles: ["authenticated"],
+            permissive: true,
+            using:
+              "(tenant_id = ( SELECT authz.current_tenant_id() AS current_tenant_id))",
+            check: null,
+            granted: true,
+            writable: true,
+          };
+        }),
+      ),
     tenant_helpers: [
       "current_tenant_id",
       "request_tenant_id",
@@ -228,6 +247,8 @@ function runVerifier(
       root: true,
     })),
     published: [],
+    every_policy: [],
+    policy_functions: [],
   };
   const psql = path.join(temporary, "psql.cjs");
   const calls = path.join(temporary, "calls.jsonl");

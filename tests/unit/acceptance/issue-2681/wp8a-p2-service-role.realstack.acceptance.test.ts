@@ -1,5 +1,5 @@
 import { randomUUID } from "node:crypto";
-import { readFileSync } from "node:fs";
+import { readdirSync, readFileSync } from "node:fs";
 
 import pg from "pg";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
@@ -685,18 +685,73 @@ describe.skipIf(!ADMIN_URL)(
       }
     });
 
-    it("the catalog gate passes it: the gate reads no default privileges, the relations of public only, and CREATE on the schemas the release fingerprint covers, but for the allowlisted checkout config read, which a later file creates (D-18, AL-2681 PR 2a: 20261127050200 is after this replay's last file)", () => {
+    it("the catalog gate passes it: the gate reads no default privileges, the relations of public only, and CREATE on the schemas the release fingerprint covers, failing only on the super-admin branches, bare staff reads and field_policies_read pin that 20261127040000, later in the chain than this replay, closes (D-18, AL-2675: the gate holds WP2c rest B's rules since then), and on the allowlisted checkout config read, which a later file creates (D-18, AL-2681 PR 2a: 20261127050200 is after this replay's last file)", () => {
       const gate = runTenantRlsCatalogGate({ databaseUrl: replay.url });
+      const wp2cFile = readdirSync("supabase/migrations").find((f) =>
+        /^\d{14}_wp2c_rest_no_super_admin\.sql$/.test(f),
+      );
+      expect(wp2cFile).toBeDefined();
+      const noSuperAdminBody = readFileSync(
+        `supabase/migrations/${wp2cFile}`,
+        "utf8",
+      )
+        .split("\n")
+        .filter((line) => !/^\s*--/.test(line))
+        .join("\n");
+      const alteredByWp2cB = new Set(
+        [
+          ...noSuperAdminBody.matchAll(
+            /^ALTER POLICY "([^"]+)" ON public\.([a-z_]+)$/gm,
+          ),
+        ].map((m) => `${m[2]}|${m[1]}`),
+      );
+      expect(alteredByWp2cB.size).toBe(62);
+      const isAltered = (f: { table?: string; detail?: string }) => {
+        const policy = /^policy "([^"]+)"/.exec(f.detail ?? "")?.[1];
+        return (
+          policy !== undefined && alteredByWp2cB.has(`${f.table}|${policy}`)
+        );
+      };
+      const later = (f: {
+        code: string;
+        table?: string;
+        detail?: string;
+        function?: string;
+      }) =>
+        (f.code === "ANON_ALLOWLIST_STALE" &&
+          f.function ===
+            "public.checkout_giving_config(p_host text, p_targets jsonb)") ||
+        ((f.code === "POLICY_SUPER_ADMIN_BRANCH" ||
+          f.code === "TENANT_CONDITION_MISSING" ||
+          f.code === "STAFF_READ_ON_BARE_STAFF_CHECK") &&
+          isAltered(f)) ||
+        (f.code === "POLICY_EXCEPTION_CHANGED" &&
+          f.table === "field_policies" &&
+          /^policy "field_policies_read"/.test(f.detail ?? ""));
       expect(
-        gate.failures.filter(
-          (f: { code: string; function?: string }) =>
-            !(
-              f.code === "ANON_ALLOWLIST_STALE" &&
-              f.function ===
-                "public.checkout_giving_config(p_host text, p_targets jsonb)"
-            ),
-        ),
-      ).toEqual([]);
+        later({
+          code: "TENANT_CONDITION_MISSING",
+          table: "donations",
+          detail: 'policy "planted" (SELECT) admits a row without tenant',
+        }),
+      ).toBe(false);
+      expect(
+        later({
+          code: "STAFF_READ_ON_BARE_STAFF_CHECK",
+          table: "profiles",
+          detail: 'policy "planted" admits staff',
+        }),
+      ).toBe(false);
+      expect(
+        later({
+          code: "POLICY_EXCEPTION_CHANGED",
+          table: "field_policies",
+          detail: 'policy "planted" differs',
+        }),
+      ).toBe(false);
+      const remaining = gate.failures.filter((f) => !later(f));
+      expect(remaining).toEqual([]);
+      expect(gate.ok).toBe(gate.failures.length === 0);
     });
   },
 );

@@ -36,11 +36,16 @@ After the migration, on any database whatever its default privileges:
 | `public.current_user_memberships(uuid)`                | DEFINER  | `postgres` (owner), `authenticated`                                 |
 | `public.current_user_organizations()`                  | DEFINER  | `postgres` (owner), `authenticated`                                 |
 | `public.post_comment_authors(uuid)`                    | DEFINER  | `postgres` (owner), `authenticated`                                 |
-| `authz.is_super_admin()`                               | DEFINER  | `postgres` (owner), `authenticated`, `service_role`                 |
 | `authz.has_membership(uuid, authz.membership_role[])`  | DEFINER  | `postgres` (owner), `authenticated`, `service_role`, `tenant_guard` |
 | `authz.has_staff_membership(uuid, authz.staff_role[])` | DEFINER  | `postgres` (owner), `authenticated`, `service_role`, `tenant_guard` |
 
 - No row has a `PUBLIC` or an `anon` entry.
+- `authz.is_super_admin()`, a DEFINER with the same grants as the membership
+  helpers but `tenant_guard`, was dropped by WP2c's rest (AL-2675,
+  `20261127040000_wp2c_rest_no_super_admin.sql`) with the last policy branch
+  that called it. The staff-wide reads call `authz.staff_read()` instead, a
+  SECURITY INVOKER with EXECUTE for `postgres` (owner), `authenticated` and
+  `service_role`, none for `PUBLIC` or `anon`.
 - `tenant_guard` gained EXECUTE on the two membership helpers in AL-2674
   (`20261117034638_command_lane_human_entry_points.sql`), for the human-command
   preamble. Its other grants are listed in `docs/security/tenant-guard.md`,
