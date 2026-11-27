@@ -628,4 +628,74 @@ describe("AL-2678 r2b1: a worker's record in Mission Control", () => {
       "Something went wrong. Nothing was changed.",
     );
   });
+
+  const MAY_HAVE_SAVED =
+    "The change may have been saved. Reload this worker before trying again.";
+  const recordReads = () =>
+    fetchMock.mock.calls.filter(
+      ([url, init]) =>
+        String(url) === `/api/admin/workers/${WORKER}` &&
+        (init as RequestInit | undefined)?.method !== "POST",
+    ).length;
+
+  it("a command whose answer is lost, or is a 2xx that is not the worker envelope, shows that the change may have been saved and reads the worker again (WP5 rest 2b, issue 2835: the lost answer and item 2; red: nothing was changed, or the body taken as the worker)", async () => {
+    for (const reply of [
+      () => Promise.reject(new TypeError("Failed to fetch")),
+      () => ({ status: 200, body: { worker: { assignmentId: WORKER } } }),
+      () => ({ status: 200, body: { ok: true } }),
+    ]) {
+      postReply = reply as typeof postReply;
+      const view = show();
+      const dialog = await openDialog(/Restrict Worker Kestrel/);
+      fillReason(dialog);
+      fireEvent.click(
+        within(dialog).getByRole("checkbox", { name: "Do not publish" }),
+      );
+      const before = recordReads();
+      fireEvent.click(within(dialog).getByRole("button", { name: "Restrict" }));
+      expect((await within(dialog).findByRole("alert")).textContent).toBe(
+        MAY_HAVE_SAVED,
+      );
+      await waitFor(() => expect(recordReads()).toBeGreaterThan(before));
+      view.unmount();
+      client.clear();
+    }
+  });
+
+  it("a reveal whose answer is lost or malformed says the change may have been saved, shows no value, and sends one request with no retry of its own (WP5 rest 2b, issue 2835: the malformed reveal and the lost answer; red: nothing was changed, or a partial value drawn)", async () => {
+    for (const reply of [
+      () => Promise.reject(new TypeError("Failed to fetch")),
+      () => ({ status: 200, body: { legalName: SECRET } }),
+    ]) {
+      posts = [];
+      postReply = reply as typeof postReply;
+      const view = show();
+      const dialog = await openDialog(/Show legal name for Worker Kestrel/);
+      fillReason(dialog, "Visa paperwork");
+      fireEvent.click(
+        within(dialog).getByRole("button", { name: "Show legal name" }),
+      );
+      expect((await within(dialog).findByRole("alert")).textContent).toBe(
+        MAY_HAVE_SAVED,
+      );
+      expect(document.body.textContent).not.toContain(SECRET);
+      expect(posts).toHaveLength(1);
+      view.unmount();
+      client.clear();
+    }
+  });
+
+  it("a read whose 2xx is not the worker envelope shows that workers could not be loaded and draws no worker (WP5 rest 2b, issue 2835 item 2; red: the body drawn as the worker)", async () => {
+    fetchMock.mockImplementation(async () =>
+      respond({
+        status: 200,
+        body: { worker: { assignmentId: WORKER, displayName: "Half Kestrel" } },
+      }),
+    );
+    show();
+    expect(
+      await screen.findByText("Workers could not be loaded."),
+    ).toBeTruthy();
+    expect(document.body.textContent).not.toContain("Half Kestrel");
+  });
 });

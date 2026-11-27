@@ -968,4 +968,42 @@ describe("AL-2678 WP5 part 2-r2b1: the workers' routes (contract, error map, ali
       consoleLog.mockRestore();
     }
   });
+
+  it("a reveal whose answer is malformed has already written its audit row, so it answers the outcome-unknown text and code, never that nothing was changed, and returns no value (WP5 rest 2b, issue 2835; red: the failure text)", async () => {
+    h.auth.mockResolvedValue(makeAuth("admin"));
+    const consoleError = vi
+      .spyOn(console, "error")
+      .mockImplementation(() => {});
+    try {
+      for (const data of [
+        null,
+        { party_id: PARTY, legal_name: SECRET },
+        {
+          party_id: PARTY,
+          legal_name: SECRET,
+          real_country: null,
+          precise_location: null,
+          extra: SECRET,
+        },
+      ]) {
+        stubSession({
+          worker_records: { data: [row()] },
+          reveal_worker_identity: { data },
+        });
+        const failed = await POST_REVEAL(
+          post(`/api/admin/workers/${WORKER}/reveal`, { reason: "x" }),
+          params(),
+        );
+        expect(failed.status).toBe(500);
+        const body = await read(failed);
+        expect(body).toEqual({
+          error: OUTCOME_UNKNOWN,
+          code: "OUTCOME_UNKNOWN",
+        });
+        expect(JSON.stringify(body)).not.toContain(SECRET);
+      }
+    } finally {
+      consoleError.mockRestore();
+    }
+  });
 });
