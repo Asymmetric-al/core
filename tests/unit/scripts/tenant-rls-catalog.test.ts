@@ -1591,6 +1591,10 @@ describe("evaluateTenantRlsCatalog: the request's tenant on every signed-in poli
   const DONOR_OWN =
     "(( SELECT authz.assignment_is('donor'::authz.membership_role) AS assignment_is) AND (profile_id IN ( SELECT authz.caller_profile_ids() AS caller_profile_ids)))";
   const SUPER = "( SELECT authz.is_super_admin() AS is_super_admin)";
+  // AL-2675 (WP2c rest B; record D-18): a staff-wide read calls the
+  // staff-read helper; the bare staff check stays on writes and on the
+  // reviewed narrowed reads, and fails on any other read.
+  const HELPER = "( SELECT authz.staff_read() AS staff_read)";
   const policy = (
     tableName: string,
     using: string | null,
@@ -1668,22 +1672,43 @@ describe("evaluateTenantRlsCatalog: the request's tenant on every signed-in poli
   // Amended by council R2 (record D-18): a policy that is the super-admin
   // branch alone no longer passes. Ruling 6 allows the branch only beside the
   // tenant condition, and no such policy remains after the migration; the
-  // case now asserts that it fails.
-  it("passes the tenant condition with a class term, a super-admin branch beside it and a deny-all policy, and fails a policy that is the branch alone", () => {
+  // case now asserts that it fails. Amended again by WP2c's rest (AL-2675,
+  // pull request B; record D-18): the branch beside the tenant condition
+  // fails too, and the read's class term is the staff-read helper.
+  it("passes the tenant condition with a class term and a deny-all policy, and fails a super-admin branch beside it and the branch alone", () => {
     const result = run([
-      policy("donors", `(${T} AND ${STAFF})`),
-      policy("donors", `(${SUPER} OR (${T} AND (${STAFF} OR ${DONOR_OWN})))`, {
+      policy("donors", `(${T} AND ${HELPER})`),
+      policy("donors", `(${T} AND (${HELPER} OR ${DONOR_OWN}))`, {
         policy: "own",
       }),
       policy("donors", "false", { policy: "deny", cmd: "ALL", check: "false" }),
     ]);
     expect(result.failures).toEqual([]);
     expect(result.counts.tenantPolicies).toBe(3);
+    expect(
+      codes(
+        run([
+          policy(
+            "donors",
+            `(${SUPER} OR (${T} AND (${HELPER} OR ${DONOR_OWN})))`,
+            {
+              policy: "own",
+            },
+          ),
+        ]),
+      ),
+    ).toEqual([
+      "TENANT_CONDITION_MISSING donors",
+      "POLICY_SUPER_ADMIN_BRANCH donors",
+    ]);
     for (const alone of [SUPER, `(${SUPER})`])
       expect(
         codes(run([policy("donors", alone, { policy: "super" })])),
         alone,
-      ).toEqual(["TENANT_CONDITION_MISSING donors"]);
+      ).toEqual([
+        "TENANT_CONDITION_MISSING donors",
+        "POLICY_SUPER_ADMIN_BRANCH donors",
+      ]);
   });
 
   // Council R2: Postgres reads a missing USING as true for every row, and a
@@ -1704,11 +1729,13 @@ describe("evaluateTenantRlsCatalog: the request's tenant on every signed-in poli
         "TENANT_CONDITION_MISSING donors",
       );
     }
+    // Amended by WP2c's rest (AL-2675, pull request B; record D-18): the read
+    // stands on the staff-read helper, the writes keep the bare staff check.
     for (const [cmd, using, check] of [
       ["UPDATE", T_STAFF, null],
       ["ALL", T_STAFF, null],
       ["INSERT", null, T_STAFF],
-      ["SELECT", T_STAFF, null],
+      ["SELECT", `(${T} AND ${HELPER})`, null],
     ] as const)
       expect(
         run([policy("donors", using, { policy: "bound", cmd, check })])
@@ -1731,18 +1758,24 @@ describe("evaluateTenantRlsCatalog: the request's tenant on every signed-in poli
     }
   });
 
-  it("Q6: accepts exactly one super-admin disjunct beside the tenant condition and fails any other", () => {
-    expect(tenantBound(`(${SUPER} OR (${T} AND ${STAFF}))`)).toBe(true);
-    expect(tenantBound(`(${SUPER} OR ${SUPER} OR (${T} AND ${STAFF}))`)).toBe(
+  // Amended by WP2c's rest (AL-2675, pull request B; record D-18): Q6's one
+  // super-admin disjunct no longer passes beside the tenant condition.
+  it("Q6, since WP2c's rest: accepts no super-admin disjunct beside the tenant condition and fails any other disjunct", () => {
+    expect(tenantBound(`(${SUPER} OR (${T} AND ${HELPER}))`)).toBe(false);
+    expect(tenantBound(`(${SUPER} OR ${SUPER} OR (${T} AND ${HELPER}))`)).toBe(
       false,
+    );
+    expect(tenantBound(`((${T} AND ${HELPER}) OR (${T} AND ${STAFF}))`)).toBe(
+      true,
     );
     for (const other of [
       "( SELECT authz.has_membership(( SELECT authz.current_tenant_id() AS current_tenant_id)) AS has_membership)",
       "(( SELECT auth.uid() AS uid) IS NOT NULL)",
       "authz.is_super_admin()",
+      SUPER,
     ]) {
       const result = run([
-        policy("donors", `(${other} OR (${T} AND ${STAFF}))`),
+        policy("donors", `(${other} OR (${T} AND ${HELPER}))`),
       ]);
       expect(codes(result), other).toContain("TENANT_CONDITION_MISSING donors");
     }
@@ -2005,7 +2038,12 @@ describe("evaluateTenantRlsCatalog: the request's tenant on every signed-in poli
           check: "false",
           granted: false,
         }),
-        policy("donors", T_STAFF, { policy: "read", granted: false }),
+        // Amended by WP2c's rest (AL-2675, pull request B; record D-18): a
+        // staff-wide read calls the staff-read helper.
+        policy("donors", `(${T} AND ${HELPER})`, {
+          policy: "read",
+          granted: false,
+        }),
       ]).failures,
     ).toEqual([]);
   });
@@ -2057,8 +2095,11 @@ describe("evaluateTenantRlsCatalog: the request's tenant on every signed-in poli
     expect(TENANT_RLS_CATALOG_SQL).toContain(
       "unnest(array['authenticated', 'anon']) g(r)",
     );
+    // Amended by WP2c's rest (AL-2675, pull request B; record D-109 (g),
+    // D-18): a role reaches a policy as Postgres applies it, by USAGE; the
+    // real-stack case of issue 2675 plants a role held WITH INHERIT FALSE.
     expect(TENANT_RLS_CATALOG_SQL).toContain(
-      "pg_has_role(g.r, x.rid, 'MEMBER')",
+      "pg_has_role(g.r, x.rid, 'USAGE')",
     );
     expect(TENANT_RLS_CATALOG_SQL).toContain("'search_path', (select substr");
     expect(TENANT_RLS_CATALOG_SQL).toMatch(

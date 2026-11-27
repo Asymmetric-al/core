@@ -218,6 +218,11 @@ function runVerifier(
       root: true,
     })),
     published: [],
+    // Amended by WP2c's rest (AL-2675, pull request B; record D-18): the
+    // catalog also lists every policy of every schema and the functions
+    // they depend on; the fake catalog has none beyond the pins above.
+    every_policy: [],
+    policy_functions: [],
   };
   const psql = path.join(temporary, "psql.cjs");
   const calls = path.join(temporary, "calls.jsonl");
