@@ -16,9 +16,11 @@ import {
   finish,
   freshSecrets,
   holdInterrupts,
+  runProofSpecs,
   serveUntilStopped,
   waitForQuietMachine,
   waitForServer,
+  waitForServers,
   watchServers,
   parseOptions,
   prepareRows,
@@ -280,6 +282,91 @@ describe("the runner never runs against a server it did not start (#2858 items 4
     } finally {
       write.mockRestore();
     }
+  });
+
+  it("waits for a quiet machine only where the load can be read, whatever system runs the test (#2845 item 7)", async () => {
+    const write = vi.spyOn(process.stdout, "write").mockReturnValue(true);
+    try {
+      const never = new Promise(() => {});
+      const late = new Promise((resolve) => setTimeout(resolve, 1_000, "late"));
+      const elsewhere = waitForQuietMachine(
+        10,
+        never,
+        () => 99,
+        () => false,
+      );
+      await expect(
+        Promise.race([elsewhere.then(() => "ended"), late]),
+      ).resolves.toBe("ended");
+      expect(write).not.toHaveBeenCalled();
+
+      await waitForQuietMachine(
+        10,
+        Promise.resolve("SIGINT"),
+        () => 99,
+        () => true,
+      );
+      expect(write).toHaveBeenCalledWith(
+        "[n2-on] one-minute load is at or above 10; waiting\n",
+      );
+    } finally {
+      write.mockRestore();
+    }
+  });
+
+  it("leaves the startup wait with 130 on a recorded interrupt, before any row is prepared (#2845 item 10)", async () => {
+    const watch = watchServers([
+      { name: "donor", process: new EventEmitter() },
+    ]);
+    const interrupted = { signal: () => "SIGINT" as NodeJS.Signals };
+    const late = new Promise((resolve) => setTimeout(resolve, 1_000, "late"));
+    await expect(
+      Promise.race([waitForServers([1], watch, interrupted), late]),
+    ).resolves.toBe(130);
+  });
+
+  it("runs the specs asynchronously, so an interrupt or a failed server stops them at once (#2845 item 9)", async () => {
+    function fakeSpawn() {
+      const child = Object.assign(new EventEmitter(), {
+        kill: vi.fn(() => {
+          setTimeout(() => child.emit("exit", null, "SIGTERM"), 0);
+          return true;
+        }),
+      });
+      return { child, spawn: vi.fn(() => child) };
+    }
+    const quiet = () =>
+      watchServers([{ name: "admin", process: new EventEmitter() }]);
+    const never = {
+      wait: () => new Promise<NodeJS.Signals>(() => {}),
+      signal: () => null,
+    };
+
+    const run = fakeSpawn();
+    const interrupt = {
+      wait: () => Promise.resolve("SIGINT" as NodeJS.Signals),
+      signal: () => "SIGINT" as NodeJS.Signals,
+    };
+    await expect(
+      runProofSpecs(["test"], {}, interrupt, quiet(), run.spawn),
+    ).resolves.toBe(130);
+    expect(run.child.kill).toHaveBeenCalledWith("SIGTERM");
+
+    const failing = fakeSpawn();
+    const server = new EventEmitter();
+    const watch = watchServers([{ name: "missionary", process: server }]);
+    setTimeout(() => server.emit("exit", 1, null), 10);
+    await expect(
+      runProofSpecs(["test"], {}, never, watch, failing.spawn),
+    ).rejects.toThrow(/missionary exited \(code 1\)/);
+    expect(failing.child.kill).toHaveBeenCalledWith("SIGTERM");
+
+    const passing = fakeSpawn();
+    setTimeout(() => passing.child.emit("exit", 0, null), 10);
+    await expect(
+      runProofSpecs(["test"], {}, never, quiet(), passing.spawn),
+    ).resolves.toBe(0);
+    expect(passing.child.kill).not.toHaveBeenCalled();
   });
 
   it("tells a waiter at once when a watched server fails", async () => {
