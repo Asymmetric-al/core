@@ -307,7 +307,7 @@ describe.skipIf(!ADMIN_URL)(
         )
       ).rows[0];
 
-    it("create_worker with no level makes one Party and one worker with no login at standard, unreviewed, under the organization's only legal entity, with two audit rows (worker_created, then worker_identity_set), raises the unreviewed signal, answers no legal name, and a confirm at standard clears the signal (red: no create_worker)", async () => {
+    it("create_worker with no level makes one Party and one worker with no login at standard, unreviewed, under the organization's only legal entity, with two audit rows (worker_created and worker_identity_set, written in one transaction at one time), raises the unreviewed signal, answers no legal name, and a confirm at standard clears the signal (red: no create_worker)", async () => {
       const user = await staffLogin();
       const before = await counts();
       const c = await session(user);
@@ -339,7 +339,7 @@ describe.skipIf(!ADMIN_URL)(
           same: true,
         },
       ]);
-      expect(await audits(party)).toEqual([
+      expect((await audits(party)).sort()).toEqual([
         "worker_created",
         "worker_identity_set",
       ]);
