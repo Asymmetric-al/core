@@ -137,6 +137,22 @@ describe("the runner", () => {
     expect(Object.values(proof)).not.toContain(first.payloadSecret);
   });
 
+  it("gives the servers no list of names: the lookup admits them, as in production", () => {
+    const env = appEnvironment(
+      stackValuesFromStatus(STATUS),
+      proofPorts({}),
+      freshSecrets(),
+      {},
+    );
+    expect(env).not.toHaveProperty("FRONT_NAMES");
+    for (const app of ["donor", "admin", "missionary"] as const) {
+      expect(
+        serverEnvironment(app, env, freshSecrets()),
+        app,
+      ).not.toHaveProperty("FRONT_NAMES");
+    }
+  });
+
   it("adds only the person's own rows, and parses its options", () => {
     expect(scratchRowsSql(SEED)).toMatch(/^INSERT INTO authz\.memberships /);
     expect(scratchRowsSql(SEED)).toContain(
