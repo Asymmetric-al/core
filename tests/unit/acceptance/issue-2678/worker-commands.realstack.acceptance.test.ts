@@ -164,6 +164,10 @@ describe.skipIf(!ADMIN_URL)(
             .catch(() => undefined);
           await c.end().catch(() => undefined);
         }
+        await admin.query(
+          "delete from private.party_restricted where tenant_id = $1",
+          [tenant],
+        );
         for (const table of [
           "audit_logs",
           "missionaries",
