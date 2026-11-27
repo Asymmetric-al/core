@@ -194,8 +194,29 @@ describe("PATCH /api/posts/[postId]: an edit goes through the own-ministry lane 
     log.mockRestore();
   });
 
+  it("refuses an edit that leaves its title out, before any command, and an empty or null title still clears it (AL-2680, round 3, R2)", async () => {
+    const refused = await PATCH(request({ ...body, title: undefined }), params);
+    expect(refused.status).toBe(400);
+    expect(((await refused.json()) as { error: string }).error).toBe(
+      "Send the update’s title, words, visibility and status.",
+    );
+    expect(s.rpc).not.toHaveBeenCalled();
+
+    s.rpc.mockResolvedValue({ data: null, error: null });
+    for (const title of ["", "   ", null]) {
+      s.rpc.mockClear();
+      const cleared = await PATCH(request({ ...body, title }), params);
+      expect(cleared.status, JSON.stringify(title)).toBe(200);
+      expect(s.rpc).toHaveBeenCalledWith(
+        "submit_ministry_update",
+        expect.objectContaining({ p_title: null }),
+      );
+    }
+  });
+
   it("refuses an edit without its words, visibility or status, and an autosave without its revision or as a published update, before any command", async () => {
     for (const payload of [
+      { ...body, title: undefined },
       { ...body, content: undefined },
       { ...body, visibility: undefined },
       { ...body, status: undefined },
