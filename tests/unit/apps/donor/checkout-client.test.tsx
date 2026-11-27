@@ -408,6 +408,76 @@ describe("AL-2681 PR 2b: the guest checkout page", () => {
     expect(screen.queryByTestId("payment-element")).toBeNull();
   });
 
+  it.each([
+    ["succeeded", "Your gift was received."],
+    [
+      "processing",
+      "Your payment is processing. You don't need to keep this page open.",
+    ],
+    [
+      "requires_payment_method",
+      "Your card was declined, and you haven't been charged. Check the card details or try another card.",
+    ],
+  ])(
+    "a 409 for a key whose payment this tab holds shows that payment's state (%s), never the reuse sentence",
+    async (status, sentence) => {
+      stripe.confirm.mockResolvedValueOnce({
+        error: { type: "api_connection_error" },
+      });
+      donateAnswers = [
+        {
+          status: 200,
+          body: {
+            intakeId: "i-1",
+            clientSecret: SECRET,
+            connectedAccountId: "acct_1",
+            amountCents: 2500,
+          },
+        },
+        { status: 409, body: { error: "idempotency_key_reused" } },
+      ];
+      stripe.retrieve.mockResolvedValueOnce({ paymentIntent: { status } });
+      render(<CheckoutPageClient {...props()} />);
+      await fillAndGive();
+      await screen.findByText(/We lost the connection/);
+      fireEvent.click(screen.getByRole("button", { name: /^Give \$/ }));
+      expect(await screen.findByText(sentence)).toBeTruthy();
+      expect(
+        screen.queryByText(/already started with different details/),
+      ).toBeNull();
+      expect(stripe.retrieve).toHaveBeenCalledWith(SECRET);
+    },
+  );
+
+  it("a 409 for a key this tab does not hold says nothing was charged this time, and the next Give makes a new key", async () => {
+    donateAnswers = [
+      { status: 409, body: { error: "idempotency_key_reused" } },
+      {
+        status: 200,
+        body: {
+          intakeId: "i-2",
+          clientSecret: SECRET,
+          connectedAccountId: "acct_1",
+          amountCents: 2500,
+        },
+      },
+    ];
+    render(<CheckoutPageClient {...props()} />);
+    await fillAndGive();
+    await screen.findByText(
+      /This gift was already started with different details, so nothing was charged this time/,
+    );
+    expect(stripe.retrieve).not.toHaveBeenCalled();
+    expect(stripe.confirm).not.toHaveBeenCalled();
+    fireEvent.click(screen.getByRole("button", { name: /^Give \$/ }));
+    await screen.findByText("Your gift was received.");
+    const keys = calls
+      .filter((c) => c.url === "/api/donate")
+      .map((c) => c.body.key);
+    expect(keys).toHaveLength(2);
+    expect(keys[1]).not.toBe(keys[0]);
+  });
+
   it("a reused key whose payment this tab holds reads that payment's state instead of the reuse sentence", async () => {
     window.sessionStorage.setItem(
       "asym.checkout.gift-payment.v1",
