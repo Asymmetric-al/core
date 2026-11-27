@@ -6,6 +6,7 @@ const mocks = vi.hoisted(() => ({
   admin: vi.fn(),
   auth: vi.fn(),
   role: vi.fn(),
+  session: vi.fn(),
 }));
 vi.mock("@asym/database/supabase/admin", () => ({
   getAdminClient: mocks.admin,
@@ -18,6 +19,13 @@ vi.mock("@asym/auth/context", () => ({
   requireTenantAdministrator: mocks.role,
   requireRoleClass: mocks.role,
   requireAuth: () => undefined,
+  requestScopeOf: () => ({
+    tenantId: "tenant-a",
+    assignmentId: "assignment-a",
+  }),
+}));
+vi.mock("../../../../packages/api/src/shared/request-session-client", () => ({
+  createRequestSessionClient: mocks.session,
 }));
 import { GET as posts } from "../../../../packages/api/src/admin/posts/index";
 import { GET as comments } from "../../../../packages/api/src/admin/comments/index";
@@ -134,9 +142,12 @@ it("keeps a missing tenant author anonymous", async () => {
   );
   expect((await response.json()).comments[0].author).toBeNull();
 });
-it("supports a multi-status review queue and returns its exact filtered count", async () => {
+it("supports a multi-status review queue and returns its exact filtered count, read on the reviewer's own token", async () => {
   const q = query({ data: [{ id: "old-flagged" }], error: null, count: 7 });
-  mocks.admin.mockReturnValue({ client: { from: () => q } });
+  mocks.session.mockResolvedValue({ from: () => q });
+  mocks.admin.mockReturnValue({
+    client: { from: () => query({ data: [], error: null }) },
+  });
   const response = await posts(
     new Request(
       "https://core.test/api/admin/posts?status=flagged,hidden,pending_review&limit=100",
@@ -151,6 +162,50 @@ it("supports a multi-status review queue and returns its exact filtered count", 
   expect(q.eq).toHaveBeenCalledWith("tenant_id", "tenant-a");
   expect((await response.json()).total).toBe(7);
 });
+it("filters by review state and counts the updates waiting for review (AL-2680, WP7 pull request 1)", async () => {
+  const q = query({ data: [], error: null, count: 3 });
+  mocks.session.mockResolvedValue({ from: () => q });
+  mocks.admin.mockReturnValue({ client: { from: () => q } });
+  const response = await posts(
+    new Request(
+      "https://core.test/api/admin/posts?reviewState=submitted&status=published",
+    ) as NextRequest,
+  );
+  expect(response.status).toBe(200);
+  expect(q.eq).toHaveBeenCalledWith("review_state", "submitted");
+  expect(q.eq).toHaveBeenCalledWith("status", "published");
+  expect((await response.json()).stats.waiting).toBe(3);
+});
+it("reads updates on the reviewer's own token and names their authors through the service key by the ids it read, and only those", async () => {
+  const rows = query({
+    data: [{ id: "post-1", missionary_id: "profile-1" }],
+    error: null,
+    count: 1,
+  });
+  mocks.session.mockResolvedValue({ from: () => rows });
+  const authors = query({
+    data: [
+      {
+        id: "post-1",
+        author: { id: "profile-1", first_name: "Lee", last_name: "Park" },
+      },
+    ],
+    error: null,
+  });
+  const adminFrom = vi.fn(() => authors);
+  mocks.admin.mockReturnValue({ client: { from: adminFrom } });
+  const response = await posts(
+    new Request("https://core.test/api/admin/posts") as NextRequest,
+  );
+  expect(response.status).toBe(200);
+  expect(adminFrom).toHaveBeenCalledTimes(1);
+  expect(adminFrom).toHaveBeenCalledWith("posts");
+  expect(authors.in).toHaveBeenCalledWith("id", ["post-1"]);
+  expect((await response.json()).posts[0].author).toMatchObject({
+    first_name: "Lee",
+    last_name: "Park",
+  });
+});
 it("fails the read when a count fails rather than claiming zero", async () => {
   const rows = query({ data: [], error: null, count: 0 });
   const failed = query({
@@ -158,7 +213,8 @@ it("fails the read when a count fails rather than claiming zero", async () => {
     error: { message: "Count unavailable" },
   });
   const from = vi.fn().mockReturnValueOnce(rows).mockReturnValue(failed);
-  mocks.admin.mockReturnValue({ client: { from } });
+  mocks.session.mockResolvedValue({ from });
+  mocks.admin.mockReturnValue({ client: { from: () => rows } });
   const response = await posts(
     new Request("https://core.test/api/admin/posts") as NextRequest,
   );

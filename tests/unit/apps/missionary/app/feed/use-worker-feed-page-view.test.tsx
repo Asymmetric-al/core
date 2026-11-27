@@ -888,3 +888,59 @@ describe("a refused save", () => {
     );
   });
 });
+
+describe("withdrawing one's own update (AL-2680, WP7 pull request 1)", () => {
+  const published = {
+    id: "post-1",
+    post_type: "Update",
+    title: "Clinic opens",
+    content: "<p>We opened.</p>",
+    created_at: "2026-11-27T10:00:00.000Z",
+    visibility: "public",
+    status: "published",
+    review_state: "approved",
+  };
+  function feed(withdraw: () => Response) {
+    fetchMock.mockImplementation(async (input) => {
+      const url = String(input);
+      if (url === "/api/posts/post-1/withdraw") return withdraw();
+      if (url.startsWith("/api/posts?status=published"))
+        return jsonResponse(200, { posts: [published] });
+      if (url.startsWith("/api/posts")) return jsonResponse(200, { posts: [] });
+      if (url.startsWith("/api/follower-requests"))
+        return jsonResponse(200, { requests: [] });
+      throw new Error(`unexpected fetch ${url}`);
+    });
+  }
+  const withdrawCalls = () =>
+    fetchMock.mock.calls.filter(
+      ([url, init]) =>
+        String(url) === "/api/posts/post-1/withdraw" && init?.method === "POST",
+    );
+
+  it("posts to the update's withdraw route and shows it withdrawn", async () => {
+    feed(() => jsonResponse(200, { success: true }));
+    const { result } = renderHook(() => useWorkerFeedPageView());
+    await waitFor(() => expect(result.current.posts).toHaveLength(1));
+    await act(async () => {
+      await result.current.withdrawPost("post-1");
+    });
+    expect(withdrawCalls()).toHaveLength(1);
+    expect(result.current.posts[0]?.review_state).toBe("withdrawn");
+    expect(toast.success).toHaveBeenCalledWith("Update withdrawn");
+  });
+
+  it("keeps the update as it was and says so when the withdrawal fails", async () => {
+    feed(() => jsonResponse(500, { error: "unavailable" }));
+    const { result } = renderHook(() => useWorkerFeedPageView());
+    await waitFor(() => expect(result.current.posts).toHaveLength(1));
+    await act(async () => {
+      await result.current.withdrawPost("post-1");
+    });
+    expect(withdrawCalls()).toHaveLength(1);
+    expect(result.current.posts[0]?.review_state).toBe("approved");
+    expect(toast.error).toHaveBeenCalledWith(
+      "Couldn’t withdraw that update. Try again.",
+    );
+  });
+});
