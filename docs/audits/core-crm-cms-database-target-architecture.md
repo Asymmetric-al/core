@@ -887,7 +887,7 @@ Only direct edges are drawn. A dependency that a package states and the diagram 
   - A finance staff member cannot read a restricted note.
   - The shared MFA-level check refuses a session without the second factor and passes after the challenge, and WP3 runs the same case on the first platform command that ships.
   - A person who is not an operator cannot open the operator area.
-  - The catalog shows every staff-wide read policy on the staff-read helper, those of the member-care tables excepted, and no insert, update or delete policy that calls it.
+  - The catalog shows every staff-wide read policy on the staff-read helper, those of the member-care tables excepted, and no insert, update or delete policy that calls it; `field_policies_read` is not a staff-wide read and keeps `authz.current_tenant_id()` alone (amended 2026-11-27, WP2c pull request B).
   - A donor row and a missionary row still read `field_policies`.
   - Before WP3, a signed-in donor reaches the portal through their one donor membership, and a person with donor memberships in both fixture tenants is refused there.
   - A staff member created by the backfill holds the development sub-role and not the `care.access` capability.
