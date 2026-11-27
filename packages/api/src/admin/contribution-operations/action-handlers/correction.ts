@@ -80,7 +80,11 @@ export async function executeCorrection<TContribution>(
       auditInput(input, {
         beforeSummary: correction.before ?? null,
         afterSummary: correction.after ?? null,
-        downstreamEffects: { idempotentReplay: true },
+        downstreamEffects: {
+          idempotentReplay: true,
+          receiptOutcome: correction.receiptOutcome?.status ?? "not_required",
+          receiptSnapshotId: correction.receiptOutcome?.snapshotId ?? null,
+        },
       }),
     );
 

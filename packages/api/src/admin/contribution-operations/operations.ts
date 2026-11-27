@@ -1110,53 +1110,30 @@ function emailReceiptOutcome(
   return { ...base, status: "emailed", reason: null, snapshotId };
 }
 
-async function stagedGiftReceiptStatus(input: {
-  supabaseAdmin: SupabaseAdmin;
-  tenantId: string;
-  stagedGiftId: string;
-}): Promise<string | null> {
-  const { data, error } = await input.supabaseAdmin
-    .from("staged_gifts")
-    .select("receipt_status")
-    .eq("tenant_id", input.tenantId)
-    .eq("id", input.stagedGiftId)
-    .maybeSingle();
-  if (error) {
-    throw new Error(error.message);
-  }
-  const row = data as Record<string, unknown> | null;
-  return row && typeof row.receipt_status === "string"
-    ? row.receipt_status
-    : null;
-}
+type ReceiptReplayStop = {
+  status: "superseded" | "blocked";
+  reason: string;
+};
 
 async function sendExistingEmailReceipt(input: {
   supabaseAdmin: SupabaseAdmin;
   tenantId: string;
-  stagedGiftId: string;
+  stagedGiftId: string | null;
   snapshot: ReceiptSnapshotRef;
   base: Pick<
     ReceiptDeliveryOutcome,
     "affectedFields" | "requested" | "confirmed"
   >;
+  mayResend: boolean;
+  gate?: () => Promise<ReceiptReplayStop | null>;
 }): Promise<ReceiptDeliveryOutcome> {
   const last = await lastReceiptSend({
     supabaseAdmin: input.supabaseAdmin,
     tenantId: input.tenantId,
     snapshotId: input.snapshot.id,
   });
-  if (last === "sent") {
-    return emailReceiptOutcome(input.base, "sent", input.snapshot.id);
-  }
-  if (
-    last === null &&
-    (await stagedGiftReceiptStatus({
-      supabaseAdmin: input.supabaseAdmin,
-      tenantId: input.tenantId,
-      stagedGiftId: input.stagedGiftId,
-    })) === "suppressed"
-  ) {
-    return emailReceiptOutcome(input.base, "suppressed", input.snapshot.id);
+  if (last === "sent" || last === "suppressed") {
+    return emailReceiptOutcome(input.base, last, input.snapshot.id);
   }
   const createdAt = input.snapshot.createdAt
     ? Date.parse(input.snapshot.createdAt)
@@ -1172,6 +1149,30 @@ async function sendExistingEmailReceipt(input: {
       reason:
         "The updated receipt email for this correction is being sent; reload to see whether it went out.",
       snapshotId: input.snapshot.id,
+    };
+  }
+  if (!input.mayResend) {
+    return last === "failed"
+      ? emailReceiptOutcome(input.base, "failed", input.snapshot.id)
+      : {
+          ...input.base,
+          status: "failed",
+          reason:
+            "The updated receipt email for this correction was not sent. Retry with email to send it.",
+          snapshotId: input.snapshot.id,
+        };
+  }
+  const stop = await input.gate?.();
+  if (stop) {
+    return { ...input.base, ...stop, snapshotId: null };
+  }
+  if (!input.stagedGiftId) {
+    return {
+      ...input.base,
+      status: "blocked",
+      reason:
+        "This gift has no staged gift workflow record, so an updated receipt email cannot be sent.",
+      snapshotId: null,
     };
   }
   if (!input.snapshot.content) {
@@ -1262,6 +1263,7 @@ async function runReceiptDelivery(input: {
       stagedGiftId: input.stagedGiftId,
       snapshot: inserted.snapshot,
       base,
+      mayResend: true,
     });
   }
 
@@ -1331,6 +1333,22 @@ function assertSameCorrection(
   }
 }
 
+async function findCorrectionSnapshots(input: {
+  supabaseAdmin: SupabaseAdmin;
+  tenantId: string;
+  adjustmentId: string;
+}): Promise<{
+  email: ReceiptSnapshotRef | null;
+  pdf: ReceiptSnapshotRef | null;
+}> {
+  const [email, pdf] = await Promise.all(
+    (["email", "pdf"] as const).map((kind) =>
+      findReceiptSnapshot({ ...input, kind }),
+    ),
+  );
+  return { email: email ?? null, pdf: pdf ?? null };
+}
+
 async function replayReceipt(input: {
   supabaseAdmin: SupabaseAdmin;
   tenantId: string;
@@ -1338,12 +1356,13 @@ async function replayReceipt(input: {
   adjustmentId: string;
   detail: ContributionDetail;
   stagedGiftId: string | null;
-  selection: ReceiptDeliverySelection;
+  selection: ReceiptDeliverySelection | null;
+  receiptAffected: boolean;
   affectedFields: string[];
   requested: ReceiptDeliverySelection | null;
   snapshotContent: ReceiptSnapshotContentV1;
-  existing?: ReceiptSnapshotRef | null;
-}): Promise<ReceiptDeliveryOutcome> {
+  check: (selection: ReceiptDeliverySelection) => Promise<string | null>;
+}): Promise<ReceiptDeliveryOutcome | null> {
   const base = {
     affectedFields: input.affectedFields,
     requested: input.requested,
@@ -1360,46 +1379,61 @@ async function replayReceipt(input: {
       !Number.isNaN(ownAt) &&
       Date.parse(adjustment.createdAt) > ownAt,
   );
-  if (superseded) {
-    return {
-      ...base,
-      status: "superseded",
-      reason:
-        "A later correction changed this gift, so this correction's receipt was not sent; the later correction's receipt carries the gift as it stands.",
-      snapshotId: null,
-    };
+  const supersededStop: ReceiptReplayStop = {
+    status: "superseded",
+    reason:
+      "A later correction changed this gift, so this correction's receipt was not sent; the later correction's receipt carries the gift as it stands.",
+  };
+  const snapshots = await findCorrectionSnapshots({
+    supabaseAdmin: input.supabaseAdmin,
+    tenantId: input.tenantId,
+    adjustmentId: input.adjustmentId,
+  });
+  if (snapshots.email) {
+    const selection = input.selection;
+    return sendExistingEmailReceipt({
+      supabaseAdmin: input.supabaseAdmin,
+      tenantId: input.tenantId,
+      stagedGiftId: input.stagedGiftId,
+      snapshot: snapshots.email,
+      base,
+      mayResend: selection?.choice === "email",
+      gate: async () => {
+        if (superseded) return supersededStop;
+        const blocked = selection ? await input.check(selection) : null;
+        return blocked ? { status: "blocked", reason: blocked } : null;
+      },
+    });
   }
-  if (input.selection.choice === "defer") {
-    return runReceiptDelivery({ ...input, adjustmentId: input.adjustmentId });
-  }
-  const kind = input.selection.choice === "pdf" ? "pdf" : "email";
-  const existing =
-    input.existing !== undefined
-      ? input.existing
-      : await findReceiptSnapshot({
-          supabaseAdmin: input.supabaseAdmin,
-          tenantId: input.tenantId,
-          adjustmentId: input.adjustmentId,
-          kind,
-        });
-  if (!existing || (kind === "email" && !input.stagedGiftId)) {
-    return runReceiptDelivery({ ...input, adjustmentId: input.adjustmentId });
-  }
-  if (kind === "pdf") {
+  if (snapshots.pdf) {
     return {
       ...base,
       status: "pdf_generated",
       reason: null,
-      snapshotId: existing.id,
+      snapshotId: snapshots.pdf.id,
     };
   }
-  return sendExistingEmailReceipt({
-    supabaseAdmin: input.supabaseAdmin,
-    tenantId: input.tenantId,
-    stagedGiftId: input.stagedGiftId!,
-    snapshot: existing,
-    base,
-  });
+  if (!input.receiptAffected) return null;
+  if (!input.selection) {
+    return {
+      ...base,
+      status: "deferred",
+      reason:
+        "No updated receipt action was selected; the receipt remains as originally sent.",
+      snapshotId: null,
+    };
+  }
+  if (input.selection.choice === "defer") {
+    return runReceiptDelivery({ ...input, selection: input.selection });
+  }
+  if (superseded) {
+    return { ...base, ...supersededStop, snapshotId: null };
+  }
+  const blocked = await input.check(input.selection);
+  if (blocked) {
+    return { ...base, status: "blocked", reason: blocked, snapshotId: null };
+  }
+  return runReceiptDelivery({ ...input, selection: input.selection });
 }
 
 export async function applyContributionCorrection(input: {
@@ -1484,7 +1518,7 @@ export async function applyContributionCorrection(input: {
   let receiptContext: Awaited<
     ReturnType<typeof loadReceiptDeliveryContext>
   > | null = null;
-  if (receiptAffected) {
+  if (receiptAffected && !keyed) {
     receiptContext = await loadReceiptDeliveryContext({
       supabaseAdmin: input.supabaseAdmin,
       tenantId: input.tenantId,
@@ -1518,49 +1552,78 @@ export async function applyContributionCorrection(input: {
         })
       : new Map<string, string | null>();
 
-  const storedReceipt = (adjustmentId: string) =>
-    deliverySelection &&
-    deliverySelection.choice !== "defer" &&
-    affectedFields.length > 0
-      ? findReceiptSnapshot({
-          supabaseAdmin: input.supabaseAdmin,
-          tenantId: input.tenantId,
-          adjustmentId,
-          kind: deliverySelection.choice === "pdf" ? "pdf" : "email",
-        })
-      : Promise.resolve(null);
+  const deliveryBlock = async (
+    selection: ReceiptDeliverySelection,
+  ): Promise<string | null> => {
+    const context = await loadReceiptDeliveryContext({
+      supabaseAdmin: input.supabaseAdmin,
+      tenantId: input.tenantId,
+      donorId: before.donor?.id ?? null,
+    });
+    try {
+      validateReceiptDeliverySelection({
+        policy: context.policy,
+        donor: context.donor,
+        actorCapabilities: input.actorCapabilities ?? [],
+        selection,
+      });
+      return null;
+    } catch (error) {
+      if (error instanceof ApiHttpError) return error.message;
+      throw error;
+    }
+  };
 
   const replay = async (
     adjustmentId: string,
     current: ContributionDetail = before,
     names: ReadonlyMap<string, string | null> = workerPublicNames,
   ) => {
-    const stored = await storedReceipt(adjustmentId);
+    let detail = current;
+    let detailNames = names;
+    if (
+      !detail.adjustments.some((adjustment) => adjustment.id === adjustmentId)
+    ) {
+      detail = await loadContributionOperationDetail(detailInput);
+      if (
+        receiptAffected &&
+        deliverySelection &&
+        deliverySelection.choice !== "defer"
+      ) {
+        detailNames = await loadReceiptWorkerPublicNames({
+          supabaseAdmin: input.supabaseAdmin,
+          tenantId: input.tenantId,
+          before: detail,
+          effectiveValues,
+        });
+      }
+    }
     return {
       before: summarizeEffectiveDetail(before),
-      after: summarizeEffectiveDetail(current),
+      after: summarizeEffectiveDetail(detail),
       status: "applied" as const,
       adjustmentId,
       idempotentReplay: true,
       receiptOutcome:
-        deliverySelection && (receiptAffected || stored)
+        affectedFields.length > 0
           ? await replayReceipt({
               supabaseAdmin: input.supabaseAdmin,
               tenantId: input.tenantId,
               contributionId: input.contributionId,
               adjustmentId,
-              detail: current,
-              stagedGiftId: current.stagedGift?.id ?? null,
+              detail,
+              stagedGiftId: detail.stagedGift?.id ?? null,
               selection: deliverySelection,
+              receiptAffected,
               affectedFields,
               requested: requestedDelivery ?? deliverySelection,
               snapshotContent: buildReceiptSnapshotContent({
-                detail: current,
-                workerPublicNames: names,
+                detail,
+                workerPublicNames: detailNames,
                 affectedFields,
                 adjustmentId,
               }),
-              existing: stored,
+              check: deliveryBlock,
             })
           : null,
     };

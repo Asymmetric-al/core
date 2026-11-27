@@ -250,7 +250,7 @@ describe("AL-2681 issue 2857 item 32: a retry whose key commits between the key 
 });
 
 describe("AL-2681 issue 2857 item 33: on a replay, a receipt the consent gate suppressed reads blocked, not pending", () => {
-  it("the donor's address is on the suppression list: the first answer is blocked, and the same-key replay is blocked too and sends nothing", async () => {
+  it("the donor's address is on the suppression list: the first answer is blocked, and the same-key replay is blocked too and sends nothing (D-18, AL-2681 PR 2b A fix round F4: the snapshot's one send-log row records the suppression)", async () => {
     const state: State = { ...freshState(true), suppressionTypes: ["bounce"] };
     const first = await correctWith(state, { key: "key-33" });
     expect(first.receiptOutcome).toMatchObject({ status: "blocked" });
@@ -261,7 +261,9 @@ describe("AL-2681 issue 2857 item 33: on a replay, a receipt the consent gate su
       receiptOutcome: { status: "blocked", snapshotId: state.snapshots[0]!.id },
     });
     expect(sendEmailMock).not.toHaveBeenCalled();
-    expect(state.emailSendLogs).toEqual([]);
+    expect(state.emailSendLogs.map((row) => row.status)).toEqual([
+      "suppressed",
+    ]);
   });
 });
 
