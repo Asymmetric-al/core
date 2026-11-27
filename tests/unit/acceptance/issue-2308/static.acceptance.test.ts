@@ -1,7 +1,7 @@
 /**
  * #2308 spec r1 §4 C11–C12; owned by Acceptance. No realstack file (§8).
  * Samson comment 6420148722, rulings verbatim:
- * OQ1: the 5 MB cap applies to the cropped upload.
+ * OQ1: the 4 MB cap applies to the cropped upload.
  * OQ2: bucket-level limits are not in this slice, and the `20261025125600`
  * reservation is released. The route enforces the limits, so no migration is
  * needed. Any bucket-level hardening will be filed separately.
@@ -135,4 +135,12 @@ describe("#2308 static contracts (A)", () => {
     expect(rows.length).toBeLessThanOrEqual(116);
     expect(rows.reduce((n, e) => n + e.count, 0)).toBeLessThanOrEqual(178);
   });
+});
+
+it("describes the 4 MB cropped upload on the missionary photo and cover controls", () => {
+  const source = readFileSync(
+    "apps/missionary/app/profile/profile-form-column.tsx",
+    "utf8",
+  );
+  expect(source.match(/4 MB/g)).toHaveLength(2);
 });

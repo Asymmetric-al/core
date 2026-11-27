@@ -101,6 +101,44 @@ describe("api/email/assets/upload", () => {
     vi.restoreAllMocks();
   });
 
+  it.each([
+    [4_000_000, 201],
+    [4_000_001, 413],
+  ])("a multipart image of %i bytes gets %i", async (size, status) => {
+    const req = createUploadRequest(
+      new File([new Uint8Array(size)], "test.png", { type: "image/png" }),
+    );
+    expect((await req.clone().arrayBuffer()).byteLength).toBeLessThan(
+      4_500_000,
+    );
+    const response = await POST(req);
+    expect(response.status).toBe(status);
+    if (status === 413)
+      expect(await response.json()).toEqual({
+        error: "Image file must be 4 MB or smaller.",
+      });
+  });
+
+  it.each(["declared", "streamed"])(
+    "refuses a %s oversized multipart envelope before parsing",
+    async (kind) => {
+      const req = createUploadRequest(
+        new File(["x"], "a.png", { type: "image/png" }),
+        "x".repeat(4_500_000),
+      );
+      if (kind === "declared") req.headers.set("content-length", "4500000");
+      const parse = vi.spyOn(Response.prototype, "formData");
+      const originalParse = vi.spyOn(req, "formData");
+      const response = await POST(req);
+      expect(response.status).toBe(413);
+      expect(await response.json()).toEqual({
+        error: "Image file must be 4 MB or smaller.",
+      });
+      expect(parse).not.toHaveBeenCalled();
+      expect(originalParse).not.toHaveBeenCalled();
+      expect(uploadMock).not.toHaveBeenCalled();
+    },
+  );
   it("rejects unsupported image MIME types", async () => {
     const response = await POST(
       createUploadRequest(
