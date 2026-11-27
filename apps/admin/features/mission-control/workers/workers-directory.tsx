@@ -4,25 +4,55 @@ import { TenantLink as Link } from "@asym/auth/tenant-navigation";
 import { PageShell } from "@asym/ui/components/primitives/page-shell";
 import { Button, buttonVariants } from "@asym/ui/components/shadcn/button";
 import {
+  DataTableResponsive,
+  type ColumnDef,
+} from "@asym/ui/components/shadcn/data-table";
+import {
   Empty,
   EmptyDescription,
   EmptyHeader,
   EmptyTitle,
 } from "@asym/ui/components/shadcn/empty";
 import { Skeleton } from "@asym/ui/components/shadcn/skeleton";
-import {
-  Table,
-  TableBody,
-  TableCaption,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@asym/ui/components/shadcn/table";
 import { useSearchParams } from "next/navigation";
 
 import { WorkerBadges } from "./worker-display";
-import { isUnreviewed, useWorkers } from "./workers-api";
+import { isUnreviewed, useWorkers, type Worker } from "./workers-api";
+
+const PAGE_SIZE = 20;
+
+const WORKER_COLUMNS: ColumnDef<Worker>[] = [
+  {
+    id: "displayName",
+    accessorKey: "displayName",
+    header: "Name",
+    cell: ({ row }) => (
+      <div className="flex flex-col">
+        <Link
+          href={`/workers/${encodeURIComponent(row.original.assignmentId)}`}
+          className="font-medium underline-offset-4 hover:underline"
+        >
+          {row.original.displayName}
+        </Link>
+        {row.original.publicAlias ? (
+          <span className="text-xs text-muted-foreground">
+            Alias: {row.original.publicAlias}
+          </span>
+        ) : null}
+      </div>
+    ),
+  },
+  {
+    id: "security",
+    header: "Security",
+    cell: ({ row }) => <WorkerBadges worker={row.original} />,
+  },
+  {
+    id: "login",
+    header: "Login",
+    cell: ({ row }) => (row.original.hasLogin ? "Linked" : "None"),
+  },
+];
 
 export const WORKERS_TITLE = "Workers";
 export const WORKERS_DESCRIPTION =
@@ -118,43 +148,23 @@ export function WorkersDirectory() {
             </EmptyHeader>
           </Empty>
         ) : (
-          <Table>
-            <TableCaption className="sr-only">
-              {unreviewedOnly ? "Unreviewed workers" : "Workers"}
-            </TableCaption>
-            <TableHeader>
-              <TableRow>
-                <TableHead scope="col">Name</TableHead>
-                <TableHead scope="col">Security</TableHead>
-                <TableHead scope="col">Login</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {shown.map((worker) => (
-                <TableRow key={worker.assignmentId}>
-                  <TableCell>
-                    <div className="flex flex-col">
-                      <Link
-                        href={`/workers/${encodeURIComponent(worker.assignmentId)}`}
-                        className="font-medium underline-offset-4 hover:underline"
-                      >
-                        {worker.displayName}
-                      </Link>
-                      {worker.publicAlias ? (
-                        <span className="text-xs text-muted-foreground">
-                          Alias: {worker.publicAlias}
-                        </span>
-                      ) : null}
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <WorkerBadges worker={worker} />
-                  </TableCell>
-                  <TableCell>{worker.hasLogin ? "Linked" : "None"}</TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+          <DataTableResponsive
+            columns={WORKER_COLUMNS}
+            data={shown}
+            label={unreviewedOnly ? "Unreviewed workers" : "Workers"}
+            getRowId={(worker) => worker.assignmentId}
+            searchKey="displayName"
+            searchPlaceholder="Search workers"
+            initialState={{ pagination: { pageIndex: 0, pageSize: PAGE_SIZE } }}
+            config={{
+              enableRowSelection: false,
+              enableColumnVisibility: false,
+              enableSorting: false,
+              enableFilters: true,
+              enablePagination: true,
+              enableKeyboardNavigation: false,
+            }}
+          />
         )}
       </div>
     </PageShell>
