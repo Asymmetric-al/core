@@ -215,6 +215,7 @@ beforeEach(async () => {
   vi.stubEnv("CORE_SERVE_UNDER_PATHS", "1");
   vi.stubEnv("CORE_APP_BASE_PATH", "/admin");
   signedIn = true;
+  readFails = false;
   for (const handler of Object.values(routeHandlers)) handler.mockClear();
   cookie = `${WEB_STUDIO_TENANT_COOKIE}=${await signWebStudioSelection({ tenantId: TA, assignmentId: ROW.id }, SECRET)}`;
 });
@@ -233,9 +234,13 @@ const supabaseClient = {
   },
   rpc: async (fn: string) => {
     if (fn !== "current_user_assignments") throw new Error(fn);
-    return { data: [ROW], error: null };
+    return readFails
+      ? { data: null, error: { code: "57014", message: "statement timeout" } }
+      : { data: [ROW], error: null };
   },
 };
+
+let readFails = false;
 
 function resolveCaller() {
   return createWebStudioCallerResolver({
@@ -350,6 +355,19 @@ describe("on: no Web Studio REST handler runs for a call the claim check refuses
     );
     expect(handler).not.toHaveBeenCalled();
   });
+
+  it.each(["GET", "POST", "OPTIONS"] as const)(
+    "answers a %s whose membership read failed 503 no-store with no refusal header, and runs no handler (#2858 item 1; base: 403 no_selection, as if the person had to choose again)",
+    async (method) => {
+      readFails = true;
+      const { handler, gate } = gated();
+      const response = await gate(requestFor(method, "/pages", RIGHT), {});
+      expect(response.status).toBe(503);
+      expect(response.headers.get(WEB_STUDIO_REFUSAL_HEADER)).toBeNull();
+      expect(response.headers.get("cache-control")).toBe("no-store");
+      expect(handler).not.toHaveBeenCalled();
+    },
+  );
 
   it("refuses a call with no name no_selection and runs no handler", async () => {
     const { handler, gate } = gated();
