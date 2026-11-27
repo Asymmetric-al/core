@@ -287,9 +287,11 @@ answer; see [the release job runbook](../../ops/release-job.md).
 | admin      | `/api/upload/editor-image`                                     | Node.js (no `runtime` segment export) | Shared editor-image upload, request-scoped client          |
 | admin      | `/api/webhooks/stripe`                                         | Node.js (no `runtime` segment export) | Stripe SDK, admin client                                   |
 | admin      | `/api/webhooks/stripe-connect`                                 | Node.js (no `runtime` segment export) | Connected-accounts Stripe webhook (`W8-R10`), admin client |
+| admin      | `/api/webhooks/stripe-payment-events`                          | Node.js (no `runtime` segment export) | Connected accounts payment events (`W8-R39`), admin client |
 | donor      | `/api/auth/cleanup-demo-users`                                 | Node.js (no `runtime` segment export) | Admin client                                               |
 | donor      | `/api/auth/demo-account`                                       | Node.js (no `runtime` segment export) | Demo auth server action                                    |
 | donor      | `/api/auth/signout`                                            | Node.js (no `runtime` segment export) | Auth/session cleanup                                       |
+| donor      | `/api/checkout/config`                                         | Node.js (no `runtime` segment export) | Anonymous giving config read (`W8-R18`), anon client       |
 | donor      | `/api/donate`                                                  | Node.js (no `runtime` segment export) | Stripe SDK, admin client                                   |
 | donor      | `/api/donations`                                               | Node.js (no `runtime` segment export) | Admin client                                               |
 | donor      | `/api/donor/billing-portal`                                    | Node.js (no `runtime` segment export) | Stripe Billing Portal, admin client                        |
