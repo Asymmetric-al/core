@@ -1,12 +1,19 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+import {
+  runForWebStudioDocument,
+  webStudioServerFunctionRefusal,
+} from "../../../../apps/admin/src/cms/web-studio-server-function";
+
+import type { WebStudioSelectionState } from "../../../../apps/admin/src/cms/web-studio-access";
+
 const TA = "00000000-0000-0000-0000-000000000001";
 const ROW_A = "00000000-0000-4000-8000-0000000000a1";
 const GENERATION = "x-asym-web-studio-generation";
 
 const request = vi.hoisted(() => ({ headers: new Headers() }));
-const access = vi.hoisted(() => ({
-  selection: {} as Record<string, unknown>,
+const access = vi.hoisted((): { selection: WebStudioSelectionState } => ({
+  selection: { kind: "none" },
 }));
 
 vi.mock("next/headers", () => ({
@@ -15,9 +22,6 @@ vi.mock("next/headers", () => ({
 vi.mock("../../../../apps/admin/src/cms/web-studio-access", () => ({
   readWebStudioSelection: async () => access.selection,
 }));
-
-const { runForWebStudioDocument, webStudioServerFunctionRefusal } =
-  await import("../../../../apps/admin/src/cms/web-studio-server-function");
 
 function claims(generation?: string): Headers {
   const headers = new Headers({
@@ -28,13 +32,15 @@ function claims(generation?: string): Headers {
   return headers;
 }
 
+const SELECTED = {
+  kind: "selected",
+  tenantId: TA,
+  assignmentId: ROW_A,
+  generation: 7,
+} as const satisfies WebStudioSelectionState;
+
 beforeEach(() => {
-  access.selection = {
-    kind: "selected",
-    tenantId: TA,
-    assignmentId: ROW_A,
-    generation: 7,
-  };
+  access.selection = SELECTED;
 });
 
 describe("on: a server function carries the name's generation byte for byte", () => {
@@ -47,12 +53,9 @@ describe("on: a server function carries the name's generation byte for byte", ()
   ])(
     "refuses %s with scope_mismatch before any handler runs (base: run)",
     async (_label, generation) => {
-      const selection = access.selection as Parameters<
-        typeof webStudioServerFunctionRefusal
-      >[1];
-      expect(
-        webStudioServerFunctionRefusal(claims(generation), selection),
-      ).toBe("scope_mismatch");
+      expect(webStudioServerFunctionRefusal(claims(generation), SELECTED)).toBe(
+        "scope_mismatch",
+      );
       request.headers = claims(generation);
       const handler = vi.fn(async () => "ran");
       const refused = await runForWebStudioDocument(handler).catch(

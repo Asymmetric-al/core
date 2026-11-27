@@ -1,32 +1,23 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import * as address from "../../../packages/auth/tenant-address";
-import * as decisions from "../../../packages/auth/tenant-address-decisions";
+import {
+  decideNameAddress,
+  listNameAddressChoices,
+  type AddressRow,
+} from "../../../packages/auth/tenant-address-decisions";
+
+import type { MembershipRole, StaffSubrole } from "@asym/database/types";
 
 const TA = "00000000-0000-0000-0000-000000000001";
 const TB = "6f1c2a4e-9b3d-4c5e-8f7a-0b1c2d3e4f5a";
 
-type Module = Record<string, unknown>;
-function fn<T extends (...args: never[]) => unknown>(
-  module: Module,
-  name: string,
-): T {
-  const value = module[name];
-  expect(typeof value, `${name} is exported`).toBe("function");
-  return value as T;
-}
-
-const parseSubRoleAddress = (pathname: string) =>
-  fn<(p: string) => unknown>(address, "parseSubRoleAddress")(pathname);
-const startsWithOrganizationId = (pathname: string) =>
-  fn<(p: string) => boolean>(address, "startsWithOrganizationId")(pathname);
-const refusesAddressOnName = (pathname: string, roleClass: string) =>
-  fn<(p: string, r: string) => boolean>(address, "refusesAddressOnName")(
-    pathname,
-    roleClass,
-  );
-const nameAddressPrefix = (subRole: string | null) =>
-  fn<(s: string | null) => string>(address, "nameAddressPrefix")(subRole);
+const {
+  nameAddressPrefix,
+  parseSubRoleAddress,
+  refusesAddressOnName,
+  startsWithOrganizationId,
+} = address;
 
 beforeEach(() => {
   vi.stubEnv("CORE_SERVE_UNDER_PATHS", "1");
@@ -170,10 +161,10 @@ describe("on: decisions over the name's rows", () => {
   const USER = "u";
   function row(
     tenantId: string,
-    membershipRole: "staff" | "missionary" | "donor",
-    staffRole: string | null,
+    membershipRole: MembershipRole,
+    staffRole: StaffSubrole | null,
     n: number,
-  ) {
+  ): AddressRow & { userId: string; revision: string; isTenantAdmin: boolean } {
     return {
       assignmentId: `00000000-0000-4000-8000-${n.toString(16).padStart(12, "0")}`,
       userId: USER,
@@ -192,21 +183,8 @@ describe("on: decisions over the name's rows", () => {
     row(TB, "missionary", null, 5),
   ];
   const Q = [row(TA, "staff", "member_care", 6)];
-  type Decide = (input: {
-    assignments: unknown[];
-    roleClass: string;
-    nameTenantId: string;
-    subRole: string | null;
-  }) => unknown;
-  const decide = (input: Parameters<Decide>[0]) =>
-    fn<Decide>(decisions, "decideNameAddress")(input);
-  type List = (input: {
-    assignments: unknown[];
-    roleClass: string;
-    nameTenantId: string;
-  }) => unknown;
-  const list = (input: Parameters<List>[0]) =>
-    fn<List>(decisions, "listNameAddressChoices")(input);
+  const decide = decideNameAddress;
+  const list = listNameAddressChoices;
 
   it("serves one row at the empty prefix and refuses any sub-role for it (R5)", () => {
     expect(
@@ -244,7 +222,7 @@ describe("on: decisions over the name's rows", () => {
         subRole: "finance",
       }),
     ).toEqual({ kind: "allow", assignment: P[1], prefix: "/~finance" });
-    for (const subRole of [null, "member_care"]) {
+    for (const subRole of [null, "member_care"] as const) {
       expect(
         decide({
           assignments: P,

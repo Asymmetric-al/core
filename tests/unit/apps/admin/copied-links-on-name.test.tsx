@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 
+import { dataGridFeatures } from "@asym/ui/components/data-grid-panel";
 import {
-  dataTableFeatures,
   flexRender,
   useTable,
 } from "@asym/ui/components/shadcn/data-table/tanstack";
@@ -15,7 +15,7 @@ import {
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import type { ContributionGridRow } from "@asym/api/admin/contributions/types";
-import type { ColumnDef } from "@asym/ui/components/shadcn/data-table/tanstack";
+import type { DataGridColumnDef } from "@asym/ui/components/data-grid-panel";
 import type { ReactNode } from "react";
 
 const toasts = vi.hoisted(() => ({ success: vi.fn(), error: vi.fn() }));
@@ -83,7 +83,7 @@ const scope = (addressPrefix: string) => ({
   addressPrefix,
 });
 
-const contribution = {
+const contribution: ContributionGridRow = {
   shared: {
     donationId: "donation-1",
     amountCents: 10000,
@@ -110,21 +110,61 @@ const contribution = {
   donorId: "donor-1",
   donorName: "Ada Lovelace",
   donorEmail: "ada@example.test",
+  donorAvatar: null,
+  donorType: null,
+  donorPhone: null,
+  donorLocation: null,
+  organizationName: null,
   amount: 10000,
+  amountGross: 10000,
+  amountNet: null,
+  amountFee: null,
+  amountTaxDeductible: null,
   currency: "USD",
   date: "2026-05-30T00:00:00.000Z",
+  contributionDate: "2026-05-30T00:00:00.000Z",
+  createdAt: "2026-05-30T00:00:00.000Z",
+  updatedAt: "2026-05-30T00:00:00.000Z",
+  settlementDate: null,
+  depositDate: null,
+  status: "completed",
+  subStatus: null,
+  type: "One-time",
+  paymentMethod: "Credit Card",
+  source: "Online",
+  fundId: "fund-1",
+  fundCode: "GENERAL",
+  fundName: "General Fund",
+  missionaryId: null,
+  missionaryName: null,
+  campaignId: null,
+  receiptStatus: "pending",
+  receiptSent: false,
+  receiptSentAt: null,
+  stagedGiftId: null,
+  stagedGiftStatus: null,
+  stagedGiftReviewReason: null,
+  crmPostStatus: null,
+  annualStatementEligible: true,
+  entryMethod: "api",
+  reconciliationStatus: "unreconciled",
   transactionId: "donation-1",
-} as unknown as ContributionGridRow;
+  externalTransactionId: null,
+  processorTransactionId: "donation-1",
+  notes: null,
+  notesPreview: null,
+  isAnonymous: false,
+};
 
 function ActionCell({
   columns,
   record,
 }: {
-  columns: ColumnDef<ContributionGridRow>[];
+  columns: DataGridColumnDef<ContributionGridRow>[];
   record: ContributionGridRow;
 }) {
   const table = useTable({
-    features: dataTableFeatures,
+    features: dataGridFeatures,
     data: [record],
     columns,
   });

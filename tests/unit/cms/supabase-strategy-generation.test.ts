@@ -3,15 +3,10 @@ import {
   signWebStudioSelection,
   WEB_STUDIO_TENANT_COOKIE,
 } from "@asym/auth/web-studio";
-import {
-  afterEach,
-  beforeAll,
-  beforeEach,
-  describe,
-  expect,
-  it,
-  vi,
-} from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+
+import { createSupabaseAuthStrategy as createStrategy } from "../../../apps/admin/src/cms/auth/supabase-strategy";
+import { readWebStudioRefusal } from "../../../apps/admin/src/cms/auth/web-studio-refusal";
 
 type Strategy = {
   authenticate: (args: {
@@ -38,15 +33,19 @@ const ROW = {
   updated_at: "2026-11-26T09:00:00.000000+00:00",
 };
 
-let createSupabaseAuthStrategy: (deps?: Record<string, unknown>) => Strategy;
-let readWebStudioRefusal: (req: unknown) => string | null;
-
-beforeAll(async () => {
-  ({ createSupabaseAuthStrategy } =
-    (await import("../../../apps/admin/src/cms/auth/supabase-strategy")) as never);
-  ({ readWebStudioRefusal } =
-    (await import("../../../apps/admin/src/cms/auth/web-studio-refusal")) as never);
-});
+function createSupabaseAuthStrategy(
+  dependencies: Record<string, unknown>,
+): Strategy {
+  const strategy = createStrategy(
+    dependencies as Parameters<typeof createStrategy>[0],
+  );
+  return {
+    authenticate: (args) =>
+      strategy.authenticate(
+        args as Parameters<typeof strategy.authenticate>[0],
+      ) as Promise<{ user: Record<string, unknown> | null }>,
+  };
+}
 
 function fakes(signedIn = true) {
   const client = {
@@ -262,7 +261,8 @@ describe("on: the E2E bypass compares the generation alike", () => {
   }
 
   it("refuses 6, and a read without a generation, with scope_mismatch (base: served)", async () => {
-    for (const claim of [{ [CLAIM]: "6" }, {}]) {
+    const claims: Array<Record<string, string>> = [{ [CLAIM]: "6" }, {}];
+    for (const claim of claims) {
       const { strategy, payload } = fakes(false);
       const request = req("GET");
       const outcome = await strategy.authenticate({
