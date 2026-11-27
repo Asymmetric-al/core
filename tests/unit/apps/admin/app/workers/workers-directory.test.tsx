@@ -15,7 +15,11 @@ import {
   QueryClientProvider,
 } from "../../../../../../apps/admin/node_modules/@tanstack/react-query/build/modern/index.js";
 
-const state = vi.hoisted(() => ({ search: "" }));
+const state = vi.hoisted(() => ({ search: "", caps: [] as string[] }));
+
+vi.mock("@asym/lib/mission-control/context", () => ({
+  useMC: () => ({ capabilities: state.caps }),
+}));
 
 vi.mock("next/navigation", () => ({
   useSearchParams: () => new URLSearchParams(state.search),
@@ -65,6 +69,7 @@ function reply(status: number, body: unknown) {
 beforeEach(() => {
   client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
   state.search = "";
+  state.caps = [];
   vi.stubGlobal("fetch", fetchMock);
   fetchMock.mockReset();
   vi.stubGlobal(
@@ -227,5 +232,57 @@ describe("AL-2678 r2b1: the workers' directory", () => {
       target: { value: "0007" },
     });
     await waitFor(() => expect(names()).toEqual(["Worker 0007"]));
+  });
+  it("with the capability, Add worker opens a form that validates on submit (display name, legal name and reason marked, focus on the first), keeps the legal name out of Session Replay, sends the names and reason, closes and reads the list again; without the capability there is no Add worker (WP5 rest 2b, create_worker's form; red: no Add worker)", async () => {
+    state.caps = ["safety.restrict_publication"];
+    let posted: unknown = null;
+    fetchMock.mockImplementation(async (_url: string, init?: RequestInit) => {
+      if (init?.method === "POST") {
+        posted = JSON.parse(String(init.body));
+        return reply(201, { worker: worker(A) });
+      }
+      return reply(200, { workers: [] });
+    });
+    const reads = () =>
+      fetchMock.mock.calls.filter(
+        ([, init]) => (init as RequestInit | undefined)?.method !== "POST",
+      ).length;
+    const view = show();
+    fireEvent.click(await screen.findByRole("button", { name: "Add worker" }));
+    const dialog = await screen.findByRole("dialog");
+    fireEvent.click(within(dialog).getByRole("button", { name: "Add worker" }));
+    const display = within(dialog).getByLabelText("Display name");
+    await waitFor(() =>
+      expect(display.getAttribute("aria-invalid")).toBe("true"),
+    );
+    expect(document.activeElement).toBe(display);
+    const legal = within(dialog).getByLabelText("Legal name");
+    expect(legal.getAttribute("aria-invalid")).toBe("true");
+    expect(
+      within(dialog).getByLabelText("Reason").getAttribute("aria-invalid"),
+    ).toBe("true");
+    expect(posted).toBeNull();
+    expect(legal.getAttribute("autocomplete")).toBe("off");
+    expect(legal.closest("[data-sentry-block]")).not.toBeNull();
+    fireEvent.change(display, { target: { value: "Worker Heron" } });
+    fireEvent.change(legal, { target: { value: "Legal Heron" } });
+    fireEvent.change(within(dialog).getByLabelText("Reason"), {
+      target: { value: "New field worker" },
+    });
+    const before = reads();
+    fireEvent.click(within(dialog).getByRole("button", { name: "Add worker" }));
+    await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull());
+    expect(posted).toEqual({
+      displayName: "Worker Heron",
+      legalName: "Legal Heron",
+      reason: "New field worker",
+    });
+    await waitFor(() => expect(reads()).toBeGreaterThan(before));
+    view.unmount();
+    client.clear();
+    state.caps = [];
+    show();
+    expect(await screen.findByText("No workers yet.")).toBeTruthy();
+    expect(screen.queryByRole("button", { name: "Add worker" })).toBeNull();
   });
 });
