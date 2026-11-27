@@ -685,10 +685,20 @@ describe.skipIf(!ADMIN_URL)(
       }
     });
 
-    it("the catalog gate passes it: the gate reads no default privileges, the relations of public only, and CREATE on the schemas the release fingerprint covers", () => {
+    it("the catalog gate passes it: the gate reads no default privileges, the relations of public only, and CREATE on the schemas the release fingerprint covers, failing only on the super-admin branches, bare staff reads and field_policies_read pin that 20261127040000, later in the chain than this replay, closes (D-18, AL-2675: the gate holds WP2c rest B's rules since then)", () => {
       const gate = runTenantRlsCatalogGate({ databaseUrl: replay.url });
-      expect(gate.failures).toEqual([]);
-      expect(gate.ok).toBe(true);
+      const superAdminTables = new Set(
+        gate.failures
+          .filter((f) => f.code === "POLICY_SUPER_ADMIN_BRANCH")
+          .map((f) => f.table),
+      );
+      const later = (f: { code: string; table?: string }) =>
+        f.code === "POLICY_SUPER_ADMIN_BRANCH" ||
+        f.code === "STAFF_READ_ON_BARE_STAFF_CHECK" ||
+        (f.code === "TENANT_CONDITION_MISSING" &&
+          superAdminTables.has(f.table)) ||
+        (f.code === "POLICY_EXCEPTION_CHANGED" && f.table === "field_policies");
+      expect(gate.failures.filter((f) => !later(f))).toEqual([]);
     });
   },
 );
