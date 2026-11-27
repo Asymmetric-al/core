@@ -186,7 +186,7 @@ describe("AL-2681 PR 2a: the money schedule, one step-free function on the */30 
       "money_due_work",
       "claim_provider_operation",
     ]);
-    expect(calls[1]!.args).toMatchObject({ p_operation_id: OP });
+    expect(calls[2]!.args).toMatchObject({ p_operation_id: OP });
     expect(result.parts[0]).toMatchObject({
       part: "worker",
       status: "done",
@@ -227,7 +227,7 @@ describe("AL-2681 PR 2a: the money schedule, one step-free function on the */30 
       "apply_payment_outcome",
       "record_provider_event_failure",
     ]);
-    expect(calls[2]!.args).toEqual({ p_event_id: EVENT, p_attempt: 2 });
+    expect(calls[3]!.args).toEqual({ p_event_id: EVENT, p_attempt: 2 });
     expect(result.parts.find((p) => p.part === "events")).toMatchObject({
       handled: 1,
       failures: 1,
@@ -252,7 +252,7 @@ describe("AL-2681 PR 2a: the money schedule, one step-free function on the */30 
       "claim_provider_event",
       "apply_account_event",
     ]);
-    expect(calls[2]!.args).toEqual({
+    expect(calls[3]!.args).toEqual({
       p_event_id: ACCOUNT_EVENT,
       p_attempt: 2,
       p_snapshot: { id: "acct_alpha1", livemode: false },
@@ -281,7 +281,7 @@ describe("AL-2681 PR 2a: the money schedule, one step-free function on the */30 
       "money_due_work",
       "reconcile_payment_account",
     ]);
-    expect(calls[1]!.args).toEqual({
+    expect(calls[2]!.args).toEqual({
       p_account_id: ACCOUNT_ROW,
       p_snapshot: { id: "acct_alpha1", livemode: false, closed: true },
     });
@@ -483,7 +483,7 @@ describe("AL-2681 part 2a fix round: the schedule tells the truth and keeps its 
       "money_due_work",
       "reconcile_payment_account",
     ]);
-    expect(calls[1]!.args).toEqual({
+    expect(calls[2]!.args).toEqual({
       p_account_id: ACCOUNT_ROW,
       p_snapshot: { id: "acct_alpha1", livemode: false, read_failed: true },
     });

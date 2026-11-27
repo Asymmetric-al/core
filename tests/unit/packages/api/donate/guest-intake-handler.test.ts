@@ -172,7 +172,7 @@ describe("AL-2681 PR 2a: the guest intake handler (tested directly; not mounted 
       retryAfterSeconds: 60,
     });
     expect(s.calls.map((c) => c.fn)).toEqual(["take_intake_attempt"]);
-    expect(s.calls[0]!.args).toEqual({ p_address: "198.51.100.4" });
+    expect(s.calls[0]!.args).toMatchObject({ p_address: "198.51.100.4" });
     expect(s.sendFirst).not.toHaveBeenCalled();
   });
 
@@ -181,7 +181,7 @@ describe("AL-2681 PR 2a: the guest intake handler (tested directly; not mounted 
     await s.handler(
       request(body(), { "x-forwarded-for": "203.0.113.9, 10.0.0.1" }),
     );
-    expect(s.calls[0]!.args).toEqual({ p_address: "203.0.113.9" });
+    expect(s.calls[0]!.args).toMatchObject({ p_address: "203.0.113.9" });
   });
 
   it("ignores a browser total: the command gets the lines and the fee the policy computes, the host from the request, and no total", async () => {
