@@ -15,16 +15,59 @@ import {
   type NameGenerationState,
   type NameTenantState,
 } from "./request-headers";
-import { parseTenantAddress, withTenantAddress } from "./tenant-address";
+import {
+  parseSubRoleAddress,
+  parseTenantAddress,
+  withTenantAddress,
+} from "./tenant-address";
 
 import type { AuthContext } from "./context";
 import type { DocumentScope } from "@asym/database/document-scope";
 
 export async function readAddressPrefix(): Promise<string | null> {
   const prefix = (await headers()).get(ADDRESS_PREFIX_HEADER);
+  if (isServeUnderPathsEnabled()) {
+    return prefix === "" ||
+      (prefix !== null && parseSubRoleAddress(prefix)?.prefix === prefix)
+      ? prefix
+      : null;
+  }
   return prefix && parseTenantAddress(prefix)?.prefix === prefix
     ? prefix
     : null;
+}
+
+function nameDocumentScope(
+  auth: AuthContext,
+  addressPrefix: string,
+  nameTenantId: string | null,
+  generation: NameGenerationState,
+): DocumentScope {
+  const subRole =
+    addressPrefix === "" ? null : parseSubRoleAddress(addressPrefix)!.subRole;
+  const { assignment } = auth;
+  if (
+    nameTenantId === null ||
+    !auth.isAuthenticated ||
+    !auth.userId ||
+    !assignment ||
+    assignment.tenantId !== nameTenantId ||
+    auth.tenantId !== nameTenantId ||
+    (subRole !== null && assignment.staffRole !== subRole)
+  ) {
+    throw new Error(
+      `The resolved assignment does not match the page address "${addressPrefix}".`,
+    );
+  }
+  return {
+    userId: auth.userId,
+    tenantId: nameTenantId,
+    assignmentId: assignment.assignmentId,
+    addressPrefix,
+    ...(generation.kind === "valid"
+      ? { generation: generation.generation }
+      : {}),
+  };
 }
 
 export async function readServerNameTenantState(): Promise<NameTenantState> {
@@ -61,6 +104,14 @@ export async function readDocumentScope(
     );
   }
   const addressPrefix = await readAddressPrefix();
+  if (isServeUnderPathsEnabled() && addressPrefix !== null) {
+    return nameDocumentScope(
+      auth,
+      addressPrefix,
+      nameTenantIdOf(name),
+      generation,
+    );
+  }
   if (!addressPrefix) return null;
   const { tenantId, subRole } = parseTenantAddress(addressPrefix)!;
   const { assignment } = auth;

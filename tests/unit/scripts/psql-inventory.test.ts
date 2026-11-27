@@ -104,6 +104,15 @@ const PSQL_NAMERS: Record<string, { reason: string; lines: string[] }> = {
       'import { LOOPBACK_HOSTS, isLoopbackDatabaseUrl } from "../lib/psql.mjs";',
     ],
   },
+  "scripts/e2e/run-n2-on-proof.mts": {
+    reason:
+      "N2 part 2c (AL-2671): imports the loopback check and the shared runner, through which it adds and removes the proof's rows on a local database marked disposable, and names the psql binary the disposable-database check runs; starts no database client of its own",
+    lines: [
+      'import { isLoopbackDatabaseUrl, runPsqlQuery } from "../lib/psql.mjs";',
+      'psqlBin: "psql",',
+      "return runPsqlQuery({",
+    ],
+  },
   "scripts/cms/lib/migration-target.mjs": {
     reason:
       "comments and two messages that name the CMS runner's psql and the CA file it reads",

@@ -73,7 +73,6 @@
   "apps/admin/app/(app)/settings/eve/approval-budget-panel.tsx": 1,
   "apps/admin/app/(app)/settings/eve/launch-readiness-panel.tsx": 4,
   "apps/admin/app/(app)/settings/eve/model-policy-panel.tsx": 1,
-  "apps/admin/app/(app)/settings/eve/platform-owner-field.tsx": 5,
   "apps/admin/app/(app)/settings/eve/query-keys.ts": 1,
   "apps/admin/app/(app)/settings/eve/workspace-access.ts": 1,
   "apps/admin/app/(app)/settings/eve/workspace-shell.tsx": 6,

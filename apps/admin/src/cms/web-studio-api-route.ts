@@ -17,8 +17,39 @@ import {
   requestOrigin,
   STUDIO_ORIGIN_REFUSAL,
 } from "@asym/auth/request-headers";
+import { isServeUnderPathsEnabled } from "@asym/database/app-base-path";
+
+import {
+  createWebStudioCallerResolver,
+  type WebStudioCaller,
+  type WebStudioCallerInput,
+} from "./auth/supabase-strategy";
+import { webStudioRefusalResponse } from "./auth/web-studio-refusal";
 
 type RouteHandler<Args> = (request: Request, args: Args) => Promise<Response>;
+
+type ResolveCaller = (input: WebStudioCallerInput) => Promise<WebStudioCaller>;
+
+export function claimedCallsOnly<Args>(
+  handler: RouteHandler<Args>,
+  resolveCaller: ResolveCaller = createWebStudioCallerResolver(),
+): RouteHandler<Args> {
+  return async (request, args) => {
+    if (!isServeUnderPathsEnabled()) return handler(request, args);
+    const caller = await resolveCaller({
+      headers: request.headers,
+      request: { method: request.method },
+    });
+    if (caller.kind === "allow" && caller.generation.kind === "valid") {
+      return handler(request, args);
+    }
+    return webStudioRefusalResponse(
+      caller.kind === "refuse" && caller.refusal
+        ? caller.refusal
+        : "no_selection",
+    );
+  };
+}
 
 const WRITE_METHODS = new Set(["POST", "PUT", "PATCH", "DELETE"]);
 const LOOPBACK_HOSTS = new Set(["localhost", "127.0.0.1", "[::1]"]);

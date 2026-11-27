@@ -2,7 +2,7 @@
 
 **Status:** Recorded on 2026-11-25 with N2 part 1 of the Core CRM, CMS and
 database foundation program (AL-2671); decisions 12 to 20 added on 2026-11-26
-with N2 part 2a. It describes the code as it is and ratifies no product
+with N2 part 2a, and 21 to 27 on 2026-11-27 with the rest of N2 part 2. It describes the code as it is and ratifies no product
 intent. Accepted platform intent is in
 [`docs/adr/`](../../../../docs/adr/README.md) and in the OpenSpec change
 `adopt-tenant-owned-domains`.
@@ -200,8 +200,8 @@ surface)` in `verified-name.ts` calls `resolve_verified_host` with the
     The `Location` is built with `ownOriginUrl` and rebased to the public
     origin; a destination with a backslash or starting with `//` is a
     `404 no-store`. No session is read and no cookie set. The missionary
-    table's form with the organization in the address is answered only for
-    the name's own ID, byte for byte; otherwise the middleware decides. The
+    table's form with the organization in the address is never answered: an
+    ID first segment is refused before the table (decision 22). The
     matcher follows Next.js's (case-insensitive, strict about the trailing
     slash) on both tables; it also matches a remainder with an empty segment,
     which Next.js leaves alone, so that `/mc//x` is refused rather than handed
@@ -234,17 +234,86 @@ surface)` in `verified-name.ts` calls `resolve_verified_host` with the
     carries no generation: `readAssignmentNarrowing` reads one only beside a
     valid name.
 
+### Addresses without the organization (N2 part 2b)
+
+21. **The address names a sub-role at most.** With a verified name given to
+    the middleware (always so with the switch on), the organization is the
+    name's and the page address carries no organization ID. A person with one
+    row of the surface in the name's organization (every missionary, a
+    one-row staff member) works at the bare path, prefix `""`; a staff member
+    with several rows there works under `/~<sub-role>`, prefix
+    `/~<sub-role>`. `decideNameAddress` in `tenant-address-decisions.ts`
+    decides over the name's rows only: none is `/no-access` as before; one row
+    with a `/~<sub-role>` is `404 no-store` (R5); several rows with no or an
+    unheld sub-role go to `/choose-organization` with `next` kept and no
+    `tenant`; nothing switches organization. A sub-role is the bytes after `~`
+    up to `/` or the end, equal to one staff sub-role name byte for byte
+    (`parseSubRoleAddress`); anything else is an ordinary path.
+    `x-asym-address-prefix` is set only by the proxy, to `""` or
+    `/~<sub-role>`, and `readAddressPrefix` reads nothing else with the switch
+    on.
+
+22. **An ID, or a sub-role out of place, is refused before the session.**
+    `refusesAddressOnName` answers, in both proxies after the name is admitted
+    and before the configuration redirects, and again in the middleware before
+    any session read: a first segment that is an organization ID (36 ASCII
+    characters 8-4-4-4-12, hex digits of either case, followed by the end,
+    `/` or `~`; percent-encoded forms are not decoded and reach the ordinary
+    not-found), the name's or another's, is `404 no-store` (R4), so a trailing
+    slash never earns its `308` first; so is a `/~<sub-role>` in front of a
+    root of `OUTSIDE_TENANT_SEGMENT_ROOTS` (raw or decoded once), and any
+    `/~<sub-role>` in the missionary workspace. `admitOperatorArea` stays
+    first in the staff proxy and refuses `/~<sub-role>/operator` as it refuses
+    `/<id>/operator`. The missionary table's form with an ID therefore answers
+    nothing on.
+
+23. **The chooser names no organization.** With a valid name,
+    `loadOrganizationChoices` lists the person's rows of the surface in the
+    name's organization only (`listNameAddressChoices`), each linking
+    `/~<sub-role>/<next>` or, for one row, the bare path, where the proxy
+    decides again; `tenant` is neither read nor set, its retry address
+    included. A missionary holds at most one row per organization, so the
+    missionary chooser never lists.
+
+24. **Every address built is ID-free.** The server and browser link helpers
+    add `""` or `/~<sub-role>`; copied links carry no prefix at all
+    (`useCopiedLinkHref`, R6), so a colleague with one row lands on the page
+    and one with several is asked; Web Studio's link back is `/~<sub-role>`
+    or `/`; the invitation doorway's fallback is `/`. The only code that
+    builds a path from an organization's ID is the off-mode path:
+    `buildTenantPrefix`, the off answer of `invitations/accept.ts` and the off
+    fallback of `InvitationDoorway.tsx`, the three sites the lint rule allows.
+
+25. **Web Studio's entry carries the sub-role only (R7).** See
+    [0006](0006-web-studio-outside-the-tenant-segment.md), decision 20.
+
+### Web Studio's claim (N2 part 2d)
+
+26. **Web Studio's REST calls and server functions carry the generation.**
+    See [0006](0006-web-studio-outside-the-tenant-segment.md), decision 21.
+
+### The proof (N2 part 2c)
+
+27. **A local browser proof, outside CI.** `bun run test:e2e:n2-on`
+    (`scripts/e2e/run-n2-on-proof.mts`, `playwright.n2-on.config.ts`) builds
+    the three apps with the switch on and serves them on loopback behind the
+    front, with stamp keys, a Payload secret and a sign-in password made for
+    the run and passed only in each server's environment, on a local stack
+    marked `disposable` (`N2_ON_SUPABASE_WORKDIR`, a scratch copy of
+    `supabase/`). Its specs (`tests/e2e/n2-on-*.spec.ts`) are ignored by the
+    default and boneyard configurations; CI runs none (ruling-n3 Q12: N8
+    decides). Every SQL step goes through the shared psql runner and is
+    restored, the name's row with its own generation.
+
 ### Not here
 
 11. **Owned elsewhere.** The prototype `/api/cms/public/*` reads and their
     front exemption were retired in WP6 part 2a (AL-2679). N2 part 2a moved
     the dashboards' configuration redirects behind admission and added the
     name's generation, the callback and the invitation (decisions 12 to 20).
-    N2 part 2b takes the organization ID and the chooser out of the address,
-    with `~<sub-role>`, copied links, Web Studio's entry and the lint rule;
-    part 2c proves two tabs under two roles and a stale tab in a browser;
-    part 2d makes Web Studio's REST calls and server functions send and
-    compare the claim. N2 parts 3
+    The rest of N2 part 2 took the organization ID and the chooser out of the
+    address and made Web Studio's calls carry the generation (decisions 21 to
+    27). N2 parts 3
     to 5 own page identity, cache keys and the donor's cache rules (with WP7),
     addresses built outside a request, and deleting the off-mode path. WP3b
     part 1 built the donor app's verified-name admission, active-only donor

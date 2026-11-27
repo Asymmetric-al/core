@@ -25,6 +25,15 @@ A signed-in layout supplies the scope for its page: the person, organization and
 
 7. **Expose the rendered scope to production end-to-end tests without visible text.** `TenantDocument` in `packages/auth/tenant-navigation.tsx` writes its address prefix to a hidden `data-tenant-scope` marker; `PortalDocument` in `packages/auth/portal-document.tsx` writes the tenant ID because it has no address prefix. Both include `data-tenant-assignment`. The tests can verify which row actually rendered, and the marker tells the browser nothing it did not already receive in the component's scope prop. Cited: [council round 1, A13][reviews].
 
+8. **An empty prefix has a segment of its own.** With the switch on, a
+   one-row document's scope has the prefix `""`. `TenantDocument` gives
+   `DocumentScopeProvider` that segment (every page path outside
+   `OUTSIDE_TENANT_SEGMENT_ROOTS` that is not a `/~<sub-role>` address), as
+   the provider needs for a scope whose address names nothing, so the
+   provider's own guard joins the address guard; a `/~<sub-role>` scope keeps
+   its prefix as its segment. See
+   [0015](0015-organization-from-the-verified-name.md), decision 21.
+
 [work]: ../../../../docs/audits/core-crm-cms-database-target-architecture.md#wp2--membership-as-the-only-authority
 [decisions]: ../../../../docs/audits/core-crm-cms-database-implementation-record.md#6-decisions-and-deviations
 [reviews]: ../../../../docs/audits/core-crm-cms-database-implementation-record.md#11-council-reviews

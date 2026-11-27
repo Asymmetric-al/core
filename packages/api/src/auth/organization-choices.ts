@@ -9,11 +9,16 @@ import {
 import {
   CHOOSER_PATH,
   isOutsideTenantSegment,
+  startsWithOrganizationId,
   stripTenantAddress,
   withTenantAddress,
 } from "@asym/auth/tenant-address";
-import { listAddressChoices } from "@asym/auth/tenant-address-decisions";
+import {
+  listAddressChoices,
+  listNameAddressChoices,
+} from "@asym/auth/tenant-address-decisions";
 import { readServerNameTenantState } from "@asym/auth/tenant-server";
+import { isServeUnderPathsEnabled } from "@asym/database/app-base-path";
 
 import type { MembershipRole, StaffSubrole } from "@asym/database/types";
 
@@ -62,6 +67,13 @@ function choicePath(next: string | null | undefined): string {
   if (!safe) return "/";
   const url = new URL(safe, "http://localhost");
   const pathname = stripTenantAddress(url.pathname);
+  if (
+    isServeUnderPathsEnabled() &&
+    (startsWithOrganizationId(url.pathname) ||
+      startsWithOrganizationId(pathname))
+  ) {
+    return "/";
+  }
   if (isOutsideTenantSegment(pathname)) return "/";
   // What is left once the prefix is gone is an address of its own, so it
   // passes the same check again before any href is built from it (council
@@ -149,16 +161,25 @@ export async function loadOrganizationChoices(input: {
   if (nameTenantId === "refused") return { kind: "ok", organizations: [] };
   const signedIn = await getSignedInAssignments();
   if (signedIn.kind === "unavailable") {
-    return { kind: "unavailable", retryHref: chooserRetryHref(input) };
+    return {
+      kind: "unavailable",
+      retryHref: chooserRetryHref(nameTenantId ? { next: input.next } : input),
+    };
   }
   if (signedIn.kind !== "signed_in") return { kind: signedIn.kind };
 
   const tenantId = nameTenantId ?? input.tenantId;
-  const choices = listAddressChoices({
-    assignments: signedIn.assignments,
-    roleClass: input.roleClass,
-    ...(tenantId ? { tenantId } : {}),
-  });
+  const choices = nameTenantId
+    ? listNameAddressChoices({
+        assignments: signedIn.assignments,
+        roleClass: input.roleClass,
+        nameTenantId,
+      })
+    : listAddressChoices({
+        assignments: signedIn.assignments,
+        roleClass: input.roleClass,
+        ...(tenantId ? { tenantId } : {}),
+      });
   const tenantIds = [...new Set(choices.map((choice) => choice.tenantId))];
   const names = signedIn.organizationNames;
   const path = choicePath(input.next);

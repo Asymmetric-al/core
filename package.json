@@ -72,6 +72,7 @@
     "test:e2e:smoke:cms": "CMS_WEB_STUDIO_NATIVE_PAGES=true node scripts/run-with-ci-env.mjs -- node node_modules/@playwright/test/cli.js test tests/e2e/cms-admin-redirect.spec.ts tests/e2e/cms-publish-flow.spec.ts tests/e2e/cms-tenant-isolation.spec.ts tests/e2e/cms-ministry-updates.spec.ts tests/e2e/cms-web-studio-native.spec.ts tests/e2e/cms-templates-gallery.spec.ts",
     "test:e2e:cms:local": "node scripts/cms/run-local-e2e.mjs",
     "test:e2e:auth-mail": "node scripts/e2e/run-auth-mail.mjs",
+    "test:e2e:n2-on": "node scripts/e2e/run-n2-on-proof.mts",
     "test:e2e:ui": "node node_modules/@playwright/test/cli.js test --ui",
     "test:e2e:auth:donor": "node scripts/run-with-ci-env.mjs -- node node_modules/@playwright/test/cli.js test tests/e2e/auth-demo-donor.spec.ts tests/e2e/donor-request-scope.spec.ts --project=chromium",
     "test:e2e:auth:admin": "node scripts/run-with-ci-env.mjs -- node node_modules/@playwright/test/cli.js test -c playwright.admin.config.ts tests/e2e/auth-demo-admin.spec.ts tests/e2e/admin-table-pages-smoke.spec.ts tests/e2e/admin-tenant-address.spec.ts tests/e2e/admin-request-scope.spec.ts --project=admin-boneyard",

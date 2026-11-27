@@ -39,6 +39,7 @@ const DEFAULT_PROJECT_TEST_IGNORE = Object.freeze([
   "**/upload-crop.spec.ts",
   "**/donor-giving-history.spec.ts",
   "**/mc-contributions-live-query.spec.ts",
+  "**/n2-on-*.spec.ts",
 ]);
 const DONOR_ONLY_ADDITIONAL_TEST_IGNORE = Object.freeze([
   "**/admin-*.spec.ts",

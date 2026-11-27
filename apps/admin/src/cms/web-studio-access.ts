@@ -5,7 +5,10 @@ import {
   nameTenantIdOf,
 } from "@asym/auth/request-headers";
 import { buildTenantPrefix } from "@asym/auth/tenant-address";
-import { listAddressChoices } from "@asym/auth/tenant-address-decisions";
+import {
+  listAddressChoices,
+  listNameAddressChoices,
+} from "@asym/auth/tenant-address-decisions";
 import {
   readServerNameGeneration,
   readServerNameTenantState,
@@ -47,7 +50,12 @@ export interface WebStudioOrganization {
  * rows that cannot be read).
  */
 export type WebStudioSelectionState =
-  | { kind: "selected"; tenantId: string; assignmentId: string }
+  | {
+      kind: "selected";
+      tenantId: string;
+      assignmentId: string;
+      generation?: number;
+    }
   | { kind: "signed_out" }
   | { kind: "none" }
   /** The person's rows, or their organizations' names, could not be read (L3). */
@@ -148,12 +156,19 @@ export async function requireWebStudioAccess(
   );
   // The address Mission Control's chooser would give this row.
   const home =
-    listAddressChoices({
-      assignments: signedIn.assignments,
-      roleClass: WEB_STUDIO_ROLE_CLASS,
-      tenantId: assignment.tenantId,
-    }).find((choice) => choice.assignmentId === assignment.assignmentId)
-      ?.prefix ?? buildTenantPrefix(assignment.tenantId, null);
+    nameTenantId === null
+      ? (listAddressChoices({
+          assignments: signedIn.assignments,
+          roleClass: WEB_STUDIO_ROLE_CLASS,
+          tenantId: assignment.tenantId,
+        }).find((choice) => choice.assignmentId === assignment.assignmentId)
+          ?.prefix ?? buildTenantPrefix(assignment.tenantId, null))
+      : listNameAddressChoices({
+          assignments: signedIn.assignments,
+          roleClass: WEB_STUDIO_ROLE_CLASS,
+          nameTenantId,
+        }).find((choice) => choice.assignmentId === assignment.assignmentId)
+          ?.prefix || "/";
   return {
     scope: {
       userId: signedIn.userId,
@@ -178,7 +193,7 @@ export async function requireWebStudioAccess(
  * on the joined release, JC2).
  */
 export async function readWebStudioSelection(): Promise<WebStudioSelectionState> {
-  const { signedIn, decision } = await decideWebStudioRequest();
+  const { signedIn, decision, generation } = await decideWebStudioRequest();
   if (signedIn.kind === "signed_out") return { kind: "signed_out" };
   if (signedIn.kind === "unavailable") return { kind: "unavailable" };
   if (decision?.kind !== "allow") return { kind: "none" };
@@ -186,5 +201,6 @@ export async function readWebStudioSelection(): Promise<WebStudioSelectionState>
     kind: "selected",
     tenantId: decision.assignment.tenantId,
     assignmentId: decision.assignment.assignmentId,
+    ...(generation === null ? {} : { generation }),
   };
 }

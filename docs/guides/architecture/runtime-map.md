@@ -171,6 +171,7 @@ answer; see [the release job runbook](../../ops/release-job.md).
 | admin      | `/api/admin/eve/retention`                                     | Node.js (no `runtime` segment export) | Private replay artifacts, holds, and expiry                |
 | admin      | `/api/admin/eve/governance`                                    | Node.js (no `runtime` segment export) | Eve governance, kill switches, and audit                   |
 | admin      | `/api/admin/eve/launch-readiness`                              | Node.js (no `runtime` segment export) | Target-bound launch review and control                     |
+| admin      | `/api/admin/eve/launch-readiness/operators`                    | Node.js (no `runtime` segment export) | Platform operators the launch-permission grant accepts     |
 | admin      | `/api/admin/eve/model-policy`                                  | Node.js (no `runtime` segment export) | Permissioned Eve model-policy control plane                |
 | admin      | `/api/admin/eve/notifications`                                 | Node.js (no `runtime` segment export) | Safe operator notification status and control              |
 | admin      | `/api/admin/funds`                                             | Node.js (no `runtime` segment export) | Admin client                                               |

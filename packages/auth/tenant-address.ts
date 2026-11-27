@@ -1,3 +1,5 @@
+import { isServeUnderPathsEnabled } from "@asym/database/app-base-path";
+
 import { STAFF_SUBROLES } from "./staff-subroles";
 
 import type { StaffSubrole } from "@asym/database/types";
@@ -6,6 +8,11 @@ const TENANT_SEGMENT = new RegExp(
   "^/([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})" +
     `(?:~(${STAFF_SUBROLES.join("|")}))?(?=/|$)`,
 );
+
+const SUB_ROLE_SEGMENT = new RegExp(`^/~(${STAFF_SUBROLES.join("|")})(?=/|$)`);
+
+const ORGANIZATION_ID_SEGMENT =
+  /^\/[0-9A-Fa-f]{8}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{12}(?=$|[/~])/;
 
 export const OUTSIDE_TENANT_SEGMENT_ROOTS = [
   "/api",
@@ -53,8 +60,75 @@ export function parseTenantAddress(pathname: string): TenantAddress | null {
   };
 }
 
+export interface SubRoleAddress {
+  subRole: StaffSubrole;
+  prefix: string;
+  innerPathname: string;
+}
+
+export function parseSubRoleAddress(pathname: string): SubRoleAddress | null {
+  const match = SUB_ROLE_SEGMENT.exec(pathname);
+  if (!match) return null;
+  const [prefix, subRole] = match;
+  const rest = pathname.slice(prefix.length);
+  if (startsAnotherAuthority(rest)) return null;
+  return {
+    subRole: subRole as StaffSubrole,
+    prefix,
+    innerPathname: rest === "" || rest === "/" ? "/" : rest,
+  };
+}
+
+export function startsWithOrganizationId(pathname: string): boolean {
+  return ORGANIZATION_ID_SEGMENT.test(pathname);
+}
+
+export function subRoleStartsAnotherAuthority(pathname: string): boolean {
+  const match = SUB_ROLE_SEGMENT.exec(pathname);
+  return (
+    match !== null && startsAnotherAuthority(pathname.slice(match[0].length))
+  );
+}
+
+export function nameAddressPrefix(subRole: StaffSubrole | null): string {
+  return subRole ? `/~${subRole}` : "";
+}
+
+function decodedOnce(pathname: string): string {
+  try {
+    return decodeURIComponent(pathname);
+  } catch {
+    return pathname.replace(/%([0-7][0-9A-Fa-f])/g, (_escape, hex: string) =>
+      String.fromCharCode(Number.parseInt(hex, 16)),
+    );
+  }
+}
+
+export function refusesAddressOnName(
+  pathname: string,
+  roleClass: string | null,
+): boolean {
+  if (startsWithOrganizationId(pathname)) return true;
+  if (subRoleStartsAnotherAuthority(pathname)) return true;
+  const address = parseSubRoleAddress(pathname);
+  if (!address) return false;
+  return (
+    roleClass !== "staff" ||
+    isOutsideTenantSegment(address.innerPathname) ||
+    isOutsideTenantSegment(decodedOnce(address.innerPathname))
+  );
+}
+
+function pageAddressOf(
+  pathname: string,
+): { prefix: string; innerPathname: string } | null {
+  return isServeUnderPathsEnabled()
+    ? parseSubRoleAddress(pathname)
+    : parseTenantAddress(pathname);
+}
+
 export function stripTenantAddress(pathname: string): string {
-  return parseTenantAddress(pathname)?.innerPathname ?? pathname;
+  return pageAddressOf(pathname)?.innerPathname ?? pathname;
 }
 
 export function buildTenantPrefix(
@@ -75,8 +149,14 @@ export function withTenantAddress(prefix: string | null, href: string): string {
   const pathEnd = href.search(/[?#]/);
   const pathname = pathEnd === -1 ? href : href.slice(0, pathEnd);
   const rest = pathEnd === -1 ? "" : href.slice(pathEnd);
-  if (parseTenantAddress(pathname) || isOutsideTenantSegment(pathname)) {
+  if (pageAddressOf(pathname) || isOutsideTenantSegment(pathname)) {
     return href;
   }
   return pathname === "/" ? `${prefix}${rest}` : `${prefix}${href}`;
+}
+
+export function nameAddressSegmentOf(pathname: string): string | null {
+  const address = parseSubRoleAddress(pathname);
+  if (address) return address.prefix;
+  return isOutsideTenantSegment(pathname) ? null : "";
 }
