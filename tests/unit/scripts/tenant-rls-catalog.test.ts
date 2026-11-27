@@ -196,6 +196,9 @@ describe("WP4 command boundaries", () => {
           listed(),
           allow(),
           { entries: [] },
+          undefined,
+          undefined,
+          [],
         ),
       ),
     ).toContain(`COMMAND_HUMAN_NO_PREAMBLE ${plantedName}`);
@@ -352,7 +355,17 @@ describe("WP4 command boundaries", () => {
       published: [],
     };
     expect(
-      codes(evaluateTenantRlsCatalog({ ...empty, commands: [] }, listed())),
+      codes(
+        evaluateTenantRlsCatalog(
+          { ...empty, commands: [] },
+          listed(),
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          [],
+        ),
+      ),
     ).toEqual(
       preMembershipEntries.map(
         (entry) => `COMMAND_EXCEPTION_UNREVIEWED ${entry.function}`,
@@ -362,6 +375,11 @@ describe("WP4 command boundaries", () => {
       evaluateTenantRlsCatalog(
         { ...empty, commands: preMembershipCommandRows() },
         listed(),
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        [],
       ).failures,
     ).toEqual([]);
     expect(codes(evaluate([]))).toEqual([]);
@@ -403,6 +421,7 @@ const evaluate = (
     more.policyExceptions ?? { entries: [] },
     [],
     more.serviceRoleExceptions ?? { entries: [] },
+    [],
   );
 const codes = (result: ReturnType<typeof evaluate>) =>
   result.failures.map(
@@ -2130,6 +2149,8 @@ describe("tenant keys", () => {
         listed(),
         allow(),
         { entries: [] },
+        [],
+        undefined,
         [],
       ),
     );

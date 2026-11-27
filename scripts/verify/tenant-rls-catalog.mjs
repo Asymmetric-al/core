@@ -79,6 +79,14 @@ export const STAFF_NARROWED_READS = Object.freeze([
   "support_notification_preferences|support hub staff select",
   "support_saved_views|support hub staff select",
 ]);
+export const OWN_ROW_READS = Object.freeze([
+  "donor_feed_preferences|donor_feed_preferences_own_select",
+  "missionaries|missionaries own row key read",
+]);
+export const KEPT_READS = Object.freeze([
+  ...STAFF_NARROWED_READS,
+  ...OWN_ROW_READS,
+]);
 /** Reviewed SECURITY DEFINER functions that anon may execute (plan 5.4). */
 export const ANON_DEFINER_ALLOWLIST_PATH =
   "docs/security/anon-definer-allowlist.json";
@@ -127,14 +135,20 @@ export const PARENT_SCOPED_TABLES = [
 
 const quoted = (names) => names.map((s) => `'${s}'`).join(", ");
 const CALL_GAP = `(\\s|/\\*.*\\*/|--[^\\n]*\\n)*`;
+const CALL_MATCH = `qn.nspname not in ('pg_catalog', 'information_schema')
+        and qn.nspname not like 'pg\\_%'
+        and (rp.prosrc || coalesce(pg_get_function_sqlbody(rp.oid), ''))
+            ~* ('(^|[^a-z0-9_$."])"?' || qn.nspname || '"?${CALL_GAP}\\.${CALL_GAP}"?' || q.proname || '"?${CALL_GAP}\\(')`;
 const PARENT_SCOPED_SQL = `with recursive scoped(oid) as (
       select fk.conrelid
         from pg_constraint fk
        where fk.contype = 'f'
+         and fk.conrelid <> 'public.tenants'::regclass
          and not exists (select 1 from pg_attribute a where a.attrelid = fk.conrelid
                            and a.attname = 'tenant_id' and a.attnum > 0 and not a.attisdropped)
-         and exists (select 1 from pg_attribute a where a.attrelid = fk.confrelid
-                       and a.attname = 'tenant_id' and a.attnum > 0 and not a.attisdropped)
+         and (fk.confrelid = 'public.tenants'::regclass
+              or exists (select 1 from pg_attribute a where a.attrelid = fk.confrelid
+                           and a.attname = 'tenant_id' and a.attnum > 0 and not a.attisdropped))
       union
       select fk.conrelid
         from pg_constraint fk
@@ -241,6 +255,19 @@ export const SERVICE_ROLE_GRANTS_SQL = `select c.relname as relation, null::text
      and ${reachedBy("has_column_privilege(r.oid, c.oid, att.attnum, 'REFERENCES')")}`;
 
 export const TENANT_RLS_CATALOG_SQL = `-- tenant-rls-catalog-gate:v1
+with recursive policy_fn_reach(root_oid, oid) as (
+  select distinct d.refobjid, d.refobjid
+  from pg_depend d
+  where d.classid = 'pg_policy'::regclass
+    and d.refclassid = 'pg_proc'::regclass
+  union
+  select r.root_oid, q.oid
+  from policy_fn_reach r
+  join pg_proc rp on rp.oid = r.oid
+  join pg_proc q on q.oid <> rp.oid
+  join pg_namespace qn on qn.oid = q.pronamespace
+  where ${CALL_MATCH}
+)
 select jsonb_build_object(
   'tenant_keys', coalesce((select jsonb_agg(jsonb_build_object('table', n.nspname || '.' || r.relname, 'keyed', exists (
       select from pg_constraint fk join pg_attribute parent on parent.attrelid=fk.confrelid and parent.attname='id'
@@ -397,10 +424,7 @@ select jsonb_build_object(
       join pg_proc rp on rp.oid = r.oid
       join pg_proc q on q.oid <> rp.oid
       join pg_namespace qn on qn.oid = q.pronamespace
-      where qn.nspname not in ('pg_catalog', 'information_schema')
-        and qn.nspname not like 'pg\\_%'
-        and (rp.prosrc || coalesce(pg_get_function_sqlbody(rp.oid), ''))
-            ~* ('(^|[^a-z0-9_$."])"?' || qn.nspname || '"?${CALL_GAP}\\.${CALL_GAP}"?' || q.proname || '"?${CALL_GAP}\\(')
+      where ${CALL_MATCH}
     )
     select jsonb_agg(jsonb_build_object(
       'function', ${SIGNATURE},
@@ -428,8 +452,9 @@ select jsonb_build_object(
       'using', pg_get_expr(p.polqual, p.polrelid),
       'check', pg_get_expr(p.polwithcheck, p.polrelid),
       'functions', coalesce((
-        select jsonb_agg(distinct d.refobjid::regprocedure::text)
+        select jsonb_agg(distinct r.oid::regprocedure::text)
         from pg_depend d
+        join policy_fn_reach r on r.root_oid = d.refobjid
         where d.classid = 'pg_policy'::regclass and d.objid = p.oid
           and d.refclassid = 'pg_proc'::regclass), '[]'::jsonb))
       order by n.nspname, c.relname, p.polname)
@@ -442,9 +467,7 @@ select jsonb_build_object(
       'body', (f.prosrc || coalesce(E'\\n' || pg_get_function_sqlbody(f.oid), '')))
       order by f.oid::regprocedure::text)
     from pg_proc f
-    where f.oid in (select d.refobjid from pg_depend d
-                     where d.classid = 'pg_policy'::regclass
-                       and d.refclassid = 'pg_proc'::regclass)), '[]'::jsonb)
+    where f.oid in (select distinct oid from policy_fn_reach)), '[]'::jsonb)
 )::text;`;
 
 /**
@@ -741,7 +764,7 @@ export function tenantBound(expr) {
 }
 
 const namesSuperAdmin = (text) => /super_admin/i.test(text ?? "");
-const STAFF_READ_CALL = /\bauthz\.staff_read\s*\(/i;
+const STAFF_READ_CALL = /\bauthz\s*\.\s*staff_read\s*\(/i;
 const BARE_STAFF_CHECK =
   /\bauthz\.assignment_is\(\s*'staff'::authz\.membership_role\s*(?:,\s*NULL(?:::authz\.staff_role\[\])?\s*)?\)/i;
 
@@ -793,14 +816,18 @@ const readsTokenClaim = (text) =>
   );
 
 const SUBJECT_FROM_CLAIMS =
-  /\(?\s*(?:nullif\s*\(\s*)?current_setting\s*\(\s*'request\.jwt\.claims'\s*(?:,\s*(?:true|false)\s*)?\)\s*(?:,\s*''\s*\)\s*)?\)?\s*::\s*jsonb?\s*->>\s*'sub'/gi;
+  /\(?\s*(?:nullif\s*\(\s*)?current_setting\s*\(\s*'request\.jwt\.claims'\s*(?:,\s*(?:true|false)\s*)?\)\s*(?:,\s*''\s*\)\s*)?\)?\s*::\s*jsonb?\s*->>\s*'([^']*)'/gi;
 
 function readsClaimBeyondSubject(text) {
   const t = text ?? "";
   if (/auth\.jwt\s*\(|app_metadata|user_metadata|request_claims\s*\(/i.test(t))
     return true;
   if (/request\.jwt\.claim\.(?!sub\b)[a-z_]/i.test(t)) return true;
-  return /request\.jwt\.claims\b/i.test(t.replace(SUBJECT_FROM_CLAIMS, " "));
+  return /request\.jwt\.claims\b/i.test(
+    t.replace(SUBJECT_FROM_CLAIMS, (match, key) =>
+      key === "sub" ? " " : match,
+    ),
+  );
 }
 
 /**
@@ -979,6 +1006,7 @@ export function evaluateTenantRlsCatalog(
   policyExceptionList = { entries: [] },
   preMembershipList = undefined,
   serviceRoleExceptions = SERVICE_ROLE_EXCEPTIONS,
+  keptReadList = KEPT_READS,
 ) {
   const { listed, failures, usable } = readExceptions(exceptions);
   const fail = (code, table, detail) => failures.push({ code, table, detail });
@@ -1363,6 +1391,62 @@ export function evaluateTenantRlsCatalog(
     PARENT_SCOPED_TABLES.includes(name) ||
     (tables.get(name)?.tenant === false &&
       tables.get(name)?.parent_scoped === true);
+  const cleanBodies = new Map(
+    (snapshot.policy_functions ?? []).map((f) => [
+      f.function,
+      stripComments(String(f.body ?? "")),
+    ]),
+  );
+  const escapeRegex = (value) => value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const calleeMatchers = [...cleanBodies.keys()]
+    .map((fn) => {
+      const paren = fn.indexOf("(");
+      const head = paren >= 0 ? fn.slice(0, paren) : fn;
+      const dot = head.indexOf(".");
+      if (dot < 0) return null;
+      const schema = head.slice(0, dot).replace(/^"|"$/g, "");
+      const name = head.slice(dot + 1).replace(/^"|"$/g, "");
+      return {
+        fn,
+        re: new RegExp(
+          `(?:^|[^a-z0-9_$."])"?${escapeRegex(schema)}"?\\s*\\.\\s*"?${escapeRegex(name)}"?\\s*\\(`,
+          "i",
+        ),
+      };
+    })
+    .filter(Boolean);
+  const reachedFrom = (direct) => {
+    const visited = new Set();
+    const queue = [...(direct ?? [])];
+    while (queue.length) {
+      const fn = queue.shift();
+      if (visited.has(fn)) continue;
+      visited.add(fn);
+      const body = cleanBodies.get(fn);
+      if (!body) continue;
+      for (const { fn: callee, re } of calleeMatchers)
+        if (!visited.has(callee) && re.test(body)) queue.push(callee);
+    }
+    return [...visited];
+  };
+  const everyList =
+    snapshot.every_policy ??
+    (snapshot.policies ?? []).map((p) => ({ ...p, schema: "public" }));
+  const publicFunctions = new Map();
+  for (const e of everyList) {
+    if (e.schema !== "public") continue;
+    const k = `${e.table}|${e.policy}`;
+    const prev = publicFunctions.get(k) ?? [];
+    publicFunctions.set(k, [...prev, ...(e.functions ?? [])]);
+  }
+  const staffReadThrough = (reached) =>
+    reached.filter(
+      (fn) =>
+        fn.startsWith(`${STAFF_READ_HELPER}(`) ||
+        STAFF_READ_CALL.test(cleanBodies.get(fn) ?? ""),
+    );
+  const keptReadSet = new Set(keptReadList ?? []);
+  const seenKeptReads = new Set();
   const seen = new Set();
   let tenantPolicies = 0;
   for (const p of snapshot.policies ?? []) {
@@ -1402,15 +1486,26 @@ export function evaluateTenantRlsCatalog(
     // every signed-in policy is a pin (council R3).
     const listedEntry = policyExceptions.listed.get(key);
     const parentScoped = isParentScoped(p.table);
+    if (p.cmd === "SELECT" && keptReadSet.has(key)) seenKeptReads.add(key);
+    const keptReached = KEPT_READS.includes(key)
+      ? staffReadThrough(reachedFrom(publicFunctions.get(key)))
+      : [];
     if (
-      STAFF_NARROWED_READS.includes(key) &&
-      exprs.some((e) => STAFF_READ_CALL.test(e))
-    )
+      KEPT_READS.includes(key) &&
+      (exprs.some((e) => STAFF_READ_CALL.test(stripComments(e))) ||
+        keptReached.length > 0)
+    ) {
+      const via = keptReached.length
+        ? ` through ${keptReached.join(", ")}`
+        : "";
       fail(
         "STAFF_READ_HELPER_ON_NARROWED_READ",
         p.table,
-        `policy "${p.policy}" narrows the staff it admits and keeps the staff check it narrows (STAFF_NARROWED_READS in ${CATALOG_GATE_PATH}); it calls ${STAFF_READ_HELPER}(), which a support grant will pass`,
+        OWN_ROW_READS.includes(key)
+          ? `policy "${p.policy}" is an own-row read (OWN_ROW_READS in ${CATALOG_GATE_PATH}); it calls ${STAFF_READ_HELPER}()${via}, which a support grant will pass`
+          : `policy "${p.policy}" narrows the staff it admits and keeps the staff check it narrows (STAFF_NARROWED_READS in ${CATALOG_GATE_PATH}); it calls ${STAFF_READ_HELPER}()${via}, which a support grant will pass`,
       );
+    }
     if (!tables.get(p.table)?.tenant && !listedEntry && !parentScoped) continue;
     if (tables.get(p.table)?.tenant) tenantPolicies += 1;
     const lookups = (e) => {
@@ -1463,15 +1558,21 @@ export function evaluateTenantRlsCatalog(
       lookups(e);
     }
   }
-  const functionBodies = new Map(
-    (snapshot.policy_functions ?? []).map((f) => [f.function, f.body]),
-  );
-  for (const e of snapshot.every_policy ??
-    (snapshot.policies ?? []).map((p) => ({ ...p, schema: "public" }))) {
+  for (const key of keptReadList ?? [])
+    if (!seenKeptReads.has(key)) {
+      const [table, policy] = key.split("|");
+      fail(
+        "KEPT_READ_STALE",
+        table,
+        `no signed-in SELECT policy "${policy}" on this table: update STAFF_NARROWED_READS or OWN_ROW_READS in ${CATALOG_GATE_PATH}`,
+      );
+    }
+  for (const e of everyList) {
     const where = e.schema === "public" ? e.table : `${e.schema}.${e.table}`;
     const text = [e.using, e.check].filter((x) => x != null).join("\n");
-    const through = (e.functions ?? []).filter((fn) =>
-      namesSuperAdmin(stripComments(String(functionBodies.get(fn) ?? ""))),
+    const reached = reachedFrom(e.functions);
+    const through = reached.filter((fn) =>
+      namesSuperAdmin(cleanBodies.get(fn) ?? ""),
     );
     if (namesSuperAdmin(text) || through.length)
       fail(
@@ -1479,11 +1580,15 @@ export function evaluateTenantRlsCatalog(
         where,
         `policy "${e.policy}" (${e.cmd}) names the super_admin role${through.length ? ` through ${through.join(", ")}` : ""}: no profile role grants a read; an operator reaches an organization's data only under a support grant (ADR-0228, plan 5.4)`,
       );
-    if (e.cmd !== "SELECT" && STAFF_READ_CALL.test(text))
+    const writeThrough = e.cmd !== "SELECT" ? staffReadThrough(reached) : [];
+    if (
+      e.cmd !== "SELECT" &&
+      (STAFF_READ_CALL.test(stripComments(text)) || writeThrough.length > 0)
+    )
       fail(
         "STAFF_READ_HELPER_IN_WRITE",
         where,
-        `policy "${e.policy}" (${e.cmd}) writes and calls ${STAFF_READ_HELPER}(), which only reads may call: a support grant is read-only (plan 5.4)`,
+        `policy "${e.policy}" (${e.cmd}) writes and calls ${STAFF_READ_HELPER}()${writeThrough.length ? ` through ${writeThrough.join(", ")}` : ""}, which only reads may call: a support grant is read-only (plan 5.4)`,
       );
   }
   for (const key of policyExceptions.listed.keys())
