@@ -138,15 +138,13 @@ export const webStudioMediaRemoveEndpoint: Endpoint = {
     }
     try {
       await deleteMediaRecord(req.payload, body.value.assetId, actor.tenantId);
-      return json({ id: body.value.assetId });
     } catch (error) {
-      if (error instanceof Error && ANOTHER_ORGANIZATION.test(error.message)) {
-        return json(
-          { error: "No media with this id is in this organization." },
-          404,
-        );
+      if (!(
+        error instanceof Error && ANOTHER_ORGANIZATION.test(error.message)
+      )) {
+        throw error;
       }
-      throw error;
     }
+    return json({ id: body.value.assetId });
   },
 };

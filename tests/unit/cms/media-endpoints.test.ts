@@ -289,12 +289,14 @@ describe("the media library's registration and removal under /web-studio/api (WP
     expect(store.remove).not.toHaveBeenCalled();
   });
 
-  it("answers another organization's record as not found", async () => {
+  it("answers another organization's record as a record that is not there: nothing to remove in this organization", async () => {
     store.remove.mockRejectedValueOnce(
       new Error("The media row belongs to another organization."),
     );
-    const { status } = await call(remove, { assetId: ASSET });
-    expect(status).toBe(404);
+    expect(await call(remove, { assetId: ASSET })).toEqual({
+      status: 200,
+      body: { id: ASSET },
+    });
   });
 
   it("refuses removal without web_studio.edit, without a session and when the read fails", async () => {
