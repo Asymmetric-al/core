@@ -11,7 +11,6 @@ import {
   service,
   url,
 } from "./identity-keys.postgrest-fixture";
-import { POST as donate } from "../../../../packages/api/src/donate";
 import { POST as donations } from "../../../../packages/api/src/donations";
 import { createGraphQLHandler } from "../../../../packages/graphql/handler";
 import { membershipsForRole } from "../../../fixtures/auth-memberships";
@@ -71,7 +70,7 @@ const PEOPLE = ["worker", "other", "split"] as const;
 type Person = (typeof PEOPLE)[number];
 
 describe.skipIf(!required && ![url, database, service].some(Boolean))(
-  "AL-2678 WP5 rest 2a, fix rounds F1 and F5: a gift the call stored is answered as stored on /api/donate, POST /api/donations and GraphQL createDonation, also for a login that reaches its donor through its sole worker row; a key of another person's gift stays refused; a refusal for a donor on another Party leaves an operator's line (real saga, real PostgREST)",
+  "AL-2678 WP5 rest 2a, fix rounds F1 and F5: a gift the call stored is answered as stored on /api/donate, POST /api/donations and GraphQL createDonation, also for a login that reaches its donor through its sole worker row; a key of another person's gift stays refused; a refusal for a donor on another Party leaves an operator's line (real saga, real PostgREST) (D-18, AL-2681 PR 2b: the legacy POST /api/donate is retired, and its leg with it)",
   () => {
     const TA = randomUUID();
     const k = Object.fromEntries(
@@ -115,18 +114,6 @@ describe.skipIf(!required && ![url, database, service].some(Boolean))(
       "idempotency-key": key,
     });
 
-    const viaDonate = async (who: Person, key: string) => {
-      signIn(who);
-      const response = await donate(
-        new NextRequest("http://localhost/api/donate", {
-          method: "POST",
-          headers: headers(key),
-          body: JSON.stringify({ amount: 25, missionary_id: k.to }),
-        }),
-      );
-      const body = (await response.json()) as Record<string, unknown>;
-      return { status: response.status, id: body.donationId, body };
-    };
     const viaDonations = async (who: Person, key: string) => {
       signIn(who);
       const response = await donations(
@@ -304,7 +291,6 @@ describe.skipIf(!required && ![url, database, service].some(Boolean))(
     });
 
     const entries = [
-      ["/api/donate", viaDonate, 409],
       ["POST /api/donations", viaDonations, 409],
       ["GraphQL createDonation", viaGraphQL, "IDEMPOTENCY_KEY_REUSED"],
     ] as const;
