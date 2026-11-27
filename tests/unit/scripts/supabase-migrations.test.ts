@@ -163,6 +163,16 @@ function runVerifier(
         public_execute: false,
         anon_execute: true,
       },
+      {
+        function: "public.checkout_giving_config(p_host text, p_targets jsonb)",
+        schema: "public",
+        owner: "postgres",
+        owner_bypass: true,
+        search_path: '""',
+        volatility: "s",
+        public_execute: false,
+        anon_execute: true,
+      },
     ],
     // AL-2674: the gate also reads the command-schema functions, the
     // wrappers that call into them and the unadmitted table grants.
@@ -315,7 +325,7 @@ else if (sql.startsWith("-- field-policy-manifest-gate:v1")) {
 
 describe("supabase migrations verifier", () => {
   itPosix(
-    "requires the reviewed census after applying the complete migration sequence (D-18, AL-2678: the fake catalog carries the two reviewed pre-membership claim commands, which the gate now requires; D-18, AL-2676: and public.resolve_home_host, the second allowlisted anonymous read since WP3b part 2)",
+    "requires the reviewed census after applying the complete migration sequence (D-18, AL-2678: the fake catalog carries the two reviewed pre-membership claim commands, which the gate now requires; D-18, AL-2676: and public.resolve_home_host, the second allowlisted anonymous read since WP3b part 2; D-18, AL-2681: and public.checkout_giving_config, the third, since WP8a part 2 rest 2a)",
     () => {
       const result = runVerifier("clean");
       expect(result.status).toBe(0);
