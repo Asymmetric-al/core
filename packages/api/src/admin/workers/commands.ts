@@ -180,14 +180,16 @@ export const POST_CONFIRM = withWorkersWrite(
         prepared.row.security_level !== level
       )
         return workerError("LEVEL_CHANGED");
-      const result = await prepared.client.rpc("restrict_worker_publication", {
-        p_tenant_id: auth.tenantId,
-        p_party_id: prepared.row.party_id,
-        p_security_level: level,
-        p_public_alias: null,
-        p_do_not_publish: null,
-        p_reason: reason,
-      });
+      const result = await prepared.client.rpc(
+        "confirm_worker_security_level",
+        {
+          p_tenant_id: auth.tenantId,
+          p_party_id: prepared.row.party_id,
+          p_expected_level: level,
+          p_expected_source: prepared.row.security_level_source,
+          p_reason: reason,
+        },
+      );
       return answerAfterCommand(
         "confirm",
         prepared,

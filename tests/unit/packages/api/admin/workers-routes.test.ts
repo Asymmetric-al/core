@@ -868,6 +868,7 @@ describe("AL-2678 WP5 part 2-r2b1: the workers' routes (contract, error map, ali
           page === 0 || reread === null ? { data: [row()] } : reread,
         restrict_worker_publication: { data: commandAnswer(extra) },
         lift_worker_restriction: { data: commandAnswer(extra) },
+        confirm_worker_security_level: { data: commandAnswer(extra) },
       });
       const response = await handler(
         post(`/api/admin/workers/${WORKER}/x`, body),

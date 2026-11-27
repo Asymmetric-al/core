@@ -201,7 +201,8 @@ function refusalOf(error: RpcError): WorkerErrorCode | null {
     if (message === "Nothing to change") return "NOTHING_TO_CHANGE";
     if (
       message.startsWith("Lowering a level") ||
-      message.startsWith("Raising a level")
+      message.startsWith("Raising a level") ||
+      message === "The level changed since it was read"
     )
       return "LEVEL_CHANGED";
     if (
