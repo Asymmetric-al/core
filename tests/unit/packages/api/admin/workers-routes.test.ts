@@ -4,6 +4,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
   POST_CONFIRM,
   POST_CREATE,
+  POST_INVITE,
   POST_LIFT,
   POST_RESTRICT,
   POST_REVEAL,
@@ -1141,4 +1142,167 @@ describe("AL-2678 WP5 part 2-r2b1: the workers' routes (contract, error map, ali
       expect(body).toEqual({ error: text, code: errorCode });
     },
   );
+  const INVITATION = "00000000-0000-4000-8000-00000000e0e1";
+  const SELECTOR = "s".repeat(32);
+  const VERIFIER = "v".repeat(43);
+  const inviteAnswer = (overrides: Record<string, unknown> = {}) => ({
+    invitation_id: INVITATION,
+    tenant_id: TENANT,
+    selector: SELECTOR,
+    verifier: VERIFIER,
+    expires_at: "2026-12-05T09:00:00+00:00",
+    role: "missionary",
+    staff_role: null,
+    is_tenant_admin: false,
+    party_id: PARTY,
+    assignment_id: WORKER,
+    ...overrides,
+  });
+
+  it("invite sends invite_worker the worker's Party, the address and the reason with the organization from the session, and answers 201 with the invitation's id, address, expiry and link path, no-store and no-referrer, the verifier in no report (WP5 rest 2b, worker invitations; red: no invite route)", async () => {
+    h.auth.mockResolvedValue(makeAuth("admin"));
+    const rpc = stubSession({
+      worker_records: { data: [row()] },
+      invite_worker: { data: inviteAnswer() },
+    });
+    const response = await POST_INVITE(
+      post(`/api/admin/workers/${WORKER}/invite`, {
+        email: "heron@example.org",
+        reason: "Sign in to your record",
+      }),
+      params(),
+    );
+    expect(response.status).toBe(201);
+    expect(response.headers.get("referrer-policy")).toBe("no-referrer");
+    expect(await read(response)).toEqual({
+      invitation: {
+        invitationId: INVITATION,
+        email: "heron@example.org",
+        expiresAt: "2026-12-05T09:00:00+00:00",
+      },
+      invitePath: `/invite/${SELECTOR}#${VERIFIER}`,
+    });
+    expect(rpc).toHaveBeenCalledWith("invite_worker", {
+      p_tenant_id: TENANT,
+      p_email: "heron@example.org",
+      p_party_id: PARTY,
+      p_display_name: null,
+      p_legal_name: null,
+      p_real_country: null,
+      p_precise_location: null,
+      p_legal_entity_id: null,
+      p_reason: "Sign in to your record",
+    });
+    expect(JSON.stringify(h.captureError.mock.calls)).not.toContain(VERIFIER);
+  });
+
+  it("invite calls no command for a worker that already has a login (409 HAS_LOGIN), an invalid address (400 INVALID_INPUT) or a blank reason (400 REASON_REQUIRED) (WP5 rest 2b, worker invitations; red: no invite route)", async () => {
+    h.auth.mockResolvedValue(makeAuth("admin"));
+    for (const [name, body, worker, status, code] of [
+      [
+        "has a login",
+        { email: "a@example.org", reason: "R" },
+        row({ has_login: true }),
+        409,
+        "HAS_LOGIN",
+      ],
+      [
+        "invalid address",
+        { email: "not an address", reason: "R" },
+        row(),
+        400,
+        "INVALID_INPUT",
+      ],
+      [
+        "blank reason",
+        { email: "a@example.org", reason: " " },
+        row(),
+        400,
+        "REASON_REQUIRED",
+      ],
+    ] as const) {
+      const rpc = stubSession({ worker_records: { data: [worker] } });
+      const response = await POST_INVITE(
+        post(`/api/admin/workers/${WORKER}/invite`, body),
+        params(),
+      );
+      expect([name, response.status]).toEqual([name, status]);
+      expect([name, (await read(response)).code]).toEqual([name, code]);
+      expect(rpc.mock.calls.map(([fn]) => fn)).not.toContain("invite_worker");
+    }
+  });
+
+  it.each([
+    [
+      "This worker already has a login",
+      "55006",
+      409,
+      "HAS_LOGIN",
+      "This worker already has a login.",
+    ],
+    [
+      "tenant_guard: the selected assignment does not hold the capability this command requires",
+      "42501",
+      403,
+      "NOT_PERMITTED",
+      NOT_PERMITTED,
+    ],
+    [
+      "A valid email address is required",
+      "22023",
+      400,
+      "EMAIL_REQUIRED",
+      "Give a valid e-mail address.",
+    ],
+    [
+      "No worker with that id in this organization",
+      "P0002",
+      404,
+      "NOT_FOUND",
+      "Worker not found.",
+    ],
+  ])(
+    "invite answers %s (%s) with %i %s and its fixed text (WP5 rest 2b, worker invitations; red: no invite route)",
+    async (message, code, status, errorCode, text) => {
+      h.auth.mockResolvedValue(makeAuth("admin"));
+      stubSession({
+        worker_records: { data: [row()] },
+        invite_worker: { error: { code, message } },
+      });
+      const response = await POST_INVITE(
+        post(`/api/admin/workers/${WORKER}/invite`, {
+          email: "heron@example.org",
+          reason: "Sign in",
+        }),
+        params(),
+      );
+      expect(response.status).toBe(status);
+      expect(await read(response)).toEqual({ error: text, code: errorCode });
+    },
+  );
+
+  it("an invite answer with an extra key, another organization or another Party is the outcome-unknown 500, since an invitation may have been issued, and returns no link (WP5 rest 2b, worker invitations; red: no invite route)", async () => {
+    h.auth.mockResolvedValue(makeAuth("admin"));
+    for (const answer of [
+      inviteAnswer({ extra: 1 }),
+      inviteAnswer({ tenant_id: OTHER_TENANT }),
+      inviteAnswer({ party_id: WORKER }),
+    ]) {
+      stubSession({
+        worker_records: { data: [row()] },
+        invite_worker: { data: answer },
+      });
+      const response = await POST_INVITE(
+        post(`/api/admin/workers/${WORKER}/invite`, {
+          email: "heron@example.org",
+          reason: "Sign in",
+        }),
+        params(),
+      );
+      expect(response.status).toBe(500);
+      const body = await read(response);
+      expect(body).toEqual({ error: OUTCOME_UNKNOWN, code: "OUTCOME_UNKNOWN" });
+      expect(JSON.stringify(body)).not.toContain(VERIFIER);
+    }
+  });
 });

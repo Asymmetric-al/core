@@ -179,6 +179,86 @@ describe("POST /api/invitations/accept", () => {
     }
   });
 
+  it("maps a worker invitation's refusals distinctly: a worker that already has a login (55006) to 409 WORKER_HAS_LOGIN and a login tied to another person there (21000) to 409 LOGIN_TIED_ELSEWHERE, each with a fixed text and never the database's; READ COMMITTED's 25001 is the generic failure (WP5 rest 2b, invariant 11; red: both are 500)", async () => {
+    h.hasSession.mockReturnValue(true);
+    for (const [pgCode, expectedStatus, expectedCode, text] of [
+      [
+        "55006",
+        409,
+        "WORKER_HAS_LOGIN",
+        "This worker already has a login. Ask your organization for help.",
+      ],
+      [
+        "21000",
+        409,
+        "LOGIN_TIED_ELSEWHERE",
+        "This account already belongs to another person in this organization. Ask your organization for help.",
+      ],
+      ["25001", 500, "INVITATION_ACCEPT_FAILED", "Could not accept invitation"],
+    ] as const) {
+      const rpc = vi.fn().mockResolvedValue({
+        data: null,
+        error: { code: pgCode, message: "database text" },
+      });
+      h.createSessionClient.mockResolvedValue({
+        auth: {
+          getUser: vi
+            .fn()
+            .mockResolvedValue({ data: { user: { id: USER } }, error: null }),
+        },
+        rpc,
+      });
+      const res = await POST(
+        jsonPost({ selector: "a".repeat(32), verifier: "b".repeat(43) }),
+      );
+      expect(res.status, pgCode).toBe(expectedStatus);
+      expect(res.headers.get("cache-control"), pgCode).toBe("no-store");
+      expect(await res.json(), pgCode).toEqual({
+        error: text,
+        code: expectedCode,
+      });
+    }
+  });
+
+  it("a worker invitation's acceptance answers its Party and worker with the redirect (WP5 rest 2b, invariant 11; guard)", async () => {
+    h.hasSession.mockReturnValue(true);
+    const PARTY = "00000000-0000-4000-8000-0000000000e1";
+    const WORKER = "00000000-0000-4000-8000-0000000000f1";
+    h.createSessionClient.mockResolvedValue({
+      auth: {
+        getUser: vi
+          .fn()
+          .mockResolvedValue({ data: { user: { id: USER } }, error: null }),
+      },
+      rpc: vi.fn().mockResolvedValue({
+        data: {
+          invitation_id: INV_ID,
+          tenant_id: TENANT,
+          membership_id: MEM_ID,
+          user_id: USER,
+          role: "missionary",
+          staff_role: null,
+          is_tenant_admin: false,
+          revived: false,
+          accepted_at: "2026-11-28T09:00:00.000Z",
+          party_id: PARTY,
+          assignment_id: WORKER,
+        },
+        error: null,
+      }),
+    });
+    const res = await POST(
+      jsonPost({ selector: "a".repeat(32), verifier: "b".repeat(43) }),
+    );
+    expect(res.status).toBe(200);
+    expect(await res.json()).toMatchObject({
+      role: "missionary",
+      party_id: PARTY,
+      assignment_id: WORKER,
+      redirectPath: `/${TENANT}`,
+    });
+  });
+
   it("refuses malformed JSON and non-JSON media types", async () => {
     h.hasSession.mockReturnValue(true);
     const badJson = await POST(jsonPost("{bad", "application/json"));
