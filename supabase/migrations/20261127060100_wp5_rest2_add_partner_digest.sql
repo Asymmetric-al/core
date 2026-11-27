@@ -26,43 +26,62 @@
 --    reports the count. Other commands' rows are not read or changed.
 -- 4. The donors add_partner made (a crm_command_logs row of action
 --    missionary.partner.create, resource_type 'donor', whose resource_id is
---    the donor's id, in the donor's tenant) that have no e-mail (NULL or
---    blank) and the default preference 'email' get 'phone' where the phone
---    is not blank by private.normalize_safety_text, else NULL. No other
---    donor row changes. A notice reports the count.
+--    the donor's id, in the donor's tenant) that have no e-mail (blank by
+--    private.normalize_safety_text, the brief's rule 13) and the default
+--    preference 'email' get 'phone' where the phone is not blank by the same
+--    function, else NULL. No other donor row changes. Each corrected donor
+--    gets one audit_logs row (action donor_preferred_contact_corrected,
+--    resource the donor, details {"migration": "20261127060100", "from":
+--    "email", "to": <the new preference>}), which the Down reads. A notice
+--    reports the count.
 --
--- Locks, all held to COMMIT: ROW EXCLUSIVE on crm_command_logs and donors
--- for the two updates, which lock only the rows they change; object locks
--- on the function. lock_timeout stops a run rather than queue it behind
--- live traffic.
+-- Locks, all held to COMMIT: ROW EXCLUSIVE on crm_command_logs, donors and
+-- audit_logs for the two updates and the audit rows, which lock only the
+-- rows they change; object locks on the function. lock_timeout stops a run
+-- rather than queue it behind live traffic.
 --
 -- What the running build does: it calls public.add_partner with the same
 -- arguments and gets the same answers; the stored log row and the new
 -- partner's preference differ as above.
 --
 -- Recovery. The function's CREATE OR REPLACE and both updates run again
--- unchanged and change nothing more, so a second run of the applied file
--- commits the same state. This file has committed when this read-only
--- check is true (it answers false, never an error, before):
---   SELECT has_column_privilege('tenant_guard', 'public.donors',
---     'preferred_contact', 'INSERT')
+-- unchanged and change nothing more (no audit row either), so a second run
+-- of the applied file commits the same state. This file has committed when
+-- this read-only check returns true (false before it, never an error):
+-- Check begins
+--   SELECT pg_catalog.has_column_privilege('tenant_guard', 'public.donors', 'preferred_contact', 'INSERT') AS committed;
+-- Check ends
 -- Then follow docs/ops/release-job.md, "If the migration committed but its
 -- ledger row is missing", with this check and this file's version,
 -- 20261127060100.
 --
 -- Down (after the build that calls it is rolled back; one transaction):
--- GRANT CREATE ON SCHEMA tenant_guard TO tenant_guard; SET LOCAL ROLE
--- tenant_guard; re-run the CREATE FUNCTION text of tenant_guard.add_partner
--- from 20261126200200 as CREATE OR REPLACE; RESET ROLE; REVOKE CREATE ON
--- SCHEMA tenant_guard FROM tenant_guard; REVOKE INSERT (preferred_contact)
--- ON public.donors FROM tenant_guard; and, to give add_partner's donors the
--- old default again:
+-- the command's text and comment from 20261126200200 replaced as its
+-- owner, the column grant revoked, and 'email' given back to exactly the
+-- donors item 4 corrected (its audit rows name them) that still hold the
+-- value it set; a preference anyone has chosen since, and every donor item
+-- 4 did not touch, stay. The audit rows stay.
+-- Down begins
+--   BEGIN;
+--   SET LOCAL lock_timeout = '5s';
+--   GRANT CREATE ON SCHEMA tenant_guard TO tenant_guard;
+--   SET LOCAL ROLE tenant_guard;
+--   CREATE OR REPLACE FUNCTION tenant_guard.add_partner(
+--   \lines 247-485 of 20261126200200_wp5_rest_add_partner.sql
+--   RESET ROLE;
+--   REVOKE CREATE ON SCHEMA tenant_guard FROM tenant_guard;
+--   REVOKE INSERT (preferred_contact) ON TABLE public.donors FROM tenant_guard;
 --   UPDATE public.donors AS d SET preferred_contact = 'email'
---     FROM public.crm_command_logs AS l
---    WHERE l.tenant_id = d.tenant_id AND l.action = 'missionary.partner.create'
---      AND l.resource_type = 'donor' AND l.resource_id = d.id::TEXT
---      AND NULLIF(pg_catalog.btrim(d.email), '') IS NULL
---      AND d.preferred_contact IS DISTINCT FROM 'email';
+--     FROM public.audit_logs AS a
+--    WHERE a.tenant_id = d.tenant_id
+--      AND a.action = 'donor_preferred_contact_corrected'
+--      AND a.resource_type = 'donor'
+--      AND a.resource_id = d.id::TEXT
+--      AND a.details ->> 'migration' = '20261127060100'
+--      AND d.preferred_contact IS NOT DISTINCT FROM a.details ->> 'to';
+--   COMMIT;
+--   SELECT pg_notify('pgrst', 'reload schema');
+-- Down ends
 -- The digests stay: what was typed cannot be recovered from them, and the
 -- old function compares a replay with the payload it would store, so a
 -- retry of a submission made under this file answers a key conflict after a
@@ -352,17 +371,24 @@ DO $contact$
 DECLARE
   v_corrected INTEGER;
 BEGIN
-  UPDATE public.donors AS d
-     SET preferred_contact = CASE
-           WHEN private.normalize_safety_text(d.phone) IS NOT NULL THEN 'phone'
-         END
-    FROM public.crm_command_logs AS l
-   WHERE l.tenant_id = d.tenant_id
-     AND l.action = 'missionary.partner.create'
-     AND l.resource_type = 'donor'
-     AND l.resource_id = d.id::TEXT
-     AND NULLIF(pg_catalog.btrim(d.email), '') IS NULL
-     AND d.preferred_contact = 'email';
+  WITH corrected AS (
+    UPDATE public.donors AS d
+       SET preferred_contact = CASE
+             WHEN private.normalize_safety_text(d.phone) IS NOT NULL THEN 'phone'
+           END
+      FROM public.crm_command_logs AS l
+     WHERE l.tenant_id = d.tenant_id
+       AND l.action = 'missionary.partner.create'
+       AND l.resource_type = 'donor'
+       AND l.resource_id = d.id::TEXT
+       AND private.normalize_safety_text(d.email) IS NULL
+       AND d.preferred_contact = 'email'
+    RETURNING d.tenant_id, d.id, d.preferred_contact
+  )
+  INSERT INTO public.audit_logs (tenant_id, action, resource_type, resource_id, details)
+  SELECT c.tenant_id, 'donor_preferred_contact_corrected', 'donor', c.id::TEXT,
+         pg_catalog.jsonb_build_object('migration', '20261127060100', 'from', 'email', 'to', c.preferred_contact)
+    FROM corrected AS c;
   GET DIAGNOSTICS v_corrected = ROW_COUNT;
   RAISE NOTICE 'add_partner donors whose preferred contact was corrected: %', v_corrected;
 END

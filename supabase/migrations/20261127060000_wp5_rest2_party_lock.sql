@@ -55,12 +55,15 @@
 --    Owner tenant_guard, grants and answers unchanged; its reviewed digest in
 --    scripts/verify/command-entry-boundaries.mjs moves with it.
 --
--- One lock order for every writer of a donor or a link for (organization,
--- login): the organization FOR SHARE where the entry takes it, then
--- ('donor_party_writer', organization:login), then the caller's membership
--- rows FOR UPDATE in id order, then the claim or invitation row, then the
--- Party FOR UPDATE, then its donors. The saga takes its idempotency lock
--- first, as before.
+-- Lock order. Every writer of a donor or a link for (organization, login)
+-- takes ('donor_party_writer', organization:login) before any row lock of
+-- its own. The claim takes, in this order: the organization's row FOR SHARE
+-- (private.share_lock_tenant), the writer's lock, the caller's membership
+-- rows FOR UPDATE in id order, the claimed donor's Party FOR UPDATE, then
+-- the claim row FOR UPDATE; a refusal that offers a pair to staff then
+-- takes ('donor_merge_candidate', organization:pair) last. The two gift
+-- writers take their idempotency lock, then the writer's lock, then the
+-- Party FOR UPDATE, then read its donors.
 --
 -- Locks at migration time: object locks on the replaced functions only.
 -- lock_timeout stops a run rather than queue it behind live traffic.
@@ -74,24 +77,39 @@
 --
 -- Recovery. A run lost between its COMMIT and its ledger row stops on the
 -- next run at its first CREATE (private.login_party, 42723), rolling back.
--- This file has committed when this read-only check is true; it answers
--- false, never an error, when the function is absent:
---   SELECT to_regprocedure('private.login_party(uuid,uuid)') IS NOT NULL
+-- This file has committed when this read-only check returns true; it
+-- answers false, never an error, when the function is absent:
+-- Check begins
+--   SELECT pg_catalog.to_regprocedure('private.login_party(uuid,uuid)') IS NOT NULL AS committed;
+-- Check ends
 -- Then follow docs/ops/release-job.md, "If the migration committed but its
 -- ledger row is missing", with this check and this file's version,
 -- 20261127060000.
 --
 -- Down (after the build that relies on it is rolled back; one transaction):
--- re-run, verbatim, the CREATE OR REPLACE of begin_donation_saga and of
--- atomic_create_donation_with_audit (while it exists) from 20261126200000;
--- GRANT CREATE ON SCHEMA tenant_guard TO tenant_guard; SET LOCAL ROLE
--- tenant_guard; re-run the CREATE FUNCTION text of
--- tenant_guard.redeem_account_claim from 20261125050500 as CREATE OR
--- REPLACE; RESET ROLE; REVOKE CREATE ON SCHEMA tenant_guard FROM
--- tenant_guard; restore its reviewed digest; DROP FUNCTION
--- private.login_party(uuid, uuid),
--- private.record_claim_merge_candidate(uuid, uuid, uuid). Donors, links and
--- merge candidates written stay.
+-- the saga's and the atomic writer's texts and grants from 20261126200000
+-- (neither has a comment), the claim's text and comment from
+-- 20261125050500 replaced as its owner, and the two helpers dropped; then
+-- restore the claim's reviewed digest in
+-- scripts/verify/command-entry-boundaries.mjs. Donors, links, merge
+-- candidates and audit rows written stay.
+-- Down begins
+--   BEGIN;
+--   SET LOCAL lock_timeout = '5s';
+--   \lines 180-420 of 20261126200000_wp5_rest_party_writer.sql
+--   \lines 423-552 of 20261126200000_wp5_rest_party_writer.sql
+--   GRANT CREATE ON SCHEMA tenant_guard TO tenant_guard;
+--   SET LOCAL ROLE tenant_guard;
+--   CREATE OR REPLACE FUNCTION tenant_guard.redeem_account_claim(p_tenant_id UUID, p_token TEXT)
+--   \lines 404-549 of 20261125050500_account_claim_commands.sql
+--   \lines 555-556 of 20261125050500_account_claim_commands.sql
+--   RESET ROLE;
+--   REVOKE CREATE ON SCHEMA tenant_guard FROM tenant_guard;
+--   DROP FUNCTION private.login_party(uuid, uuid);
+--   DROP FUNCTION private.record_claim_merge_candidate(uuid, uuid, uuid);
+--   COMMIT;
+--   SELECT pg_notify('pgrst', 'reload schema');
+-- Down ends
 
 BEGIN;
 SET LOCAL lock_timeout = '5s';
