@@ -8,11 +8,11 @@ import {
   StripeLiveModeRefusedError,
   assertStripeTestModeKey,
 } from "../../packages/api/src/stripe/test-mode-key.ts";
+import { requireDisposableDatabase } from "../lib/environment-marker.mjs";
 import {
   GUEST_GIVING_PORTS,
   TURNSTILE_TEST_KEYS,
-} from "../../tests/e2e/helpers/guest-giving.ts";
-import { requireDisposableDatabase } from "../lib/environment-marker.mjs";
+} from "./guest-giving-env.mjs";
 import {
   REPO_ROOT,
   holdInterrupts,
