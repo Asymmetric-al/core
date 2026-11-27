@@ -6,9 +6,11 @@ const HEX_UUID =
 
 export const MEDIA_UPLOAD_MAX_BYTES = 15_728_640;
 export const MEDIA_UPLOAD_TYPES = ["image/jpeg", "image/png", "image/webp"];
+export const MEDIA_TEXT_MAX_LENGTH = 500;
 
 const REGISTER_PATH = "/web-studio/api/web-studio/media/register";
 const REMOVE_PATH = "/web-studio/api/web-studio/media/remove";
+const NO_CONNECTION = "Check your connection and try again.";
 
 export type MediaVariant = "w320" | "w960" | "w1600";
 
@@ -17,6 +19,8 @@ export type MediaDetails = {
   credit: string | null;
   folder: string | null;
 };
+
+export type MediaDetailsField = keyof MediaDetails;
 
 export type MediaUploadStage = "start" | "upload" | "finalize" | "register";
 
@@ -31,6 +35,28 @@ export type MediaUploadOutcome =
 
 export type MediaDeleteOutcome = { ok: true } | { ok: false; message: string };
 
+const DETAIL_LABELS: Record<MediaDetailsField, string> = {
+  alt: "Alt text",
+  credit: "Credit",
+  folder: "Folder",
+};
+
+export function mediaDetailsErrors(
+  details: MediaDetails,
+): Partial<Record<MediaDetailsField, string>> {
+  const errors: Partial<Record<MediaDetailsField, string>> = {};
+  if (!details.alt.trim()) {
+    errors.alt = "Describe the image for people who cannot see it.";
+  }
+  for (const field of ["alt", "credit", "folder"] as const) {
+    if ((details[field]?.trim().length ?? 0) > MEDIA_TEXT_MAX_LENGTH) {
+      errors[field] =
+        `${DETAIL_LABELS[field]} can be at most ${MEDIA_TEXT_MAX_LENGTH} characters.`;
+    }
+  }
+  return errors;
+}
+
 export function mediaAddress(
   id: string,
   variant?: MediaVariant,
@@ -40,8 +66,23 @@ export function mediaAddress(
   return withAppBasePath(variant ? `${path}?variant=${variant}` : path);
 }
 
+async function attempt(request: () => Promise<Response>) {
+  try {
+    return await request();
+  } catch {
+    return null;
+  }
+}
+
+async function readJson(response: Response) {
+  return (await response.json().catch(() => null)) as Record<
+    string,
+    unknown
+  > | null;
+}
+
 async function messageOf(response: Response, fallback: string) {
-  const body = (await response.json().catch(() => null)) as {
+  const body = (await readJson(response)) as {
     error?: unknown;
     errors?: Array<{ message?: unknown }>;
   } | null;
@@ -60,23 +101,38 @@ export async function registerUploadedMedia(
   assetId: string,
   details: MediaDetails,
 ): Promise<MediaUploadOutcome> {
-  const response = await fetch(withAppBasePath(REGISTER_PATH), {
-    ...jsonPost({ assetId, ...details }),
-    credentials: "same-origin",
+  const notAdded = (message: string): MediaUploadOutcome => ({
+    ok: false,
+    stage: "register",
+    assetId,
+    message,
   });
+  const response = await attempt(() =>
+    fetch(withAppBasePath(REGISTER_PATH), {
+      ...jsonPost({ assetId, ...details }),
+      credentials: "same-origin",
+    }),
+  );
+  if (!response) {
+    return notAdded(
+      `The image was stored but not added to the library. ${NO_CONNECTION}`,
+    );
+  }
   if (!response.ok) {
-    return {
-      ok: false,
-      stage: "register",
-      assetId,
-      message: await messageOf(
+    return notAdded(
+      await messageOf(
         response,
         "The image was stored but not added to the library.",
       ),
-    };
+    );
   }
-  const { id } = (await response.json()) as { id: string };
-  return { ok: true, id };
+  const added = await readJson(response);
+  if (typeof added?.id !== "string") {
+    return notAdded(
+      "The image was stored, but the library's answer could not be read. Try again.",
+    );
+  }
+  return { ok: true, id: added.id };
 }
 
 export async function uploadMediaFile(
@@ -97,10 +153,23 @@ export async function uploadMediaFile(
       message: "This image is larger than 15 MB.",
     };
   }
-  const start = await ownApiFetch(
-    "/api/cms/media/start",
-    jsonPost({ byteSize: file.size, mimeType: file.type }),
+  const [detailsError] = Object.values(mediaDetailsErrors(details));
+  if (detailsError) {
+    return { ok: false, stage: "start", message: detailsError };
+  }
+  const start = await attempt(() =>
+    ownApiFetch(
+      "/api/cms/media/start",
+      jsonPost({ byteSize: file.size, mimeType: file.type }),
+    ),
   );
+  if (!start) {
+    return {
+      ok: false,
+      stage: "start",
+      message: `The upload could not start. ${NO_CONNECTION}`,
+    };
+  }
   if (!start.ok) {
     return {
       ok: false,
@@ -108,53 +177,81 @@ export async function uploadMediaFile(
       message: await messageOf(start, "The upload could not start."),
     };
   }
-  const started = (await start.json()) as {
-    assetId: string;
-    signedUrl: string;
-  };
-  const stored = await fetch(started.signedUrl, {
-    method: "PUT",
-    headers: { "content-type": file.type },
-    body: file,
-  });
-  if (!stored.ok) {
+  const started = await readJson(start);
+  const assetId = started?.assetId;
+  const signedUrl = started?.signedUrl;
+  if (typeof assetId !== "string" || typeof signedUrl !== "string") {
+    return {
+      ok: false,
+      stage: "start",
+      message: "The upload could not start. Try again.",
+    };
+  }
+  const stored = await attempt(() =>
+    fetch(signedUrl, {
+      method: "PUT",
+      headers: { "content-type": file.type },
+      body: file,
+    }),
+  );
+  if (!stored?.ok) {
     return {
       ok: false,
       stage: "upload",
-      assetId: started.assetId,
+      assetId,
       message: "The file could not be stored. Try again.",
     };
   }
-  const finalized = await ownApiFetch(
-    "/api/cms/media/finalize",
-    jsonPost({ assetId: started.assetId }),
+  const finalized = await attempt(() =>
+    ownApiFetch("/api/cms/media/finalize", jsonPost({ assetId })),
   );
+  if (!finalized) {
+    return {
+      ok: false,
+      stage: "finalize",
+      assetId,
+      message: `The image could not be checked. ${NO_CONNECTION}`,
+    };
+  }
   if (!finalized.ok) {
     return {
       ok: false,
       stage: "finalize",
-      assetId: started.assetId,
+      assetId,
       message: await messageOf(finalized, "The image could not be checked."),
     };
   }
-  return registerUploadedMedia(started.assetId, details);
+  return registerUploadedMedia(assetId, details);
 }
 
 export async function deleteMediaFile(id: string): Promise<MediaDeleteOutcome> {
-  const deleted = await ownApiFetch(
-    "/api/cms/media/delete",
-    jsonPost({ assetId: id }),
+  const deleted = await attempt(() =>
+    ownApiFetch("/api/cms/media/delete", jsonPost({ assetId: id })),
   );
+  if (!deleted) {
+    return {
+      ok: false,
+      message: `The image could not be deleted. ${NO_CONNECTION}`,
+    };
+  }
   if (!deleted.ok && deleted.status !== 404) {
     return {
       ok: false,
       message: await messageOf(deleted, "The image could not be deleted."),
     };
   }
-  const removed = await fetch(withAppBasePath(REMOVE_PATH), {
-    ...jsonPost({ assetId: id }),
-    credentials: "same-origin",
-  });
+  const removed = await attempt(() =>
+    fetch(withAppBasePath(REMOVE_PATH), {
+      ...jsonPost({ assetId: id }),
+      credentials: "same-origin",
+    }),
+  );
+  if (!removed) {
+    return {
+      ok: false,
+      message: `The image was deleted but is still listed. ${NO_CONNECTION}`,
+    };
+  }
   if (!removed.ok) {
     return {
       ok: false,

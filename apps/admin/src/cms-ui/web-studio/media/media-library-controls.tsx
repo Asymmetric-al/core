@@ -13,15 +13,18 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
+  AlertDialogTrigger,
 } from "@asym/ui/components/shadcn/alert-dialog";
 import { Button } from "@asym/ui/components/shadcn/button";
 import {
   Dialog,
+  DialogClose,
   DialogContent,
   DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
+  DialogTrigger,
 } from "@asym/ui/components/shadcn/dialog";
 import { Input } from "@asym/ui/components/shadcn/input";
 import { Label } from "@asym/ui/components/shadcn/label";
@@ -32,10 +35,12 @@ import { useId, useState } from "react";
 import {
   deleteMediaFile,
   mediaAddress,
+  mediaDetailsErrors,
   MEDIA_UPLOAD_TYPES,
   registerUploadedMedia,
   uploadMediaFile,
   type MediaDetails,
+  type MediaUploadOutcome,
 } from "./media-upload";
 
 import type { FormEvent } from "react";
@@ -46,10 +51,35 @@ export function mediaThumbnail(doc: Record<string, unknown>): string | null {
 
 type Pending = { assetId: string; details: MediaDetails } | null;
 
+type Field = "file" | "alt" | "credit" | "folder";
+
+const FIELDS: Field[] = ["file", "alt", "credit", "folder"];
+
+const NOT_UPLOADED = "The image was not uploaded. Try again.";
+
 const trimmedOrNull = (value: string) => {
   const text = value.trim();
   return text ? text : null;
 };
+
+async function settled(
+  outcome: () => Promise<MediaUploadOutcome>,
+  pending: Pending,
+): Promise<MediaUploadOutcome> {
+  try {
+    return await outcome();
+  } catch {
+    return pending
+      ? {
+          ok: false,
+          stage: "register",
+          assetId: pending.assetId,
+          message:
+            "The image was stored but not added to the library. Try again.",
+        }
+      : { ok: false, stage: "start", message: NOT_UPLOADED };
+  }
+}
 
 export function MediaUploadButton({
   onUploaded,
@@ -61,21 +91,25 @@ export function MediaUploadButton({
     alt: useId(),
     credit: useId(),
     folder: useId(),
-    fileError: useId(),
-    altError: useId(),
+  };
+  const errorIds = {
+    file: useId(),
+    alt: useId(),
+    credit: useId(),
+    folder: useId(),
   };
   const [open, setOpen] = useState(false);
   const [busy, setBusy] = useState(false);
-  const [fieldErrors, setFieldErrors] = useState<{
-    file?: string;
-    alt?: string;
-  }>({});
+  const [fieldErrors, setFieldErrors] = useState<
+    Partial<Record<Field, string>>
+  >({});
   const [failure, setFailure] = useState<string | null>(null);
   const [pending, setPending] = useState<Pending>(null);
   const [file, setFile] = useState<File | null>(null);
   const [alt, setAlt] = useState("");
   const [credit, setCredit] = useState("");
   const [folder, setFolder] = useState("");
+  const locked = busy || pending !== null;
 
   const reset = () => {
     setBusy(false);
@@ -88,7 +122,7 @@ export function MediaUploadButton({
     setFolder("");
   };
 
-  const finish = (outcome: Awaited<ReturnType<typeof uploadMediaFile>>) => {
+  const finish = (outcome: MediaUploadOutcome, details: MediaDetails) => {
     setBusy(false);
     if (outcome.ok) {
       reset();
@@ -97,43 +131,61 @@ export function MediaUploadButton({
       return;
     }
     setFailure(outcome.message);
-    setPending(null);
-    return outcome;
+    setPending(
+      outcome.stage === "register" && outcome.assetId
+        ? { assetId: outcome.assetId, details }
+        : null,
+    );
   };
 
   const submit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    const description = trimmedOrNull(alt);
-    const errors: { file?: string; alt?: string } = {};
-    if (!file) errors.file = "Choose an image to upload.";
-    if (!description) {
-      errors.alt = "Describe the image for people who cannot see it.";
-    }
-    setFieldErrors(errors);
-    setFailure(null);
-    if (!file || !description) return;
     const details: MediaDetails = {
-      alt: description,
+      alt: alt.trim(),
       credit: trimmedOrNull(credit),
       folder: trimmedOrNull(folder),
     };
-    setBusy(true);
-    const outcome = await uploadMediaFile(file, details);
-    const failed = finish(outcome);
-    if (failed && !failed.ok && failed.stage === "register" && failed.assetId) {
-      setPending({ assetId: failed.assetId, details });
+    const errors: Partial<Record<Field, string>> = {
+      ...(file ? {} : { file: "Choose an image to upload." }),
+      ...mediaDetailsErrors(details),
+    };
+    setFieldErrors(errors);
+    setFailure(null);
+    const firstInvalid = FIELDS.find((field) => errors[field]);
+    if (!file || firstInvalid) {
+      if (firstInvalid) document.getElementById(ids[firstInvalid])?.focus();
+      return;
     }
+    setBusy(true);
+    finish(await settled(() => uploadMediaFile(file, details), null), details);
   };
 
   const retry = async () => {
     if (!pending) return;
     setBusy(true);
-    const kept = pending;
-    const failed = finish(
-      await registerUploadedMedia(kept.assetId, kept.details),
+    finish(
+      await settled(
+        () => registerUploadedMedia(pending.assetId, pending.details),
+        pending,
+      ),
+      pending.details,
     );
-    if (failed && !failed.ok) setPending(kept);
   };
+
+  const fieldProps = (field: Field) => ({
+    id: ids[field],
+    name: field,
+    disabled: locked,
+    "aria-invalid": fieldErrors[field] ? true : undefined,
+    "aria-describedby": fieldErrors[field] ? errorIds[field] : undefined,
+  });
+
+  const fieldError = (field: Field) =>
+    fieldErrors[field] ? (
+      <p id={errorIds[field]} className="text-sm text-destructive">
+        {fieldErrors[field]}
+      </p>
+    ) : null;
 
   return (
     <Dialog
@@ -144,10 +196,14 @@ export function MediaUploadButton({
         setOpen(next);
       }}
     >
-      <Button size="sm" onClick={() => setOpen(true)}>
-        <Upload aria-hidden="true" />
-        Upload image
-      </Button>
+      <DialogTrigger
+        render={
+          <Button size="sm">
+            <Upload aria-hidden="true" />
+            Upload image
+          </Button>
+        }
+      />
       <DialogContent>
         <form noValidate onSubmit={submit} className="flex flex-col gap-4">
           <DialogHeader>
@@ -161,59 +217,41 @@ export function MediaUploadButton({
           <div className="flex flex-col gap-2">
             <Label htmlFor={ids.file}>Image file</Label>
             <Input
-              id={ids.file}
-              name="file"
+              {...fieldProps("file")}
               type="file"
               accept={MEDIA_UPLOAD_TYPES.join(",")}
               onChange={(event) =>
                 setFile(event.currentTarget.files?.[0] ?? null)
               }
-              disabled={busy || pending !== null}
-              aria-invalid={fieldErrors.file ? true : undefined}
-              aria-describedby={fieldErrors.file ? ids.fileError : undefined}
             />
-            {fieldErrors.file ? (
-              <p id={ids.fileError} className="text-sm text-destructive">
-                {fieldErrors.file}
-              </p>
-            ) : null}
+            {fieldError("file")}
           </div>
           <div className="flex flex-col gap-2">
             <Label htmlFor={ids.alt}>Alt text</Label>
             <Input
-              id={ids.alt}
-              name="alt"
+              {...fieldProps("alt")}
               value={alt}
               onChange={(event) => setAlt(event.currentTarget.value)}
-              disabled={busy || pending !== null}
-              aria-invalid={fieldErrors.alt ? true : undefined}
-              aria-describedby={fieldErrors.alt ? ids.altError : undefined}
             />
-            {fieldErrors.alt ? (
-              <p id={ids.altError} className="text-sm text-destructive">
-                {fieldErrors.alt}
-              </p>
-            ) : null}
+            {fieldError("alt")}
           </div>
           <div className="flex flex-col gap-2">
             <Label htmlFor={ids.credit}>Credit</Label>
             <Input
-              id={ids.credit}
-              name="credit"
+              {...fieldProps("credit")}
               value={credit}
               onChange={(event) => setCredit(event.currentTarget.value)}
-              disabled={busy || pending !== null}
             />
+            {fieldError("credit")}
           </div>
           <div className="flex flex-col gap-2">
             <Label htmlFor={ids.folder}>Folder</Label>
             <Input
-              id={ids.folder}
-              name="folder"
+              {...fieldProps("folder")}
               value={folder}
               onChange={(event) => setFolder(event.currentTarget.value)}
-              disabled={busy || pending !== null}
             />
+            {fieldError("folder")}
           </div>
           {failure ? (
             <Alert variant="destructive">
@@ -226,6 +264,12 @@ export function MediaUploadButton({
             </Alert>
           ) : null}
           <DialogFooter>
+            <DialogClose
+              disabled={busy}
+              render={<Button type="button" variant="outline" />}
+            >
+              Cancel
+            </DialogClose>
             {pending ? (
               <Button type="button" disabled={busy} onClick={retry}>
                 {busy ? <Spinner aria-hidden="true" /> : null}
@@ -260,7 +304,10 @@ export function MediaDeleteButton({
   const confirm = async () => {
     setBusy(true);
     setFailure(null);
-    const outcome = await deleteMediaFile(id);
+    const outcome = await deleteMediaFile(id).catch(() => ({
+      ok: false as const,
+      message: "The image was not deleted. Try again.",
+    }));
     setBusy(false);
     if (outcome.ok) {
       setOpen(false);
@@ -279,10 +326,14 @@ export function MediaDeleteButton({
         setOpen(next);
       }}
     >
-      <Button variant="destructive" size="sm" onClick={() => setOpen(true)}>
-        <Trash2 aria-hidden="true" />
-        Delete image
-      </Button>
+      <AlertDialogTrigger
+        render={
+          <Button variant="destructive" size="sm">
+            <Trash2 aria-hidden="true" />
+            Delete image
+          </Button>
+        }
+      />
       <AlertDialogContent>
         <AlertDialogHeader>
           <AlertDialogTitle>Delete this image?</AlertDialogTitle>
