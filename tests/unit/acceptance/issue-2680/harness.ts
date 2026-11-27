@@ -43,6 +43,12 @@ const EXTRA = [
   "mMBO",
   "pMBO",
   "mBO",
+  "UMN",
+  "mMN",
+  "pMN",
+  "mN",
+  "UML",
+  "mML",
   ...STAFF_ROLES.flatMap((r) => [`U_${r}`, `m_${r}`]),
 ] as const;
 
@@ -58,7 +64,14 @@ export function fixtureIds(): Ids {
 export function fixtureSql(id: Ids) {
   const q = (k: keyof Ids) => `'${id[k]}'`;
   const staffUsers = STAFF_ROLES.map((r) => q(`U_${r}`));
-  const users = [q("UST"), q("UMR"), q("UMBO"), ...staffUsers].join(", ");
+  const users = [
+    q("UST"),
+    q("UMR"),
+    q("UMBO"),
+    q("UMN"),
+    q("UML"),
+    ...staffUsers,
+  ].join(", ");
   return `${baseSql(id)}
     update authz.memberships set is_tenant_admin = true where id = ${q("mS")};
     insert into auth.users (id, email, email_confirmed_at) select u, 'acc2680-' || u || '@example.test', now() from unnest(array[${users}]::uuid[]) u;
@@ -69,18 +82,23 @@ export function fixtureSql(id: Ids) {
       (${q("mMR")}, ${q("UMR")}, ${q("TA")}, 'missionary', null, false, now()),
       (${q("mMRD")}, ${q("UMR")}, ${q("TA")}, 'donor', null, true, null),
       (${q("mMBO")}, ${q("UMBO")}, ${q("TB")}, 'missionary', null, true, null),
+      (${q("mMN")}, ${q("UMN")}, ${q("TA")}, 'missionary', null, true, null),
+      (${q("mML")}, ${q("UML")}, ${q("TA")}, 'missionary', null, true, null),
       ${STAFF_ROLES.map((r) => `(${q(`m_${r}`)}, ${q(`U_${r}`)}, ${q("TA")}, 'staff', '${r}', true, null)`).join(",\n      ")};
     insert into public.parties (id, tenant_id, display_name) values
       (${q("pMR")}, ${q("TA")}, 'Revoked missionary'),
-      (${q("pMBO")}, ${q("TB")}, 'Missionary of B only');
+      (${q("pMBO")}, ${q("TB")}, 'Missionary of B only'),
+      (${q("pMN")}, ${q("TA")}, 'Worker with no profile');
     insert into public.missionaries (id, tenant_id, party_id, profile_id, legal_entity_id) values
       (${q("mR")}, ${q("TA")}, ${q("pMR")}, ${q("UMR")}, ${q("TA")}),
-      (${q("mBO")}, ${q("TB")}, ${q("pMBO")}, ${q("UMBO")}, ${q("TB")});
+      (${q("mBO")}, ${q("TB")}, ${q("pMBO")}, ${q("UMBO")}, ${q("TB")}),
+      (${q("mN")}, ${q("TA")}, ${q("pMN")}, null, ${q("TA")});
     insert into public.donors (id, tenant_id, party_id, profile_id, name, email) values
       (${q("dMR")}, ${q("TA")}, ${q("pMR")}, ${q("UMR")}, 'Revoked missionary', 'acc2680-r-' || ${q("dMR")} || '@example.test');
     insert into public.account_links (tenant_id, user_id, party_id, linked_via) values
       (${q("TA")}, ${q("UMR")}, ${q("pMR")}, 'profile_backfill'),
-      (${q("TB")}, ${q("UMBO")}, ${q("pMBO")}, 'profile_backfill');
+      (${q("TB")}, ${q("UMBO")}, ${q("pMBO")}, 'profile_backfill'),
+      (${q("TA")}, ${q("UMN")}, ${q("pMN")}, 'profile_backfill');
     update public.follows set ministry_assignment_id = ${q("mA")} where id in (${q("fA")}, ${q("fC")});
     update public.follows set ministry_assignment_id = ${q("mB")} where id = ${q("fB")};
     delete from public.follows where id = ${q("f2")};`;
@@ -113,9 +131,50 @@ export function submitSql(
   tenant: string,
   post: string | null,
   title: string,
-  options: { visibility?: string; publish?: boolean } = {},
+  options: {
+    visibility?: string;
+    publish?: boolean;
+    expectedUpdatedAt?: string | null;
+    expectedDraft?: boolean;
+  } = {},
 ) {
-  return `select public.submit_ministry_update(${lit(tenant)}, ${post ? `${lit(post)}::uuid` : "null::uuid"}, ${lit(title)}, ${lit(`${title} body`)}, '[]'::jsonb, ${lit(options.visibility ?? "public")}, null, ${options.publish ?? true}) as id`;
+  const expected = options.expectedUpdatedAt
+    ? `${lit(options.expectedUpdatedAt)}::timestamptz`
+    : "null::timestamptz";
+  return `select public.submit_ministry_update(${lit(tenant)}, ${post ? `${lit(post)}::uuid` : "null::uuid"}, ${lit(title)}, ${lit(`${title} body`)}, '[]'::jsonb, ${lit(options.visibility ?? "public")}, null, ${options.publish ?? true}, ${expected}, ${options.expectedDraft ?? false}) as id`;
+}
+
+export function approveSql(tenant: string, post: string, version: number) {
+  return `select public.approve_ministry_update(${lit(tenant)}, ${lit(post)}, ${version})`;
+}
+
+export function rejectSql(
+  tenant: string,
+  post: string,
+  version: number,
+  reason: string | null,
+) {
+  return `select public.reject_ministry_update(${lit(tenant)}, ${lit(post)}, ${version}, ${lit(reason)})`;
+}
+
+export function withdrawOwnSql(tenant: string, post: string) {
+  return `select public.withdraw_own_ministry_update(${lit(tenant)}, ${lit(post)})`;
+}
+
+export function withdrawSql(
+  tenant: string,
+  post: string,
+  reason: string | null,
+) {
+  return `select public.withdraw_ministry_update(${lit(tenant)}, ${lit(post)}, ${lit(reason)})`;
+}
+
+export async function versionOf(db: pg.Client, post: string) {
+  const r = await db.query(
+    "select content_version from public.posts where id = $1",
+    [post],
+  );
+  return r.rows[0]?.content_version as number;
 }
 
 export async function counts(db: pg.Client, tenant: string) {

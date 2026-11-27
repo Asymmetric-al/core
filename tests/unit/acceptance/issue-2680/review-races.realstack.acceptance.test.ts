@@ -3,7 +3,17 @@ import { randomUUID } from "node:crypto";
 import pg from "pg";
 import { describe, expect, it } from "vitest";
 
-import { ADMIN_URL, backendPid, waitsOn } from "./harness";
+import { ADMIN_URL, IN_MIGRATE_JOB, backendPid, waitsOn } from "./harness";
+
+it.runIf(IN_MIGRATE_JOB && !ADMIN_URL)("migrate supplies its database", () =>
+  expect(ADMIN_URL).toBeTruthy(),
+);
+
+const SUBMIT =
+  "select public.submit_ministry_update($1, null, 'Race', 'Body', '[]'::jsonb, 'public', null, true, null, false) as id";
+const APPROVE = "select public.approve_ministry_update($1, $2, 1)";
+const RESTRICT =
+  "select public.restrict_worker_publication($1, $2, 'restricted', 'Cedar', null, 'Threat reported')";
 
 type Fixture = {
   tenant: string;
@@ -15,6 +25,8 @@ type Fixture = {
   adminAssignment: string;
   party: string;
   ministry: string;
+  donor: string;
+  donorAssignment: string;
 };
 
 const outcome = (call: Promise<unknown>) =>
@@ -63,8 +75,10 @@ describe.skipIf(!ADMIN_URL)(
         adminAssignment: randomUUID(),
         party: randomUUID(),
         ministry: randomUUID(),
+        donor: randomUUID(),
+        donorAssignment: randomUUID(),
       };
-      const users = [f.author, f.reviewer, f.admin];
+      const users = [f.author, f.reviewer, f.admin, f.donor];
       await admin.connect();
       try {
         await admin.query(
@@ -87,7 +101,8 @@ describe.skipIf(!ADMIN_URL)(
           `insert into authz.memberships (id, user_id, tenant_id, role, staff_role, is_active, is_tenant_admin) values
              ($1, $2, $7, 'missionary', null, true, false),
              ($3, $4, $7, 'staff', 'development', true, false),
-             ($5, $6, $7, 'staff', 'development', true, true)`,
+             ($5, $6, $7, 'staff', 'development', true, true),
+             ($8, $9, $7, 'donor', null, true, false)`,
           [
             f.authorAssignment,
             f.author,
@@ -96,6 +111,8 @@ describe.skipIf(!ADMIN_URL)(
             f.adminAssignment,
             f.admin,
             f.tenant,
+            f.donorAssignment,
+            f.donor,
           ],
         );
         await admin.query(
@@ -111,10 +128,7 @@ describe.skipIf(!ADMIN_URL)(
           [f.tenant, f.author, f.party],
         );
         await signIn(admin, f.author, f.tenant, f.authorAssignment);
-        const submitted = await admin.query(
-          "select public.submit_ministry_update($1, null, 'Race', 'Body', '[]'::jsonb, 'public', null, true) as id",
-          [f.tenant],
-        );
+        const submitted = await admin.query(SUBMIT, [f.tenant]);
         await admin.query("commit");
         await first.connect();
         await second.connect();
@@ -153,6 +167,109 @@ describe.skipIf(!ADMIN_URL)(
         )
       ).rows[0];
 
+    const readers = async (f: Fixture, client: pg.Client, post: string) => {
+      const seen: boolean[] = [];
+      for (const signedIn of [false, true]) {
+        if (signedIn)
+          await signIn(client, f.donor, f.tenant, f.donorAssignment);
+        else await client.query("begin; set local role anon");
+        try {
+          const r = await client.query(
+            "select id from public.posts where id = $1",
+            [post],
+          );
+          seen.push(r.rows.length === 1);
+        } finally {
+          await client.query("rollback");
+        }
+      }
+      return seen;
+    };
+
+    const automatic = (f: Fixture, client: pg.Client) =>
+      client.query(
+        "insert into public.publication_policies (tenant_id, ministry_assignment_id, path, mode, reason, set_by, set_by_assignment_id) values ($1, $2, 'update', 'automatic', 'Trusted writer', $3, $4)",
+        [f.tenant, f.ministry, f.admin, f.adminAssignment],
+      );
+
+    it("S2: a submit under automatic waiting on a restriction of its worker ends withheld, absent from anon and a donor", () =>
+      withFixture(async (f, _post, [restrictor, submitter, observer]) => {
+        await automatic(f, observer);
+        const restrictorPid = await backendPid(restrictor);
+        const submitterPid = await backendPid(submitter);
+        await signIn(restrictor, f.admin, f.tenant, f.adminAssignment);
+        await restrictor.query(RESTRICT, [f.tenant, f.party]);
+        await signIn(submitter, f.author, f.tenant, f.authorAssignment);
+        const submission = submitter
+          .query(SUBMIT, [f.tenant])
+          .then((r) => r.rows[0].id as string);
+        submission.catch(() => undefined);
+        await waitsOn(observer, submitterPid, restrictorPid);
+        await restrictor.query("commit");
+        const post = await submission;
+        await submitter.query("commit");
+        expect(await reviewState(observer, post)).toEqual({
+          review_state: "approved",
+          worker_withheld: true,
+        });
+        expect(await readers(f, observer, post)).toEqual([false, false]);
+      }));
+
+    it("S2: a restriction waiting on a submit under automatic runs after it, so the update ends withheld, absent from anon and a donor", () =>
+      withFixture(async (f, _post, [submitter, restrictor, observer]) => {
+        await automatic(f, observer);
+        const submitterPid = await backendPid(submitter);
+        const restrictorPid = await backendPid(restrictor);
+        await signIn(submitter, f.author, f.tenant, f.authorAssignment);
+        const submitted = await submitter.query(SUBMIT, [f.tenant]);
+        const post = submitted.rows[0].id as string;
+        await signIn(restrictor, f.admin, f.tenant, f.adminAssignment);
+        const restriction = outcome(
+          restrictor.query(RESTRICT, [f.tenant, f.party]),
+        );
+        await waitsOn(observer, restrictorPid, submitterPid);
+        await submitter.query("commit");
+        expect(await restriction).toBe("done");
+        await restrictor.query("commit");
+        expect(await reviewState(observer, post)).toEqual({
+          review_state: "approved",
+          worker_withheld: true,
+        });
+        expect(await readers(f, observer, post)).toEqual([false, false]);
+      }));
+
+    it("C1: an edit waiting on the revocation of its author's assignment is refused (42501) and the update keeps its words and its one audit row", () =>
+      withFixture(async (f, post, [revoker, editor, observer]) => {
+        const revokerPid = await backendPid(revoker);
+        const editorPid = await backendPid(editor);
+        await revoker.query("begin");
+        await revoker.query(
+          "update authz.memberships set is_active = false where id = $1",
+          [f.authorAssignment],
+        );
+        await signIn(editor, f.author, f.tenant, f.authorAssignment);
+        const edit = outcome(
+          editor.query(
+            "select public.submit_ministry_update($1, $2, 'Edited', 'Edited body', '[]'::jsonb, 'public', null, true, null, false)",
+            [f.tenant, post],
+          ),
+        );
+        await waitsOn(observer, editorPid, revokerPid);
+        await revoker.query("commit");
+        expect(await edit).toMatch(/^42501 /);
+        await editor.query("rollback");
+        const row = await observer.query(
+          "select title from public.posts where id = $1",
+          [post],
+        );
+        expect(row.rows).toEqual([{ title: "Race" }]);
+        const audit = await observer.query(
+          "select action from public.audit_logs where tenant_id = $1",
+          [f.tenant],
+        );
+        expect(audit.rows).toEqual([{ action: "ministry_update.submit" }]);
+      }));
+
     it("an approval waiting on the author's withdrawal ends refused, and the update stays withdrawn", () =>
       withFixture(async (f, post, [withdrawer, approver, observer]) => {
         const withdrawerPid = await backendPid(withdrawer);
@@ -163,12 +280,7 @@ describe.skipIf(!ADMIN_URL)(
           [f.tenant, post],
         );
         await signIn(approver, f.reviewer, f.tenant, f.reviewerAssignment);
-        const approval = outcome(
-          approver.query("select public.approve_ministry_update($1, $2)", [
-            f.tenant,
-            post,
-          ]),
-        );
+        const approval = outcome(approver.query(APPROVE, [f.tenant, post]));
         await waitsOn(observer, approverPid, withdrawerPid);
         await withdrawer.query("commit");
         expect(await approval).toBe(
@@ -186,10 +298,7 @@ describe.skipIf(!ADMIN_URL)(
         const approverPid = await backendPid(approver);
         const withdrawerPid = await backendPid(withdrawer);
         await signIn(approver, f.reviewer, f.tenant, f.reviewerAssignment);
-        await approver.query("select public.approve_ministry_update($1, $2)", [
-          f.tenant,
-          post,
-        ]);
+        await approver.query(APPROVE, [f.tenant, post]);
         await signIn(withdrawer, f.author, f.tenant, f.authorAssignment);
         const withdrawal = outcome(
           withdrawer.query(
@@ -212,17 +321,9 @@ describe.skipIf(!ADMIN_URL)(
         const restrictorPid = await backendPid(restrictor);
         const approverPid = await backendPid(approver);
         await signIn(restrictor, f.admin, f.tenant, f.adminAssignment);
-        await restrictor.query(
-          "select public.restrict_worker_publication($1, $2, 'restricted', 'Cedar', null, 'Threat reported')",
-          [f.tenant, f.party],
-        );
+        await restrictor.query(RESTRICT, [f.tenant, f.party]);
         await signIn(approver, f.reviewer, f.tenant, f.reviewerAssignment);
-        const approval = outcome(
-          approver.query("select public.approve_ministry_update($1, $2)", [
-            f.tenant,
-            post,
-          ]),
-        );
+        const approval = outcome(approver.query(APPROVE, [f.tenant, post]));
         await waitsOn(observer, approverPid, restrictorPid);
         await restrictor.query("commit");
         expect(await approval).toBe(
@@ -240,16 +341,10 @@ describe.skipIf(!ADMIN_URL)(
         const approverPid = await backendPid(approver);
         const restrictorPid = await backendPid(restrictor);
         await signIn(approver, f.reviewer, f.tenant, f.reviewerAssignment);
-        await approver.query("select public.approve_ministry_update($1, $2)", [
-          f.tenant,
-          post,
-        ]);
+        await approver.query(APPROVE, [f.tenant, post]);
         await signIn(restrictor, f.admin, f.tenant, f.adminAssignment);
         const restriction = outcome(
-          restrictor.query(
-            "select public.restrict_worker_publication($1, $2, 'restricted', 'Cedar', null, 'Threat reported')",
-            [f.tenant, f.party],
-          ),
+          restrictor.query(RESTRICT, [f.tenant, f.party]),
         );
         await waitsOn(observer, restrictorPid, approverPid);
         await approver.query("commit");
@@ -271,12 +366,7 @@ describe.skipIf(!ADMIN_URL)(
           [f.reviewerAssignment],
         );
         await signIn(approver, f.reviewer, f.tenant, f.reviewerAssignment);
-        const approval = outcome(
-          approver.query("select public.approve_ministry_update($1, $2)", [
-            f.tenant,
-            post,
-          ]),
-        );
+        const approval = outcome(approver.query(APPROVE, [f.tenant, post]));
         await waitsOn(observer, approverPid, revokerPid);
         await revoker.query("commit");
         expect(await approval).toMatch(/^42501 /);

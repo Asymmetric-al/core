@@ -10,11 +10,15 @@ import {
   fixtureIds,
   fixtureSql,
   keepAs,
+  approveSql,
   lit,
   migration,
   preflight,
+  rejectSql,
   submitSql,
+  versionOf,
   who,
+  withdrawSql,
 } from "./harness";
 
 import type { Ids, Who } from "./harness";
@@ -97,19 +101,23 @@ describe.skipIf(!ADMIN_URL)(
       expect(r.code, r.message).toBeNull();
       return r.rows[0]!.id as string;
     };
-    const decide = (
+    const decide = async (
       caller: Who,
       command: "approve" | "reject" | "withdraw",
       post: string,
       reason?: string | null,
       tenant = id.TA,
-    ) =>
-      act(
+    ) => {
+      const version = (await versionOf(db, post)) ?? 1;
+      return act(
         caller,
         command === "approve"
-          ? `select public.approve_ministry_update(${lit(tenant)}, ${lit(post)})`
-          : `select public.${command}_ministry_update(${lit(tenant)}, ${lit(post)}, ${lit(reason ?? null)})`,
+          ? approveSql(tenant, post, version)
+          : command === "reject"
+            ? rejectSql(tenant, post, version, reason ?? null)
+            : withdrawSql(tenant, post, reason ?? null),
       );
+    };
     const state = async (post: string) =>
       (
         await db.query(
@@ -264,13 +272,16 @@ describe.skipIf(!ADMIN_URL)(
         );
       }));
 
-    it("restricting a worker (alias set) or marking them do-not-publish takes their approved updates out of every feed next request and leaves them approved; lift returns them; confirming standard, raising to sensitive or changing only the alias withdraws nothing", () =>
+    it("restricting a worker (alias set) or marking them do-not-publish takes their approved updates out of every feed but the author's and a reviewer's next request and leaves them approved, and a reviewer cannot approve their submitted update; lift returns them; confirming standard, raising to sensitive or changing only the alias withdraws nothing (fix round T1, T2: each reader in turn, the author a fifth)", () =>
       inSavepoint(async () => {
         const post = await submit(secondMissionary, id.TA, "Field news");
         expect((await decide(reviewer, "approve", post)).code).toBe(null);
         const feeds = [null, follower, nonFollower, missionary];
-        const everyone = async () =>
-          Promise.all(feeds.map((caller) => sees(caller, post)));
+        const everyone = async () => {
+          const seen: boolean[] = [];
+          for (const caller of feeds) seen.push(await sees(caller, post));
+          return seen;
+        };
         expect(await everyone()).toEqual([true, true, true, true]);
 
         const command = (sql: string) =>
@@ -281,8 +292,17 @@ describe.skipIf(!ADMIN_URL)(
         expect(await everyone()).toEqual([false, false, false, false]);
         expect(await sees(secondMissionary, post)).toBe(true);
         expect((await state(post)).review_state).toBe("approved");
-        const refused = await decide(reviewer, "approve", post);
+        const waiting = await submit(
+          secondMissionary,
+          id.TA,
+          "Waits while restricted",
+        );
+        const refused = await decide(reviewer, "approve", waiting);
         expect(refused.code).toBe("22023");
+        expect(refused.message).toBe(
+          "The worker's updates are withheld while they are restricted",
+        );
+        expect((await state(waiting)).review_state).toBe("submitted");
 
         await command(
           `select public.lift_worker_restriction(${lit(id.TA)}, ${lit(id.pM2)}, 'standard', false, 'Threat over') as r`,
@@ -478,10 +498,18 @@ describe.skipIf(!ADMIN_URL)(
         const draft = await submit(missionary, id.TA, "Draft", {
           publish: false,
         });
-        expect((await decide(reviewer, "approve", draft)).code).toBe("22023");
-        expect(
-          (await decide(reviewer, "reject", draft, "Not ready")).code,
-        ).toBe("22023");
+        const missing = await decide(
+          reviewer,
+          "withdraw",
+          "00000000-0000-4000-8000-00000000dead",
+          "Not ready",
+        );
+        for (const command of ["approve", "reject", "withdraw"] as const) {
+          const r = await decide(reviewer, command, draft, "Not ready");
+          expect(r.code, command).toBe("42501");
+          expect(r.message, command).toBe(missing.message);
+        }
+        expect((await state(draft)).review_state).toBe("submitted");
         expect(await sees(null, draft)).toBe(false);
         expect(await sees(reviewer, draft)).toBe(false);
         expect(await sees(missionary, draft)).toBe(true);
