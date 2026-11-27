@@ -103,14 +103,13 @@ const reservedPublicPageSegments = new Set<string>([
 ]);
 
 export function isReservedPublicPageSlug(slug: string): boolean {
-  const path = slug.replace(/^\/+/, "");
-  const slash = path.indexOf("/");
-  const first = (slash < 0 ? path : path.slice(0, slash)).replace(
-    /[A-Z]/g,
-    (letter) => letter.toLowerCase(),
-  );
+  const [first = "", ...rest] = normalizePublicCmsPageSlug(
+    slug.split("/"),
+  ).split("/");
+  const segment = first.replace(/[A-Z]/g, (letter) => letter.toLowerCase());
   return (
-    reservedPublicPageSegments.has(first) || (first === "give" && slash >= 0)
+    reservedPublicPageSegments.has(segment) ||
+    (segment === "give" && rest.length > 0)
   );
 }
 
