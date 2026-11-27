@@ -294,6 +294,7 @@ a 4,000,000-byte file and at most 65,536 more bytes for multipart framing.
 | admin      | `/api/upload/editor-image`                                     | Node.js (no `runtime` segment export) | Shared editor-image upload, request-scoped client          |
 | admin      | `/api/webhooks/stripe`                                         | Node.js (no `runtime` segment export) | Stripe SDK, admin client                                   |
 | admin      | `/api/webhooks/stripe-connect`                                 | Node.js (no `runtime` segment export) | Connected-accounts Stripe webhook (`W8-R10`), admin client |
+| donor      | `/api/[...slug]`                                               | Node.js (no `runtime` segment export) | Reserved-address miss: `404`, `no-store`, reads nothing    |
 | donor      | `/api/auth/cleanup-demo-users`                                 | Node.js (no `runtime` segment export) | Admin client                                               |
 | donor      | `/api/auth/demo-account`                                       | Node.js (no `runtime` segment export) | Demo auth server action                                    |
 | donor      | `/api/auth/signout`                                            | Node.js (no `runtime` segment export) | Auth/session cleanup                                       |
