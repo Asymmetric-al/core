@@ -298,29 +298,35 @@ describe("front routing in apps/donor/proxy.ts when switch is ON", () => {
 });
 
 describe("front routing in apps/donor/proxy.ts when switch is OFF", () => {
-  it("sends nothing to a dashboard and strips client x-asym-front-* headers", async () => {
+  it("sends nothing to a dashboard and strips client x-asym-front-* headers (/admin/donors now answers the donor app's reserved 404, so the stripping is shown on a public page: N3 rest PR 1, F2)", async () => {
     vi.stubEnv("CORE_SERVE_UNDER_PATHS", "0");
 
+    const forged = {
+      host: "one.example.test",
+      "x-asym-front-origin": FRONT_ONE,
+      "x-asym-front-stamp": "v1.1.forged",
+      "x-asym-front-custom": "forged",
+    };
     const adminPathRes = await donorModule.proxy(
-      new NextRequest(`${FRONT_ONE}/admin/donors`, {
-        headers: {
-          host: "one.example.test",
-          "x-asym-front-origin": FRONT_ONE,
-          "x-asym-front-stamp": "v1.1.forged",
-          "x-asym-front-custom": "forged",
-        },
-      }),
+      new NextRequest(`${FRONT_ONE}/admin/donors`, { headers: forged }),
     );
     expect(adminPathRes.headers.get("x-middleware-rewrite")).toBeNull();
-    expect(adminPathRes.headers.get("x-middleware-next")).toBe("1");
+    expect(adminPathRes.status).toBe(404);
+    expect(adminPathRes.headers.get("cache-control")).toBe("no-store");
+
+    const publicPathRes = await donorModule.proxy(
+      new NextRequest(`${FRONT_ONE}/about-us`, { headers: forged }),
+    );
+    expect(publicPathRes.headers.get("x-middleware-rewrite")).toBeNull();
+    expect(publicPathRes.headers.get("x-middleware-next")).toBe("1");
     expect(
-      adminPathRes.headers.get("x-middleware-request-x-asym-front-origin"),
+      publicPathRes.headers.get("x-middleware-request-x-asym-front-origin"),
     ).toBeNull();
     expect(
-      adminPathRes.headers.get("x-middleware-request-x-asym-front-stamp"),
+      publicPathRes.headers.get("x-middleware-request-x-asym-front-stamp"),
     ).toBeNull();
     expect(
-      adminPathRes.headers.get("x-middleware-request-x-asym-front-custom"),
+      publicPathRes.headers.get("x-middleware-request-x-asym-front-custom"),
     ).toBeNull();
   });
 });
