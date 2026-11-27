@@ -502,3 +502,33 @@ security and grantees. `private.replace_line_based_allocations` does not exist:
 the line-based review lives in the four-argument
 `public.replace_staged_gift_allocations`, whose owner, security and grantees do
 not change.
+
+## Functions added by AL-2681 (WP8a part 2 rest, pull request 2a)
+
+| Function                                                                                                             | Security | EXECUTE grantees (exact)                    |
+| -------------------------------------------------------------------------------------------------------------------- | -------- | ------------------------------------------- |
+| `tenant_guard.begin_line_gift(uuid, text, text, text, jsonb, bigint, text, boolean, text, jsonb, jsonb, uuid)`       | DEFINER  | `tenant_guard` (owner), `service_role`      |
+| `public.begin_line_gift(text, text, text, jsonb, bigint, text, boolean, text, jsonb, jsonb, uuid)`                   | INVOKER  | `postgres` (owner), `service_role`          |
+| `tenant_guard.defer_payment_event(uuid, uuid, integer)`, `tenant_guard.reconcile_payment_account(uuid, uuid, jsonb)` | DEFINER  | `tenant_guard` (owner), `service_role`      |
+| `public.defer_payment_event(uuid, integer)`, `public.reconcile_payment_account(uuid, jsonb)`                         | INVOKER  | `postgres` (owner), `service_role`          |
+| `public.take_intake_rate_token(text)`                                                                                | DEFINER  | `postgres` (owner), `service_role`          |
+| `public.checkout_giving_config(text, jsonb)`                                                                         | DEFINER  | `postgres` (owner), `anon`, `authenticated` |
+| `public.money_due_work(integer)`                                                                                     | INVOKER  | `postgres` (owner), `service_role`          |
+| `private.donation_intake_requests_sealed()` (trigger)                                                                | INVOKER  | `postgres` (owner)                          |
+| `private.site_checkout_serves_guests()`                                                                              | INVOKER  | `postgres` (owner), `tenant_guard`          |
+
+`public.begin_line_gift` reads its organization from the reviewed host lookup
+`public.resolve_verified_host` (ruling W8-R41) and takes no tenant;
+`public.defer_payment_event` and `public.reconcile_payment_account` read it from
+the stored event and the stored account. `public.checkout_giving_config` is the
+anonymous config read (W8-R18), listed in `anon-definer-allowlist.json`: one
+output, the connected account, or nothing. `public.take_intake_rate_token`
+counts an address's digest in a ten-minute window and trims ended windows in
+the same call. `public.money_due_work` is an invoker over tables
+`service_role` already reads, for the money schedule. `tenant_guard.claim_provider_event`
+is replaced as its owner with the same security and grantees; a deferred event
+answers terminal. Each file revokes `PUBLIC`, `anon`, `authenticated` and
+`service_role` by name before granting
+(`20261127050100_wp8a2_rest2a_intake_command.sql`,
+`20261127050200_wp8a2_rest2a_guest_reads.sql`,
+`20261127050300_wp8a2_rest2a_deferred_events.sql`).

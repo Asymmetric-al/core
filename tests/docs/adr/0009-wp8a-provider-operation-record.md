@@ -337,13 +337,96 @@ NO KEY UPDATE` first.
     `authenticated` selects `donations` whole because `donationsCollection`
     reads `select=*`, so donor and missionary read `is_anonymous` and
     `abandoned_by` (no login, no address: a flag and `'sweep'` or
-    `'staff'`). The narrowing to column grants is WP8b's contract; the
+    `'staff'`), both in the `financial` category of the gift's other
+    attributes its giver sees, since an `internal` column never shows off
+    Mission Control (the foundation's rule C6). The narrowing to column grants is WP8b's contract; the
     item-zero suite fails when `field_policies` and
     `has_column_privilege` disagree on either.
 47. **The donor app counts settled gifts with one predicate (item 16)**:
     `isSettledGift` (Paid or Received) feeds this year's total, the last
     supported, the missionaries supported, the monthly series and the year
     summary.
+48. **The intake's organization comes from the host (ruling W8-R41, with
+    the coordinator's amendment of 27 November).** `public.begin_line_gift`
+    takes the host the request was made to and no organization, reads the
+    organization from the reviewed lookup `public.resolve_verified_host`
+    (state active), the one entry of `WORKER_WRAPPER_ANCHOR_LOOKUPS`, and
+    refuses `42501 host_not_admitted` without one. The guard command locks
+    the organization `FOR SHARE`, admits the host again under locks (the
+    claimed name, the Site `FOR SHARE`, or the home record `FOR SHARE`) and
+    refuses a host before it judges the organization's status, so no answer
+    tells whether another organization's name exists. On a Site's
+    checkout a source Site is always `22023`, and a signed-in giver is
+    refused (`22023 actor_not_admitted`) while one named check,
+    `private.site_checkout_serves_guests()`, answers true: the plan's "A
+    Site's checkout serves guests" (line 179), under the owner's review of
+    outcome 3. Replaced to answer false, it lets a verified giver give in
+    place where the Site's name is also the organization's home domain,
+    with the account area's checks and the Site frozen from the host.
+    A signed-in gift on the home domain may name the Site it was
+    handed off from; it is kept only when it is an active Site of the home
+    organization, and otherwise the gift carries no Site, silently; the
+    entry surface is the donor portal's either way (plan lines 179, 1152,
+    1179). The handler takes the host only from `Host`. Plan lines 169,
+    179, 201, 210 and 221 are amended to say so.
+49. **The intake command** freezes the Site, the entry surface, the source
+    code (an active listed code by its id; a well-formed code off the list
+    kept apart for triage; a malformed or absent one stays absent) and
+    anonymity; takes the entity from the lines (one entity; no donor line
+    on the reserved fund), the active test-mode binding `FOR SHARE` before
+    the intake, and the fee line from the fee cover the server computes with
+    `fee-policy.ts`; refuses bank debit; keeps the client key and the
+    request as SHA-256 digests only; answers a replay with its first intake
+    and refuses the key with another request (`23505`). No browser total,
+    tenant, entity or binding is read.
+50. **The rate limit is a Postgres counter of digests.** Ten requests per
+    address in a ten-minute window pass, the eleventh is refused; each call
+    removes up to 200 rows of ended windows (`SKIP LOCKED`), so the table
+    holds the current window's addresses. The address is the first entry of
+    `x-forwarded-for`, which Vercel sets and overwrites so a client cannot
+    add to it (https://vercel.com/docs/headers/request-headers). The handler
+    checks the challenge first (no write), then takes the token (its own
+    row only), then calls the command.
+51. **The config read is anonymous (W8-R18).** `public.checkout_giving_config`
+    answers one connected account or nothing, the same nothing for every
+    reason; its route answers one generic "giving unavailable" while
+    `GUEST_GIVING_ENABLED` is off, the publishable key is not a test key, or
+    anything fails.
+52. **The payment-event destination (W8-R39)** checks the signature, test
+    mode and integer amounts in the raw text (decision 17's refusal of
+    `1e2`) before any database call, takes the organization from the event's
+    account in test mode only, stores the event, claims it and applies or
+    defers it in its own request. It is mounted and answers `503` while
+    `STRIPE_PAYMENT_EVENTS_WEBHOOK_SECRET` is unset.
+53. **Connected refunds and disputes are kept for WP8c (ruling 2):** the
+    event is `deferred` (a terminal status the claim answers), one Mission
+    Control task per gift (or per event when no intake is known) carries
+    every such event's link, and no money row changes.
+54. **One scheduled function (W8-R40).** `money-schedule` runs every thirty
+    minutes with no step, no retry and one at a time: worker, sweep, events
+    and reconciliation, each leaving at once with nothing due and failing
+    alone, within a 45-second budget. Inngest counts a run and each step as
+    an execution, so it costs one execution a run: 48 a day, 1,440 in a
+    thirty-day month and 1,488 in a thirty-one-day month per deployed
+    environment at zero traffic, and nothing per gift, because the person at
+    checkout is served by the route's inline first send and the
+    destination's inline apply, never by the schedule. The plan enforces a
+    cap of 50,000 executions a month (1,519 used on 27 November); at the cap
+    Inngest stops running functions until the period resets. Nothing is
+    lost: payments still become gifts through the destination; queued and
+    waiting requests, unpaid intakes and failed events stay in their tables
+    and are taken up by the first run after the reset. Until then staff see
+    no new schedule task (a dead letter, a drift) and the stored rows
+    unchanged; the Inngest dashboard names the cap.
+55. **The reconciliation reads each mapped test-mode account** whose binding
+    is active or restricted, maps the reading as the account apply does,
+    and opens one task when it differs from the binding; only the account's
+    own events move a binding.
+56. **`donations.tenant_id` is NOT NULL behind its migration's count gate
+    (W8-R16, record line 964):** it refuses with the count and changes
+    nothing while a gift has no organization; the database's three writers
+    of donations each supply one, and the two legacy ones already refused a
+    gift without one.
 
 ## Pins moved (D-18), each with the reason in the edited title
 
