@@ -109,6 +109,7 @@ describe("the local Supabase workflow's path filter", () => {
 
   it.each([
     "tests/unit/acceptance/issue-2678/worker-record.postgrest.acceptance.test.ts",
+    "tests/unit/acceptance/issue-2678/worker-record.postgrest-fixture.ts",
     "packages/api/src/admin/workers/**",
     "apps/admin/app/api/admin/workers/**",
     "apps/admin/app/(app)/workers/**",
