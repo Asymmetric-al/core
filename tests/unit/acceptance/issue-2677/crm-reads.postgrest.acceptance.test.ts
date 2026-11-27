@@ -849,7 +849,7 @@ describe.skipIf(!url && process.env.CRM_READ_IT_REQUIRED !== "1")(
         );
         for (const [i, id] of ids.entries()) {
           await db.query(
-            "insert into public.donors (id,name,tenant_id,giving_preferences) values ($1,$2,$3,$4)",
+            "insert into public.donors (id,name,tenant_id,party_id,giving_preferences) values ($1,$2,$3,public.donor_party_for_insert($3,null,$2,null),$4)",
             [
               id,
               names[i],
@@ -1216,7 +1216,7 @@ describe.skipIf(!url && process.env.CRM_READ_IT_REQUIRED !== "1")(
           [ids, tenantA, entityA],
         );
         await db.query(
-          `insert into public.donors(id,tenant_id,name) select id,$2::uuid,'Donor '||n from ${source}`,
+          `insert into public.donors(id,tenant_id,party_id,name) select id,$2::uuid,public.donor_party_for_insert($2::uuid,null,'Donor '||n,null),'Donor '||n from ${source}`,
           [ids, tenantA],
         );
         await db.query(

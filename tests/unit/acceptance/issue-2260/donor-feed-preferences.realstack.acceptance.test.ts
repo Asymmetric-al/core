@@ -69,7 +69,8 @@ describe.skipIf(!ADMIN_URL)("#2260 donor_feed_preferences own rows (R)", () => {
       on conflict (id) do update set user_id = excluded.user_id, tenant_id = excluded.tenant_id, role = excluded.role;
     insert into authz.memberships (user_id, tenant_id, role, staff_role, is_active) values (:S, :A, 'staff', 'finance', true),
       (:U1, :A, 'donor', NULL, true), (:U2, :A, 'donor', NULL, true), (:U3, :B, 'donor', NULL, true);
-    insert into public.donors (id, tenant_id, profile_id) values (:D1, :A, :U1), (:D2, :A, :U2), (:D3, :B, :U3);
+    -- D-18, AL-2678 WP5 rest 2a. each fixture donor names its Party through the Party writer, as every donor writer must before party_id becomes NOT NULL (r5b).
+    insert into public.donors (id, tenant_id, party_id, profile_id) values (:D1, :A, public.donor_party_for_insert(:A, :U1, null, null), :U1), (:D2, :A, public.donor_party_for_insert(:A, :U2, null, null), :U2), (:D3, :B, public.donor_party_for_insert(:B, :U3, null, null), :U3);
     insert into public.account_links (tenant_id, user_id, party_id, linked_via) select tenant_id, profile_id, party_id, 'profile_backfill' from public.donors where id in (:D1, :D2, :D3);
     insert into ${T} (id, donor_id, tenant_id) values (:P1, :D1, :A), (:P2, :D2, :A), (:P3, :D3, :B);`.replace(
       /:([A-Z]\d?)\b/g,

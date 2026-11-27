@@ -65,7 +65,8 @@ describe.skipIf(!ADMIN_URL)(
       on conflict (id) do update set user_id = excluded.user_id, tenant_id = excluded.tenant_id, role = excluded.role;
     insert into authz.memberships (user_id, tenant_id, role, staff_role, is_active) values (:SA, :A, 'staff', 'finance', true), (:SB, :B, 'staff', 'finance', true), (:M1, :A, 'missionary', null, true),
       (:UD1, :A, 'donor', null, true), (:UD2, :A, 'donor', null, true), (:UD3, :B, 'donor', null, true), (:M2, :B, 'missionary', null, true);
-    insert into public.donors (id, tenant_id, profile_id) values (:D1, :A, :UD1), (:D2, :A, :UD2), (:D3, :B, :UD3);
+    -- D-18, AL-2678 WP5 rest 2a. each fixture donor names its Party through the Party writer, as every donor writer must before party_id becomes NOT NULL (r5b).
+    insert into public.donors (id, tenant_id, party_id, profile_id) values (:D1, :A, public.donor_party_for_insert(:A, :UD1, null, null), :UD1), (:D2, :A, public.donor_party_for_insert(:A, :UD2, null, null), :UD2), (:D3, :B, public.donor_party_for_insert(:B, :UD3, null, null), :UD3);
     insert into public.legal_entities(id,tenant_id,name,country_code,currency,legal_name) values (:A,:A,'A','US','usd','A'), (:B,:B,'B','US','usd','B');
     insert into public.parties (id, tenant_id, display_name) values (:MA, :A, 'Fixture'), (:MB, :B, 'Fixture');
     insert into public.missionaries (id, tenant_id, profile_id, legal_entity_id, party_id) values (:MA, :A, :M1, :A, :MA), (:MB, :B, :M2, :B, :MB);

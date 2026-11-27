@@ -21,7 +21,7 @@ it.skipIf(!ADMIN_URL)(
       const ids = fixtureIds();
       await db.query(fixtureSql(ids));
       const result = await db.query(
-        "insert into public.donors (tenant_id,name,type) select $1,string_agg(md5(i::text),''),string_agg(md5((i+1)::text),'') from generate_series(1,400) i returning id",
+        "insert into public.donors (tenant_id,party_id,name,type) select $1,public.donor_party_for_insert($1,null,null,null),string_agg(md5(i::text),''),string_agg(md5((i+1)::text),'') from generate_series(1,400) i returning id",
         [ids.TA],
       );
       const caller = {
@@ -37,7 +37,7 @@ it.skipIf(!ADMIN_URL)(
       expect(scoped.code).toBeNull();
       expect(scoped.rows).toEqual(result.rows);
       await db.query(
-        "insert into public.donors (tenant_id,name,type,status) select $1,'Member '||i, 'member','active' from generate_series(1,105) i",
+        "insert into public.donors (tenant_id,party_id,name,type,status) select $1,public.donor_party_for_insert($1,null,'Member '||i,null),'Member '||i, 'member','active' from generate_series(1,105) i",
         [ids.TA],
       );
       for (const column of ["name", "type", "status"]) {
@@ -109,7 +109,7 @@ it.skipIf(!ADMIN_URL)(
       await db.query(fixtureSql(ids));
       for (const tenant of [ids.TA, ids.TB])
         await db.query(
-          "insert into public.donors (tenant_id,name,email,organization,phone) values ($1,'Fixture aBc12',null,null,null),($1,null,'prefixAbC12@example.test',null,null),($1,null,null,'Group ABC12',null),($1,null,null,null,'+abc12')",
+          "insert into public.donors (tenant_id,party_id,name,email,organization,phone) values ($1,public.donor_party_for_insert($1,null,null,null),'Fixture aBc12',null,null,null),($1,public.donor_party_for_insert($1,null,null,null),null,'prefixAbC12@example.test',null,null),($1,public.donor_party_for_insert($1,null,null,null),null,null,'Group ABC12',null),($1,public.donor_party_for_insert($1,null,null,null),null,null,null,'+abc12')",
           [tenant],
         );
       const read = asRole(db, ids);
@@ -162,7 +162,7 @@ it.skipIf(!ADMIN_URL)(
         );
       }
       await db.query(
-        "insert into public.donors (tenant_id,name) values ($1,'Müller Straße'),($1,'Ångström'),($1,'Σίγμα'),($1,'a_b'),($1,'İstanbul')",
+        "insert into public.donors (tenant_id,party_id,name) values ($1,public.donor_party_for_insert($1,null,null,null),'Müller Straße'),($1,public.donor_party_for_insert($1,null,null,null),'Ångström'),($1,public.donor_party_for_insert($1,null,null,null),'Σίγμα'),($1,public.donor_party_for_insert($1,null,null,null),'a_b'),($1,public.donor_party_for_insert($1,null,null,null),'İstanbul')",
         [ids.TA],
       );
       for (const term of [

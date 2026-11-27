@@ -174,7 +174,7 @@ export type MissionaryPortalDonorRelationship = {
   displayName: string;
   email: string | null;
   phone: string | null;
-  preferredContact: string;
+  preferredContact: string | null;
   avatarUrl: string | null;
   location: string | null;
   status: string;
@@ -459,7 +459,7 @@ export function buildMissionaryPortalSnapshot(input: {
         displayName: donor.name || donor.email || "Donor",
         email: donor.email,
         phone: donor.phone || donor.mobile,
-        preferredContact: donor.preferred_contact || "email",
+        preferredContact: donor.preferred_contact || null,
         avatarUrl: donor.avatar_url,
         location: donor.location,
         status: donor.status || "active",

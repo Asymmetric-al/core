@@ -225,7 +225,7 @@ describe.skipIf(!ADMIN_URL)(`giving target integrity (${D18})`, () => {
           [missionary, tenant, entity],
         );
         await db.query(
-          `insert into public.donors(id,tenant_id) values ($1,$2)`,
+          `insert into public.donors(id,tenant_id,party_id) values ($1,$2,public.donor_party_for_insert($2,null,null,null))`,
           [donor, tenant],
         );
         await db.query(
@@ -384,10 +384,10 @@ describe.skipIf(!ADMIN_URL)(`giving target integrity (${D18})`, () => {
         "insert into public.legal_entities(id,tenant_id,name,country_code,currency,legal_name) values ($1,$2,'First','US','usd','First')",
         [entity, tenant],
       );
-      await db.query("insert into public.donors(id,tenant_id) values ($1,$2)", [
-        donor,
-        tenant,
-      ]);
+      await db.query(
+        "insert into public.donors(id,tenant_id,party_id) values ($1,$2,public.donor_party_for_insert($2,null,null,null))",
+        [donor, tenant],
+      );
       await db.query(
         "insert into public.funds(id,tenant_id,legal_entity_id,name) values ($1,$2,$3,'Target')",
         [fund, tenant, entity],

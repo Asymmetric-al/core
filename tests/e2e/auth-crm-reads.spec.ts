@@ -87,7 +87,7 @@ test.describe("CRM on the caller's session", () => {
     );
     await withOwner(env, (db) =>
       db.query(
-        "insert into public.donors (id,tenant_id,name,updated_at) values ($1,$3,'Alice Johnson',now()),($2,$3,'Frank Miller',now())",
+        "insert into public.donors (id,tenant_id,party_id,name,updated_at) values ($1,$3,public.donor_party_for_insert($3,null,'Alice Johnson',null),'Alice Johnson',now()),($2,$3,public.donor_party_for_insert($3,null,'Frank Miller',null),'Frank Miller',now())",
         [...donors, DEMO],
       ),
     );

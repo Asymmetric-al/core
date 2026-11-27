@@ -351,11 +351,69 @@ describe.skipIf(!required && ![url, database, anon, service].some(Boolean))(
       expect(await rowOf(added.donorId)).toMatchObject({ email: null });
     });
 
+    it("a partner added with no phone has no preferred channel wherever the missionary reads it, the list and the snapshot, and an edit that sends back the preference it read, as the edit form does, writes none (fix round F2 of 2859; red: both read email, and the edit stores email)", async () => {
+      const name = `No Phone ${TA.slice(0, 6)}`;
+      const response = await addPartner(
+        request(
+          "adder",
+          "POST",
+          "/api/missionary/donors",
+          { ...partner, name, phone: null },
+          { "idempotency-key": randomUUID() },
+        ),
+      );
+      expect(response.status).toBe(201);
+      const { donorId } = (await response.json()) as { donorId: string };
+      const stored = async () =>
+        (
+          await db.query(
+            "select preferred_contact from public.donors where id = $1",
+            [donorId],
+          )
+        ).rows[0]?.preferred_contact;
+      expect(await stored()).toBeNull();
+
+      const list = await listPartners(
+        request("adder", "GET", "/api/missionary/donors"),
+      );
+      const row = (
+        (await list.json()) as {
+          donors: { id: string; preferred_contact: unknown }[];
+        }
+      ).donors.find((donor) => donor.id === donorId);
+      const snapshot = await getSnapshot(
+        request("adder", "GET", "/api/missionary/portal"),
+      );
+      const relationship = (
+        (await snapshot.json()) as {
+          portal: {
+            donorRelationships: { id: string; preferredContact: unknown }[];
+          };
+        }
+      ).portal.donorRelationships.find((donor) => donor.id === donorId);
+      expect({
+        list: row?.preferred_contact,
+        snapshot: relationship?.preferredContact,
+      }).toEqual({ list: null, snapshot: null });
+
+      const edited = await PATCH(
+        request("adder", "PATCH", `/api/missionary/donors/${donorId}`, {
+          ...edit(name),
+          phone: "",
+          preferred_contact: row?.preferred_contact,
+          notes: "Met at the market",
+        }),
+        withDonor(donorId),
+      );
+      expect(edited.status, await edited.clone().text()).toBe(200);
+      expect(await stored()).toBeNull();
+    });
+
     it("an edit whose body carries an e-mail is refused 400 and writes nothing, whatever the address: one the organization already holds and a fresh one (F17 cases 1 and 5; red: 409 for the held address, 200 for the fresh one)", async () => {
       expect(added.donorId).not.toBe("");
       const held = `wp5rest-held-${TA}@example.test`;
       await db.query(
-        "insert into public.donors (tenant_id, name, email) values ($1, 'Held address', $2)",
+        "insert into public.donors (tenant_id, party_id, name, email) values ($1, public.donor_party_for_insert($1, null, 'Held address', $2), 'Held address', $2)",
         [TA, held],
       );
       const before = await rowOf(added.donorId);

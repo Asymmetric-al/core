@@ -111,7 +111,7 @@ describe.skipIf(!ADMIN_URL)("#2256 person anchor on the real stack", () => {
       [MA, A, PA],
     );
     await db.query(
-      "INSERT INTO public.donors (id, tenant_id) VALUES ($1, $3), ($2, $3), ($4, $5)",
+      "INSERT INTO public.donors (id, tenant_id, party_id) VALUES ($1, $3, public.donor_party_for_insert($3, null, null, null)), ($2, $3, public.donor_party_for_insert($3, null, null, null)), ($4, $5, public.donor_party_for_insert($5, null, null, null))",
       [DA1, DA2, A, DB, B],
     );
   }

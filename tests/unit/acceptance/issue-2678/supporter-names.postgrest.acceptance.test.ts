@@ -593,10 +593,10 @@ describe.skipIf(!required && ![url, database, anon, service].some(Boolean))(
           return { ids, labels };
         };
         await db.query(
-          `insert into public.donors (id, tenant_id, missionary_id, giving_preferences, name, email) values
-             ($1, $4, $5, '{"defaultAnonymousToRecipient": false}', 'Aaron Able', $6),
-             ($2, $4, $5, '{"defaultAnonymousToRecipient": false}', 'Zora Zed', $7),
-             ($3, $4, $5, '{"defaultAnonymousToRecipient": true}', 'Olive Oak', $8)`,
+          `insert into public.donors (id, tenant_id, party_id, missionary_id, giving_preferences, name, email) values
+             ($1, $4, public.donor_party_for_insert($4, null, 'Aaron Able', null), $5, '{"defaultAnonymousToRecipient": false}', 'Aaron Able', $6),
+             ($2, $4, public.donor_party_for_insert($4, null, 'Zora Zed', null), $5, '{"defaultAnonymousToRecipient": false}', 'Zora Zed', $7),
+             ($3, $4, public.donor_party_for_insert($4, null, 'Olive Oak', null), $5, '{"defaultAnonymousToRecipient": true}', 'Olive Oak', $8)`,
           [
             planted.able,
             planted.zed,

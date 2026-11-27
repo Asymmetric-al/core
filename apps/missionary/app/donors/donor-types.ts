@@ -64,7 +64,7 @@ export interface Donor {
   phone: string;
   mobile?: string;
   work_phone?: string;
-  preferred_contact: "email" | "phone" | "text";
+  preferred_contact: "email" | "phone" | "text" | null;
   avatar_url?: string;
   location: string;
   address: Address;

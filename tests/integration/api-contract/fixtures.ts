@@ -179,9 +179,16 @@ async function writeTenantFixture(
     mission_field: "API contract field",
     tagline: `Tenant ${label} missionary`,
   });
+  const donorParty = (
+    await db.query(
+      "select coalesce((select party_id from public.donors where id = $1), public.donor_party_for_insert($2, null, $3, null)) as id",
+      [fixture.donorId, fixture.tenantId, `Tenant ${label} donor`],
+    )
+  ).rows[0].id as string;
   await upsertFixture(db, "public.donors", {
     id: fixture.donorId,
     tenant_id: fixture.tenantId,
+    party_id: donorParty,
     missionary_id: fixture.userId,
     name: `Tenant ${label} donor`,
     email: `donor-${short}@tenant-${label.toLowerCase()}.test`,

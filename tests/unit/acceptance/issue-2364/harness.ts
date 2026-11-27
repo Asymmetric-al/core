@@ -129,9 +129,7 @@ export class Stack {
       );
     await this.db
       .query(`insert into authz.memberships(user_id,tenant_id,role,staff_role,is_active) values
-      (${q("staff")},${q("A")},'staff','finance',true),(${q("missionary")},${q("A")},'missionary',null,true);
-      insert into public.donors(id,tenant_id,profile_id) values
-      (${q("dD")},${q("A")},${q("pD")}),(${q("dO")},${q("A")},${q("pO")}),(${q("dB")},${q("B")},${q("pB")});`);
+      (${q("staff")},${q("A")},'staff','finance',true),(${q("missionary")},${q("A")},'missionary',null,true);`);
     const spine = (
       await this.db.query(
         "select to_regclass('public.parties') is not null as present",
@@ -139,7 +137,9 @@ export class Stack {
     ).rows[0].present as boolean;
     if (!spine)
       await this.db
-        .query(`insert into public.missionaries(id,tenant_id,profile_id) values
+        .query(`insert into public.donors(id,tenant_id,profile_id) values
+      (${q("dD")},${q("A")},${q("pD")}),(${q("dO")},${q("A")},${q("pO")}),(${q("dB")},${q("B")},${q("pB")});
+      insert into public.missionaries(id,tenant_id,profile_id) values
       (${q("mA")},${q("A")},${q("pM")}),(${q("mOther")},${q("A")},${q("pO")}),(${q("mB")},${q("B")},${q("pB")});`);
     else
       await this.db
@@ -147,8 +147,8 @@ export class Stack {
       (${q("mA")},${q("A")},'Fixture'),(${q("mOther")},${q("A")},'Fixture'),(${q("mB")},${q("B")},'Fixture');
       insert into public.missionaries(id,tenant_id,profile_id,party_id) values
       (${q("mA")},${q("A")},${q("pM")},${q("mA")}),(${q("mOther")},${q("A")},${q("pO")},${q("mOther")}),(${q("mB")},${q("B")},${q("pB")},${q("mB")});
-      update public.donors d set party_id = m.party_id from public.missionaries m
-       where m.tenant_id = d.tenant_id and m.profile_id = d.profile_id and d.id in (${q("dD")},${q("dO")},${q("dB")});
+      insert into public.donors(id,tenant_id,party_id,profile_id) values
+      (${q("dD")},${q("A")},public.donor_party_for_insert(${q("A")},${q("pD")},null,null),${q("pD")}),(${q("dO")},${q("A")},public.donor_party_for_insert(${q("A")},${q("pO")},null,null),${q("pO")}),(${q("dB")},${q("B")},public.donor_party_for_insert(${q("B")},${q("pB")},null,null),${q("pB")});
       insert into public.account_links(tenant_id,user_id,party_id,linked_via)
       select distinct tenant_id, profile_id, party_id, 'profile_backfill' from (
         select tenant_id, profile_id, party_id from public.donors where id in (${q("dD")},${q("dO")},${q("dB")})
