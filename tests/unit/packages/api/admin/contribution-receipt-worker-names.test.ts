@@ -157,6 +157,7 @@ interface State {
   failHoldsOnceCorrected?: boolean;
   failSnapshotInserts?: number;
   snapshotConflictOnce?: boolean;
+  winnerRow?: Row;
 }
 
 class QueryBuilder {
@@ -377,6 +378,14 @@ class QueryBuilder {
       case "contribution_adjustments": {
         if (this.operation === "insert") {
           const key = this.payload?.idempotency_key;
+          if (state.winnerRow && state.winnerRow.idempotency_key === key) {
+            state.adjustments.push(state.winnerRow);
+            state.winnerRow = undefined;
+            return {
+              data: null,
+              error: { code: "23505", message: "duplicate idempotency key" },
+            };
+          }
           if (
             typeof key === "string" &&
             state.adjustments.some((row) => row.idempotency_key === key)
@@ -835,5 +844,56 @@ describe("AL-2681 issue 2857 items 3 to 7: a correction's retry belongs to its g
       "failed",
       "sent",
     ]);
+  });
+});
+
+describe("AL-2681 part 2a fix round F1: the receipt a correction's retry seals and mails carries the correction", () => {
+  it("two requests with one key race and the loser seals the receipt first: the snapshot, the mail and the loser's answer carry the corrected amount", async () => {
+    const winner = freshState(true);
+    await correct(winner, "defer", "key-race");
+    const loser = { ...freshState(true), winnerRow: winner.adjustments[0] };
+    sendEmailMock.mockClear();
+    const answer = await correct(loser, "email", "key-race");
+    expect(answer.idempotentReplay).toBe(true);
+    expect(loser.adjustments).toHaveLength(1);
+    expect(loser.snapshots).toHaveLength(1);
+    const sealed = loser.snapshots[0]!.content as ReceiptSnapshotContentV1;
+    expect(sealed.effective.amountCents).toBe(20_000);
+    expect(JSON.stringify(answer.after)).toContain("20000");
+    expect(sendEmailMock).toHaveBeenCalledTimes(1);
+    const mailed = JSON.stringify(sendEmailMock.mock.calls[0]);
+    expect(mailed).toContain("200.00");
+    expect(mailed).not.toContain("250.00");
+  });
+
+  it("a retry after a failed send mails the snapshot it stored, though a worker's public name changed in between", async () => {
+    sendEmailMock.mockResolvedValueOnce({
+      success: false,
+      messageId: null,
+      correlationId: "corr-failed",
+      recipientCount: 0,
+      retryCount: 0,
+      errors: [{ code: "provider_down", message: "The provider is down." }],
+    });
+    const state = freshState(true);
+    await correct(state, "email", "key-stored");
+    expect(state.snapshots).toHaveLength(1);
+    expect(JSON.stringify(state.snapshots[0]!.content)).toContain("Cedar");
+    const original = WORKER_ROWS[W]!.worker_public_name;
+    WORKER_ROWS[W]!.worker_public_name = "Cedar Renamed";
+    try {
+      sendEmailMock.mockClear();
+      const replay = await correct(state, "email", "key-stored");
+      expect(replay.receiptOutcome).toMatchObject({
+        status: "emailed",
+        snapshotId: state.snapshots[0]!.id,
+      });
+      expect(sendEmailMock).toHaveBeenCalledTimes(1);
+      const mailed = JSON.stringify(sendEmailMock.mock.calls[0]);
+      expect(mailed).toContain("Cedar");
+      expect(mailed).not.toContain("Cedar Renamed");
+    } finally {
+      WORKER_ROWS[W]!.worker_public_name = original;
+    }
   });
 });
