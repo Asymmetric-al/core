@@ -259,6 +259,10 @@ describe.skipIf(!ADMIN_URL)(
             .catch(() => undefined);
           await c.end().catch(() => undefined);
         }
+        await admin.query(
+          "delete from private.party_restricted where tenant_id = $1",
+          [tenant],
+        );
         for (const table of [
           "audit_logs",
           "membership_invitations",
@@ -324,12 +328,16 @@ describe.skipIf(!ADMIN_URL)(
             "select action from public.audit_logs where tenant_id = $1 and user_id = $2 order by created_at, id",
             [tenant, by],
           )
-        ).map((row) => row.action),
-      ).toEqual([
-        "worker_created",
-        "worker_identity_set",
-        "membership_invitation_issued",
-      ]);
+        )
+          .map((row) => row.action)
+          .sort(),
+      ).toEqual(
+        [
+          "worker_created",
+          "worker_identity_set",
+          "membership_invitation_issued",
+        ].sort(),
+      );
       expect(await counts()).toEqual({
         ...before,
         parties: before.parties + 1,

@@ -10,7 +10,7 @@ const digest = (body) => createHash("sha256").update(body.trim()).digest("hex");
 const acceptInvitationFunction =
   "tenant_guard.accept_membership_invitation(p_selector text, p_verifier text)";
 const acceptInvitationReason =
-  "AL-2676 WP3c R1/R14/R15: invitation acceptance admits a non-operator caller who holds no membership yet after refusing platform operators and issuer self-acceptance and verifying selector, constant-time verifier digest, live status, expiry, and confirmed non-deleted email via private.resolve_invitation_for_caller before tenant_guard.enter or any lock";
+  "AL-2676 WP3c R1/R14/R15: invitation acceptance admits a non-operator caller who holds no membership yet after refusing platform operators and issuer self-acceptance and verifying selector, constant-time verifier digest, live status, expiry, and confirmed non-deleted email via private.resolve_invitation_for_caller before tenant_guard.enter or any lock; AL-2678 WP5 rest part B (invariant 11): an invitation naming a worker's Party is accepted only at READ COMMITTED (25001), under the donor writer's lock taken after the organization's row and before the caller's memberships, and ties the login to that worker through private.accept_worker_invitation, refusing a worker with a login (55006) and a login tied to another Party there (21000)";
 const startAccountClaim = "tenant_guard.start_account_claim(p_tenant_id uuid)";
 const redeemAccountClaim =
   "tenant_guard.redeem_account_claim(p_tenant_id uuid, p_token text)";
@@ -21,7 +21,7 @@ const redeemAccountClaimReason =
 export const reviewedPreMembership = Object.freeze({
   [acceptInvitationFunction]: Object.freeze({
     reason: acceptInvitationReason,
-    digest: "8e1cd0bb1438913861f3dfda3f72866e20c6ccbe0abb1513e489e41cf9f9cbb2",
+    digest: "8997d19227f341202de39761f7842cd79ebfea20143cf78b97879417bfeca180",
   }),
   [startAccountClaim]: Object.freeze({
     reason: startAccountClaimReason,

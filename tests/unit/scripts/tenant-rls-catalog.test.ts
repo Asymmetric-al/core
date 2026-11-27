@@ -130,7 +130,7 @@ const allow = (...fns: string[]) => ({
 });
 
 describe("WP4 command boundaries", () => {
-  it("pins the complete pre-membership list and its independent review (D-18, AL-2678 WP5 rest 2a: the claim redemption's reviewed digest moves with item zero (b) and fix round F4 of pull request 2859, which take the donor writer's lock and offer a linked login's pair to staff; WP5 rest 2b: it moves again with issue 2835's first item of 28 November, READ COMMITTED only)", () => {
+  it("pins the complete pre-membership list and its independent review (D-18, AL-2678 WP5 rest 2a: the claim redemption's reviewed digest moves with item zero (b) and fix round F4 of pull request 2859, which take the donor writer's lock and offer a linked login's pair to staff; WP5 rest 2b: it moves again with issue 2835's first item of 28 November, READ COMMITTED only; and the invitation acceptance's digest and reason move with invariant 11, a worker invitation's acceptance under the writer's rule)", () => {
     expect(preMembershipEntries.map((entry) => entry.function)).toEqual([
       "tenant_guard.accept_membership_invitation(p_selector text, p_verifier text)",
       "tenant_guard.start_account_claim(p_tenant_id uuid)",
@@ -145,7 +145,7 @@ describe("WP4 command boundaries", () => {
       ),
     ).toEqual({
       "tenant_guard.accept_membership_invitation(p_selector text, p_verifier text)":
-        "8e1cd0bb1438913861f3dfda3f72866e20c6ccbe0abb1513e489e41cf9f9cbb2",
+        "8997d19227f341202de39761f7842cd79ebfea20143cf78b97879417bfeca180",
       "tenant_guard.start_account_claim(p_tenant_id uuid)":
         "bca3eaeb1cf4059144d502daf37a9050eee2918085fd8494438651d7b064544c",
       "tenant_guard.redeem_account_claim(p_tenant_id uuid, p_token text)":
@@ -156,7 +156,7 @@ describe("WP4 command boundaries", () => {
         "tenant_guard.accept_membership_invitation(p_selector text, p_verifier text)"
       ]?.reason,
     ).toBe(
-      "AL-2676 WP3c R1/R14/R15: invitation acceptance admits a non-operator caller who holds no membership yet after refusing platform operators and issuer self-acceptance and verifying selector, constant-time verifier digest, live status, expiry, and confirmed non-deleted email via private.resolve_invitation_for_caller before tenant_guard.enter or any lock",
+      "AL-2676 WP3c R1/R14/R15: invitation acceptance admits a non-operator caller who holds no membership yet after refusing platform operators and issuer self-acceptance and verifying selector, constant-time verifier digest, live status, expiry, and confirmed non-deleted email via private.resolve_invitation_for_caller before tenant_guard.enter or any lock; AL-2678 WP5 rest part B (invariant 11): an invitation naming a worker's Party is accepted only at READ COMMITTED (25001), under the donor writer's lock taken after the organization's row and before the caller's memberships, and ties the login to that worker through private.accept_worker_invitation, refusing a worker with a login (55006) and a login tied to another Party there (21000)",
     );
     for (const entry of preMembershipEntries)
       expect(reviewedPreMembership[entry.function]?.reason).toBe(entry.reason);

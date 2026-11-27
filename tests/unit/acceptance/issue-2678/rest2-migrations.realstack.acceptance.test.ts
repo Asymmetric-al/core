@@ -29,6 +29,10 @@ const FUNCTIONS = [
   "private.insert_worker(uuid,text,uuid)",
   "tenant_guard.create_worker(uuid,text,text,text,text,text,text,uuid,text)",
   "public.create_worker(uuid,text,text,text,text,text,text,uuid,text)",
+  "tenant_guard.accept_membership_invitation(text,text)",
+  "private.accept_worker_invitation(uuid,uuid,uuid)",
+  "tenant_guard.invite_worker(uuid,text,uuid,text,text,text,text,uuid,text)",
+  "public.invite_worker(uuid,text,uuid,text,text,text,text,uuid,text)",
 ];
 
 describe.skipIf(!ADMIN_URL)(
@@ -96,6 +100,14 @@ describe.skipIf(!ADMIN_URL)(
       schema: (
         await db.query(
           "select nspacl::text from pg_namespace where nspname = 'tenant_guard'",
+        )
+      ).rows,
+      invitations: (
+        await db.query(
+          `select (select array_agg(attname::text order by attname) from pg_attribute where attrelid = 'public.membership_invitations'::regclass and attnum > 0 and not attisdropped) as columns,
+                  (select array_agg(conname::text order by conname) from pg_constraint where conrelid = 'public.membership_invitations'::regclass) as constraints,
+                  (select array_agg(indexname::text order by indexname) from pg_indexes where schemaname = 'public' and tablename = 'membership_invitations') as indexes,
+                  (select count(*)::int from public.field_policies where record_type = 'membership_invitations') as policies`,
         )
       ).rows,
     });
@@ -267,6 +279,10 @@ describe.skipIf(!ADMIN_URL)(
 
     it("20261127090200 (part B, issue 2835's items of 28 November): the check, the file, the Down (the claim's text and comment, and the two key triggers' comments, restored) and the file again", async () => {
       await upAndDown("_wp5_rest2b_claim_and_key_order");
+    }, 300_000);
+
+    it("20261127090300 (part B, worker invitations): the check, the file, the Down (the acceptance's text and comment restored, the invite command, its wrapper and the helper dropped, the column with its key, check, index and five field_policies rows removed) and the file again", async () => {
+      await upAndDown("_wp5_rest2b_worker_invitations");
     }, 300_000);
   },
 );
