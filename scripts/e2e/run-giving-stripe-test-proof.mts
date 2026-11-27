@@ -12,7 +12,7 @@ import { requireDisposableDatabase } from "../lib/environment-marker.mjs";
 import {
   GUEST_GIVING_PORTS,
   TURNSTILE_TEST_KEYS,
-} from "./guest-giving-env.mjs";
+} from "./run-guest-giving.mjs";
 import {
   REPO_ROOT,
   holdInterrupts,

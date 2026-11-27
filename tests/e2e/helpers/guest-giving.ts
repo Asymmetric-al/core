@@ -7,7 +7,7 @@ import {
   GUEST_GIVING_PORTS,
   JOURNEY_PUBLISHABLE_KEY,
   TURNSTILE_TEST_KEYS,
-} from "../../../scripts/e2e/guest-giving-env.mjs";
+} from "../../../scripts/e2e/run-guest-giving.mjs";
 
 export { GUEST_GIVING_PORTS, JOURNEY_PUBLISHABLE_KEY, TURNSTILE_TEST_KEYS };
 
