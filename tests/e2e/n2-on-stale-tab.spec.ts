@@ -231,35 +231,33 @@ test("a moved name refuses A's old document; a fresh navigation redirects a one-
       ]),
     ).toEqual(["yes", null]);
 
-    for (const rsc of [true, false]) {
-      const denied = q.waitForResponse(
-        (response) =>
-          new URL(response.url()).pathname === oldAddress &&
-          (rsc
-            ? response.request().headers().rsc === "1"
-            : response.request().isNavigationRequest()),
-      );
-      if (rsc) {
-        const body = await q.evaluate(async (path) => {
-          const res = await fetch(path, {
-            headers: { RSC: "1" },
-            cache: "no-store",
-            redirect: "manual",
-          });
-          return res.text();
-        }, oldAddress);
-        expect(body).not.toContain(rowInB);
-      } else {
-        await q.goto(oldAddress);
-        await expect(q).toHaveURL(/\/admin\/no-access$/);
-        await expect(q.locator("[data-tenant-scope]")).toHaveCount(0);
-      }
-      const refusal = await denied;
-      expect(refusal.status()).toBe(307);
-      expect(new URL(refusal.headers().location!, refusal.url()).pathname).toBe(
-        "/admin/no-access",
-      );
-    }
+    const front = new URL(process.env.N2_ON_BASE_URL!);
+    const cookie = (await visitor.cookies(front.href))
+      .map(({ name, value }) => `${name}=${value}`)
+      .join("; ");
+    const rscRefusal = await q.request.get(
+      `http://localhost:${front.port}${oldAddress}`,
+      { maxRedirects: 0, headers: { host: front.host, cookie, rsc: "1" } },
+    );
+    expect(rscRefusal.status()).toBe(307);
+    expect(new URL(rscRefusal.headers().location!, front).pathname).toBe(
+      "/admin/no-access",
+    );
+    expect(await rscRefusal.text()).not.toContain(rowInB);
+
+    const denied = q.waitForResponse(
+      (response) =>
+        new URL(response.url()).pathname === oldAddress &&
+        response.request().isNavigationRequest(),
+    );
+    await q.goto(oldAddress);
+    await expect(q).toHaveURL(/\/admin\/no-access$/);
+    await expect(q.locator("[data-tenant-scope]")).toHaveCount(0);
+    const refusal = await denied;
+    expect(refusal.status()).toBe(307);
+    expect(new URL(refusal.headers().location!, refusal.url()).pathname).toBe(
+      "/admin/no-access",
+    );
   } finally {
     restoreName(saved);
     await visitor.close();
