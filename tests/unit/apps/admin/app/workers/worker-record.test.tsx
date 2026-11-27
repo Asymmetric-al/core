@@ -776,4 +776,84 @@ describe("AL-2678 r2b1: a worker's record in Mission Control", () => {
     ).toBeTruthy();
     expect(document.body.textContent).not.toContain("Half Kestrel");
   });
+  it("with people.manage_members and safety.restrict_publication, a worker with no login offers Invite to sign in: the form validates on submit (address and reason marked, focus on the first), sends the address and reason to the worker's invite route, then shows the one-time missionary workspace path with Copy; a worker with a login, or a caller without people.manage_members, has no Invite (WP5 rest 2b, worker invitations; red: no Invite)", async () => {
+    state.mc = {
+      capabilities: ["safety.restrict_publication", "people.manage_members"],
+    };
+    current = worker({ hasLogin: false });
+    postReply = (path) =>
+      path.endsWith("/invite")
+        ? {
+            status: 201,
+            body: {
+              invitation: {
+                invitationId: "00000000-0000-4000-8000-00000000e0e1",
+                email: "heron@example.org",
+                expiresAt: "2026-12-05T09:00:00+00:00",
+              },
+              invitePath: "/invite/selector-one#verifier-one",
+            },
+          }
+        : { status: 200, body: { worker: current } };
+    const view = show();
+    fireEvent.click(
+      await screen.findByRole("button", {
+        name: "Invite Worker Kestrel to sign in",
+      }),
+    );
+    const dialog = await screen.findByRole("dialog");
+    fireEvent.click(
+      within(dialog).getByRole("button", { name: "Create invitation" }),
+    );
+    const address = within(dialog).getByLabelText("E-mail address");
+    await waitFor(() =>
+      expect(address.getAttribute("aria-invalid")).toBe("true"),
+    );
+    expect(document.activeElement).toBe(address);
+    expect(
+      within(dialog).getByLabelText("Reason").getAttribute("aria-invalid"),
+    ).toBe("true");
+    expect(posts).toEqual([]);
+    fireEvent.change(address, { target: { value: "heron@example.org" } });
+    fireEvent.change(within(dialog).getByLabelText("Reason"), {
+      target: { value: "Sign in to your record" },
+    });
+    fireEvent.click(
+      within(dialog).getByRole("button", { name: "Create invitation" }),
+    );
+    const link = await within(dialog).findByLabelText(
+      "Missionary workspace invitation path",
+    );
+    expect((link as HTMLInputElement).value).toBe(
+      "/invite/selector-one#verifier-one",
+    );
+    expect(within(dialog).getByRole("button", { name: "Copy" })).toBeTruthy();
+    expect(posts).toEqual([
+      {
+        path: `/api/admin/workers/${WORKER}/invite`,
+        body: { email: "heron@example.org", reason: "Sign in to your record" },
+      },
+    ]);
+    view.unmount();
+    client.clear();
+    current = worker({ hasLogin: true });
+    const linked = show();
+    expect(await screen.findByText("Linked")).toBeTruthy();
+    expect(
+      screen.queryByRole("button", {
+        name: "Invite Worker Kestrel to sign in",
+      }),
+    ).toBeNull();
+    linked.unmount();
+    client.clear();
+    current = worker({ hasLogin: false });
+    state.mc = { capabilities: ["safety.restrict_publication"] };
+    show();
+    expect((await screen.findAllByText("None")).length).toBeGreaterThan(0);
+    expect(
+      screen.queryByRole("button", {
+        name: "Invite Worker Kestrel to sign in",
+      }),
+    ).toBeNull();
+  });
 });
