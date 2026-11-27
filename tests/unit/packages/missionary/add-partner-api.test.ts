@@ -84,6 +84,14 @@ describe("the Add Partner submission key in the browser (AL-2678 WP5 rest, fix r
   it.each([
     ["a body that is not JSON", () => answer(201, undefined, "<html>busy")],
     ["a body without the stored partner", () => answer(201, { ok: true })],
+    [
+      "a body with an empty donor id (fix round F7 of 2859; red: key dropped)",
+      () => answer(201, { ...ADDED, donorId: "" }),
+    ],
+    [
+      "a body with an empty Party id (fix round F7 of 2859; red: key dropped)",
+      () => answer(201, { ...ADDED, partyId: "" }),
+    ],
     ["a null body", () => answer(201, null)],
     [
       "a body whose read fails",
