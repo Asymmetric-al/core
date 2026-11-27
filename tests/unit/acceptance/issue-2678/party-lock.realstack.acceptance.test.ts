@@ -363,6 +363,118 @@ describe.skipIf(!ADMIN_URL)(
         }
       }));
 
+    it("(b, fix round F4 of 2859) a login already linked to another Party is refused as before, caller_already_linked, nothing linked, and the pair is offered to staff once: that Party's sole donor and the claimed donor (red: no candidate)", () =>
+      inWorld(async (w) => {
+        const { user, mail } = await w.login();
+        const linked = await w.party("Linked");
+        const own = await w.donor(linked);
+        await w.link(user, linked);
+        const claimed = await w.party("Claimable");
+        const donor = await w.donor(claimed, { email: mail });
+        const t = await w.claim(user, donor, mail);
+        for (let attempt = 0; attempt < 2; attempt++) {
+          const claim = await session(user, w.tenant);
+          try {
+            expect(await redeem(claim, w.tenant, t)).toEqual({
+              status: "refused",
+            });
+            await claim.query("commit");
+          } finally {
+            await finish(claim);
+          }
+        }
+        const after = await state(w, user);
+        expect(after.links).toEqual([{ party_id: linked }]);
+        expect(after.refusals).toEqual([
+          { reason: "caller_already_linked" },
+          { reason: "caller_already_linked" },
+        ]);
+        expect(after.candidates).toEqual([
+          {
+            existing_donor_id: own,
+            incoming_donor_id: donor,
+            confidence: "possible",
+            status: "open",
+          },
+        ]);
+      }));
+
+    it("(b, fix round F4 of 2859) a login linked to the claimed donor's own Party is refused and offers nothing to staff (guard)", () =>
+      inWorld(async (w) => {
+        const { user, mail } = await w.login();
+        const claimed = await w.party("Claimable");
+        const donor = await w.donor(claimed, { email: mail });
+        await w.link(user, claimed);
+        const t = await w.claim(user, donor, mail);
+        const claim = await session(user, w.tenant);
+        try {
+          expect(await redeem(claim, w.tenant, t)).toEqual({
+            status: "refused",
+          });
+          await claim.query("commit");
+        } finally {
+          await finish(claim);
+        }
+        const after = await state(w, user);
+        expect(after.links).toEqual([{ party_id: claimed }]);
+        expect(after.candidates).toEqual([]);
+      }));
+
+    for (const order of ["A then B", "B then A"] as const)
+      it(`(b, fix round F4 of 2859) two logins each tied by a worker row to a Party with one donor claim each other's donor at once, ${order}: both refused, and one open candidate for the pair, the second redemption waiting on the first (red: two open candidates)`, () =>
+        inWorld(async (w) => {
+          const a = await w.login();
+          const b = await w.login();
+          const partyA = await w.party("A");
+          const partyB = await w.party("B");
+          await w.worker(partyA, a.user);
+          await w.worker(partyB, b.user);
+          const donorA = await w.donor(partyA, { email: a.mail });
+          const donorB = await w.donor(partyB, { email: b.mail });
+          const tokenA = await w.claim(a.user, donorB, b.mail);
+          const tokenB = await w.claim(b.user, donorA, a.mail);
+          const [firstUser, firstToken, secondUser, secondToken] =
+            order === "A then B"
+              ? [a.user, tokenA, b.user, tokenB]
+              : [b.user, tokenB, a.user, tokenA];
+          const first = await session(firstUser, w.tenant);
+          let second: Awaited<ReturnType<typeof session>> | undefined;
+          let pending: Promise<{ status: string }> | undefined;
+          try {
+            second = await session(secondUser, w.tenant);
+            expect(await redeem(first, w.tenant, firstToken)).toEqual({
+              status: "refused",
+            });
+            pending = redeem(second, w.tenant, secondToken);
+            const waited = await blockedOrSettled(
+              w.admin,
+              pending,
+              second.pid,
+              first.pid,
+            );
+            await first.query("commit");
+            expect(await pending).toEqual({ status: "refused" });
+            await second.query("commit");
+            const open = (await state(w, a.user)).candidates.filter(
+              (c) => c.status === "open",
+            );
+            expect(
+              open.map((c) =>
+                [c.existing_donor_id, c.incoming_donor_id].sort(),
+              ),
+              JSON.stringify([
+                (await state(w, a.user)).refusals,
+                (await state(w, b.user)).refusals,
+              ]),
+            ).toEqual([[donorA, donorB].sort()]);
+            expect(waited).toBe(true);
+          } finally {
+            await finish(first);
+            await pending?.catch(() => undefined);
+            if (second) await finish(second);
+          }
+        }));
+
     it("(a) a worker with no account link whose Party already carries a donor with no profile gives through both legacy writers at once: that donor gets both gifts and no donor is added (red: a second donor on the worker's Party)", () =>
       inWorld(async (w) => {
         const { user } = await w.login();
