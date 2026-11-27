@@ -45,6 +45,13 @@ it("reserves every donor route and redirect while it owns that address", () => {
     expect(owned.has(name), name).toBe(true);
 });
 
+it("the route policy holds exactly the first segments a donor route serves", async () => {
+  const policy = await import("../../../apps/donor/lib/route-policy");
+  expect([...(policy.DONOR_ROUTED_FIRST_SEGMENTS ?? [])].sort()).toEqual(
+    [...new Set(firstSegments(app))].sort(),
+  );
+});
+
 describe("the reserved check reads a slug as the public lookup reads a request", () => {
   it.each([" admin", "api ", " /admin", "give /x", "%61dmin", "%41PI/x"])(
     "reserves %j: decoded once, each segment trimmed, empty segments dropped",
@@ -61,12 +68,12 @@ describe("the reserved check reads a slug as the public lookup reads a request",
   );
 });
 
-describe("blocking public catch-all", () => {
-  it("has no loading fallback and opts out of instant navigation until publishing admission moves", async () => {
+describe("the public catch-all streams again, and still refuses a reserved slug before any read", () => {
+  it("keeps its loading fallback and sets no instant export: the 404 is decided before rendering", async () => {
     const page =
       await import("../../../apps/donor/app/(public)/(solid)/[...cmsSlug]/page");
-    expect(existsSync(path.join(app, route, "loading.tsx"))).toBe(false);
-    expect(page.instant).toBe(false);
+    expect(existsSync(path.join(app, route, "loading.tsx"))).toBe(true);
+    expect("instant" in page).toBe(false);
   });
 
   it.each([
