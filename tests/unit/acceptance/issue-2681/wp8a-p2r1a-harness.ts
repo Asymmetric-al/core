@@ -24,9 +24,16 @@ export const GUARD_TEST_GRANTS = [
   "GRANT INSERT (max_attempts) ON TABLE public.donation_saga_outbox TO tenant_guard",
 ];
 
+export const INTAKE_INSERT_GRANTS = [
+  "GRANT INSERT (id, tenant_id, legal_entity_id, payment_account_binding_id, provider_account_ref, livemode, amount, currency, payment_method, is_anonymous, site_id, entry_surface, source_code_id, unlisted_source_code) ON TABLE public.donations TO tenant_guard",
+  "GRANT INSERT (tenant_id, donation_id, legal_entity_id, line_number, fund_id, missionary_id, is_fee_cover, amount) ON TABLE public.donation_intake_lines TO tenant_guard",
+  "GRANT INSERT (tenant_id, donation_id, legal_entity_id, email, first_name, last_name, address, actor_user_id, actor_email, actor_email_confirmed) ON TABLE public.donation_intake_contacts TO tenant_guard",
+];
+
 export const GUARD_TEST_REVOKES = [
   "REVOKE INSERT ON TABLE public.donations, public.donation_intake_lines, public.donation_intake_contacts FROM tenant_guard",
   "REVOKE INSERT (max_attempts) ON TABLE public.donation_saga_outbox FROM tenant_guard",
+  ...INTAKE_INSERT_GRANTS,
 ];
 
 export const GUARD_WIDE_INSERT_GRANTS = [

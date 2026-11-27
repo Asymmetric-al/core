@@ -296,6 +296,179 @@ NO KEY UPDATE` first.
 38. **The large-gift threshold compares the charged total, fee cover
     included** (inventory 8.3, accepted 27 November 2026): no ruling fixes
     the amount, and the charged total is the cautious reading.
+39. **A paid event on a disconnected account opens a case (issue 2857
+    item 1).** A success that names or matches a create request a
+    disconnect parked (its outcome is known, so it has no repair case)
+    opens one `paid_while_parked` case in `public.payment_event_cases` on
+    the intake, with one `payment_while_parked` task and one link, and
+    stages nothing; a replay answers the same case. A success for a request
+    with an open repair case stays that case's evidence (decision 37).
+40. **Every success after a staff abandonment opens `paid_after_abandon`
+    (item 2)**, also when the create request is parked: the abandonment
+    branches run before anything is read of the create request. Refusing
+    the abandonment of an intake whose create is parked, the issue's other
+    choice, was not taken, so staff can always close an intake.
+41. **The apply audits the cancels it changed (item 14)**:
+    `cancel_requests_abandoned` lists the ids its update returned.
+42. **The enqueue takes the binding before the intake (item 15)**, decision
+    32's order: it reads the intake's binding id without a lock, takes the
+    binding `FOR SHARE`, then the intake `FOR NO KEY UPDATE` with that
+    binding matched, and answers `not_found` when the binding moved
+    meanwhile.
+43. **A staff correction's receipt (items 3 to 7).** The key is looked up
+    before the revision check, so a retry after a committed correction
+    reaches the replay (item 6). A key used on another gift is refused with
+    `409`, and nothing is written or sent (item 3). One snapshot per
+    correction and kind, a partial unique index; the loser of that race
+    replays the winner's (item 4). A replay sends its own correction's
+    snapshot and reports `superseded` once a later correction of the gift
+    is applied (item 5). A send that failed, or a snapshot with no send log
+    after five minutes, is sent again; one inside those five minutes
+    reports `pending` (item 7).
+44. **The portal's lifetime is a settled aggregate (item 8)**:
+    `public.donor_portal_lifetime` sums and counts the gifts the list
+    admits (the donor's, and the login's gifts with no donor yet), legacy
+    in a settled status and line-based once paid, so the figures hold past
+    the 250 the list shows. It replaces decision 35's addition to the
+    donor's stored totals.
+45. **The fee-cover fund is compared in canonical form (item 10)**, lower
+    case, and the fee lookup's rows are parsed at the boundary (item 11).
+46. **The manifest says what the grants say on `donations` (item 13).**
+    `authenticated` selects `donations` whole because `donationsCollection`
+    reads `select=*`, so donor and missionary read `is_anonymous` and
+    `abandoned_by` (no login, no address: a flag and `'sweep'` or
+    `'staff'`), both in the `financial` category of the gift's other
+    attributes its giver sees, since an `internal` column never shows off
+    Mission Control (the foundation's rule C6). The narrowing to column grants is WP8b's contract; the
+    item-zero suite fails when `field_policies` and
+    `has_column_privilege` disagree on either.
+47. **The donor app counts settled gifts with one predicate (item 16)**:
+    `isSettledGift` (Paid or Received) feeds this year's total, the last
+    supported, the missionaries supported, the monthly series and the year
+    summary.
+48. **The intake's organization comes from the host (ruling W8-R41), and
+    who may give where follows the six admission cases of the ruling on
+    signed-in giving of 27 November (section 3).** `public.begin_line_gift`
+    takes the host the request was made to and no organization, reads the
+    organization from the reviewed lookup `public.resolve_verified_host`
+    (state active), the one entry of `WORKER_WRAPPER_ANCHOR_LOOKUPS`, and
+    refuses `42501 host_not_admitted` without one. The guard command locks
+    the organization `FOR SHARE`, admits the host again under locks (the
+    claimed name, the Site `FOR SHARE`, or the home record `FOR SHARE`) and
+    refuses a host or surface before it judges the organization's status,
+    so no answer tells whether another organization's name exists. The six
+    cases: (1) a verified actor on a name that is both a Site's and the
+    organization's home gives in place, with the host's Site and the
+    `website` surface; (2) a signed-in gift at home handed off from a
+    current Site of the organization keeps that Site, `donor_account`;
+    (3) one whose source Site is absent, another organization's, unknown
+    or inactive carries no Site, silently, `donor_account`; (4) a gift
+    started inside the account carries no Site, `donor_account`; (5) a
+    guest on any admitted Site name gets the host's Site, `website`, no
+    actor; (6) an actor on a Site name that is not the home is
+    `22023 actor_not_admitted`. A required or supplied actor without a
+    user ID or the e-mail's confirmation is `22023 actor_required`, and a
+    source Site on a Site's checkout is `22023 source_site_not_admitted`;
+    a refusal writes nothing. The handler takes the host only from `Host`;
+    the request names its path (`mode`: `guest` or `signed_in`, `guest`
+    when absent) and the server never changes it: the guest path never
+    reads a session and cannot ask for the account area; the signed-in
+    path reads the session only on the organization's home, takes the
+    actor only from it, and without one answers `401 sign_in_required`
+    before the rate token and the command, so an expired session never
+    becomes a guest gift (fix round F3). Plan lines 169, 179, 201, 210,
+    221 and 1179 are amended to say so.
+49. **The intake command** freezes the Site, the entry surface, the source
+    code (an active listed code by its id; a well-formed code off the list
+    kept apart for triage; a malformed or absent one stays absent) and
+    anonymity; takes the entity from the lines (one entity; no donor line
+    on the reserved fund), the active test-mode binding `FOR SHARE` before
+    the intake, and the fee line from the fee cover the server computes with
+    `fee-policy.ts`; admits a card only (bank debit and wallets are
+    `22023 payment_method_refused`, the ruling on intent conflicts of
+    27 November, section 3), so its one create request names
+    `payment_method_types: ["card"]` and never `automatic_payment_methods`;
+    refuses a fee cover above five percent of the donor's lines plus 100
+    cents (`22023 fee_cover_out_of_range`) and a US-dollar total outside 50
+    to 99,999,999 cents, the range Stripe takes (`22023
+amount_out_of_range`), before any write; keeps the client key and the
+    request as SHA-256 digests only; answers a replay with its first
+    intake and refuses the key with another request (`23505`); and names
+    the gift's state (`gift_state`): `paid` on any recorded evidence that
+    money was taken, the intake completed, a success observation or a
+    `paid_after_abandon` or `paid_while_parked` case (answered `409
+gift_already_completed`, never `gift_closed`), `closed` once it is
+    abandoned, its create request is `refused`, `dead_letter` or
+    `abandoned`, or its PaymentIntent was reported cancelled (answered
+    `409 gift_closed`),
+    otherwise `open`, a declined card's gift included (answered its
+    PaymentIntent). No browser total, tenant, entity or binding is read.
+50. **The rate limit is a Postgres counter of digests.** Ten requests per
+    address in a ten-minute window pass, the eleventh is refused; each call
+    removes up to 200 rows of ended windows (`SKIP LOCKED`), so the table
+    holds the current window's addresses. The address is the first entry of
+    `x-forwarded-for`, which Vercel sets and overwrites so a client cannot
+    add to it (https://vercel.com/docs/headers/request-headers). The handler
+    checks the challenge first (no write), then the home and the session,
+    then takes the token (its own row only), then calls the command.
+51. **The config read is anonymous (W8-R18).** `public.checkout_giving_config`
+    answers one connected account or nothing, the same nothing for every
+    reason; its route answers one generic "giving unavailable" while
+    `GUEST_GIVING_ENABLED` is off, the publishable key is not a test key, or
+    anything fails. It reads through a sessionless public-key client
+    (`createAnonymousClient`): no cookie is read or written, so a
+    visitor's expired session changes nothing (fix round F4).
+52. **The payment-event destination (W8-R39)** checks the signature, test
+    mode and integer amounts in the raw text (decision 17's refusal of
+    `1e2`) before any database call, takes the organization from the event's
+    account in test mode only, stores the event, claims it and applies or
+    defers it in its own request. It is mounted and answers `503` while
+    `STRIPE_PAYMENT_EVENTS_WEBHOOK_SECRET` is unset.
+53. **Connected refunds and disputes are kept for WP8c (ruling 2):** the
+    event is `deferred` (a terminal status the claim answers), one Mission
+    Control task per gift (or per event when no intake is known) carries
+    every such event's link, and no money row changes. The deferral locks
+    as the apply does (the event, the account, the gift) and refuses
+    `55000 lease_lost` unless the event's lease is live and the account's
+    sync lease names the event (fix round F2).
+54. **One scheduled function (W8-R40).** `money-schedule` runs every thirty
+    minutes with no step, no retry and one at a time: worker, sweep, events
+    and reconciliation, each leaving at once with nothing due and failing
+    alone, within a 45-second budget; a provider operation whose claim or
+    report came back as an RPC error counts as failed; the account reader
+    has a ten-second deadline and no automatic retry, and no row that reads
+    the provider starts with less than that left (fix round F7). Inngest
+    counts a run and each step as
+    an execution, so it costs one execution a run: 48 a day, 1,440 in a
+    thirty-day month and 1,488 in a thirty-one-day month per deployed
+    environment at zero traffic, and nothing per gift, because the person at
+    checkout is served by the route's inline first send and the
+    destination's inline apply, never by the schedule. The three recovery
+    scans already on the same cadence keep their own counts until part 2b
+    retires the saga's and the legacy events' scans in the same release
+    that opens checkout. The plan enforces a
+    cap of 50,000 executions a month (1,519 used on 27 November); at the cap
+    Inngest stops running functions until the period resets. Nothing is
+    lost: payments still become gifts through the destination; queued and
+    waiting requests, unpaid intakes and failed events stay in their tables
+    and are taken up by the first run after the reset. Until then staff see
+    no new schedule task (a dead letter, a drift) and the stored rows
+    unchanged; the Inngest dashboard names the cap.
+55. **The reconciliation reads each mapped test-mode account** whose binding
+    is pending, active or restricted, maps the reading as the account apply
+    does, and opens one task when it differs from the binding; only the
+    account's own events move a binding. It locks the account and stamps
+    `reconciled_at` as its first write, whatever its outcome (a failed
+    provider read is handed over as `read_failed`, stamped and opens
+    nothing), and the due work orders accounts by it, never read first:
+    every account is read again within ceil(N / limit) ticks, a failing
+    read goes to the back, and two reconciliations of one account open one
+    task (fix round F5).
+56. **`donations.tenant_id` is NOT NULL behind its migration's count gate
+    (W8-R16, record line 964):** it refuses with the count and changes
+    nothing while a gift has no organization; the database's three writers
+    of donations each supply one, and the two legacy ones already refused a
+    gift without one.
 
 ## Pins moved (D-18), each with the reason in the edited title
 
@@ -332,3 +505,8 @@ NO KEY UPDATE` first.
 | `issue-2406/profile-url.acceptance`, criterion 18 (fix round)                                                     | Its fake answers `public.actor_gifts_without_donor`, which the portal now calls (F2), with none                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
 | `packages/api/donor-portal/snapshot-gift-cap.test.ts` (fix round)                                                 | Its fake answers the same read, with none (F2)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
 | `apps/donor/history-receipt-links.test.ts` (fix round)                                                            | The Receipt control downloads the row's link and shows none without one, as a line-based gift has none until WP8b (F6)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
+| `issue-2681/wp8a-rest1-unpaid.realstack…`, F10 (item zero)                                                        | With no open repair case, a success for a parked create opens one `paid_while_parked` case (decision 39)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
+| `issue-2406/profile-url.acceptance`, criterion 18 (item zero)                                                     | Its fake answers `public.donor_portal_lifetime`, which the portal now calls (decision 44), with zero                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
+| `packages/api/admin/contribution-receipt-worker-names.test.ts`, F11 (item zero)                                   | The later retry reports the receipt's state, not `null` (decision 43)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
+| `shared/realstack-step.test.ts`, `REAL_DATABASE_FILES` (item zero)                                                | The item-zero real-stack file                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
+| `packages/api/admin/contribution-adjustment-operations.test.ts`, "#260 stale retry" (item zero)                   | A retry with the same key replays its correction although the revision moved; a new key on a stale revision is still refused with `409` (decision 43). Its fake now honours the key filter, which the earlier lookup reads                                                                                                                                                                                                                                                                                                                                                                                                                                                         |

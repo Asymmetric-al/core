@@ -83,3 +83,21 @@ describe("AL-2681 WP8a part 2 rest, PR 1, fix round F8: the five migrations on a
     );
   });
 });
+
+describe("AL-2681 WP8a part 2 rest, PR 2a, the confirmation's finding 4: the Downs on a hosted database", () => {
+  it.each([
+    "20261127050000",
+    "20261127050100",
+    "20261127050200",
+    "20261127050300",
+    "20261127050400",
+  ])(
+    "%s's Down sets its lock timeout before it alters or drops a table or a column",
+    (version) => {
+      const text = down(file(version));
+      const touch = text.search(/ALTER TABLE|DROP TABLE|DROP COLUMN/);
+      if (touch < 0) return;
+      expect(text.slice(0, touch)).toContain("SET LOCAL lock_timeout = '5s';");
+    },
+  );
+});

@@ -684,7 +684,7 @@ describe.skipIf(!ADMIN_URL)(
         ]);
       }));
 
-    it("R31: a person records an intent and names no provider account; a second submission returns the same intent", () =>
+    it("R31: a person records an intent and names no provider account; a second submission returns the same intent (D-18, AL-2681 PR 2a: the anonymous checkout config read returns a connected account and takes none, so only input arguments count)", () =>
       withTwoTenants(async (fx) => {
         const accountArgs = await db.query(
           `SELECT p.oid::regprocedure::text AS fn
@@ -692,7 +692,9 @@ describe.skipIf(!ADMIN_URL)(
              JOIN pg_namespace AS n ON n.oid = p.pronamespace
             WHERE n.nspname IN ('public', 'tenant_guard', 'private', 'authz')
               AND has_function_privilege('authenticated', p.oid, 'EXECUTE')
-              AND EXISTS (SELECT 1 FROM unnest(coalesce(p.proargnames, ARRAY[]::text[])) AS a(name) WHERE a.name ILIKE '%account%')
+              AND EXISTS (SELECT 1 FROM unnest(coalesce(p.proargnames, ARRAY[]::text[])) WITH ORDINALITY AS a(name, ord)
+                           WHERE a.name ILIKE '%account%'
+                             AND (p.proargmodes IS NULL OR p.proargmodes[a.ord] IN ('i', 'b', 'v')))
             ORDER BY 1`,
         );
         expect(accountArgs.rows).toEqual([]);

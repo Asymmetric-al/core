@@ -1,16 +1,18 @@
 import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
+
+import { describe, expect, it } from "vitest";
+
+import keyExceptions from "../../../docs/security/tenant-key-exceptions.json";
 import { CAPABILITY_REGISTRY } from "../../../packages/auth/capabilities/registry";
 import { EXCLUDED_SCHEMA_PATTERN } from "../../../scripts/release/schema-fingerprint.mjs";
 import keys from "../../../scripts/verify/command-capabilities.json";
 import {
+  WORKER_WRAPPER_ANCHOR_LOOKUPS,
   preMembershipEntries,
   reviewedPreMembership,
   preMembershipExceptions,
 } from "../../../scripts/verify/command-entry-boundaries.mjs";
-
-import { describe, expect, it } from "vitest";
-import keyExceptions from "../../../docs/security/tenant-key-exceptions.json";
 
 it("allows the reviewed CMS tenant-key debt to shrink, never to grow", () => {
   const original = new Set([
@@ -2834,5 +2836,110 @@ describe("WP8a worker wrapper rules (TP2 section 11)", () => {
     expect(failure?.detail).toContain(
       "the qualifier is the relation's alias, or its name when it has none",
     );
+  });
+});
+
+describe("W8-R41: one reviewed lookup may anchor a worker wrapper's tenant (AL-2681 PR 2a, ruling on the intake's organization)", () => {
+  const lookup = "public.resolve_verified_host(p_host text)";
+  const lookupDefiner = definer(lookup, "postgres", true, {
+    volatility: "s",
+    anon_execute: true,
+  });
+  const lanes = [command("tenant_guard.begin_line_gift(uuid, text, text)")];
+  const judge = (wrappers: object[], anon: unknown = allow(lookup)) =>
+    evaluate([], listed(), [lookupDefiner], lanes, anon, { wrappers });
+  const sig = "public.begin_line_gift(p_host text, p_surface text)";
+  const body = (from: string) =>
+    `DECLARE v_tenant uuid; BEGIN SELECT h.tenant_id INTO v_tenant FROM ${from} AS h WHERE h.state = 'active'; IF v_tenant IS NULL THEN RAISE EXCEPTION 'host_not_admitted' USING ERRCODE = '42501'; END IF; RETURN tenant_guard.begin_line_gift(v_tenant, p_host, p_surface); END;`;
+  const worker = (fn: string, text: string) =>
+    wrapper(fn, text, { service_role: true, language: "plpgsql" });
+
+  it("the list is frozen and names only the reviewed single-host lookup", () => {
+    expect(WORKER_WRAPPER_ANCHOR_LOOKUPS).toEqual([
+      "public.resolve_verified_host",
+    ]);
+    expect(Object.isFrozen(WORKER_WRAPPER_ANCHOR_LOOKUPS)).toBe(true);
+  });
+
+  it("admits the lookup called with one of the wrapper's own parameters, with or without an alias and a plain predicate", () => {
+    expect(
+      codes(judge([worker(sig, body("public.resolve_verified_host(p_host)"))])),
+    ).toEqual([]);
+    expect(
+      codes(
+        judge([
+          worker(
+            sig,
+            "DECLARE v_tenant uuid; BEGIN SELECT resolve_verified_host.tenant_id INTO v_tenant FROM public.resolve_verified_host(p_host); RETURN tenant_guard.begin_line_gift(v_tenant, p_host, p_surface); END;",
+          ),
+        ]),
+      ),
+    ).toEqual([]);
+  });
+
+  it.each<[string, string]>([
+    ["an unlisted function", "public.lookup_owner(p_host)"],
+    [
+      "an expression argument",
+      "public.resolve_verified_host(pg_catalog.lower(p_host))",
+    ],
+    ["a literal argument", "public.resolve_verified_host('give.example.org')"],
+    ["two arguments", "public.resolve_verified_host(p_host, p_surface)"],
+    ["an unqualified call", "resolve_verified_host(p_host)"],
+    [
+      "a locked read of the lookup",
+      "public.resolve_verified_host(p_host) FOR SHARE",
+    ],
+  ])("refuses %s as the anchor", (_label, from) => {
+    expect(codes(judge([worker(sig, body(from))]))).toContain(
+      `WORKER_WRAPPER_TENANT_ARGUMENT ${sig}`,
+    );
+  });
+
+  it("refuses an organization parameter as the lookup's argument", () => {
+    const fn = "public.begin_line_gift(p_tenant_host text, p_surface text)";
+    const text = body("public.resolve_verified_host(p_tenant_host)").replace(
+      "begin_line_gift(v_tenant, p_host,",
+      "begin_line_gift(v_tenant, p_tenant_host,",
+    );
+    expect(codes(judge([worker(fn, text)]))).toContain(
+      `WORKER_WRAPPER_TENANT_ARGUMENT ${fn}`,
+    );
+  });
+
+  it("refuses the lookup while it is not on the anon-definer allowlist, where it is reviewed as a STABLE definer with an empty path", () => {
+    expect(
+      codes(
+        judge(
+          [worker(sig, body("public.resolve_verified_host(p_host)"))],
+          allow(),
+        ),
+      ),
+    ).toEqual(
+      expect.arrayContaining([
+        `WORKER_WRAPPER_ANCHOR_LOOKUP_UNREVIEWED ${sig}`,
+      ]),
+    );
+  });
+
+  it("F8: a quoted call of the lookup is the same call: it is refused while the lookup is not on the allowlist", () => {
+    expect(
+      codes(
+        judge(
+          [worker(sig, body('public."resolve_verified_host"(p_host)'))],
+          allow(),
+        ),
+      ),
+    ).toEqual(
+      expect.arrayContaining([
+        `WORKER_WRAPPER_ANCHOR_LOOKUP_UNREVIEWED ${sig}`,
+      ]),
+    );
+  });
+
+  it("an unlisted lookup is still a call the wrapper may not make", () => {
+    expect(
+      codes(judge([worker(sig, body("public.lookup_owner(p_host)"))])),
+    ).toContain(`WORKER_WRAPPER_WRITES ${sig}`);
   });
 });

@@ -66,6 +66,7 @@ class QueryBuilder {
   private wantsSingle = false;
   private inValues: unknown[] = [];
   private ordinaryFundsOnly = false;
+  private eqs: Record<string, unknown> = {};
 
   constructor(
     private readonly table: string,
@@ -88,7 +89,8 @@ class QueryBuilder {
     return this;
   }
 
-  eq() {
+  eq(column: string, value: unknown) {
+    this.eqs[column] = value;
     return this;
   }
 
@@ -244,10 +246,15 @@ class QueryBuilder {
         return { data: { id: row.id }, error: null };
       }
 
+      const key = this.eqs.idempotency_key;
+      const rows =
+        key === undefined
+          ? this.state.adjustments
+          : this.state.adjustments.filter((row) => row.idempotency_key === key);
       if (this.wantsSingle) {
-        return { data: this.state.adjustments[0] ?? null, error: null };
+        return { data: rows[0] ?? null, error: null };
       }
-      return { data: this.state.adjustments, error: null };
+      return { data: rows, error: null };
     }
     return { data: null, error: null };
   }
@@ -381,7 +388,7 @@ describe("applyContributionCorrection", () => {
     expect(state.insertCount).toBe(1);
   });
 
-  it("rejects a stale retry before consulting the idempotency key (#260)", async () => {
+  it("a retry with the same key replays its correction although the revision moved; a new key on a stale revision is refused (D-18, AL-2681 issue 2857 item 6: the key is looked up before the revision check; before, the retry answered 409 and never reached the replay) (#260)", async () => {
     const state: StubState = {
       adjustments: [],
       insertCount: 0,
@@ -392,13 +399,17 @@ describe("applyContributionCorrection", () => {
       idempotencyKey: "key-stale-retry",
     });
 
-    // A retry carrying a revision that no longer matches is a stale save
-    // first: optimistic concurrency wins over idempotent replay so the
-    // caller reloads and re-reviews instead of silently replaying.
+    const replay = await applyContributionCorrection({
+      ...baseInput(state),
+      idempotencyKey: "key-stale-retry",
+      expectedRevision: "stale-revision-from-before-first-save",
+    });
+    expect(replay.idempotentReplay).toBe(true);
+
     await expect(
       applyContributionCorrection({
         ...baseInput(state),
-        idempotencyKey: "key-stale-retry",
+        idempotencyKey: "key-new-on-stale",
         expectedRevision: "stale-revision-from-before-first-save",
       }),
     ).rejects.toMatchObject({

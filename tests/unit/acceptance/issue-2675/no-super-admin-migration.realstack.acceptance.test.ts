@@ -197,12 +197,16 @@ describe.skipIf(!ADMIN_URL)(
         .replace(/^BEGIN;/, "")
         .replace(/COMMIT;\s*$/, "");
 
-    it("the Down, run in a transaction that is rolled back, restores the function with its grants and every branch, and drops the helper", async () => {
+    it("the Down, run in a transaction that is rolled back, restores the function with its grants and every branch, and drops the helper (D-18, AL-2681 PR 2a: every later migration is first taken off the ledger inside that transaction, since 20261127050000 to 20261127050400 sort after this file)", async () => {
       const before = new Map(
         (await rows(POLICIES)).map((p) => [p.key as string, p]),
       );
       await db.query("begin");
       try {
+        await db.query(
+          "delete from supabase_migrations.schema_migrations where version > $1",
+          [version()],
+        );
         await db.query(
           "insert into supabase_migrations.schema_migrations (version) values ($1) on conflict (version) do nothing",
           [version()],
@@ -238,7 +242,7 @@ describe.skipIf(!ADMIN_URL)(
       }
     });
 
-    it("the Down proof rejects a swapped policy pair in the Down VALUES list", async () => {
+    it("the Down proof rejects a swapped policy pair in the Down VALUES list (D-18, AL-2681 PR 2a: later migrations taken off the ledger first, inside the transaction)", async () => {
       const before = new Map(
         (await rows(POLICIES)).map((p) => [p.key as string, p]),
       );
@@ -249,6 +253,10 @@ describe.skipIf(!ADMIN_URL)(
       expect(swapped).not.toBe(downSql());
       await db.query("begin");
       try {
+        await db.query(
+          "delete from supabase_migrations.schema_migrations where version > $1",
+          [version()],
+        );
         await db.query(
           "insert into supabase_migrations.schema_migrations (version) values ($1) on conflict (version) do nothing",
           [version()],
@@ -285,7 +293,7 @@ describe.skipIf(!ADMIN_URL)(
           await db.query("rollback to savepoint guard_case");
         };
         await expectRefused(
-          `insert into supabase_migrations.schema_migrations (version) values ('${version()}'), ('${newer}') on conflict (version) do nothing`,
+          `delete from supabase_migrations.schema_migrations where version > '${version()}'; insert into supabase_migrations.schema_migrations (version) values ('${version()}'), ('${newer}') on conflict (version) do nothing`,
           /Reverse every later migration first/,
         );
         await expectRefused(

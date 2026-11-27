@@ -43,6 +43,7 @@ export const STAFF_EXEMPT_PATHS = [
   "/api/health/migrations",
   "/api/webhooks/stripe",
   "/api/webhooks/stripe-connect",
+  "/api/webhooks/stripe-payment-events",
   "/api/email/webhooks/resend",
   "/api/inngest",
   "/eve/v1/github",

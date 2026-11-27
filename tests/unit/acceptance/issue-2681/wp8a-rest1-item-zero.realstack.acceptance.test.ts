@@ -3,15 +3,16 @@ import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
 import {
   ADMIN_URL,
-  IN_MIGRATE_JOB,
-  HOSTED_SERVICE_GRANTS,
   attempt,
   claim,
   core,
   coreOutcome,
   enqueue,
-  grant,
   giftIntake,
+  grant,
+  GUARD_TEST_REVOKES,
+  HOSTED_SERVICE_GRANTS,
+  IN_MIGRATE_JOB,
   inTx,
   moneyRows,
   paymentIntent,
@@ -49,11 +50,7 @@ describe.skipIf(!ADMIN_URL)(
         );
         const event = await storeEvent(db, fx.A, { pi, amount: intake.amount });
         await role(db, null);
-        for (const statement of [
-          "REVOKE INSERT ON TABLE public.donations, public.donation_intake_lines, public.donation_intake_contacts FROM tenant_guard",
-          "REVOKE INSERT (max_attempts) ON TABLE public.donation_saga_outbox FROM tenant_guard",
-        ])
-          await db.query(statement);
+        for (const statement of GUARD_TEST_REVOKES) await db.query(statement);
         await db.query("COMMIT");
         try {
           for (const level of ["REPEATABLE READ", "SERIALIZABLE"]) {

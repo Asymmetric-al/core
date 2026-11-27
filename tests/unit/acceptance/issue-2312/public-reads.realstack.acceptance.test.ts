@@ -309,7 +309,7 @@ describe.skipIf(!ADMIN_URL)(
 
     describe("criterion 1: post-state", () => {
       it.each(H.TABLES)(
-        "1: public.%s has the exact authorized PERMISSIVE policies and deparsed quals (D-18: WP4b part 1 adds tenant_guard_isolation on missionaries; D-18, AL-2675: WP2c rest B moves each staff read, and follows' staff branch, to the staff-read helper)",
+        "1: public.%s has the exact authorized PERMISSIVE policies and deparsed quals (D-18: WP4b part 1 adds tenant_guard_isolation on missionaries; AL-2681 PR 2a adds a SELECT-only tenant_guard_isolation on funds, which the intake command reads; D-18, AL-2675: WP2c rest B moves each staff read, and follows' staff branch, to the staff-read helper)",
         (t) =>
           tx(async () => {
             const p = await policies(t);
@@ -346,6 +346,17 @@ describe.skipIf(!ADMIN_URL)(
                     qual: currentQual(t),
                     withCheck: null,
                   },
+                  ...(t === "funds"
+                    ? [
+                        {
+                          name: "tenant_guard_isolation",
+                          cmd: "SELECT",
+                          role: "tenant_guard",
+                          qual: "tenant_id = (SELECT tenant_guard.current_tenant_id())",
+                          withCheck: null,
+                        },
+                      ]
+                    : []),
                 ];
             expect(p.map((x) => x.policyname)).toEqual(
               expected.map((row) => row.name),

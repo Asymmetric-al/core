@@ -588,10 +588,11 @@ describe("Connected-accounts webhook: thin v2 account events (W8-R3, W8-R10, R31
     expect(res.headers.get("x-middleware-next")).toBe("1");
   });
 
-  it("route surface (F7 / W8-R3): exactly one connected-accounts webhook route exists in apps/admin and the legacy mounts remain", () => {
+  it("route surface (F7 / W8-R3; D-18, AL-2681: and the payment-event destination of W8-R39 beside it): exactly one connected-accounts webhook route exists in apps/admin and the legacy mounts remain", () => {
     const routes = collectStripeWebhookRoutes(path.join(REPO_ROOT, "apps"));
     expect(routes).toEqual([
       "apps/admin/app/api/webhooks/stripe-connect/route.ts",
+      "apps/admin/app/api/webhooks/stripe-payment-events/route.ts",
       "apps/admin/app/api/webhooks/stripe/route.ts",
       "apps/donor/app/api/webhooks/stripe/route.ts",
       "apps/missionary/app/api/webhooks/stripe/route.ts",

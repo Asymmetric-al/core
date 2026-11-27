@@ -155,11 +155,13 @@ packages/api/src/reads/missionary-metrics.ts admin_client 1
 packages/api/src/shared/with-operation.ts admin_client 1
 packages/api/src/storage/media-store.ts admin_client 1
 packages/api/src/stripe/connect-webhook.ts admin_client 1
+packages/api/src/stripe/payment-events-webhook.ts admin_client 1 ruling:W8-R39
 packages/api/src/stripe/webhooks.ts admin_client 1
 packages/api/src/workflows/admin-client.ts admin_client 1
 packages/api/src/workflows/functions/dispatch-recovery-scan.ts workflow_admin_wrapper 1
 packages/api/src/workflows/functions/donation-saga-recovery.ts workflow_admin_wrapper 2
 packages/api/src/workflows/functions/inbound-email-processing.ts workflow_admin_wrapper 1
+packages/api/src/workflows/functions/money-schedule.ts workflow_admin_wrapper 1 ruling:W8-R40
 packages/api/src/workflows/functions/stripe-event-processing.ts workflow_admin_wrapper 4
 packages/database/scripts/seed-demo-users.ts service_role_key 2
 packages/env/src/schema.ts service_role_key 4

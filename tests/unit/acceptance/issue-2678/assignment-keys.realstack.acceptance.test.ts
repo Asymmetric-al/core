@@ -1087,7 +1087,7 @@ describe.skipIf(!ADMIN_URL)(
       }
     });
 
-    it("10. the committed check is false before the file and true after; a second run stops at its first ADD COLUMN (42701) and changes nothing; the Down, in the header's order, restores the task functions and search_crm_donors byte for byte, removes the key's five field-policy rows (which the schema fingerprint does not see) so the table's contents are the base's again, and the catalog gate passes but for service_role's table privileges and CREATE on authz, which 20261126190000, later in the chain than this scratch database, closes (D-18, issue 2841: the gate holds service_role since then; D-18, AL-2675: and the super-admin branches, bare staff reads and field_policies_read pin, which 20261127040000, later in the chain, closes)", async () => {
+    it("10. the committed check is false before the file and true after; a second run stops at its first ADD COLUMN (42701) and changes nothing; the Down, in the header's order, restores the task functions and search_crm_donors byte for byte, removes the key's five field-policy rows (which the schema fingerprint does not see) so the table's contents are the base's again, and the catalog gate passes but for service_role's table privileges and CREATE on authz, which 20261126190000, later in the chain than this scratch database, closes (D-18, issue 2841: the gate holds service_role since then; D-18, AL-2675: and the super-admin branches, bare staff reads and field_policies_read pin, which 20261127040000, later in the chain, closes; D-18, AL-2681 PR 2a: and the anonymous checkout config read, which 20261127050200 creates later still, the allowlist naming it)", async () => {
       const sources = await definitions();
       const base = captureFingerprint({ databaseUrl: url });
       const basePolicies = await policies();
@@ -1173,9 +1173,17 @@ console.log(JSON.stringify(await m.runTenantRlsCatalogGate({ databaseUrl: proces
           policy !== undefined && alteredByWp2cB.has(`${f.table}|${policy}`)
         );
       };
-      const later = (f: { code: string; table?: string; detail?: string }) =>
+      const later = (f: {
+        code: string;
+        table?: string;
+        detail?: string;
+        function?: string;
+      }) =>
         f.code === "SERVICE_ROLE_UNSAFE_PRIVILEGE" ||
         (f.code === "SERVICE_ROLE_SCHEMA_CREATE" && f.table === "authz") ||
+        (f.code === "ANON_ALLOWLIST_STALE" &&
+          f.function ===
+            "public.checkout_giving_config(p_host text, p_targets jsonb)") ||
         ((f.code === "POLICY_SUPER_ADMIN_BRANCH" ||
           f.code === "TENANT_CONDITION_MISSING" ||
           f.code === "STAFF_READ_ON_BARE_STAFF_CHECK") &&
