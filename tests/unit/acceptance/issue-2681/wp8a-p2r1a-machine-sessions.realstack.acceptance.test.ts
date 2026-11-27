@@ -3,10 +3,11 @@ import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
 import {
   ADMIN_URL,
-  IN_MIGRATE_JOB,
   claim,
   expireLease,
+  GUARD_TEST_REVOKES,
   guardIntake,
+  IN_MIGRATE_JOB,
   makeDue,
   paymentIntent,
   removeTwoTenants,
@@ -64,12 +65,7 @@ describe.skipIf(!ADMIN_URL)(
       try {
         const out = await fn();
         await role(db, null);
-        await db.query(
-          "REVOKE INSERT ON TABLE public.donations, public.donation_intake_lines FROM tenant_guard",
-        );
-        await db.query(
-          "REVOKE INSERT (max_attempts) ON TABLE public.donation_saga_outbox FROM tenant_guard",
-        );
+        for (const statement of GUARD_TEST_REVOKES) await db.query(statement);
         await db.query("COMMIT");
         return out;
       } catch (error) {
