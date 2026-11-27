@@ -88,6 +88,7 @@ vi.mock("../../../../apps/admin/src/cms/get-payload", () => ({
 }));
 vi.mock("../../../../apps/admin/node_modules/payload/dist/index.js", () => ({
   createPayloadRequest: async () => ({}),
+  executeAuthStrategies: async () => ({ user: { id: "editor" } }),
 }));
 vi.mock("../../../../apps/admin/src/cms/preview/authenticated-preview", () => ({
   isWebStudioPreviewCollection: () => true,

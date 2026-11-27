@@ -14,6 +14,7 @@ import {
 import {
   WEB_STUDIO_CHOOSER_PATH,
   WEB_STUDIO_ENTRY_ASSIGNMENT_PARAM,
+  WEB_STUDIO_ENTRY_ROLE_PARAM,
   WEB_STUDIO_ENTRY_TENANT_PARAM,
   WEB_STUDIO_FROM_PARAM,
   WEB_STUDIO_REFUSED_PARAM,
@@ -106,6 +107,9 @@ export function webStudioEntryRedirect(
   nameTenantId?: string,
 ): URL | null {
   const search = new URLSearchParams(request.nextUrl.search);
+  if (nameTenantId !== undefined) {
+    return nameEntryRedirect(request, pathname, decision, search);
+  }
   if (
     !search.has(WEB_STUDIO_ENTRY_TENANT_PARAM) &&
     !search.has(WEB_STUDIO_ENTRY_ASSIGNMENT_PARAM)
@@ -134,6 +138,34 @@ export function webStudioEntryRedirect(
       (nameTenantId === undefined || tenantId === nameTenantId)
       ? tenantId
       : null,
+    decision.kind === "choose" && decision.refused === true,
+  );
+}
+
+function nameEntryRedirect(
+  request: NextRequest,
+  pathname: string,
+  decision: WebStudioDecision,
+  search: URLSearchParams,
+): URL | null {
+  if (!search.has(WEB_STUDIO_ENTRY_ROLE_PARAM)) return null;
+  if (decision.kind === "refuse") return null;
+  const roles = search.getAll(WEB_STUDIO_ENTRY_ROLE_PARAM);
+  search.delete(WEB_STUDIO_ENTRY_ROLE_PARAM);
+  const query = search.toString();
+  const address = query ? `${pathname}?${query}` : pathname;
+  if (
+    roles.length === 1 &&
+    decision.kind === "allow" &&
+    decision.assignment.staffRole === roles[0]
+  ) {
+    const base = request.nextUrl.basePath || "";
+    return new URL(`${base}${address}`, request.nextUrl.origin);
+  }
+  return webStudioChooserUrl(
+    request,
+    address,
+    null,
     decision.kind === "choose" && decision.refused === true,
   );
 }

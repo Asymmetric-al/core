@@ -315,7 +315,7 @@ describe("dashboard admission when switch is ON (D-18, N2 part 1: stamped reques
     ).toBeNull();
   });
 
-  it("admits ~<sub-role> under /admin with document scope /<org>~finance", async () => {
+  it("admits ~<sub-role> under /admin with document scope /~finance (D-18, N2 part 2b: on, the address names the sub-role, never the organization)", async () => {
     state.userId = USER;
     state.rows = [
       {
@@ -339,7 +339,7 @@ describe("dashboard admission when switch is ON (D-18, N2 part 1: stamped reques
     ];
     const valid = await signFrontStamp(FRONT_ORIGIN, "/admin", adminKey);
     const res = await adminModule.proxy(
-      adminRequest(`/${TA}~finance/care/directory`, {
+      adminRequest("/~finance/care/directory", {
         headers: {
           [FRONT_ORIGIN_HEADER]: FRONT_ORIGIN,
           [FRONT_STAMP_HEADER]: valid,
@@ -352,7 +352,7 @@ describe("dashboard admission when switch is ON (D-18, N2 part 1: stamped reques
       `${ADMIN_HOST}/admin/care/directory`,
     );
     expect(res.headers.get("x-middleware-request-x-asym-address-prefix")).toBe(
-      `/${TA}~finance`,
+      "/~finance",
     );
     expect(res.headers.get("x-middleware-request-x-asym-assignment")).toBe(
       ROW_FINANCE,
@@ -382,7 +382,7 @@ describe("dashboard admission when switch is ON (D-18, N2 part 1: stamped reques
     ).toBeNull();
   }
 
-  it("passes no front origin or stamp downstream of a stamped staff page or API request, only the stamped host", async () => {
+  it("passes no front origin or stamp downstream of a stamped staff page or API request, only the stamped host (D-18, N2 part 2b: the page's address is /~finance)", async () => {
     state.userId = USER;
     state.rows = [
       {
@@ -411,7 +411,7 @@ describe("dashboard admission when switch is ON (D-18, N2 part 1: stamped reques
     };
 
     const page = await adminModule.proxy(
-      adminRequest(`/${TA}~finance/care/directory`, { headers: stamped }),
+      adminRequest("/~finance/care/directory", { headers: stamped }),
     );
     expect(page.headers.get("x-middleware-rewrite")).toBe(
       `${ADMIN_HOST}/admin/care/directory`,
@@ -425,7 +425,7 @@ describe("dashboard admission when switch is ON (D-18, N2 part 1: stamped reques
     expectOnlyTheStampedHostDownstream(api, "staff API");
   });
 
-  it("passes no front origin or stamp downstream of a stamped missionary page or API request, only the stamped host", async () => {
+  it("passes no front origin or stamp downstream of a stamped missionary page or API request, only the stamped host (D-18, N2 part 2b: the page's address is the bare path)", async () => {
     vi.stubEnv("CORE_APP_BASE_PATH", "/missionary");
     vi.stubEnv("FRONT_STAMP_KEY", missionaryKey);
     state.userId = USER;
@@ -451,7 +451,7 @@ describe("dashboard admission when switch is ON (D-18, N2 part 1: stamped reques
     };
 
     const page = await missionaryModule.proxy(
-      missionaryRequest(`/${TA}`, { headers: stamped }),
+      missionaryRequest("/", { headers: stamped }),
     );
     expect(page.headers.get("x-middleware-rewrite")).toBe(
       `${MISSIONARY_HOST}/missionary`,
@@ -559,7 +559,7 @@ describe("dashboard admission when switch is ON (D-18, N2 part 1: stamped reques
     }
   });
 
-  it("enforces missionary's own explicit list and refuses staff-only listed paths", async () => {
+  it("enforces missionary's own explicit list and refuses staff-only listed paths (D-18, N2 part 2b: a stamped page serves one row at the bare path, no landing redirect)", async () => {
     vi.stubEnv("CORE_APP_BASE_PATH", "/missionary");
     vi.stubEnv("FRONT_STAMP_KEY", missionaryKey);
 
@@ -633,10 +633,11 @@ describe("dashboard admission when switch is ON (D-18, N2 part 1: stamped reques
         },
       }),
     );
-    expect(stampedRes.status).toBe(307);
-    expect(stampedRes.headers.get("location")).toBe(
-      `${FRONT_ORIGIN}/missionary/${TA}`,
-    );
+    expect(stampedRes.status).toBe(200);
+    expect(stampedRes.headers.get("location")).toBeNull();
+    expect(
+      stampedRes.headers.get("x-middleware-request-x-asym-assignment"),
+    ).toBe(ROW_MISS);
   });
 
   it("enforces same-origin API writes and refuses foreign Origin with 403 when stamped", async () => {

@@ -440,8 +440,8 @@ describe("on: the name's organization is a fact of the request", () => {
     }
   });
 
-  it("names the organization on a page rewrite", async () => {
-    const response = await stamped("admin", `/${TA}~finance/donors`, {
+  it("names the organization on a page rewrite (D-18, N2 part 2b: the page's address is /~finance, without A's ID)", async () => {
+    const response = await stamped("admin", "/~finance/donors", {
       headers: { [NAME]: TB },
     });
     expect(response.headers.get("x-middleware-rewrite")).toContain(
@@ -452,9 +452,9 @@ describe("on: the name's organization is a fact of the request", () => {
     expect(forwarded(response, "x-asym-assignment")).toBe(P_FIN_A.id);
   });
 
-  it("remembers nothing: the second request is decided in the second answer's organization, one lookup each", async () => {
+  it("remembers nothing: the second request is decided in the second answer's organization, one lookup each (D-18, N2 part 2b: the page's address is /~finance, without A's ID)", async () => {
     state.answer = (_host, n) => home(n === 1 ? TA : TB);
-    const first = await stamped("admin", `/${TA}~finance/donors`);
+    const first = await stamped("admin", "/~finance/donors");
     expect(forwarded(first, NAME)).toBe(TA);
     expect(state.lookups).toHaveLength(1);
 

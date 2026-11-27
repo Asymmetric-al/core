@@ -40,6 +40,7 @@ vi.mock("next/navigation", () => ({
 }));
 vi.mock("../../../../apps/admin/node_modules/payload/dist/index.js", () => ({
   createPayloadRequest: async (input: unknown) => input,
+  executeAuthStrategies: (args: unknown) => fixture.auth(args),
 }));
 vi.mock("../../../../apps/admin/src/cms/get-payload", () => ({
   getPayloadClient: async () => ({

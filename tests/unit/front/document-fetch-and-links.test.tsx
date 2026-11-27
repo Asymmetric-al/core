@@ -19,7 +19,7 @@ const loadMock = vi.hoisted(() => ({
 
 vi.mock("next/navigation", () => ({
   useRouter: () => routerMock,
-  usePathname: () => "/00000000-0000-0000-0000-000000000001/crm",
+  usePathname: () => "/~finance/crm",
   useSearchParams: () => new URLSearchParams(),
   useParams: () => ({}),
 }));
@@ -60,7 +60,6 @@ vi.mock("maplibre-gl", () => ({
 }));
 
 const TA = "00000000-0000-0000-0000-000000000001";
-const TB = "00000000-0000-0000-0000-000000000002";
 const USER = "00000000-0000-4000-8000-0000000000c1";
 const ASSIGN = "00000000-0000-4000-8000-0000000000a1";
 
@@ -156,16 +155,16 @@ describe("Item 6c: Web Studio fetch wrapper and document scope under /admin", ()
     expect(sent).toHaveLength(0);
   });
 
-  it("reads navigation entry through appPathname and prefixes crossing loads in useTenantRouter", async () => {
+  it("reads navigation entry through appPathname and prefixes crossing loads in useTenantRouter (D-18, N2 part 2b: on, the document's address is /~finance, without the ID)", async () => {
     vi.stubEnv("CORE_SERVE_UNDER_PATHS", "1");
     vi.stubEnv("CORE_APP_BASE_PATH", "/admin");
-    window.history.replaceState(null, "", `/admin/${TA}/crm`);
+    window.history.replaceState(null, "", "/admin/~finance/crm");
 
-    const navSpy = vi
-      .spyOn(performance, "getEntriesByType")
-      .mockReturnValue([
-        { name: `http://localhost:3000/admin/${TA}/crm` } as PerformanceEntry,
-      ]);
+    const navSpy = vi.spyOn(performance, "getEntriesByType").mockReturnValue([
+      {
+        name: "http://localhost:3000/admin/~finance/crm",
+      } as PerformanceEntry,
+    ]);
 
     try {
       const { TenantDocument, TenantSegmentBoundary, useTenantRouter } =
@@ -184,7 +183,7 @@ describe("Item 6c: Web Studio fetch wrapper and document scope under /admin", ()
               userId: USER,
               tenantId: TA,
               assignmentId: ASSIGN,
-              addressPrefix: `/${TA}`,
+              addressPrefix: "/~finance",
             }}
           >
             <Probe />
@@ -195,10 +194,11 @@ describe("Item 6c: Web Studio fetch wrapper and document scope under /admin", ()
       expect(screen.getByText("Inside tenant")).toBeTruthy();
       expect(loadMock.reloadDocument).not.toHaveBeenCalled();
 
-      router!.push(`/${TB}/crm`);
-      expect(loadMock.loadDocument).toHaveBeenCalledWith(`/admin/${TB}/crm`, {
-        replace: false,
-      });
+      router!.push("/~development/crm");
+      expect(loadMock.loadDocument).toHaveBeenCalledWith(
+        "/admin/~development/crm",
+        { replace: false },
+      );
 
       router!.replace("/login");
       expect(loadMock.loadDocument).toHaveBeenCalledWith("/admin/login", {

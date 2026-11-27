@@ -2,6 +2,7 @@
 
 import {
   appPathname,
+  isServeUnderPathsEnabled,
   loadDocument,
   withAppBasePath,
 } from "@asym/database/document-reload";
@@ -118,7 +119,9 @@ export function InvitationDoorway({
 
       const destination =
         payload.redirectPath ||
-        (payload.tenant_id ? `/${payload.tenant_id}` : "/");
+        (!isServeUnderPathsEnabled() && payload.tenant_id
+          ? `/${payload.tenant_id}`
+          : "/");
       if (onNavigate) {
         onNavigate(destination);
       } else {

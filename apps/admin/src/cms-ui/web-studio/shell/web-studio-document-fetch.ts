@@ -1,4 +1,8 @@
-import { ASSIGNMENT_HEADER, TENANT_HEADER } from "@asym/auth/request-headers";
+import {
+  ASSIGNMENT_HEADER,
+  SCOPE_GENERATION_HEADER,
+  TENANT_HEADER,
+} from "@asym/auth/request-headers";
 import { isWebStudioApiPath, isWebStudioPagePath } from "@asym/auth/web-studio";
 import { appPathname } from "@asym/database/document-reload";
 import { readDocumentScopeForSend } from "@asym/database/document-scope";
@@ -8,6 +12,7 @@ import { noticeWebStudioRefusal } from "./web-studio-refusal-notice";
 import {
   readWebStudioRefusalDigest,
   WEB_STUDIO_CLAIM_ASSIGNMENT_HEADER,
+  WEB_STUDIO_CLAIM_GENERATION_HEADER,
   WEB_STUDIO_CLAIM_TENANT_HEADER,
   WEB_STUDIO_REFUSAL_HEADER,
 } from "../../../cms/auth/web-studio-refusal";
@@ -139,6 +144,12 @@ export function installWebStudioDocumentFetch(
     if (serverFunction) {
       headers.set(WEB_STUDIO_CLAIM_TENANT_HEADER, scope.tenantId);
       headers.set(WEB_STUDIO_CLAIM_ASSIGNMENT_HEADER, scope.assignmentId);
+      if (scope.generation !== undefined) {
+        headers.set(
+          WEB_STUDIO_CLAIM_GENERATION_HEADER,
+          String(scope.generation),
+        );
+      }
       return original(input, { ...init, headers }).then((response) => {
         noticeRefusedServerFunction(response);
         return response;
@@ -147,6 +158,9 @@ export function installWebStudioDocumentFetch(
     if (!isWebStudioApiPath(pathname)) return original(input, init);
     headers.set(TENANT_HEADER, scope.tenantId);
     headers.set(ASSIGNMENT_HEADER, scope.assignmentId);
+    if (scope.generation !== undefined) {
+      headers.set(SCOPE_GENERATION_HEADER, String(scope.generation));
+    }
     return original(input, { ...init, headers }).then((response) => {
       const refusal = response.headers.get(WEB_STUDIO_REFUSAL_HEADER);
       const first = noticeWebStudioRefusal(refusal);

@@ -27,6 +27,14 @@ In Mission Control and the missionary workspace, the address identifies the orga
 
 8. **Report a failed organization-name lookup instead of displaying unnamed organizations.** `readOrganizationNames` in `packages/auth/organization-names.ts` calls `public.current_user_organizations()` with the signed-in person's client. The database returns just the ID and name of each organization in which that caller has a live membership. A returned database error, a non-array result or a malformed row raises `OrganizationNamesReadError`; the chooser can report that the list is unavailable. Cited: [plan §5.2][tenant-plan], [AL-2675][issue], [implementation record D-26 as amended][decisions].
 
+9. **With a verified name, the address names a sub-role at most.** With the
+   switch on, the organization is the verified name's: the decisions above
+   keep the off-mode address, and `decideNameAddress` and
+   `listNameAddressChoices` decide the address without the ID (prefix `""` or
+   `/~<sub-role>`), refusing a one-row person's sub-role with `404 no-store`
+   instead of a canonical redirect. See
+   [0015](0015-organization-from-the-verified-name.md), decisions 21 to 24.
+
 ## Accepted records this code implements
 
 - `TENANT_SEGMENT` in `packages/auth/tenant-address.ts`: [ADR-0227][accepted], clause 5 (canonical lower-case tenant UUID, optional staff suffix and proxy rewrite). Cited: [plan §5.2][tenant-plan], [AL-2675][issue].
