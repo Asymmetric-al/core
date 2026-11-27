@@ -835,7 +835,7 @@ describe.skipIf(!ADMIN_URL)("AL-2674 command lane (real stack)", () => {
     // Amended by AL-2674 A9 (plan 15.2): the guard holds nothing on `auth`. On
     // Supabase's own image no migration role can grant it any, so the guard
     // reads the caller and the claims from the request's settings itself.
-    it("tenant_guard may use authz and its helpers and the claims helpers, holds no grant on auth, and reads only the session caller's memberships", () =>
+    it("tenant_guard may use authz and its helpers and the claims helpers, holds no grant on auth, and reads only the session caller's memberships (D-18, AL-2675: WP2c rest B dropped authz.is_super_admin(); the guard holds neither it, where a chain still has it, nor the staff-read helper that took its place)", () =>
       tx(async () => {
         const p = await one(
           `select (select count(*)::int from pg_namespace n, aclexplode(n.nspacl) a
@@ -852,7 +852,7 @@ describe.skipIf(!ADMIN_URL)("AL-2674 command lane (real stack)", () => {
                   has_function_privilege('tenant_guard', 'authz.has_membership(uuid, authz.membership_role[])', 'EXECUTE') has_membership,
                   has_function_privilege('tenant_guard', 'authz.has_staff_membership(uuid, authz.staff_role[])', 'EXECUTE') has_staff,
                   coalesce(has_function_privilege('tenant_guard', to_regprocedure('authz.is_super_admin()'), 'EXECUTE'), false)
-                    or has_function_privilege('tenant_guard', 'authz.staff_read()', 'EXECUTE') super_admin,
+                    or has_function_privilege('tenant_guard', 'authz.staff_read()', 'EXECUTE') staff_read_or_super_admin,
                   has_table_privilege('tenant_guard', 'authz.memberships', 'SELECT') sel,
                   has_table_privilege('tenant_guard', 'authz.memberships', 'INSERT, UPDATE, DELETE, TRUNCATE') write`,
         );
@@ -864,7 +864,7 @@ describe.skipIf(!ADMIN_URL)("AL-2674 command lane (real stack)", () => {
           signed_in: false,
           has_membership: true,
           has_staff: true,
-          super_admin: false,
+          staff_read_or_super_admin: false,
           sel: true,
           write: false,
         });

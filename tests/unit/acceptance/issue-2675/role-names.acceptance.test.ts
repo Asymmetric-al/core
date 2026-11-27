@@ -57,12 +57,7 @@ const PATTERNS = [
   /\bprofileRole\b/g,
 ];
 
-/**
- * Remaining hits, by file, with the reason each stays. Amended by WP2c's
- * rest (AL-2675, pull request B; record D-18): the three super_admin
- * branches of the CRM's access, the fund directory and Support Hub's context
- * are gone, so their entries are too.
- */
+/** Remaining hits, by file, with the reason each stays. */
 const ALLOWED: Record<string, [number, string]> = {
   "packages/api/src/auth/demo-account.ts": [
     1,
@@ -75,7 +70,7 @@ function roleNameHits(text: string): number {
 }
 
 describe("AL-2675 sweep: no handler passes or fails on a role-name string", () => {
-  it("packages/api/src and packages/graphql: role-name hits equal the WP2c allowlist exactly", () => {
+  it("packages/api/src and packages/graphql: role-name hits equal the WP2c allowlist exactly (D-18, AL-2675: WP2c rest B removed the super_admin branches of the CRM's access, the fund directory and Support Hub's context, so their entries are gone)", () => {
     const found: Record<string, number> = {};
     for (const f of ls("packages/api/src", "packages/graphql")) {
       const n = roleNameHits(readFileSync(f, "utf8"));
