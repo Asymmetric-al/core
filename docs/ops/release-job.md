@@ -123,15 +123,17 @@ file applied and not recorded, and the next run applies it again (see
    switch state before the first promotion. A missing state stops promotion.
    Promotion does not rebuild. A failed build or check promotes nothing.
    Promotion is one call per app, one after the other, so it is not all or nothing. The order follows the release's `CORE_SERVE_UNDER_PATHS`: on, donor, admin, missionary; off, admin, missionary, donor, so a dashboard is never live as on behind a donor that is off. See [If a promotion fails part way](#if-a-promotion-fails-part-way).
-   Finally each production domain must serve the promoted deployment ID, commit
-   and expected Supabase project ref and pass `/api/health/migrations`. This
+   After each promotion, and before the next app is promoted, that app's
+   production domain must serve the promoted deployment ID, commit, expected
+   Supabase project ref and the release's switch state, and pass
+   `/api/health/migrations`. This
    live check is bounded by attempts (18 attempts, with a 10-second pause
    between attempts and a 30-second per-request timeout), not a wall-clock
    deadline: while an older or unidentified deployment answers during alias
    propagation (including status-only answers after a bypass-secret rotation),
-   it keeps retrying within those 18 attempts. If verification fails after
-   promotion was requested, inspect what the domain serves before dispatching
-   again or rolling back.
+   it keeps retrying within those 18 attempts. A live check that fails stops
+   the job like a failed promotion: see
+   [If a promotion fails part way](#if-a-promotion-fails-part-way).
 7. **Register job functions** (optional, `RELEASE_REGISTER_JOB_FUNCTIONS`):
    a `PUT` to the admin app's Inngest serve route, because Git deployment no
    longer triggers a sync (council reservation 7).
@@ -186,7 +188,7 @@ verification if the promoted deployment ID never answers.
 
 ### If a promotion fails part way
 
-The job promotes the apps one after the other. A failed promotion promotes nothing more; the job exits with 'promotion stopped part way:' naming the apps promoted (with deployment IDs), the app that failed ('not promoted', or 'outcome unknown' after a timeout or transport failure) and the apps not attempted. If the promotion of a later
+The job promotes the apps one after the other, and promotes the next only once the last is seen live in the release's switch state. A failed promotion, or a promoted app not seen live, promotes nothing more; the job exits with 'promotion stopped part way:' naming the apps promoted (with deployment IDs), the app that failed ('not promoted', or 'outcome unknown' after a timeout or transport failure, or 'promoted <ID>, not seen live' when its production domain did not serve that deployment within the live check's bound) and the apps not attempted. An app promoted and not seen live may serve either deployment: check it as the recovery below checks every app the failed run promoted. If the promotion of a later
 app fails, the apps promoted before it serve the new commit and the rest the
 previous one. The database is already migrated, and every migration is safe
 for the release still running (plan 7.4: expand, then contract), so each app

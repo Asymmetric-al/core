@@ -588,9 +588,11 @@ export async function verifyLive({
 
 /**
  * Check every staged deployment's built state before promoting any. The donor
- * goes first when enabling paths and last when disabling them. A failed call
- * stops promotion and live verification. Dispatching anew reconciles all
- * projects whose live states disagree with the release.
+ * goes first when enabling paths and last when disabling them. Each promoted
+ * app must be seen live in the release's state before the next is promoted; a
+ * failed call or a failed live check stops promotion, with no retry and no
+ * rollback. Dispatching anew reconciles all projects whose live states
+ * disagree with the release.
  */
 export async function deployRelease({
   apps,
@@ -636,6 +638,18 @@ export async function deployRelease({
   const promotions = order.flatMap((app) =>
     staged.filter((deployment) => deployment.app === app),
   );
+  const stopPartWay = (index, outcome) => {
+    const report = [
+      ...promotions
+        .slice(0, index)
+        .map(({ app, id }) => `${app}: promoted ${id}`),
+      `${promotions[index].app}: ${outcome}`,
+      ...promotions.slice(index + 1).map(({ app }) => `${app}: not attempted`),
+    ];
+    stop(
+      `promotion stopped part way: ${report.join("; ")}. Dispatch Release anew from production, operation release, the same apps value; plan builds all three if their switch states differ. Do not roll back. See docs/ops/release-job.md, If a promotion fails part way.`,
+    );
+  };
   for (const [index, deployment] of promotions.entries()) {
     try {
       await promoteDeployment({
@@ -644,37 +658,36 @@ export async function deployRelease({
         deploymentId: deployment.id,
       });
     } catch (error) {
-      const outcome =
+      stopPartWay(
+        index,
         error instanceof ReleaseStop && error.providerRejected
           ? "not promoted"
-          : "outcome unknown";
-      const report = [
-        ...promotions
-          .slice(0, index)
-          .map(({ app, id }) => `${app}: promoted ${id}`),
-        `${deployment.app}: ${outcome}`,
-        ...promotions
-          .slice(index + 1)
-          .map(({ app }) => `${app}: not attempted`),
-      ];
-      stop(
-        `promotion stopped part way: ${report.join("; ")}. Dispatch Release anew from production, operation release, the same apps value; plan builds all three if their switch states differ. Do not roll back. See docs/ops/release-job.md, If a promotion fails part way.`,
+          : "outcome unknown",
       );
     }
     log(`${deployment.app}: promoted ${deployment.id} without a rebuild.`);
-  }
-  for (const deployment of staged) {
-    await verifyLive({
-      app: deployment.app,
-      sha,
-      projectRef,
-      deploymentId: deployment.id,
-      bypassSecret: env[BYPASS_SECRETS[deployment.app]],
-      pathPrefix: pathPrefixes[deployment.app],
-      serveUnderPaths,
-      request,
-      sleep,
-    });
+    try {
+      await verifyLive({
+        app: deployment.app,
+        sha,
+        projectRef,
+        deploymentId: deployment.id,
+        bypassSecret: env[BYPASS_SECRETS[deployment.app]],
+        pathPrefix: pathPrefixes[deployment.app],
+        serveUnderPaths,
+        request,
+        sleep,
+      });
+    } catch (error) {
+      const seen =
+        error instanceof ReleaseStop && error.seenId
+          ? error.seenId
+          : "none identified";
+      stopPartWay(
+        index,
+        `promoted ${deployment.id}, not seen live (last seen ${seen})`,
+      );
+    }
     log(
       `${deployment.app}: the production domain serves ${deployment.id} for this release.`,
     );
