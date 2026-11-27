@@ -50,6 +50,7 @@ export interface MigrationHealthDeps {
     commit: string;
     environment: string;
     deploymentId?: string | null;
+    serveUnderPaths?: boolean;
   };
   /** The deployment's Protection Bypass for Automation secret, if any. */
   readBypassSecret: () => string | undefined;
