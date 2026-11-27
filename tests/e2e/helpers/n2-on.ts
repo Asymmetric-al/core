@@ -162,6 +162,7 @@ export interface OwnApiCall {
   headers: Record<string, string>;
   status: number | null;
   refused: string | null;
+  failed: boolean;
 }
 
 export function recordOwnApi(page: Page): OwnApiCall[] {
@@ -176,6 +177,7 @@ export function recordOwnApi(page: Page): OwnApiCall[] {
       headers: request.headers(),
       status: null,
       refused: null,
+      failed: false,
     };
     calls.push(call);
     byRequest.set(request, call);
@@ -185,6 +187,10 @@ export function recordOwnApi(page: Page): OwnApiCall[] {
     if (!call) return;
     call.status = response.status();
     call.refused = response.headers()["x-asym-scope-refused"] ?? null;
+  });
+  page.on("requestfailed", (request) => {
+    const call = byRequest.get(request);
+    if (call && call.status === null) call.failed = true;
   });
   return calls;
 }

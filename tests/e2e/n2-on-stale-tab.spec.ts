@@ -25,6 +25,7 @@ import {
   TB,
   type OwnApiCall,
 } from "./helpers/n2-on";
+import { judgeStaleCalls } from "./helpers/n2-on-judge";
 
 test.skip(!proofReady(), "run through `bun run test:e2e:n2-on`");
 
@@ -119,23 +120,24 @@ test("a tab left open after the name's generation moved cannot read or write, sh
         )
         .toBe(true);
       expect(await reloadNoticesSeen(tab.page), role).toBeGreaterThanOrEqual(1);
-      const appCalls = tab.calls
-        .slice(marks[role])
-        .filter((call) => call.headers["x-n2-on-proof"] === undefined);
-      const stale = appCalls.filter(
-        (call) => call.headers["x-asym-scope-generation"] !== moved,
-      );
+      const appCalls = () =>
+        tab.calls
+          .slice(marks[role])
+          .filter((call) => call.headers["x-n2-on-proof"] === undefined);
+      await expect
+        .poll(() => judgeStaleCalls(appCalls(), moved).pending.length, {
+          message: `${role}: a stale call is still pending`,
+        })
+        .toBe(0);
+      const judged = judgeStaleCalls(appCalls(), moved);
       expect(
-        stale.filter((call) => call.status !== 401),
+        judged.served.map((call) => [call.url, call.status]),
         role,
       ).toEqual([]);
       expect(
-        stale.some(
-          (call) =>
-            call.status === 401 && call.refused === "generation_mismatch",
-        ),
-        `${role}: ${JSON.stringify(stale.map((call) => [call.url, call.status, call.refused]))}`,
-      ).toBe(true);
+        judged.refused,
+        `${role}: ${JSON.stringify(judged)}`,
+      ).toBeGreaterThanOrEqual(1);
       expect((await documentScope(tab.page)).prefix).toBe(`/~${role}`);
     }
   } finally {
