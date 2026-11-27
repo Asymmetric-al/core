@@ -1,6 +1,5 @@
 import {
   getAuthContext,
-  hasContextCapability,
   hasContextRoleClass,
   requestScopeOf,
   requireAuth,
@@ -112,9 +111,8 @@ export async function GET(request: NextRequest) {
     const { likedPostIds, prayedPostIds, firedPostIds } =
       toUserPostInteractionSets(interactionRows);
 
-    const reviewer = hasContextCapability(ctx, "updates.review");
     const postsWithStatus = posts.map((post) => ({
-      ...forReader(post, ctx.userId, reviewer),
+      ...forReader(post, ctx.userId),
       user_liked: likedPostIds.has(post.id),
       user_prayed: prayedPostIds.has(post.id),
       user_fired: firedPostIds.has(post.id),

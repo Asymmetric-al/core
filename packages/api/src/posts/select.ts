@@ -14,9 +14,8 @@ export const FEED_POST_AUTHOR_SELECT =
 export function forReader<T extends FeedPostRow>(
   post: T,
   userId: string,
-  reviewer: boolean,
 ): FeedPostRow {
-  if (reviewer || post.author_user_id === userId) return post;
+  if (post.author_user_id === userId) return post;
   const shown: FeedPostRow = { ...post, review_reason: null };
   delete shown.author_user_id;
   return shown;
