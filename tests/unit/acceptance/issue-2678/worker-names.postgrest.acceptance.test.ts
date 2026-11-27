@@ -26,7 +26,7 @@ import {
 } from "../../../../packages/api/src/donor-portal/service";
 import { GET as getComments } from "../../../../packages/api/src/posts/comments";
 import { GET as getFeed } from "../../../../packages/api/src/posts/index";
-import { FEED_POST_SELECT } from "../../../../packages/api/src/posts/select";
+import { FEED_POST_AUTHOR_SELECT } from "../../../../packages/api/src/posts/select";
 import { postAuthorName } from "../../../../packages/database/hooks/donor-feed-posts";
 import { createGraphQLHandler } from "../../../../packages/graphql/handler";
 import { membershipsForRole } from "../../../fixtures/auth-memberships";
@@ -353,11 +353,11 @@ describe.skipIf(!required && ![url, database, anon, service].some(Boolean))(
         );
       });
 
-      it("the feed's exported select names W's post Cedar and X's post Missionary; GET /api/donations gives the worker's public name and a profile of only id and avatar_url; GraphQL gives Missionary.publicName; no response holds a forbidden name", async () => {
+      it("the feed's exported author select (AL-2680: the feed reads its rows on the caller's token and names them with this select) names W's post Cedar and X's post Missionary; GET /api/donations gives the worker's public name and a profile of only id and avatar_url; GraphQL gives Missionary.publicName; no response holds a forbidden name", async () => {
         const client = serviceClient();
         const feed = await client
           .from("posts")
-          .select(FEED_POST_SELECT)
+          .select(FEED_POST_AUTHOR_SELECT)
           .in("id", [ids.postW!, ids.postX!]);
         expect(feed.error, JSON.stringify(feed.error)).toBeNull();
         expect(
@@ -638,6 +638,10 @@ describe.skipIf(!required && ![url, database, anon, service].some(Boolean))(
               "insert into public.posts (id, tenant_id, missionary_id, content, visibility, status) values ($1, $2, $3, 'From V', 'public', 'published')",
               [postV, TA, worker.V],
             );
+            await db.query(
+              "update public.posts set review_state = 'approved' where id = $1",
+              [postV],
+            );
             for (const who of [worker.W, worker.V, worker.X, user.giver])
               await db.query(
                 "insert into public.post_comments (post_id, user_id, content) values ($1, $2, 'r2a')",
@@ -845,11 +849,13 @@ describe.skipIf(!required && ![url, database, anon, service].some(Boolean))(
           }
         });
 
-        it('r2a test 6, guard ("use cache" is inert under vitest, so this passes on the base; rule 2 of the contract is the red): the feed\'s GET names W Cedar, V Party Vale and X by no name, and after V is restricted through the Data API, with no handler and no revalidateTag, the next GET names V Birch', async () => {
+        it("r2a test 6, guard (\"use cache\" is inert under vitest, so this passes on the base; rule 2 of the contract is the red), amended by WP7 pull request 1 (AL-2680): the feed's GET, on the donor's own token, names V Party Vale and leaves out the restricted W and X, and after V is restricted through the Data API, with no handler and no revalidateTag, the next GET leaves V's update out too", async () => {
           s.auth = asMember(user.giver, ids.mGiver!, "donor");
           const feed = async () => {
             const response = await getFeed(
-              new NextRequest("http://localhost/api/posts?limit=100"),
+              new NextRequest("http://localhost/api/posts?limit=100", {
+                headers: { authorization: `Bearer ${token.giver}` },
+              }),
             );
             const json = (await response.json()) as {
               posts?: { id: string; post_author_public_name: string | null }[];
@@ -861,18 +867,10 @@ describe.skipIf(!required && ![url, database, anon, service].some(Boolean))(
                 .map((p) => [p.id, p.post_author_public_name]),
             );
           };
-          expect(await feed()).toEqual({
-            [ids.postW!]: "Cedar",
-            [postV]: "Party Vale",
-            [ids.postX!]: null,
-          });
+          expect(await feed()).toEqual({ [postV]: "Party Vale" });
           await restrictV();
           try {
-            expect(await feed()).toEqual({
-              [ids.postW!]: "Cedar",
-              [postV]: "Birch",
-              [ids.postX!]: null,
-            });
+            expect(await feed()).toEqual({});
           } finally {
             await restoreV();
           }

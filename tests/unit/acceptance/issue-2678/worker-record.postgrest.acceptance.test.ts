@@ -531,6 +531,9 @@ describe.skipIf(!required && ![url, database, anon, service].some(Boolean))(
           `insert into public.posts (id, tenant_id, missionary_id, content, visibility, status) values (:postR, :TA, :R, 'From R', 'public', 'published')`,
         );
         await sql(
+          `update public.posts set review_state = 'approved' where id = :postR`,
+        );
+        await sql(
           `insert into public.post_comments (post_id, user_id, content) values (:postR, :R, 'r2b1 R'), (:postR, :D, 'r2b1 D')`,
         );
         await sql(
@@ -875,7 +878,7 @@ describe.skipIf(!required && ![url, database, anon, service].some(Boolean))(
       expect(await reveals(id.pU!)).toEqual([]);
     });
 
-    it("T4 a restriction through the route holds at once on every surface r1, r2a and r2s cover: the donor portal, the feed, comments, GET /api/donations, GraphQL, a stored receipt rendered again, and the colleague's Partners; none shows the legal identity, the profile name or the Party name", async () => {
+    it("T4 a restriction through the route holds at once on every surface r1, r2a and r2s cover: the donor portal, the feed, comments, GET /api/donations, GraphQL, a stored receipt rendered again, and the colleague's Partners; none shows the legal identity, the profile name or the Party name (AL-2680: the feed and the comments leave the restricted worker's update out altogether)", async () => {
       const forbidden = ["Profile Rowan", "Party Rowan", "Donor Rowan"];
       as("A");
       const restricted = await answer(
@@ -905,8 +908,9 @@ describe.skipIf(!required && ![url, database, anon, service].some(Boolean))(
         posts?: Record<string, unknown>[];
       };
       expect(feed.status, JSON.stringify(feedBody)).toBe(200);
-      const post = (feedBody.posts ?? []).find((p) => p.id === id.postR);
-      expect(post && postAuthorName(post as never)).toBe("Wren");
+      expect(
+        (feedBody.posts ?? []).find((p) => p.id === id.postR),
+      ).toBeUndefined();
       absent(feedBody, forbidden);
 
       const comments = await getComments(
@@ -920,9 +924,7 @@ describe.skipIf(!required && ![url, database, anon, service].some(Boolean))(
         }[];
       };
       expect(comments.status, JSON.stringify(commentsBody)).toBe(200);
-      expect(
-        (commentsBody.comments ?? []).find((c) => c.user_id === user.R)?.user,
-      ).toMatchObject({ first_name: "Wren", avatar_url: null });
+      expect(commentsBody.comments ?? []).toEqual([]);
       absent(commentsBody, forbidden);
 
       const donations = await getDonations(
@@ -998,7 +1000,7 @@ describe.skipIf(!required && ![url, database, anon, service].some(Boolean))(
       absent(partnersBody, forbidden);
     });
 
-    it("T4b (review fix) an update whose alias is blank or invisible-only keeps the stored alias, so the public name stays the alias across that update, an audited reveal and a lift, and the profile name is never shown", async () => {
+    it("T4b (review fix) an update whose alias is blank or invisible-only keeps the stored alias, so the public name stays the alias across that update, an audited reveal and a lift, and the profile name is never shown (AL-2680: while do-not-publish holds, the update leaves the feed)", async () => {
       const forbidden = ["Profile Rowan", "Party Rowan", "Donor Rowan"];
       const publicName = async () => {
         as("D");
@@ -1051,7 +1053,7 @@ describe.skipIf(!required && ![url, database, anon, service].some(Boolean))(
         publicAlias: "Wren",
         doNotPublish: true,
       });
-      expect(await publicName()).toEqual(["Wren", "Wren"]);
+      expect(await publicName()).toEqual(["Wren", undefined]);
 
       as("A");
       const disclosed = await answer(
