@@ -1680,6 +1680,7 @@ describe.skipIf(!ADMIN_URL)(
             external_identifiers: EXTERNAL_TARGET,
             member_care_private_notes: { author_user_id: q("UADM") },
             donor_feed_preferences: { donor_id: q("dDON") },
+            publication_policies: { path: "'update'", mode: "'review'" },
           };
           const only: Record<string, string> = {};
           await replica(true);
