@@ -165,7 +165,6 @@ export function resetOnMode(state: AdmissionState) {
   vi.stubEnv("FRONT_MISSIONARY_ORIGIN", "http://localhost:25162");
   vi.stubEnv("FRONT_STAMP_KEY_ADMIN", adminKey);
   vi.stubEnv("FRONT_STAMP_KEY_MISSIONARY", missionaryKey);
-  vi.stubEnv("FRONT_NAMES", `${HOME_A},${HOME_B}`);
 }
 
 export const REFUSED_PROBES: Array<[string, string, Init]> = [

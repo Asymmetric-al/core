@@ -109,6 +109,7 @@ afterEach(() => vi.restoreAllMocks());
 
 describe("#2308 upload body cap", () => {
   it("allows the file cap plus a bounded multipart allowance", () => {
+    expect(MAX_UPLOAD_BODY_BYTES).toBeLessThan(4_500_000);
     expect(MAX_UPLOAD_BODY_BYTES).toBeGreaterThan(MAX_PROFILE_IMAGE_BYTES);
     expect(MAX_UPLOAD_BODY_BYTES - MAX_PROFILE_IMAGE_BYTES).toBeLessThanOrEqual(
       64 * 1024,

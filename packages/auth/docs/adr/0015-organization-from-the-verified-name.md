@@ -61,7 +61,7 @@ surface)` in `verified-name.ts` calls `resolve_verified_host` with the
    switch off, each proxy hands the request to the auth middleware on today's
    direct path, with no stamp, so no name proves anything there: the proxies
    make no lookup and build no lookup client, and the dashboards admit direct
-   requests as before. Production cannot be on until N3 part 4.
+   requests as before. Production activation follows the switch-on checklist in environment runbook section 5.8.
 
 ### The name's organization on the request
 
@@ -244,9 +244,11 @@ surface)` in `verified-name.ts` calls `resolve_verified_host` with the
     with several rows there works under `/~<sub-role>`, prefix
     `/~<sub-role>`. `decideNameAddress` in `tenant-address-decisions.ts`
     decides over the name's rows only: none is `/no-access` as before; one row
-    with a `/~<sub-role>` is `404 no-store` (R5); several rows with no or an
-    unheld sub-role go to `/choose-organization` with `next` kept and no
-    `tenant`; nothing switches organization. A sub-role is the bytes after `~`
+    with a `/~<sub-role>` gets, after the membership read, `307 no-store` to
+    the same path without the sub-role, query kept, never the named row
+    (ruling 2 of 27 November, the plan's line 876, superseding R5); several
+    rows with no or an unheld sub-role go to `/choose-organization` with
+    `next` kept and no `tenant`; nothing switches organization. A sub-role is the bytes after `~`
     up to `/` or the end, equal to one staff sub-role name byte for byte
     (`parseSubRoleAddress`); anything else is an ordinary path.
     `x-asym-address-prefix` is set only by the proxy, to `""` or
@@ -261,8 +263,9 @@ surface)` in `verified-name.ts` calls `resolve_verified_host` with the
     `/` or `~`; percent-encoded forms are not decoded and reach the ordinary
     not-found), the name's or another's, is `404 no-store` (R4), so a trailing
     slash never earns its `308` first; so is a `/~<sub-role>` in front of a
-    root of `OUTSIDE_TENANT_SEGMENT_ROOTS` (raw or decoded once), and any
-    `/~<sub-role>` in the missionary workspace. `admitOperatorArea` stays
+    root of `OUTSIDE_TENANT_SEGMENT_ROOTS` (raw or decoded once), in the
+    staff app and in the missionary workspace alike; any other
+    `/~<sub-role>` is left to decision 21. `admitOperatorArea` stays
     first in the staff proxy and refuses `/~<sub-role>/operator` as it refuses
     `/<id>/operator`. The missionary table's form with an ID therefore answers
     nothing on.
@@ -321,9 +324,7 @@ surface)` in `verified-name.ts` calls `resolve_verified_host` with the
     single-organization fallback while the switch is on (see
     [0016](0016-donor-organization-from-the-verified-name.md)); WP3b parts 2 to
     5 own the home lookup and redirect to home, Sites and brand settings, demo
-    constants, and deleting the off-mode fallback. N3 part 4 owns the front's
-    own
-    lookup, replacing `FRONT_NAMES`; WP7 the donor redirects behind admission;
+    constants, and deleting the off-mode fallback. The front now consults the same per-surface verified-name rule for the host of the origin it signs. WP7 owns the donor redirects behind admission;
     N6 framing and the browser's direct Data API calls; N3 part 3 the
     assistant's routes under the switch; N4 invitations, including a
     missionary invited before activation; N5 the first designation of home.

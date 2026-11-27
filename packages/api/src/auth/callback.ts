@@ -1,3 +1,4 @@
+import { markSharedOriginSessionChange } from "@asym/auth/clipboard-reset";
 import { safeNextParam } from "@asym/auth/demo-login";
 import { createRpcAssignmentReader } from "@asym/auth/principal";
 import {
@@ -8,7 +9,11 @@ import {
   ROLE_CLASS_HEADER,
 } from "@asym/auth/request-headers";
 import { ROLE_HOME, routeForRole } from "@asym/auth/roles";
-import { withAppBasePath } from "@asym/database/document-reload";
+import {
+  crossAppHref,
+  isServeUnderPathsEnabled,
+  withAppBasePath,
+} from "@asym/database/document-reload";
 import { createClient } from "@asym/database/supabase/server";
 import { NextResponse } from "next/server";
 
@@ -55,7 +60,7 @@ const CLASS_PRECEDENCE = ["staff", "missionary", "donor"] as const;
 async function homeMembershipClass(
   supabase: Parameters<typeof createRpcAssignmentReader>[0],
   request: Request,
-): Promise<string | null> {
+): Promise<(typeof CLASS_PRECEDENCE)[number] | null> {
   const name = readNameTenantState(request.headers);
   if (isNameTenantRefused(name)) return null;
   const nameTenantId = nameTenantIdOf(name);
@@ -104,17 +109,24 @@ export async function GET(request: Request) {
       } = await supabase.auth.getUser();
 
       if (user) {
-        const roleRoute = routeForRole(
-          await homeMembershipClass(supabase, request),
-        );
-        if (roleRoute) {
+        const role = await homeMembershipClass(supabase, request);
+        const roleRoute = routeForRole(role);
+        if (role && roleRoute) {
+          if (isServeUnderPathsEnabled()) {
+            const app = role === "staff" ? "admin" : role;
+            return markSharedOriginSessionChange(
+              callbackRedirect(crossAppHref(app, roleRoute), {
+                sameApp: false,
+              }),
+            );
+          }
           return callbackRedirect(roleRoute, {
             sameApp: roleRoute !== ROLE_HOME.donor,
           });
         }
       }
 
-      return callbackRedirect(next);
+      return markSharedOriginSessionChange(callbackRedirect(next));
     }
   }
 

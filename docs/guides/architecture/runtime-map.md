@@ -131,6 +131,13 @@ carries with the heads the release job recorded, read through
 database holds them. The release job promotes a staged deployment only on that
 answer; see [the release job runbook](../../ops/release-job.md).
 
+When built under paths, prefix the admin and missionary rows below with
+`/admin` and `/missionary` on the admitted home. Donor routes have no prefix.
+Release health uses the projects’ own addresses with those same prefixes.
+The assistant service and the explicit provider routes follow the exceptions
+in the [architecture overview](overview.md). Function image uploads accept
+a 4,000,000-byte file and at most 65,536 more bytes for multipart framing.
+
 ## Route Inventory
 
 > **Note (2026-08-18):** Twenty CRM is retired
@@ -288,6 +295,7 @@ answer; see [the release job runbook](../../ops/release-job.md).
 | admin      | `/api/webhooks/stripe`                                         | Node.js (no `runtime` segment export) | Stripe SDK, admin client                                   |
 | admin      | `/api/webhooks/stripe-connect`                                 | Node.js (no `runtime` segment export) | Connected-accounts Stripe webhook (`W8-R10`), admin client |
 | admin      | `/api/webhooks/stripe-payment-events`                          | Node.js (no `runtime` segment export) | Connected accounts payment events (`W8-R39`), admin client |
+| donor      | `/api/[...slug]`                                               | Node.js (no `runtime` segment export) | Reserved-address miss: `404`, `no-store`, reads nothing    |
 | donor      | `/api/auth/cleanup-demo-users`                                 | Node.js (no `runtime` segment export) | Admin client                                               |
 | donor      | `/api/auth/demo-account`                                       | Node.js (no `runtime` segment export) | Demo auth server action                                    |
 | donor      | `/api/auth/signout`                                            | Node.js (no `runtime` segment export) | Auth/session cleanup                                       |

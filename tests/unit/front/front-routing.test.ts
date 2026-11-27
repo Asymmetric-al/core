@@ -29,19 +29,20 @@ vi.mock("@supabase/supabase-js", () => ({
   createClient: () => ({
     rpc: (fn: string, args: { p_host: string }) => {
       if (fn !== "resolve_verified_host") throw new Error(fn);
-      const data =
-        args.p_host === "one.example.test"
-          ? [
-              {
-                tenant_id: "00000000-0000-0000-0000-000000000001",
-                site_id: "00000000-0000-4000-8000-000000000011",
-                generation: 1,
-                surfaces: ["website", "donor_account", "staff", "missionary"],
-                state: "active",
-                is_home: true,
-              },
-            ]
-          : [];
+      const data = ["one.example.test", "two.example.test"].includes(
+        args.p_host,
+      )
+        ? [
+            {
+              tenant_id: "00000000-0000-0000-0000-000000000001",
+              site_id: "00000000-0000-4000-8000-000000000011",
+              generation: 1,
+              surfaces: ["website", "donor_account", "staff", "missionary"],
+              state: "active",
+              is_home: true,
+            },
+          ]
+        : [];
       return { abortSignal: async () => ({ data, error: null }) };
     },
   }),
@@ -71,7 +72,6 @@ beforeEach(() => {
   vi.stubEnv("FRONT_MISSIONARY_ORIGIN", MISSIONARY_ORIGIN);
   vi.stubEnv("FRONT_STAMP_KEY_ADMIN", adminKey);
   vi.stubEnv("FRONT_STAMP_KEY_MISSIONARY", missionaryKey);
-  vi.stubEnv("FRONT_NAMES", "one.example.test,two.example.test");
 });
 
 afterEach(() => {
@@ -80,7 +80,7 @@ afterEach(() => {
 });
 
 describe("front routing in apps/donor/proxy.ts when switch is ON", () => {
-  it("rewrites exact /admin and /missionary prefixes with path, query, and valid per-dashboard stamp while stripping forged headers", async () => {
+  it("rewrites exact /admin and /missionary prefixes with path, query, and valid per-dashboard stamp while stripping forged headers (D-18, N3 PR 1: the front admits a dashboard by the verified-name lookup; FRONT_NAMES is gone, so both names have a row)", async () => {
     const adminReq = new NextRequest(
       `${FRONT_ONE}/admin/care/directory?tab=open&page=2`,
       {
@@ -192,7 +192,7 @@ describe("front routing in apps/donor/proxy.ts when switch is ON", () => {
     },
   );
 
-  it("returns 404 no-store with no rewrite for an unknown host or incomplete configuration", async () => {
+  it("returns 404 no-store with no rewrite for an unknown host or incomplete configuration (D-18, N3 PR 1: the front admits a dashboard by the verified-name lookup; FRONT_NAMES is gone: an unknown host is one with no row)", async () => {
     vi.spyOn(console, "error").mockImplementation(() => undefined);
     const unknownHost = await donorModule.proxy(
       new NextRequest("https://unknown.example.test/admin/donors", {
@@ -208,7 +208,6 @@ describe("front routing in apps/donor/proxy.ts when switch is ON", () => {
       ["FRONT_MISSIONARY_ORIGIN", ""],
       ["FRONT_STAMP_KEY_ADMIN", "short"],
       ["FRONT_STAMP_KEY_MISSIONARY", ""],
-      ["FRONT_NAMES", ""],
     ] as const) {
       vi.stubEnv(envVar, value);
       const res = await donorModule.proxy(
@@ -223,7 +222,6 @@ describe("front routing in apps/donor/proxy.ts when switch is ON", () => {
       vi.stubEnv("FRONT_MISSIONARY_ORIGIN", MISSIONARY_ORIGIN);
       vi.stubEnv("FRONT_STAMP_KEY_ADMIN", adminKey);
       vi.stubEnv("FRONT_STAMP_KEY_MISSIONARY", missionaryKey);
-      vi.stubEnv("FRONT_NAMES", "one.example.test,two.example.test");
     }
   });
 
@@ -264,7 +262,7 @@ describe("front routing in apps/donor/proxy.ts when switch is ON", () => {
     }
   });
 
-  it("logs missing or invalid front config once per process naming the variable and never its value", async () => {
+  it("logs missing or invalid front config once per process naming the variable and never its value (D-18, N3 PR 1: the front admits a dashboard by the verified-name lookup; FRONT_NAMES is gone, so no list is named)", async () => {
     const errorSpy = vi
       .spyOn(console, "error")
       .mockImplementation(() => undefined);
@@ -273,7 +271,6 @@ describe("front routing in apps/donor/proxy.ts when switch is ON", () => {
 
     vi.stubEnv("FRONT_ADMIN_ORIGIN", secretOrigin);
     vi.stubEnv("FRONT_STAMP_KEY_ADMIN", secretKey);
-    vi.stubEnv("FRONT_NAMES", "");
 
     const req = () =>
       new NextRequest(`${FRONT_ONE}/admin/donors`, {
@@ -289,7 +286,7 @@ describe("front routing in apps/donor/proxy.ts when switch is ON", () => {
     expect(
       firstCalls.some((line) => line.includes("FRONT_STAMP_KEY_ADMIN")),
     ).toBe(true);
-    expect(firstCalls.some((line) => line.includes("FRONT_NAMES"))).toBe(true);
+    expect(firstCalls.some((line) => line.includes("FRONT_NAMES"))).toBe(false);
     expect(firstCalls.join("\n")).not.toContain(secretOrigin);
     expect(firstCalls.join("\n")).not.toContain(secretKey);
 
@@ -301,29 +298,35 @@ describe("front routing in apps/donor/proxy.ts when switch is ON", () => {
 });
 
 describe("front routing in apps/donor/proxy.ts when switch is OFF", () => {
-  it("sends nothing to a dashboard and strips client x-asym-front-* headers", async () => {
+  it("sends nothing to a dashboard and strips client x-asym-front-* headers (/admin/donors now answers the donor app's reserved 404, so the stripping is shown on a public page: N3 rest PR 1, F2)", async () => {
     vi.stubEnv("CORE_SERVE_UNDER_PATHS", "0");
 
+    const forged = {
+      host: "one.example.test",
+      "x-asym-front-origin": FRONT_ONE,
+      "x-asym-front-stamp": "v1.1.forged",
+      "x-asym-front-custom": "forged",
+    };
     const adminPathRes = await donorModule.proxy(
-      new NextRequest(`${FRONT_ONE}/admin/donors`, {
-        headers: {
-          host: "one.example.test",
-          "x-asym-front-origin": FRONT_ONE,
-          "x-asym-front-stamp": "v1.1.forged",
-          "x-asym-front-custom": "forged",
-        },
-      }),
+      new NextRequest(`${FRONT_ONE}/admin/donors`, { headers: forged }),
     );
     expect(adminPathRes.headers.get("x-middleware-rewrite")).toBeNull();
-    expect(adminPathRes.headers.get("x-middleware-next")).toBe("1");
+    expect(adminPathRes.status).toBe(404);
+    expect(adminPathRes.headers.get("cache-control")).toBe("no-store");
+
+    const publicPathRes = await donorModule.proxy(
+      new NextRequest(`${FRONT_ONE}/about-us`, { headers: forged }),
+    );
+    expect(publicPathRes.headers.get("x-middleware-rewrite")).toBeNull();
+    expect(publicPathRes.headers.get("x-middleware-next")).toBe("1");
     expect(
-      adminPathRes.headers.get("x-middleware-request-x-asym-front-origin"),
+      publicPathRes.headers.get("x-middleware-request-x-asym-front-origin"),
     ).toBeNull();
     expect(
-      adminPathRes.headers.get("x-middleware-request-x-asym-front-stamp"),
+      publicPathRes.headers.get("x-middleware-request-x-asym-front-stamp"),
     ).toBeNull();
     expect(
-      adminPathRes.headers.get("x-middleware-request-x-asym-front-custom"),
+      publicPathRes.headers.get("x-middleware-request-x-asym-front-custom"),
     ).toBeNull();
   });
 });

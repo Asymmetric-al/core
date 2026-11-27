@@ -113,7 +113,7 @@ export function refusesAddressOnName(
   const address = parseSubRoleAddress(pathname);
   if (!address) return false;
   return (
-    roleClass !== "staff" ||
+    roleClass === null ||
     isOutsideTenantSegment(address.innerPathname) ||
     isOutsideTenantSegment(decodedOnce(address.innerPathname))
   );

@@ -111,12 +111,20 @@ describe("on: what is refused before any session read", () => {
     ["staff", "/~finance/choose-organization"],
     ["staff", "/~finance/auth/callback"],
     ["staff", "/~development/no-access"],
-    ["missionary", "/~development/feed"],
     ["missionary", "/~development/login"],
-    ["missionary", "/~development"],
   ])("%s: %s", (roleClass, pathname) => {
     expect(refusesAddressOnName(pathname, roleClass)).toBe(true);
   });
+
+  it.each([
+    ["missionary", "/~development/feed"],
+    ["missionary", "/~development"],
+  ])(
+    "%s: %s is left to the membership read, which sends it to the address without the sub-role (D-18: ruling 2 of 27 November; base: refused before the session)",
+    (roleClass, pathname) => {
+      expect(refusesAddressOnName(pathname, roleClass)).toBe(false);
+    },
+  );
 
   it.each([
     ["staff", "/~finance/gifts"],
@@ -186,7 +194,7 @@ describe("on: decisions over the name's rows", () => {
   const decide = decideNameAddress;
   const list = listNameAddressChoices;
 
-  it("serves one row at the empty prefix and refuses any sub-role for it (R5)", () => {
+  it("serves one row at the empty prefix and sends any sub-role named for it to the address without one (D-18: ruling 2 of 27 November supersedes R5)", () => {
     expect(
       decide({
         assignments: Q,
@@ -202,7 +210,15 @@ describe("on: decisions over the name's rows", () => {
         nameTenantId: TA,
         subRole: "member_care",
       }),
-    ).toEqual({ kind: "not_found" });
+    ).toEqual({ kind: "without_sub_role" });
+    expect(
+      decide({
+        assignments: Q,
+        roleClass: "staff",
+        nameTenantId: TA,
+        subRole: "finance",
+      }),
+    ).toEqual({ kind: "without_sub_role" });
     expect(
       decide({
         assignments: P,
@@ -211,6 +227,14 @@ describe("on: decisions over the name's rows", () => {
         subRole: null,
       }),
     ).toEqual({ kind: "allow", assignment: P[3], prefix: "" });
+    expect(
+      decide({
+        assignments: P,
+        roleClass: "missionary",
+        nameTenantId: TA,
+        subRole: "development",
+      }),
+    ).toEqual({ kind: "without_sub_role" });
   });
 
   it("serves a held sub-role of several rows, and asks otherwise, within the name's organization only", () => {

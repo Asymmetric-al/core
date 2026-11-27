@@ -343,7 +343,6 @@ describe("on: the proxies hand the name's generation to the handler", () => {
 
   it("the donor app sets no generation (guard)", async () => {
     vi.stubEnv("CORE_APP_BASE_PATH", "");
-    vi.stubEnv("FRONT_NAMES", HOST);
     const request = new NextRequest(`${ORIGIN}/api/x`, {
       headers: { host: HOST },
     });

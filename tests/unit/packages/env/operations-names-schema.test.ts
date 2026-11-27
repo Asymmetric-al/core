@@ -30,7 +30,7 @@ describe("AL-2675 WP2c part 2a, T7: OPERATIONS_NAMES in the @asym/env schema", (
     vi.resetModules();
   });
 
-  it("declares OPERATIONS_NAMES on the server beside FRONT_NAMES, refined by the shared parser, and never NEXT_PUBLIC_", () => {
+  it("declares OPERATIONS_NAMES on the server after the front's variables, refined by the shared parser, and never NEXT_PUBLIC_ (D-18, N3 PR 1: the front admits a dashboard by the verified-name lookup; FRONT_NAMES is gone)", () => {
     const source = read("packages/env/src/schema.ts");
     expect(source).toMatch(
       /OPERATIONS_NAMES: z\s*\.string\(\)\s*\.refine\(\s*isValidOperationsNamesEnv,/,
@@ -49,7 +49,7 @@ describe("AL-2675 WP2c part 2a, T7: OPERATIONS_NAMES in the @asym/env schema", (
     );
     expect(server).toContain("OPERATIONS_NAMES:");
     expect(server.indexOf("OPERATIONS_NAMES:")).toBeGreaterThan(
-      server.indexOf("FRONT_NAMES:"),
+      server.indexOf("FRONT_MISSIONARY_ORIGIN:"),
     );
   });
 

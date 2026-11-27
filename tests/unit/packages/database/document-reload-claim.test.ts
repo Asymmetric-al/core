@@ -74,3 +74,48 @@ describe("the bounded reload's claim", () => {
     expect(reloadDocument).toHaveBeenCalledTimes(1);
   });
 });
+
+describe("a plain navigation between two scopes reloads once at most (record 962; guard)", () => {
+  function goTo(path: string) {
+    window.history.replaceState(null, "", path);
+  }
+
+  it.each([
+    ["renders in its scope", true],
+    ["meets the crossing again", false],
+  ] as const)(
+    "the reloaded document %s, and nothing reloads after it, however many documents follow",
+    async (_label, rendersInScope) => {
+      goTo("/admin/~finance/gifts");
+      const finance = await newDocument("navigate");
+      finance.forgetDocumentReload();
+      goTo("/admin/~development/workers");
+      expect(finance.requestDocumentReload()).toBe(true);
+
+      for (let document = 0; document < 5; document += 1) {
+        const reloaded = await newDocument("reload");
+        if (rendersInScope) {
+          reloaded.forgetDocumentReload();
+        } else {
+          expect(reloaded.requestDocumentReload()).toBe(false);
+        }
+      }
+      expect(reloadDocument).toHaveBeenCalledTimes(1);
+    },
+  );
+
+  it("going back and forth by plain navigation reloads once per navigation, never on its own", async () => {
+    const addresses = ["/admin/~finance/gifts", "/admin/~development/workers"];
+    for (let step = 0; step < 6; step += 1) {
+      goTo(addresses[step % 2]!);
+      const left = await newDocument(step === 0 ? "navigate" : "reload");
+      left.forgetDocumentReload();
+      goTo(addresses[(step + 1) % 2]!);
+      expect(left.requestDocumentReload()).toBe(true);
+    }
+    expect(reloadDocument).toHaveBeenCalledTimes(6);
+    const settled = await newDocument("reload");
+    settled.forgetDocumentReload();
+    expect(reloadDocument).toHaveBeenCalledTimes(6);
+  });
+});

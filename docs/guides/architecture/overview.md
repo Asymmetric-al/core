@@ -57,10 +57,14 @@ When built with `CORE_SERVE_UNDER_PATHS=1` (resolved by
 `scripts/release/serve-under-paths.mjs`), `apps/admin` runs under
 `basePath: "/admin"`, `apps/missionary` runs under `basePath: "/missionary"`,
 and `apps/donor` (the front) rewrites exact `/admin` and `/missionary` path
-prefixes to those dashboards for hosts listed in `FRONT_NAMES`. Any value
-other than unset, `0`, or `1` fails the build, and `CORE_SERVE_UNDER_PATHS=1`
-fails the build when `VERCEL_TARGET_ENV` or `VERCEL_ENV` is `production`
-(case-insensitive).
+prefixes after one verified-name lookup of the host of the origin it signs.
+The staff surface admits a ready or active home, the missionary surface an active home.
+A refused name or surface gets an uncached 404. An unavailable lookup gets an uncached 503.
+Each dashboard checks the stamped host independently. All build targets accept
+unset, `0`, or `1`. Operations controls activation through the Release job.
+After sign-in the callback sends a person to the app of their selected membership
+class on that name. Staff land at `/admin`, missionaries at `/missionary`, and
+donors at `/donor-dashboard`.
 
 When enabled, `packages/auth/front.ts` stamps proxied requests from the donor
 front with HMAC-SHA256 (`x-asym-front-stamp`, `x-asym-front-origin`) using a
@@ -101,8 +105,9 @@ dashboards' addresses carry no organization ID: a person with one row of the
 surface works at `/admin/…` or `/missionary/…`, a staff member with several
 staff rows at `/admin/~<sub-role>/…`; an ID first segment and a sub-role over
 a path outside the tenant segment answer `404` (`no-store`) before a session
-is read, a one-row person's sub-role once their rows are read, and the
-choosers list the name's rows only. Web Studio's entry carries
+is read, a one-row person's sub-role leads, once their rows are read, to the
+same path without it (`307`, `no-store`), and the choosers list the name's
+rows only. Web Studio's entry carries
 `role=<sub-role>` alone, and its REST calls and server functions carry the
 name's generation, refused `scope_mismatch` without it before any of
 Payload's handlers runs
@@ -161,9 +166,7 @@ literal spells it out for each prefix, and the two rewrite sources are
 Vercel's router tests it before resolving dots, runs the donor proxy and is
 never sent to a dashboard, where `..` could reach the assistant's `/eve/v1/*`
 ahead of the staff proxy (ruling (c) on the 3c gate). Encoded dots
-(`%2e%2e`) met Vercel's own `403`/`400` on the gate's previews. Such a request
-carries no stamp, passes no
-`FRONT_NAMES` check and keeps the client's headers; each dashboard serves its
+(`%2e%2e`) met Vercel's own `403`/`400` on the gate's previews. An ordinary dashboard asset request skips the front lookup and stamp and keeps the client's headers; each dashboard serves its
 `/<prefix>/_next/*` without its own proxy, as on its own address. Both origins
 are read when the donor app is built: with the switch on, a missing or invalid
 origin fails the donor build, naming the variable, and a changed origin needs a

@@ -1,6 +1,7 @@
 import { spawn, spawnSync, type ChildProcess } from "node:child_process";
 import { randomBytes } from "node:crypto";
 import { createWriteStream, mkdirSync, readFileSync } from "node:fs";
+import { createServer } from "node:net";
 import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -20,7 +21,6 @@ export const ORGANIZATION_B_SLUG = "harbor-light-mission";
 export const PERSON_P_EMAIL = "demo-owner@givehope.test";
 export const PERSON_Q_EMAIL = "member-care@givehope.test";
 export const NAME_A = "give-hope-demo.localhost";
-export const NAME_B = "harbor-light-mission.localhost";
 
 export interface ProofPorts {
   front: number;
@@ -73,10 +73,6 @@ export function stackValuesFromStatus(output: string): StackValues {
   return values;
 }
 
-export function frontNames(ports: ProofPorts): string {
-  return [NAME_A, NAME_B].map((name) => `${name}:${ports.front}`).join(",");
-}
-
 export interface RunSecrets {
   adminStampKey: string;
   missionaryStampKey: string;
@@ -119,7 +115,6 @@ export function appEnvironment(
     ALLOW_DEMO_ACCOUNTS: "false",
     DEMO_ONLY_LOGIN: "false",
     E2E_AUTH_BYPASS: "false",
-    FRONT_NAMES: frontNames(ports),
     FRONT_ADMIN_ORIGIN: `http://localhost:${ports.admin}`,
     FRONT_MISSIONARY_ORIGIN: `http://localhost:${ports.missionary}`,
   };
@@ -321,12 +316,23 @@ function loadAverage(): number {
   return Number(readFileSync("/proc/loadavg", "utf8").split(" ")[0]);
 }
 
-async function waitForQuietMachine(limit: number): Promise<void> {
-  while (os.platform() === "linux" && loadAverage() >= limit) {
+export async function waitForQuietMachine(
+  limit: number,
+  stopped: Promise<unknown> = new Promise(() => {}),
+  load: () => number = loadAverage,
+): Promise<void> {
+  const ended = stopped.then(() => true);
+  while (os.platform() === "linux" && load() >= limit) {
     process.stdout.write(
       `[n2-on] one-minute load is at or above ${limit}; waiting\n`,
     );
-    await new Promise((resolve) => setTimeout(resolve, 20_000));
+    let timer: NodeJS.Timeout | undefined;
+    const paused = new Promise<boolean>((resolve) => {
+      timer = setTimeout(resolve, 20_000, false);
+    });
+    const stop = await Promise.race([paused, ended]);
+    clearTimeout(timer);
+    if (stop) return;
   }
 }
 
@@ -388,9 +394,109 @@ function startServer(
   return child;
 }
 
-async function waitForServer(port: number): Promise<void> {
-  const deadline = Date.now() + 180_000;
+export async function assertPortsFree(
+  ports: readonly number[],
+  host = "localhost",
+): Promise<void> {
+  for (const port of ports) {
+    await new Promise<void>((resolve, reject) => {
+      const probe = createServer();
+      probe.once("error", (error: NodeJS.ErrnoException) => {
+        reject(
+          error.code === "EADDRINUSE"
+            ? new Error(
+                `port ${port} is in use; stop the server there before the proof starts its own`,
+              )
+            : error,
+        );
+      });
+      probe.listen(port, host, () => probe.close(() => resolve()));
+    });
+  }
+}
+
+interface WatchedProcess {
+  once(
+    event: "exit",
+    listener: (code: number | null, signal: string | null) => void,
+  ): unknown;
+  once(event: "error", listener: (error: Error) => void): unknown;
+}
+
+export function watchServers(
+  servers: ReadonlyArray<{ name: string; process: WatchedProcess }>,
+): { failure(): string | null; failed(): Promise<string> } {
+  let failure: string | null = null;
+  let announce: (message: string) => void = () => {};
+  const failed = new Promise<string>((resolve) => {
+    announce = resolve;
+  });
+  const fail = (message: string) => {
+    if (failure !== null) return;
+    failure = message;
+    announce(message);
+  };
+  for (const { name, process: child } of servers) {
+    child.once("exit", (code, signal) => {
+      fail(`${name} exited (code ${code ?? signal ?? "unknown"})`);
+    });
+    child.once("error", (error) => {
+      fail(`${name} could not start: ${error.message}`);
+    });
+  }
+  return { failure: () => failure, failed: () => failed };
+}
+
+export async function serveUntilStopped(
+  interrupts: { wait(): Promise<NodeJS.Signals> },
+  watch: { failed(): Promise<string> },
+): Promise<number> {
+  const failure = await Promise.race([
+    interrupts.wait().then(() => null),
+    watch.failed(),
+  ]);
+  if (failure !== null) throw new Error(failure);
+  return 0;
+}
+
+const HELD_SIGNALS = ["SIGINT", "SIGTERM"] as const;
+
+export function holdInterrupts(): {
+  signal(): NodeJS.Signals | null;
+  wait(): Promise<NodeJS.Signals>;
+  release(): void;
+} {
+  let received: NodeJS.Signals | null = null;
+  const waiting: Array<(signal: NodeJS.Signals) => void> = [];
+  const handlers = HELD_SIGNALS.map((name) => {
+    const handler = () => {
+      received ??= name;
+      for (const resolve of waiting.splice(0)) resolve(name);
+    };
+    process.on(name, handler);
+    return [name, handler] as const;
+  });
+  return {
+    signal: () => received,
+    wait: () =>
+      received
+        ? Promise.resolve(received)
+        : new Promise((resolve) => waiting.push(resolve)),
+    release: () => {
+      for (const [name, handler] of handlers) process.off(name, handler);
+    },
+  };
+}
+
+export async function waitForServer(
+  port: number,
+  failure: () => string | null,
+  timeoutMs = 180_000,
+): Promise<void> {
+  const deadline = Date.now() + timeoutMs;
   while (Date.now() < deadline) {
+    const failed = failure();
+    if (failed) throw new Error(failed);
     try {
       await fetch(`http://localhost:${port}/`, { redirect: "manual" });
       return;
@@ -471,31 +577,42 @@ export async function main(
 
   const servers: ChildProcess[] = [];
   const restore = emptyRestore();
+  await assertPortsFree([ports.front, ports.admin, ports.missionary]);
+  const interrupts = holdInterrupts();
   try {
+    const started: Array<{ name: string; process: ChildProcess }> = [];
     for (const [app, port] of [
       ["donor", ports.front],
       ["admin", ports.admin],
       ["missionary", ports.missionary],
     ] as const) {
-      servers.push(
-        startServer(app, port, serverEnvironment(app, env, secrets), logDir),
+      const server = startServer(
+        app,
+        port,
+        serverEnvironment(app, env, secrets),
+        logDir,
       );
+      servers.push(server);
+      started.push({ name: app, process: server });
     }
+    const watch = watchServers(started);
     for (const port of [ports.front, ports.admin, ports.missionary]) {
-      await waitForServer(port);
+      await waitForServer(port, watch.failure);
     }
     await prepareRows(database, seed, secrets.password, restore);
     if (options.serveOnly) {
       process.stdout.write(
         `[n2-on] serving at http://${NAME_A}:${ports.front}; stop with Ctrl-C\n`,
       );
-      await new Promise<void>((resolve) => {
-        process.once("SIGINT", () => resolve());
-        process.once("SIGTERM", () => resolve());
-      });
-      return 0;
+      return await serveUntilStopped(interrupts, watch);
     }
-    await waitForQuietMachine(10);
+    await waitForQuietMachine(
+      10,
+      Promise.race([interrupts.wait(), watch.failed()]),
+    );
+    const failed = watch.failure();
+    if (failed) throw new Error(failed);
+    if (interrupts.signal()) return 130;
     const result = spawnSync(
       "node",
       [
@@ -512,14 +629,18 @@ export async function main(
         shell: false,
       },
     );
-    return result.status ?? 1;
+    return interrupts.signal() ? 130 : (result.status ?? 1);
   } finally {
-    finish(
-      () => restoreRows(database, restore),
-      () => {
-        for (const server of servers) server.kill("SIGTERM");
-      },
-    );
+    try {
+      finish(
+        () => restoreRows(database, restore),
+        () => {
+          for (const server of servers) server.kill("SIGTERM");
+        },
+      );
+    } finally {
+      interrupts.release();
+    }
   }
 }
 
