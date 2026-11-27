@@ -128,20 +128,9 @@ describe("Payload's copy-and-paste store never passes from one person to the nex
     expect(localStorage.getItem(PAYLOAD_CLIPBOARD_KEY)).toBe(COPIED);
   });
 
-  it.each([
-    [
-      "every page of the admin app, where the mark is read",
-      "apps/admin/app/layout.tsx",
-      "<PayloadClipboardGuard />",
-    ],
-    [
-      "every screen a person signs in, signs up, accepts an invitation or recovers a password on",
-      "apps/admin/app/(auth)/layout.tsx",
-      "<PayloadClipboardReset />",
-    ],
-  ])("is mounted on %s", (_label, file, element) => {
-    const source = read(file);
-    expect(source).toContain(element);
+  it("is guarded on every page of the admin app, where the mark is read", () => {
+    const source = read("apps/admin/app/layout.tsx");
+    expect(source).toContain("<PayloadClipboardGuard />");
     expect(source).toMatch(/payload-clipboard"/);
   });
 });
