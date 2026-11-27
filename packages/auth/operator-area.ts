@@ -13,6 +13,8 @@ import {
   frontNotFound,
   frontRefusal,
 } from "./front";
+import { admitApiMutation } from "./mutation-admission";
+import { PAGE_SCOPE_HEADERS } from "./request-headers";
 import {
   parseSubRoleAddress,
   parseTenantAddress,
@@ -20,6 +22,10 @@ import {
 } from "./tenant-address";
 
 export const OPERATOR_AREA_ROOT = "/operator";
+
+const SIGN_IN_PATH = "/login";
+const CALLBACK_PATH = "/auth/callback";
+const SIGN_OUT_PATH = "/api/auth/signout";
 
 const ASYM_HEADER_PREFIX = "x-asym-";
 const AREA_CACHE_CONTROL = "private, no-store, no-transform, max-age=0";
@@ -102,6 +108,17 @@ export function isOperationsAddress(
   return forwarded === null || normalizeHostText(forwarded) === normalized;
 }
 
+export function isOperationsSignIn(
+  headers: HeaderReader,
+  env: Record<string, string | undefined>,
+): boolean {
+  if (!isServeUnderPathsEnabled()) return false;
+  if (PAGE_SCOPE_HEADERS.some((name) => headers.get(name) !== null)) {
+    return false;
+  }
+  return isOperationsAddress(headers, operationsNamesFromEnv(env));
+}
+
 function unavailable(): NextResponse {
   return new NextResponse(null, {
     status: 503,
@@ -130,7 +147,7 @@ function signInRedirect(request: NextRequest, refresh: Refresh): NextResponse {
   return response;
 }
 
-function admitted(request: NextRequest, refresh: Refresh): NextResponse {
+function withoutAsymHeaders(request: NextRequest): Headers {
   const headers = new Headers(request.headers);
   for (const name of [...headers.keys()]) {
     if (name.toLowerCase().startsWith(ASYM_HEADER_PREFIX)) headers.delete(name);
@@ -138,8 +155,46 @@ function admitted(request: NextRequest, refresh: Refresh): NextResponse {
   const cookie = request.headers.get("cookie");
   if (cookie === null) headers.delete("cookie");
   else headers.set("cookie", cookie);
+  return headers;
+}
+
+function emptyRefresh(): Refresh {
+  return { cookies: [], headers: new Headers() };
+}
+
+function sessionClient(request: NextRequest, refresh: Refresh) {
+  const { url, key } = getSupabasePublicConfig();
+  if (!url || !key) {
+    logOnce(
+      "config",
+      "[operator] Supabase auth config is missing; the operator area answers 503.",
+    );
+    return null;
+  }
+  return createServerClient(url, key, {
+    cookies: {
+      getAll() {
+        return request.cookies.getAll();
+      },
+      setAll(
+        cookiesToSet: RefreshedCookie[],
+        cacheHeaders: Record<string, string> = {},
+      ) {
+        for (const cookie of cookiesToSet) {
+          request.cookies.set(cookie.name, cookie.value);
+          refresh.cookies.push(cookie);
+        }
+        for (const [name, value] of Object.entries(cacheHeaders)) {
+          refresh.headers.set(name, value);
+        }
+      },
+    },
+  });
+}
+
+function admitted(request: NextRequest, refresh: Refresh): NextResponse {
   const response = withRefresh(
-    NextResponse.next({ request: { headers } }),
+    NextResponse.next({ request: { headers: withoutAsymHeaders(request) } }),
     refresh,
   );
   response.headers.set("Cache-Control", AREA_CACHE_CONTROL);
@@ -179,36 +234,10 @@ export async function admitOperatorArea(
     return frontNotFound();
   }
 
-  const { url, key } = getSupabasePublicConfig();
-  if (!url || !key) {
-    logOnce(
-      "config",
-      "[operator] Supabase auth config is missing; the operator area answers 503.",
-    );
-    return unavailable();
-  }
-
-  const refresh: Refresh = { cookies: [], headers: new Headers() };
+  const refresh = emptyRefresh();
   try {
-    const supabase = createServerClient(url, key, {
-      cookies: {
-        getAll() {
-          return request.cookies.getAll();
-        },
-        setAll(
-          cookiesToSet: RefreshedCookie[],
-          cacheHeaders: Record<string, string> = {},
-        ) {
-          for (const cookie of cookiesToSet) {
-            request.cookies.set(cookie.name, cookie.value);
-            refresh.cookies.push(cookie);
-          }
-          for (const [name, value] of Object.entries(cacheHeaders)) {
-            refresh.headers.set(name, value);
-          }
-        },
-      },
-    });
+    const supabase = sessionClient(request, refresh);
+    if (!supabase) return unavailable();
     const {
       data: { user },
     } = await supabase.auth.getUser();
@@ -226,4 +255,60 @@ export async function admitOperatorArea(
     console.error("[operator] the operator area's session read failed.");
     return withRefresh(unavailable(), refresh);
   }
+}
+
+async function signInPage(request: NextRequest): Promise<NextResponse> {
+  const refresh = emptyRefresh();
+  try {
+    const supabase = sessionClient(request, refresh);
+    if (!supabase) return unavailable();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (user) {
+      const target = new URL(
+        `${request.nextUrl.basePath}${OPERATOR_AREA_ROOT}`,
+        request.nextUrl.origin,
+      );
+      const response = withRefresh(NextResponse.redirect(target, 307), refresh);
+      response.headers.set("Cache-Control", AREA_CACHE_CONTROL);
+      return response;
+    }
+    return withRefresh(
+      NextResponse.next({ request: { headers: withoutAsymHeaders(request) } }),
+      refresh,
+    );
+  } catch {
+    console.error("[operator] the operations sign-in's session read failed.");
+    return withRefresh(unavailable(), refresh);
+  }
+}
+
+export async function admitOperationsSignIn(
+  request: NextRequest,
+  env: Record<string, string | undefined>,
+): Promise<NextResponse | null> {
+  if (!isServeUnderPathsEnabled()) return null;
+  const pathname = request.nextUrl.pathname;
+  const reads = request.method === "GET" || request.method === "HEAD";
+  const step =
+    pathname === SIGN_IN_PATH && reads
+      ? "sign-in"
+      : pathname === CALLBACK_PATH && reads
+        ? "callback"
+        : pathname === SIGN_OUT_PATH && request.method === "POST"
+          ? "sign-out"
+          : null;
+  if (step === null) return null;
+  if (!isOperationsAddress(request.headers, operationsNamesFromEnv(env))) {
+    return null;
+  }
+  if (step === "sign-in") return signInPage(request);
+  if (step === "sign-out") {
+    const refusal = await admitApiMutation(request, pathname);
+    if (refusal) return refusal;
+  }
+  return NextResponse.next({
+    request: { headers: withoutAsymHeaders(request) },
+  });
 }

@@ -620,8 +620,9 @@ switch state even on the donor project, whose health URL never changes.
 2. Confirm the demonstration organization's verified home row. Keep each dashboard project's own address for provider traffic and release checks. Prove both on a preview before moving any Asym name.
 3. Verify both front signing keys and both upstream origins on donor, and the matching verification key on each dashboard. Run production readiness, using `--skip-health` until the projects serve the new paths. Check protected migration health on each staged build.
 4. On the shared origin verify that a sign-in or sign-out in each app clears the prior person's Web Studio clipboard when admin opens.
-5. Record hosted observations 0–13, including upload, provider paths and the rollback floor, as passed or unobserved. The N3 implementation has no hosted observations from this window.
-6. The switch-on release, and any later switch-off, is dispatched by hand by the coordinator and watched to its end: after a stop or a cancelled run, dispatch again until `plan` logs every app in the release's state and the run passes. Follow [Release job](release-job.md#if-a-promotion-fails-part-way).
+5. No operator is on the list without a verified factor when the switch goes on: list the operators (`scripts/platform/operators.mjs list`) and check each one's verified TOTP factor in the project's Auth users ([platform operators](platform-operators.md#owner-steps-for-a-hosted-project), steps 2 and 3).
+6. Record hosted observations 0–13, including upload, provider paths and the rollback floor, as passed or unobserved. The N3 implementation has no hosted observations from this window.
+7. The switch-on release, and any later switch-off, is dispatched by hand by the coordinator and watched to its end: after a stop or a cancelled run, dispatch again until `plan` logs every app in the release's state and the run passes. Follow [Release job](release-job.md#if-a-promotion-fails-part-way).
 
 ### 5.9 The operator area's operations address (`OPERATIONS_NAMES`)
 
@@ -635,6 +636,12 @@ at build; not in any build hash. Never expose it with a `NEXT_PUBLIC_` prefix.
 | Variable           | Scope   | Admin                                     | Donor | Missionary | Notes                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
 | ------------------ | ------- | ----------------------------------------- | ----- | ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | `OPERATIONS_NAMES` | Runtime | Production and development; Preview unset | No    | No         | Server-only comma-separated bare `host[:port]` entries (ASCII letters, digits, `-` and `.`, no leading, trailing or doubled dot, optional `:` and 1-5 digits; no scheme, path, wildcard or space inside). Unset, empty or with no valid entry: the area answers `404` on every host (`403` to a request without a front header while `CORE_SERVE_UNDER_PATHS=1`). An invalid entry is ignored and `[operator] OPERATIONS_NAMES is invalid` is logged once, with no value; the schema refuses it at start-up. |
+
+With `CORE_SERVE_UNDER_PATHS=1` an operations address also admits an
+operator's sign-in without a front header (`/admin/login`, its callback and
+sign-out), and every sign-in there lands on `/admin/operator`
+([ADR 0018](../../packages/auth/docs/adr/0018-operator-area-admission-and-mfa.md),
+decision 13).
 
 Set it on the staff Vercel project for Production and for the development
 environment, leave Preview unset, and redeploy; the release owner's runbook is

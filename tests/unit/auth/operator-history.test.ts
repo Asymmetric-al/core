@@ -34,9 +34,18 @@ const ROW = {
   created_at: "2026-11-27T10:00:00+00:00",
 };
 
-function client(answer: () => Promise<unknown>) {
-  const rpc = vi.fn(answer);
-  return { rpc, client: { rpc } as unknown as OperatorMfaClient };
+type HistoryClient = Pick<OperatorMfaClient, "rpc">;
+type RpcAnswer = Awaited<ReturnType<HistoryClient["rpc"]>>;
+
+function client(answer: () => Promise<RpcAnswer>) {
+  const rpc = vi.fn(
+    (
+      _fn: "platform_operator_session" | "platform_eve_history",
+      _args?: { p_limit: number },
+    ) => answer(),
+  );
+  const history: HistoryClient = { rpc };
+  return { rpc, client: history };
 }
 
 describe("AL-2675 WP2c rest: the operator area's history with no organization", () => {
@@ -109,7 +118,7 @@ describe("AL-2675 WP2c rest: the operator area's history with no organization", 
   });
 
   it("answers failed, never an empty history, for any other error, a throw or a shape it does not know", async () => {
-    const answers: Array<() => Promise<unknown>> = [
+    const answers: Array<() => Promise<RpcAnswer>> = [
       async () => ({ data: null, error: { code: "PGRST202", message: "x" } }),
       async () => ({ data: null, error: { message: "network" } }),
       async () => {

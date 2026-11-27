@@ -1,4 +1,6 @@
 import { requireAnonymousVisitor } from "@asym/auth/auth-screen";
+import { OPERATOR_AREA_ROOT } from "@asym/auth/operator-area";
+import { readOperationsSignIn } from "@asym/auth/operator-area-server";
 import { serverEnv } from "@asym/env";
 import { LoginScreen } from "@asym/ui/components/auth/LoginScreen";
 
@@ -16,9 +18,11 @@ type LoginPageProps = {
 };
 
 export default async function LoginPage({ searchParams }: LoginPageProps) {
+  const operations = await readOperationsSignIn();
+  const params = await searchParams;
   const { nextPath } = await requireAnonymousVisitor({
     appId: "admin",
-    searchParams: await searchParams,
+    searchParams: operations ? { next: OPERATOR_AREA_ROOT } : params,
   });
 
   return (
@@ -27,12 +31,11 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
       <LoginScreen
         appId="admin"
         nextPath={nextPath}
-        demoOnly={serverEnv.DEMO_ONLY_LOGIN === true}
+        demoOnly={!operations && serverEnv.DEMO_ONLY_LOGIN === true}
         title="Sign in"
         subtitle="Access is by invitation. Ask your Mission Control administrator for an account."
-        // Invitation guidance replaces the registration link. Password reset
-        // is self-service, through the default /forgot-password link.
         showRegisterLink={false}
+        forgotPasswordHref={operations ? null : undefined}
       />
     </>
   );

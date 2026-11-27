@@ -132,11 +132,14 @@ export function serverEnvironment(
       FRONT_STAMP_KEY_MISSIONARY: secrets.missionaryStampKey,
     };
   }
-  return {
-    ...env,
-    FRONT_STAMP_KEY:
-      app === "admin" ? secrets.adminStampKey : secrets.missionaryStampKey,
-  };
+  if (app === "admin") {
+    return {
+      ...env,
+      FRONT_STAMP_KEY: secrets.adminStampKey,
+      OPERATIONS_NAMES: new URL(env.FRONT_ADMIN_ORIGIN ?? "").host,
+    };
+  }
+  return { ...env, FRONT_STAMP_KEY: secrets.missionaryStampKey };
 }
 
 export function proofEnvironment(
@@ -148,6 +151,7 @@ export function proofEnvironment(
   return {
     ...base,
     N2_ON_BASE_URL: `http://${NAME_A}:${ports.front}`,
+    N2_ON_OPERATIONS_URL: `http://localhost:${ports.admin}`,
     N2_ON_DB_URL: stack.dbUrl,
     N2_ON_PASSWORD: secrets.password,
     N2_ON_REQUIRED: "1",
@@ -320,9 +324,10 @@ export async function waitForQuietMachine(
   limit: number,
   stopped: Promise<unknown> = new Promise(() => {}),
   load: () => number = loadAverage,
+  loadReadable: () => boolean = () => os.platform() === "linux",
 ): Promise<void> {
   const ended = stopped.then(() => true);
-  while (os.platform() === "linux" && load() >= limit) {
+  while (loadReadable() && load() >= limit) {
     process.stdout.write(
       `[n2-on] one-minute load is at or above ${limit}; waiting\n`,
     );
@@ -488,6 +493,72 @@ export function holdInterrupts(): {
   };
 }
 
+export async function waitForServers(
+  ports: readonly number[],
+  watch: { failure(): string | null },
+  interrupts: { signal(): NodeJS.Signals | null },
+): Promise<number | null> {
+  const stopped = () =>
+    watch.failure() ?? (interrupts.signal() ? "interrupted" : null);
+  for (const port of ports) {
+    if (interrupts.signal()) return 130;
+    try {
+      await waitForServer(port, stopped);
+    } catch (error) {
+      if (interrupts.signal()) return 130;
+      throw error;
+    }
+  }
+  return interrupts.signal() ? 130 : null;
+}
+
+type SpecProcess = {
+  once(event: "exit", listener: (code: number | null) => void): unknown;
+  once(event: "error", listener: (error: Error) => void): unknown;
+  kill(signal: NodeJS.Signals): boolean;
+};
+
+export async function runProofSpecs(
+  args: readonly string[],
+  env: NodeJS.ProcessEnv,
+  interrupts: {
+    wait(): Promise<NodeJS.Signals>;
+    signal(): NodeJS.Signals | null;
+  },
+  watch: { failed(): Promise<string> },
+  start: (
+    command: string,
+    args: readonly string[],
+    options: { cwd: string; env: NodeJS.ProcessEnv; stdio: "inherit" },
+  ) => SpecProcess = (command, args, options) =>
+    spawn(command, [...args], { ...options, shell: false }),
+): Promise<number> {
+  const child = start(
+    process.execPath,
+    [
+      path.join(REPO_ROOT, "node_modules", "@playwright", "test", "cli.js"),
+      ...args,
+    ],
+    { cwd: REPO_ROOT, env, stdio: "inherit" },
+  );
+  const exited = new Promise<number>((resolve) => {
+    child.once("exit", (code) => resolve(code ?? 1));
+    child.once("error", () => resolve(1));
+  });
+  const outcome = await Promise.race([
+    exited.then((code) => ({ kind: "exited" as const, code })),
+    interrupts.wait().then(() => ({ kind: "interrupted" as const })),
+    watch.failed().then((failure) => ({ kind: "failed" as const, failure })),
+  ]);
+  if (outcome.kind === "exited") {
+    return interrupts.signal() ? 130 : outcome.code;
+  }
+  child.kill("SIGTERM");
+  await exited;
+  if (outcome.kind === "interrupted") return 130;
+  throw new Error(outcome.failure);
+}
+
 export async function waitForServer(
   port: number,
   failure: () => string | null,
@@ -596,9 +667,12 @@ export async function main(
       started.push({ name: app, process: server });
     }
     const watch = watchServers(started);
-    for (const port of [ports.front, ports.admin, ports.missionary]) {
-      await waitForServer(port, watch.failure);
-    }
+    const interrupted = await waitForServers(
+      [ports.front, ports.admin, ports.missionary],
+      watch,
+      interrupts,
+    );
+    if (interrupted !== null) return interrupted;
     await prepareRows(database, seed, secrets.password, restore);
     if (options.serveOnly) {
       process.stdout.write(
@@ -613,23 +687,12 @@ export async function main(
     const failed = watch.failure();
     if (failed) throw new Error(failed);
     if (interrupts.signal()) return 130;
-    const result = spawnSync(
-      "node",
-      [
-        path.join(REPO_ROOT, "node_modules", "@playwright", "test", "cli.js"),
-        "test",
-        "-c",
-        PROOF_CONFIG,
-        ...options.playwrightArgs,
-      ],
-      {
-        cwd: REPO_ROOT,
-        env: proofEnvironment(stack, ports, secrets),
-        stdio: "inherit",
-        shell: false,
-      },
+    return await runProofSpecs(
+      ["test", "-c", PROOF_CONFIG, ...options.playwrightArgs],
+      proofEnvironment(stack, ports, secrets),
+      interrupts,
+      watch,
     );
-    return interrupts.signal() ? 130 : (result.status ?? 1);
   } finally {
     try {
       finish(
