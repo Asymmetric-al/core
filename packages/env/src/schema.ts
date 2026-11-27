@@ -147,6 +147,15 @@ export const env = createEnv({
         (value) => !value || value.startsWith("whsec_"),
         "STRIPE_CONNECT_WEBHOOK_SECRET must start with whsec_",
       ),
+    STRIPE_PAYMENT_EVENTS_WEBHOOK_SECRET: z
+      .string()
+      .optional()
+      .refine(
+        (value) => !value || value.startsWith("whsec_"),
+        "STRIPE_PAYMENT_EVENTS_WEBHOOK_SECRET must start with whsec_",
+      ),
+    TURNSTILE_SECRET_KEY: z.string().optional(),
+    GUEST_GIVING_ENABLED: optionalBoolean,
     // Required in protected deployments: a keyless deploy would store and
     // ACK provider events whose workflow dispatch can never succeed.
     INNGEST_EVENT_KEY: requireInProtectedDeployments("INNGEST_EVENT_KEY"),
@@ -347,6 +356,10 @@ export const env = createEnv({
     STRIPE_SECRET_KEY: process.env.STRIPE_SECRET_KEY,
     STRIPE_WEBHOOK_SECRET: process.env.STRIPE_WEBHOOK_SECRET,
     STRIPE_CONNECT_WEBHOOK_SECRET: process.env.STRIPE_CONNECT_WEBHOOK_SECRET,
+    STRIPE_PAYMENT_EVENTS_WEBHOOK_SECRET:
+      process.env.STRIPE_PAYMENT_EVENTS_WEBHOOK_SECRET,
+    TURNSTILE_SECRET_KEY: process.env.TURNSTILE_SECRET_KEY,
+    GUEST_GIVING_ENABLED: process.env.GUEST_GIVING_ENABLED,
     DOCRAPTOR_API_KEY: process.env.DOCRAPTOR_API_KEY,
     PDF_STUDIO_NATIVE_BUILDER_ENABLED:
       process.env.PDF_STUDIO_NATIVE_BUILDER_ENABLED,

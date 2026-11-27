@@ -11,6 +11,11 @@
       "function": "public.resolve_home_host(p_host text)",
       "reason": "WP3b part 2 (AL-2676): the anonymous home read behind the redirect of a Site name's account paths to its organization's home. It returns one output, primary_domain, the home record's host, only when the asked name is active and serves website, the same organization's home record names a host other than the asked one, and that host is active and serves donor_account; otherwise nothing. It returns no tenant, Site, generation, status or brand, and reads no status. It normalises HTTP spelling with resolve_verified_host's expression. There is no client grant on the tables beneath it (site_domains, donor_portal_hosts).",
       "reviewed_by": "Coordinator's WP3b part 2 ruling (D-16, Q1 and Q6), 2026-11-25"
+    },
+    {
+      "function": "public.checkout_giving_config(p_host text, p_targets jsonb)",
+      "reason": "WP8a part 2 rest, PR 2a (AL-2681): the anonymous config read of checkout. For an active claimed name serving website with an active Site, or the home record serving donor_account, of an active organization, and 1 to 99 targets (active funds that are not the reserved fee-cover fund, or workers) that all resolve in that organization to one legal entity with an active test-mode binding, it returns one output, connected_account_id; otherwise nothing, the same nothing for every reason. It returns no tenant, Site, entity, binding or status. It normalises HTTP spelling with resolve_verified_host's expression. There is no client grant on the tables beneath it (site_domains, sites, donor_portal_hosts, tenants, funds, missionaries, payment_account_bindings).",
+      "reviewed_by": "Coordinator's WP8a part 2 ruling W8-R18 (the anonymous config read), 2026-11-26"
     }
   ]
 }
