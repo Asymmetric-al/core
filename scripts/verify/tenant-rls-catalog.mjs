@@ -33,6 +33,8 @@ import { runPsqlQuery } from "../lib/psql.mjs";
 import { EXCLUDED_SCHEMA_PATTERN } from "../release/schema-fingerprint.mjs";
 import {
   isAssignmentReader,
+  ownMinistryEntry,
+  ownMinistryExceptions,
   preMembershipExceptions,
   protectedEntry,
   workerWrapperHasWrite,
@@ -939,6 +941,7 @@ export function evaluateTenantRlsCatalog(
   policyExceptionList = { entries: [] },
   preMembershipList = undefined,
   serviceRoleExceptions = SERVICE_ROLE_EXCEPTIONS,
+  ownMinistryList = undefined,
 ) {
   const { listed, failures, usable } = readExceptions(exceptions);
   const fail = (code, table, detail) => failures.push({ code, table, detail });
@@ -1091,6 +1094,13 @@ export function evaluateTenantRlsCatalog(
       ? preMembershipExceptions(commands)
       : preMembershipExceptions(commands, preMembershipList);
   failures.push(...preMembership.failures);
+  const ownMinistry = ownMinistryExceptions(
+    commands,
+    ownMinistryList?.entries,
+    ownMinistryList?.reviewed,
+    (c) => ownMinistryEntry(c, entryStatement(c.body), outerBlockHasHandler),
+  );
+  failures.push(...ownMinistry.failures);
   for (const c of commands) {
     if (c.public_execute || c.anon)
       failFn(
@@ -1141,6 +1151,7 @@ export function evaluateTenantRlsCatalog(
       else if (
         !c.service_role &&
         !preMembership.allowed.has(c.function) &&
+        !ownMinistry.allowed.has(c.function) &&
         !isAssignmentReader(c) &&
         !protectedEntry(c, entryStatement(c.body), outerBlockHasHandler)
       )

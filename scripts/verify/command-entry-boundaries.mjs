@@ -47,6 +47,60 @@ export const preMembershipEntries = Object.freeze([
   }),
 ]);
 
+export const reviewedOwnMinistry = Object.freeze({});
+export const ownMinistryEntries = Object.freeze([]);
+
+const OWN_MINISTRY_OPENING =
+  /^\s*(?:PERFORM\s+|[a-z_][\w$]*\s*:=\s*)tenant_guard\.begin_human_command\s*\(\s*(?:[a-z_][\w$]*|\$[1-9]\d*)\s*,\s*NULL\s*\)\s*;/i;
+
+export function ownMinistryEntry(command, frame, outerBlockHasHandler) {
+  return (
+    command.language === "plpgsql" &&
+    Boolean(frame) &&
+    !/:=|=|\bDEFAULT\b/i.test(frame.declarations) &&
+    OWN_MINISTRY_OPENING.test(frame.raw) &&
+    !outerBlockHasHandler(frame.main)
+  );
+}
+
+export function ownMinistryExceptions(
+  commands,
+  entries = ownMinistryEntries,
+  reviewed = reviewedOwnMinistry,
+  opens = () => true,
+) {
+  const allowed = new Set();
+  const failures = [];
+  for (const entry of entries) {
+    const target = commands.find(
+      (command) =>
+        command.function === entry.function &&
+        command.authenticated &&
+        !command.service_role &&
+        command.schema === "tenant_guard",
+    );
+    const pinned =
+      Object.hasOwn(reviewed, entry.function) && reviewed[entry.function];
+    if (
+      !target ||
+      !pinned ||
+      !entry.reason?.trim() ||
+      pinned.reason !== entry.reason ||
+      pinned.digest !== digest(target.body) ||
+      !opens(target) ||
+      allowed.has(entry.function)
+    ) {
+      failures.push({
+        code: "COMMAND_EXCEPTION_UNREVIEWED",
+        function: entry.function,
+        detail:
+          "Missing, stale, duplicate or changed own-ministry command, or one that does not open with tenant_guard.begin_human_command(<tenant>, NULL)",
+      });
+    } else allowed.add(entry.function);
+  }
+  return { allowed, failures };
+}
+
 export const isAssignmentReader = (command) =>
   command.function === assignmentReader &&
   digest(command.body) === assignmentReaderDigest;
