@@ -9,6 +9,7 @@ import { SearchableSelect } from "@asym/ui/components/shadcn/searchable-select";
 import { Skeleton } from "@asym/ui/components/shadcn/skeleton";
 import { useQuery } from "@tanstack/react-query";
 import { useId } from "react";
+import { z } from "zod";
 
 import type { EveLaunchPermission } from "@asym/api/eve/launch-readiness";
 import type { EveLaunchOperator } from "@asym/api/eve/launch-readiness/operators";
@@ -67,17 +68,27 @@ class OperatorsReadError extends Error {
   }
 }
 
+const operatorsAnswerSchema = z.object({
+  operators: z.array(
+    z.object({
+      id: z.string().min(1),
+      displayName: z.string().nullable(),
+      email: z.string().nullable(),
+    }),
+  ),
+});
+
 async function loadPlatformOperators(): Promise<SearchableSelectOption[]> {
   const response = await ownApiFetch(PLATFORM_OPERATORS_URL, {
     credentials: "same-origin",
     headers: { accept: "application/json" },
   });
-  const { ok, body } = await readJsonBody<{ operators?: unknown }>(response);
-  if (!ok || !body || !Array.isArray(body.operators)) {
+  const { ok, body } = await readJsonBody<unknown>(response);
+  const parsed = operatorsAnswerSchema.safeParse(body);
+  if (!ok || !parsed.success) {
     throw new OperatorsReadError(response.status);
   }
-  return (body.operators as EveLaunchOperator[])
-    .filter((operator) => typeof operator?.id === "string")
+  return parsed.data.operators
     .map(platformOperatorOption)
     .sort((a, b) => a.label.localeCompare(b.label));
 }

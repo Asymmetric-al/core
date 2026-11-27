@@ -208,29 +208,38 @@ export type PlatformHistory =
   | { kind: "refused" }
   | { kind: "failed" };
 
-const HISTORY_TEXT_FIELDS = [
-  ["id", "id"],
-  ["created_at", "createdAt"],
-  ["action", "action"],
-  ["result", "result"],
-  ["identity_mode", "identityMode"],
-  ["actor_id", "actorId"],
-  ["policy_id", "policyId"],
-  ["change_summary", "changeSummary"],
-  ["decision_summary", "decisionSummary"],
-] as const;
+export const PLATFORM_HISTORY_COLUMNS = {
+  id: "id",
+  createdAt: "created_at",
+  action: "action",
+  result: "result",
+  identityMode: "identity_mode",
+  actorId: "actor_id",
+  policyId: "policy_id",
+  changeSummary: "change_summary",
+  decisionSummary: "decision_summary",
+} as const satisfies Record<keyof PlatformHistoryRow, string>;
+
+type HistoryField = keyof typeof PLATFORM_HISTORY_COLUMNS;
+
+const HISTORY_FIELDS = Object.keys(PLATFORM_HISTORY_COLUMNS) as HistoryField[];
+
+function isWholeRow(
+  row: Partial<Record<HistoryField, string>>,
+): row is PlatformHistoryRow {
+  return HISTORY_FIELDS.every((field) => typeof row[field] === "string");
+}
 
 function historyRow(value: unknown): PlatformHistoryRow | null {
   if (value === null || typeof value !== "object") return null;
   const record = value as Record<string, unknown>;
   if (record.tenant_id !== null) return null;
-  const row: Partial<PlatformHistoryRow> = {};
-  for (const [column, field] of HISTORY_TEXT_FIELDS) {
-    const text = record[column];
-    if (typeof text !== "string") return null;
-    row[field] = text;
+  const row: Partial<Record<HistoryField, string>> = {};
+  for (const field of HISTORY_FIELDS) {
+    const text = record[PLATFORM_HISTORY_COLUMNS[field]];
+    if (typeof text === "string") row[field] = text;
   }
-  return row as PlatformHistoryRow;
+  return isWholeRow(row) ? row : null;
 }
 
 export async function readPlatformHistory(

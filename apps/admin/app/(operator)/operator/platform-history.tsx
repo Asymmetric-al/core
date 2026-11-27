@@ -34,6 +34,13 @@ const FAILED_TEXT = "The history could not be loaded.";
 
 type View = { kind: "loading" } | PlatformHistory;
 
+function loadedAnnouncement(view: View): string {
+  if (view.kind !== "rows") return "";
+  const count = view.rows.length;
+  if (count === 0) return "History loaded: no changes.";
+  return `History loaded: ${count} ${count === 1 ? "change" : "changes"}.`;
+}
+
 function recordedAt(createdAt: string): string {
   const date = new Date(createdAt);
   return Number.isNaN(date.getTime())
@@ -51,7 +58,9 @@ function HistoryItem({ row }: { row: PlatformHistoryRow }) {
         <ItemTitle>
           {row.action} ({row.result})
         </ItemTitle>
-        <ItemDescription>{row.changeSummary}</ItemDescription>
+        <ItemDescription className="line-clamp-none">
+          {row.changeSummary}
+        </ItemDescription>
         <p className="text-xs text-muted-foreground">
           {row.actorId} ({row.identityMode}) ·{" "}
           <time dateTime={row.createdAt}>{recordedAt(row.createdAt)}</time>
@@ -147,6 +156,9 @@ export function PlatformHistoryPanel() {
           <CardDescription>{DESCRIPTION}</CardDescription>
         </CardHeader>
         <CardContent>
+          <p role="status" aria-live="polite" className="sr-only">
+            {loadedAnnouncement(view)}
+          </p>
           <HistoryBody view={view} titleId={titleId} onRetry={retry} />
         </CardContent>
       </Card>

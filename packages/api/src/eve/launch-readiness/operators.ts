@@ -9,16 +9,6 @@ export interface EveLaunchOperator {
   email: string | null;
 }
 
-interface TenantOperatorsClient {
-  rpc(
-    fn: "tenant_operators",
-    args: { p_tenant_id: string },
-  ): PromiseLike<{
-    data: unknown;
-    error: { code?: string; message: string } | null;
-  }>;
-}
-
 const operatorsSchema = z.array(
   z.object({
     id: z.string().uuid(),
@@ -34,8 +24,7 @@ const NO_STORE = { "cache-control": "private, no-store" };
 
 export const GET = withOperation(
   async ({ auth, sessionClient }) => {
-    const client = sessionClient as unknown as TenantOperatorsClient;
-    const { data, error } = await client.rpc("tenant_operators", {
+    const { data, error } = await sessionClient.rpc("tenant_operators", {
       p_tenant_id: auth.tenantId,
     });
     if (error) {
