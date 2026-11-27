@@ -422,7 +422,7 @@ describe.skipIf(!ADMIN_URL)(
         await db.query("INSERT INTO auth.users (id) VALUES ($1)", [user]);
         const donor = (
           await db.query(
-            "INSERT INTO public.donors (tenant_id, email) VALUES ($1, $2) RETURNING id",
+            "INSERT INTO public.donors (tenant_id, party_id, email) VALUES ($1, public.donor_party_for_insert($1, null, null, $2), $2) RETURNING id",
             [fx.A.tenant, `${user}@example.org`],
           )
         ).rows[0].id as string;
@@ -498,7 +498,7 @@ describe.skipIf(!ADMIN_URL)(
         ).rows[0].id as string;
         const donor = (
           await db.query(
-            "INSERT INTO public.donors (tenant_id, email) VALUES ($1, $2) RETURNING id",
+            "INSERT INTO public.donors (tenant_id, party_id, email) VALUES ($1, public.donor_party_for_insert($1, null, null, $2), $2) RETURNING id",
             [fx.A.tenant, `${randomUUID()}@example.org`],
           )
         ).rows[0].id as string;

@@ -41,7 +41,7 @@ const donorUpdateSchema = z
     phone: z.string().max(80),
     mobile: z.string().max(80),
     work_phone: z.string().max(80),
-    preferred_contact: preferredContactSchema,
+    preferred_contact: preferredContactSchema.nullable(),
     type: donorTypeSchema,
     status: donorStatusSchema,
     frequency: z.string().trim().max(120),
@@ -84,7 +84,9 @@ function toDonorUpdatePayload(input: DonorUpdateInput, now: Date) {
     phone: optionalText(input.phone),
     mobile: optionalText(input.mobile),
     work_phone: optionalText(input.work_phone),
-    preferred_contact: input.preferred_contact,
+    ...(input.preferred_contact === null
+      ? {}
+      : { preferred_contact: input.preferred_contact }),
     type: input.type,
     status: input.status,
     frequency: input.frequency.trim(),

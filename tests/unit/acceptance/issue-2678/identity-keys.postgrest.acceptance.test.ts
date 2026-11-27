@@ -410,6 +410,71 @@ describe.skipIf(!required && ![url, database, anon, service].some(Boolean))(
       expect(await body(status)).toEqual([]);
     });
 
+    it("WP5 rest 2 item zero (b) through the Data API: a login already tied by its own donor to another Party of the organization redeems a valid claim token and gets the uniform refusal; nothing is linked, the claimed donor is untouched, the refusal is audited as caller_has_other_party and the pair is recorded once (red: linked)", async () => {
+      const db = fx.db!;
+      const mail = `wp5-plain-${TA}@example.test`;
+      const own = randomUUID();
+      const ownDonor = randomUUID();
+      const claimable = randomUUID();
+      const claimedDonor = randomUUID();
+      const t = randomBytes(32).toString("base64url");
+      try {
+        await db.query(
+          "insert into public.parties (id, tenant_id, display_name) values ($1, $3, 'Plain own'), ($2, $3, 'Plain claimable')",
+          [own, claimable, TA],
+        );
+        await db.query(
+          "insert into public.donors (id, tenant_id, party_id, profile_id, name, email) values ($1, $5, $2, $6, 'Plain', null), ($3, $5, $4, null, 'Plain claimable', $7)",
+          [ownDonor, own, claimedDonor, claimable, TA, user.plain, mail],
+        );
+        await db.query(
+          `insert into public.account_claim_requests (tenant_id, donor_id, email, requested_by, token_sha256, token_expires_at, donor_email_at_issue)
+           values ($1, $2, $3, $4, sha256(convert_to($5, 'UTF8')), now() + interval '1 hour', $3)`,
+          [TA, claimedDonor, mail, user.plain, t],
+        );
+        const redeemed = await api("rest/v1/rpc/redeem_account_claim", {
+          bearer: token.plain,
+          body: { p_tenant_id: TA, p_token: t },
+          headers: { "x-asym-tenant": TA },
+        });
+        expect([redeemed.status, await body(redeemed)]).toEqual([
+          200,
+          { status: "refused" },
+        ]);
+        const after = await db.query(
+          `select (select count(*)::int from public.account_links where tenant_id = $1 and user_id = $2) links,
+                  (select party_id from public.donors where id = $3) claimed_party,
+                  (select array_agg(details->>'reason') from public.audit_logs where tenant_id = $1 and user_id = $2 and action = 'account_claim_refused') reasons,
+                  (select array_agg(existing_donor_id::text || '>' || incoming_donor_id::text) from public.donor_merge_candidates where tenant_id = $1 and status = 'open' and $3 in (existing_donor_id, incoming_donor_id)) pairs`,
+          [TA, user.plain, claimedDonor],
+        );
+        expect(after.rows).toEqual([
+          {
+            links: 0,
+            claimed_party: claimable,
+            reasons: ["caller_has_other_party"],
+            pairs: [`${ownDonor}>${claimedDonor}`],
+          },
+        ]);
+      } finally {
+        await db.query(
+          "delete from public.donor_merge_candidates where tenant_id = $1 and $2 in (existing_donor_id, incoming_donor_id)",
+          [TA, claimedDonor],
+        );
+        await db.query(
+          "delete from public.account_claim_requests where tenant_id = $1 and donor_id = $2",
+          [TA, claimedDonor],
+        );
+        await db.query("delete from public.donors where id = any($1::uuid[])", [
+          [ownDonor, claimedDonor],
+        ]);
+        await db.query(
+          "delete from public.parties where id = any($1::uuid[])",
+          [[own, claimable]],
+        );
+      }
+    });
+
     it("each claim entry binds the organization it names to the request's header through the Data API (finding B3; confirmation half B: the lane's exact message, blank and malformed headers, and a caller who holds a redeemed request): start and redeem answer 403 (42501) to a missing, blank, malformed or other organization's header, and the status read answers the redeemed request only under the right header", async () => {
       const mail = `wp5-c-${ids.dClaimed}@example.test`;
       await fx.db!.query(

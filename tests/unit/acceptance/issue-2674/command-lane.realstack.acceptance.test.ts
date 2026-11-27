@@ -748,7 +748,10 @@ describe.skipIf(!ADMIN_URL)("AL-2674 command lane (real stack)", () => {
 
     it.each<[string, string]>([
       ["a profile", "insert into auth.users (id) values (gen_random_uuid())"],
-      ["a donor", "insert into public.donors default values"],
+      [
+        "a donor",
+        "with t as (insert into public.tenants (id, name, slug) values (gen_random_uuid(), 'acc2674', 'acc2674-' || gen_random_uuid()) returning id), p as (insert into public.parties (tenant_id, display_name) select id, 'acc2674' from t returning id, tenant_id) insert into public.donors (tenant_id, party_id) select tenant_id, id from p",
+      ],
       [
         "a donation",
         "with t as (insert into public.tenants (id, name, slug) values (gen_random_uuid(), 'acc2674', 'acc2674-' || gen_random_uuid()) returning id) insert into public.donations (tenant_id) select id from t",
