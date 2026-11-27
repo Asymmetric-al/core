@@ -77,6 +77,25 @@ function titleOf(id: string): string {
   return sql(`SELECT title FROM cms.pages WHERE id::text = '${id}'`);
 }
 
+async function deletePageAfter(
+  page: Page,
+  id: string,
+  body: () => Promise<void>,
+) {
+  let failure: unknown = null;
+  try {
+    await body();
+  } catch (error) {
+    failure = error;
+  }
+  try {
+    await deletePage(page, id);
+  } catch (error) {
+    failure ??= error;
+  }
+  if (failure !== null) throw failure;
+}
+
 async function deletePage(page: Page, id: string) {
   page.on("dialog", (dialog) => void dialog.accept());
   await page.goto("/admin/web-studio");
@@ -100,7 +119,7 @@ test("a choice in Web Studio's chooser enters by a document load; the API tab sh
   expect(studio.afterChoice()).toContain("/admin/web-studio");
   const title = `N2 on api ${Date.now()}`;
   const id = await createDraftPage(page, title);
-  try {
+  await deletePageAfter(page, id, async () => {
     await page.goto(`/admin/web-studio/collections/pages/${id}`);
     await expect(page.locator("[data-web-studio-scope]")).toBeAttached();
     const loginLoads: string[] = [];
@@ -142,9 +161,7 @@ test("a choice in Web Studio's chooser enters by a document load; the API tab sh
       "scope_mismatch",
     );
     await opened.close();
-  } finally {
-    await deletePage(page, id);
-  }
+  });
 });
 
 test("Web Studio left open after the name's generation moved refuses a page made from a template with the reload prompt, and makes none", async ({
@@ -187,52 +204,57 @@ test("Web Studio left open after the name's generation moved refuses a list read
   const title = `N2 on stale ${Date.now()}`;
   const id = await createDraftPage(page, title);
   const saved = saveName();
-  try {
-    await page.goto(`/admin/web-studio/collections/pages/${id}`);
-    const field = page.getByRole("textbox", { name: /^Title/ }).first();
-    await expect(field).toHaveValue(title);
-    await page.waitForLoadState("networkidle");
+  await deletePageAfter(page, id, async () => {
+    try {
+      await page.goto(`/admin/web-studio/collections/pages/${id}`);
+      const field = page.getByRole("textbox", { name: /^Title/ }).first();
+      await expect(field).toHaveValue(title);
+      await page.waitForLoadState("networkidle");
 
-    const moved = String(bumpGeneration());
-    await field.fill(`${title} changed`);
-    const saving = page.waitForResponse(
-      (response) =>
-        new URL(response.url()).pathname ===
-          `/admin/web-studio/api/pages/${id}` &&
-        response.request().method() === "PATCH" &&
-        !response.url().includes("autosave=true"),
-    );
-    await page.getByRole("button", { name: /^Save Draft$/i }).click();
-    const save = await saving;
-    expect(save.status()).toBe(409);
-    expect(save.headers()["x-asym-web-studio-refusal"]).toBe("scope_mismatch");
-    const notice = page.getByRole("alertdialog");
-    await expect(notice).toBeVisible();
-    await expect(notice).toContainText(STALE_MESSAGE);
+      const moved = String(bumpGeneration());
+      await field.fill(`${title} changed`);
+      const saving = page.waitForResponse(
+        (response) =>
+          new URL(response.url()).pathname ===
+            `/admin/web-studio/api/pages/${id}` &&
+          response.request().method() === "PATCH" &&
+          !response.url().includes("autosave=true"),
+      );
+      await page.getByRole("button", { name: /^Save Draft$/i }).click();
+      const save = await saving;
+      expect(save.status()).toBe(409);
+      expect(save.headers()["x-asym-web-studio-refusal"]).toBe(
+        "scope_mismatch",
+      );
+      const notice = page.getByRole("alertdialog");
+      await expect(notice).toBeVisible();
+      await expect(notice).toContainText(STALE_MESSAGE);
 
-    const list = await page.evaluate(async () => {
-      const response = await fetch("/admin/web-studio/api/pages?limit=5");
-      return {
-        status: response.status,
-        refusal: response.headers.get("x-asym-web-studio-refusal"),
-      };
-    });
-    expect(list).toEqual({ status: 409, refusal: "scope_mismatch" });
-    expect(titleOf(id)).toBe(title);
+      const list = await page.evaluate(async () => {
+        const response = await fetch("/admin/web-studio/api/pages?limit=5");
+        return {
+          status: response.status,
+          refusal: response.headers.get("x-asym-web-studio-refusal"),
+        };
+      });
+      expect(list).toEqual({ status: 409, refusal: "scope_mismatch" });
+      expect(titleOf(id)).toBe(title);
 
-    const reloaded = page.waitForResponse(
-      (response) =>
-        new URL(response.url()).pathname.startsWith("/admin/web-studio/api/") &&
-        response.request().headers()["x-asym-scope-generation"] === moved &&
-        response.status() === 200,
-    );
-    await notice.getByRole("button", { name: "Reload" }).click();
-    await reloaded;
-    await expect(
-      page.getByRole("textbox", { name: /^Title/ }).first(),
-    ).toHaveValue(title);
-  } finally {
-    restoreName(saved);
-    await deletePage(page, id);
-  }
+      const reloaded = page.waitForResponse(
+        (response) =>
+          new URL(response.url()).pathname.startsWith(
+            "/admin/web-studio/api/",
+          ) &&
+          response.request().headers()["x-asym-scope-generation"] === moved &&
+          response.status() === 200,
+      );
+      await notice.getByRole("button", { name: "Reload" }).click();
+      await reloaded;
+      await expect(
+        page.getByRole("textbox", { name: /^Title/ }).first(),
+      ).toHaveValue(title);
+    } finally {
+      restoreName(saved);
+    }
+  });
 });
