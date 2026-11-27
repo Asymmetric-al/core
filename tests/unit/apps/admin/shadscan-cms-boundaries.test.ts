@@ -109,9 +109,9 @@ describe("Shadscan CMS boundary evidence", () => {
     expect(suspendedContent).toBe(false);
   });
 
-  it("authenticates before reading the current draft and resolves redirect/not-found before rendering", () => {
+  it("authenticates before reading the current draft and resolves redirect/not-found before rendering (D-18: it runs the strategies with no request, as the layout does, F2)", () => {
     const source = sourceAt(previewPath);
-    const authenticate = callTo(source, "payload.auth");
+    const authenticate = callTo(source, "executeAuthStrategies");
     const read = callTo(source, "payload.findByID");
     expect(authenticate.parent.kind).toBe(ts.SyntaxKind.AwaitExpression);
     expect(read.parent.kind).toBe(ts.SyntaxKind.AwaitExpression);
