@@ -1,25 +1,86 @@
+import { createAnonymousClient } from "@asym/database/supabase/server";
+import { clientEnv } from "@asym/env";
 import { pageMetadata } from "@asym/lib/seo";
+import { headers } from "next/headers";
 
-import { CheckoutPageClient } from "./checkout-client";
+import { CheckoutPageClient, type CheckoutSurface } from "./checkout-client";
+import {
+  readCheckoutLink,
+  type CheckoutSearchParams,
+} from "./checkout-targets";
 
 import type { Metadata } from "next";
 
-export const metadata: Metadata = pageMetadata.checkout;
+export const metadata: Metadata = {
+  ...pageMetadata.checkout,
+  referrer: "no-referrer",
+};
 
-interface CheckoutPageProps {
-  searchParams: Promise<{
-    amount?: string | string[];
-    frequency?: string | string[];
-    fund?: string | string[];
-    fund_id?: string | string[];
-    missionary_id?: string | string[];
-    workerId?: string | string[];
-  }>;
+type HostFacts = {
+  surface: CheckoutSurface;
+  isHome: boolean;
+  siteId: string | null;
+  homeHost: string | null;
+};
+
+type HostRow = {
+  site_id: string | null;
+  surfaces: string[] | null;
+  state: string | null;
+  is_home: boolean | null;
+};
+
+type AnonymousReads = {
+  rpc(
+    fn: "resolve_verified_host" | "resolve_home_host",
+    args: { p_host: string },
+  ): PromiseLike<{ data: unknown; error: unknown }>;
+};
+
+async function hostFacts(host: string): Promise<HostFacts> {
+  const none: HostFacts = {
+    surface: "website",
+    isHome: false,
+    siteId: null,
+    homeHost: null,
+  };
+  const client = createAnonymousClient() as unknown as AnonymousReads | null;
+  if (!client || !host) return none;
+  const [verified, home] = await Promise.all([
+    client.rpc("resolve_verified_host", { p_host: host }),
+    client.rpc("resolve_home_host", { p_host: host }),
+  ]);
+  const row = (Array.isArray(verified.data) ? verified.data[0] : null) as
+    HostRow | undefined;
+  if (!row || row.state !== "active") return none;
+  const surfaces = row.surfaces ?? [];
+  const homeRow = (Array.isArray(home.data) ? home.data[0] : null) as
+    { primary_domain?: string | null } | undefined;
+  const isHome = row.is_home === true && surfaces.includes("donor_account");
+  return {
+    surface:
+      surfaces.includes("website") && row.site_id ? "website" : "donor_account",
+    isHome,
+    siteId: row.site_id,
+    homeHost: homeRow?.primary_domain ?? null,
+  };
 }
 
 export default async function CheckoutPage({
   searchParams,
-}: CheckoutPageProps) {
-  const resolvedSearchParams = await searchParams;
-  return <CheckoutPageClient searchParams={resolvedSearchParams} />;
+}: {
+  searchParams: Promise<CheckoutSearchParams>;
+}) {
+  const [params, requestHeaders] = await Promise.all([searchParams, headers()]);
+  const facts = await hostFacts(requestHeaders.get("host")?.trim() ?? "");
+  return (
+    <CheckoutPageClient
+      link={readCheckoutLink(params)}
+      surface={facts.surface}
+      isHome={facts.isHome}
+      homeHost={facts.homeHost}
+      siteId={facts.siteId}
+      turnstileSiteKey={clientEnv.NEXT_PUBLIC_TURNSTILE_SITE_KEY ?? ""}
+    />
+  );
 }

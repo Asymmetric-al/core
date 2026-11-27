@@ -6,12 +6,15 @@ import {
   render,
   screen,
   waitFor,
+  within,
 } from "@testing-library/react";
 import React from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
+import type * as OwnApi from "@asym/database/own-api";
+
 vi.mock("@asym/database/own-api", async (importOriginal) => ({
-  ...(await importOriginal<typeof import("@asym/database/own-api")>()),
+  ...(await importOriginal<typeof OwnApi>()),
   ownApiFetch: (path: string, init?: RequestInit) =>
     globalThis.fetch(path, init),
 }));
@@ -126,7 +129,7 @@ async function fillAndGive() {
     target: { value: "Guest" },
   });
   await screen.findByTestId("payment-element");
-  fireEvent.click(screen.getByRole("button", { name: /^Give/ }));
+  fireEvent.click(screen.getByRole("button", { name: /^Give \$/ }));
 }
 
 beforeEach(() => {
@@ -222,7 +225,7 @@ describe("AL-2681 PR 2b: the guest checkout page", () => {
       mode: "payment",
       amount: 2500,
       currency: "usd",
-      paymentMethodTypes: ["card"],
+      allowedPaymentMethodTypes: ["card"],
     });
   });
 
@@ -293,7 +296,7 @@ describe("AL-2681 PR 2b: the guest checkout page", () => {
     await screen.findByText(
       /Your card was declined, and you haven't been charged/,
     );
-    fireEvent.click(screen.getByRole("button", { name: /^Give/ }));
+    fireEvent.click(screen.getByRole("button", { name: /^Give \$/ }));
     await screen.findByText("Your gift was received.");
     const keys = calls
       .filter((c) => c.url === "/api/donate")
@@ -332,13 +335,15 @@ describe("AL-2681 PR 2b: the guest checkout page", () => {
     );
     expect(await screen.findByText("Giving as dana@example.test")).toBeTruthy();
     await screen.findByTestId("payment-element");
-    fireEvent.click(screen.getByRole("button", { name: /^Give/ }));
+    fireEvent.click(screen.getByRole("button", { name: /^Give \$/ }));
     await screen.findByText(/Your sign-in has ended/);
     expect(
       screen.getByRole("link", { name: "Sign in again" }).getAttribute("href"),
     ).toContain("/login?next=");
     expect(
-      screen.getByRole("button", { name: "Give as a guest instead" }),
+      within(screen.getByRole("alert")).getByRole("button", {
+        name: "Give as a guest instead",
+      }),
     ).toBeTruthy();
     expect(calls.find((c) => c.url === "/api/donate")!.body).toMatchObject({
       mode: "signed_in",
@@ -365,7 +370,9 @@ describe("AL-2681 PR 2b: the guest checkout page", () => {
     ).toBeTruthy();
     expect(screen.queryByRole("button", { name: /^Give \$/ })).toBeNull();
     fireEvent.click(screen.getByRole("button", { name: "Give once instead" }));
-    expect(await screen.findByRole("button", { name: /^Give/ })).toBeTruthy();
+    expect(
+      await screen.findByRole("button", { name: /^Give \$/ }),
+    ).toBeTruthy();
   });
 
   it("with no designation it asks the donor to choose one and shows no payment", async () => {

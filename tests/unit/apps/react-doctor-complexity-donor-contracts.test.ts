@@ -34,45 +34,4 @@ describe("donor high-complexity extraction contracts", () => {
     // The form fields live in DetailsCard, not in the tab itself.
     expect(profileTab).not.toContain('htmlFor="firstName"');
   });
-
-  it("keeps checkout payment pane, missing-target, and active flow as siblings", () => {
-    const source = readRepoFile(
-      "apps/donor/app/(public)/(solid)/checkout/checkout-client.tsx",
-    );
-
-    expect(source).toContain("function resolveMountedPublishableKey(");
-    expect(source).toContain("function resolveCheckoutSummaryWorkerTitle(");
-    expect(source).toContain("function CheckoutMissingTargetState(");
-    expect(source).toContain("function CheckoutPaymentPane(");
-    expect(source).toContain("function CheckoutActiveFlow(");
-    expect(source).toContain("function CheckoutContent(");
-    expect(source).toContain("resolveMountedPublishableKey(");
-    expect(source).toContain("<CheckoutMissingTargetState");
-    expect(source).toContain("<CheckoutPaymentPane");
-    expect(source).toContain("<CheckoutActiveFlow");
-    expect(source).toContain('step === "config" ?');
-    expect(source).toContain('step === "details" ?');
-    expect(source).toContain('step === "payment" ? paymentPane');
-
-    const checkoutContent = source.slice(
-      source.indexOf("function CheckoutContent("),
-    );
-    expect(checkoutContent).toContain("const handlePayment = async (");
-    // WP2b, AL-2675: the donate call goes through the own-API wrapper.
-    expect(checkoutContent).toContain('ownApiFetch("/api/donate"');
-    expect(checkoutContent).toContain("Idempotency-Key");
-    expect(checkoutContent).toContain("stripe.confirmCardPayment(");
-    expect(checkoutContent).not.toContain("Preparing secure checkout");
-    expect(checkoutContent).not.toContain("Target Unspecified");
-
-    const paymentPane = source.slice(
-      source.indexOf("function CheckoutPaymentPane("),
-      source.indexOf("function CheckoutActiveFlow("),
-    );
-    expect(paymentPane).toContain("if (stripeOverride)");
-    expect(paymentPane).toContain('runtimeConfig.status === "loading"');
-    expect(paymentPane).toContain('runtimeConfig.status === "error"');
-    expect(paymentPane).toContain("<StripePaymentStep");
-    expect(paymentPane).toContain("elements={null}");
-  });
 });

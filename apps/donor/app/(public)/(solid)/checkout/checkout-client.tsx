@@ -1,2438 +1,628 @@
 "use client";
 
-import { TenantLink as Link } from "@asym/auth/tenant-navigation";
-import { knownDonorRecipient } from "@asym/database/hooks";
+import { quoteGiftProcessingFee } from "@asym/api/donate/fee-policy";
 import { ownApiFetch } from "@asym/database/own-api";
-
-// Match the app refs correctness rule when shared root lint runs this file.
-/* eslint react-hooks/refs: "error" */
-
-import { readJsonBody } from "@asym/lib/http/fetch-result";
-import { motion, AnimatePresence } from "@asym/lib/motion";
-import {
-  isGeneralCheckoutAlias,
-  resolveCheckoutFundId,
-} from "@asym/lib/payments/checkout-designations";
+import { createBrowserClient } from "@asym/database/supabase";
 import { formatCurrency } from "@asym/lib/utils";
 import { Alert, AlertDescription } from "@asym/ui/components/shadcn/alert";
-import {
-  Avatar,
-  AvatarFallback,
-  AvatarImage,
-} from "@asym/ui/components/shadcn/avatar";
-import { Badge } from "@asym/ui/components/shadcn/badge";
-import { Button, buttonVariants } from "@asym/ui/components/shadcn/button";
+import { Button } from "@asym/ui/components/shadcn/button";
 import { Card } from "@asym/ui/components/shadcn/card";
-import {
-  Field,
-  FieldContent,
-  FieldDescription,
-  FieldError,
-  FieldLabel,
-  FieldTitle,
-} from "@asym/ui/components/shadcn/field";
+import { Checkbox } from "@asym/ui/components/shadcn/checkbox";
+import { Field, FieldLabel } from "@asym/ui/components/shadcn/field";
 import { Input } from "@asym/ui/components/shadcn/input";
 import {
-  InputGroup,
-  InputGroupAddon,
-  InputGroupInput,
-} from "@asym/ui/components/shadcn/input-group";
-import { Label } from "@asym/ui/components/shadcn/label";
-import {
-  RadioGroup,
-  RadioGroupItem,
-} from "@asym/ui/components/shadcn/radio-group";
-import { Separator } from "@asym/ui/components/shadcn/separator";
-import { Switch } from "@asym/ui/components/shadcn/switch";
-import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from "@asym/ui/components/shadcn/tabs";
-import { cn } from "@asym/ui/lib/utils";
-import {
-  CardElement,
   Elements,
+  PaymentElement,
   useElements,
   useStripe,
 } from "@stripe/react-stripe-js";
-import {
-  loadStripe,
-  type Stripe,
-  type StripeCardElement,
-  type StripeElements,
-} from "@stripe/stripe-js";
-import {
-  Check,
-  Lock,
-  ArrowRight,
-  Heart,
-  Loader2,
-  Landmark,
-  Wallet,
-  Zap,
-  Shield,
-  AlertTriangle,
-} from "lucide-react";
-import React, {
-  useCallback,
-  useEffect,
-  useLayoutEffect,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
+import { loadStripe, type Stripe } from "@stripe/stripe-js";
+import Link from "next/link";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import {
-  buildCheckoutRequestFingerprint,
-  buildDonateRequestBody,
-  interpretDonateResponse,
-  isDonationInitialized,
-  isStripeFinalCheckoutSuccess,
-  normalizeCheckoutFrequency,
-  quoteGuestGivingCheckoutFees,
-  resolveCheckoutIdempotencyKey,
-  resolveCheckoutMode,
-  type CheckoutMode,
-  type CheckoutFrequency,
-  type CheckoutPaymentMethod,
-  type ServerDonation,
-} from "./checkout-donation";
+  forgetGiftKey,
+  giftKeyFor,
+  rememberedPayment,
+  rememberPayment,
+  safeStorage,
+  GIFT_KEY_STORAGE,
+} from "./checkout-gift-key";
+import { handOffHref, type CheckoutLink } from "./checkout-targets";
+import { CheckoutTurnstile } from "./checkout-turnstile";
 import {
-  commitPaymentAttemptState as commitPaymentAttemptSnapshot,
-  commitSuccessfulOriginalPaymentAttempt as commitSuccessfulOriginalPaymentSnapshot,
-  exitStalePaymentAttempt as exitStalePaymentSnapshot,
-  isPaymentAttemptActive as isCurrentPaymentAttemptIdentity,
-  synchronizePaymentAttemptState,
-} from "./checkout-payment-attempt";
+  CHECKOUT_WORDS,
+  intakeRefusalWords,
+  paymentStateNotice,
+  type CheckoutNotice,
+  type IntakeRefusal,
+} from "./checkout-words";
 
-import { getFieldWorkerById } from "@/lib/mock-data";
+export type CheckoutSurface = "website" | "donor_account";
 
-type Step = "config" | "details" | "payment" | "success";
-type Frequency = CheckoutFrequency;
-type PaymentMethod = CheckoutPaymentMethod;
-type SearchParamInput = string | string[] | undefined;
-type CheckoutPageSearchParams = {
-  amount?: SearchParamInput;
-  frequency?: SearchParamInput;
-  fund?: SearchParamInput;
-  fund_id?: SearchParamInput;
-  missionary?: SearchParamInput;
-  missionary_id?: SearchParamInput;
-  workerId?: SearchParamInput;
+export type CheckoutPageClientProps = {
+  link: CheckoutLink;
+  surface: CheckoutSurface;
+  isHome: boolean;
+  homeHost: string | null;
+  siteId: string | null;
+  turnstileSiteKey: string;
+  signedInEmail?: string | null;
 };
-type CheckoutSearchParams = {
-  amount: string | null;
-  frequency: Frequency | null;
-  fundId: string | null;
-  fundLabel: string | null;
-  missionaryId: string | null;
-  workerId: string | null;
-};
-type DonorInfo = {
-  email: string;
-  firstName: string;
-  lastName: string;
-};
-type DonorInfoErrors = Partial<Record<keyof DonorInfo, string>>;
 
-const DONOR_INFO_FIELDS = ["firstName", "lastName", "email"] as const;
-
-function DetailsField({
-  id,
-  label,
-  error,
-  description,
-  ...inputProps
-}: React.ComponentProps<typeof Input> & {
-  id: string;
-  label: string;
-  error?: string;
-  description?: string;
-}) {
-  const errorId = `${id}-error`;
-  const descriptionId = `${id}-description`;
-  return (
-    <Field data-invalid={error ? true : undefined}>
-      <FieldLabel htmlFor={id}>{label}</FieldLabel>
-      <Input
-        {...inputProps}
-        id={id}
-        aria-invalid={Boolean(error)}
-        aria-describedby={
-          error ? errorId : description ? descriptionId : undefined
-        }
-      />
-      <div className="min-h-4">
-        {error ? (
-          <FieldError id={errorId}>{error}</FieldError>
-        ) : description ? (
-          <FieldDescription id={descriptionId}>{description}</FieldDescription>
-        ) : null}
-      </div>
-    </Field>
-  );
-}
-
-// Deliberately loose: one @, something before it, and a dotted domain.
-const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-const trimDonorInfo = (info: DonorInfo): DonorInfo => ({
-  email: info.email.trim(),
-  firstName: info.firstName.trim(),
-  lastName: info.lastName.trim(),
-});
-
-/**
- * Each checkout step replaces the last one, so the flow hands every step
- * heading a ref that focuses it when the donor arrives there by Next or Back.
- */
-const StepHeadingFocusContext = React.createContext<
-  React.RefCallback<HTMLHeadingElement> | undefined
->(undefined);
-
-function StepHeading({
-  className,
-  ...props
-}: Omit<React.ComponentProps<"h1">, "ref" | "tabIndex">) {
-  const focusOnArrival = React.useContext(StepHeadingFocusContext);
-  return (
-    <h1
-      ref={focusOnArrival}
-      tabIndex={-1}
-      className={cn("outline-none", className)}
-      {...props}
-    />
-  );
-}
-type CheckoutState = {
-  amount: number;
-  coverFees: boolean;
-  customAmount: string;
-  donation: ServerDonation | null;
-  donorInfo: DonorInfo;
-  endDate: string;
-  error: string | null;
-  frequency: Frequency;
-  hasEndDate: boolean;
-  idempotencyFingerprint: string | null;
-  idempotencyKey: string | null;
-  isProcessing: boolean;
-  paymentAttemptId: number | null;
-  paymentMethod: PaymentMethod;
-  postalCode: string;
-  startDate: string;
-  step: Step;
-  successSnapshot: PaymentSuccessSnapshot | null;
-};
-type CheckoutStripeOverride = {
-  cardElement?: React.ReactNode;
-  elements: StripeElements | null;
-  mode: CheckoutMode;
-  publishableKey?: string | null;
-  stripe: Stripe | null;
-};
-type CheckoutRuntimeConfig =
+type Config =
+  | { state: "idle" | "loading" | "unavailable" }
   | {
-      error: null;
-      publishableKey: string | null;
-      status: "ready";
-      stripePromise: Promise<Stripe | null> | null;
-    }
-  | {
-      error: string | null;
-      publishableKey: null;
-      status: "loading" | "error";
-      stripePromise: null;
+      state: "ready";
+      publishableKey: string;
+      account: string;
+      wayBackHost: string | null;
     };
-type PaymentAttempt = {
-  fingerprint: string;
-  id: number;
-  successSnapshot: PaymentSuccessSnapshot;
-};
-type PaymentSuccessSnapshot = Readonly<{
-  donorInfo: Readonly<DonorInfo>;
-  total: number;
-  workerTitle: string;
-}>;
 
-const PRESET_AMOUNTS = [50, 100, 250, 500];
-// No receipt is sent when a card payment succeeds, so this copy makes no
-// receipt claim or promise (WP0, audit finding NC-07).
-const PAYMENT_PROCESSING_MESSAGE =
-  "Your payment is still processing. To avoid paying twice, wait for your bank to confirm it before you try again.";
-const CHECKOUT_CONFIGURATION_ERROR =
-  "Checkout configuration is incomplete. Please contact support before completing this contribution.";
+type Outcome = { notice: CheckoutNotice; final: boolean; signIn?: boolean };
 
-const resolveSuccessWorkerTitle = (
-  worker: { title?: string } | null | undefined,
-): string => worker?.title || "our global mission";
+const FINAL_STATES = new Set(["succeeded", "processing", "canceled"]);
 
-const createPaymentSuccessSnapshot = ({
-  donorInfo,
-  total,
-  workerTitle,
-}: {
-  donorInfo: DonorInfo;
-  total: number;
-  workerTitle: string;
-}): PaymentSuccessSnapshot => ({
-  donorInfo: {
-    email: donorInfo.email,
-    firstName: donorInfo.firstName,
-    lastName: donorInfo.lastName,
-  },
-  total,
-  workerTitle,
-});
-
-const readSearchParam = (value: SearchParamInput): string | null => {
-  if (typeof value === "string") return value;
-  if (Array.isArray(value)) return value[0] ?? null;
-  return null;
-};
-
-const readDesignationSearchParam = (value: SearchParamInput): string | null => {
-  const rawValue = readSearchParam(value);
-  if (!rawValue) return null;
-
-  const trimmedValue = rawValue.trim();
-  return trimmedValue.length > 0 ? trimmedValue : null;
-};
-
-const normalizePublishableKey = (
-  value: string | null | undefined,
-): string | null => {
-  if (typeof value !== "string") return null;
-  const trimmedValue = value.trim();
-  return trimmedValue.length > 0 ? trimmedValue : null;
-};
-
-const readRuntimePublishableKey = (body: unknown): string | null => {
-  if (!body || typeof body !== "object") return null;
-  const value = (body as Record<string, unknown>).publishableKey;
-  return typeof value === "string" ? normalizePublishableKey(value) : null;
-};
-
-const createReadyRuntimeConfig = (
-  publishableKey: string | null | undefined,
-): CheckoutRuntimeConfig => {
-  const normalizedPublishableKey = normalizePublishableKey(publishableKey);
-
-  return {
-    error: null,
-    publishableKey: normalizedPublishableKey,
-    status: "ready",
-    stripePromise: normalizedPublishableKey
-      ? loadStripe(normalizedPublishableKey)
-      : null,
-  };
-};
-
-const createRuntimeConfigError = (
-  message = CHECKOUT_CONFIGURATION_ERROR,
-): CheckoutRuntimeConfig => ({
-  error: message,
-  publishableKey: null,
-  status: "error",
-  stripePromise: null,
-});
-
-const createRuntimeConfigFromPublishableKey = (
-  publishableKey: string | null | undefined,
-): CheckoutRuntimeConfig => {
-  const normalizedPublishableKey = normalizePublishableKey(publishableKey);
-  return normalizedPublishableKey
-    ? createReadyRuntimeConfig(normalizedPublishableKey)
-    : createRuntimeConfigError();
-};
-
-const LOADING_RUNTIME_CONFIG: CheckoutRuntimeConfig = {
-  error: null,
-  publishableKey: null,
-  status: "loading",
-  stripePromise: null,
-};
-
-/**
- * Load the tenant's checkout runtime config. Resolves to `null` when the
- * request was aborted so the caller leaves the current state untouched.
- */
-async function fetchCheckoutRuntimeConfig(
-  signal: AbortSignal,
-): Promise<CheckoutRuntimeConfig | null> {
-  try {
-    const response = await ownApiFetch("/api/donate", {
-      method: "GET",
-      signal,
-    });
-    const { ok, body: payload } = await readJsonBody<unknown>(response);
-
-    if (signal.aborted) {
-      return null;
-    }
-
-    if (!ok) {
-      const message =
-        payload && typeof payload === "object"
-          ? (payload as Record<string, unknown>).error
-          : null;
-      return {
-        error:
-          typeof message === "string"
-            ? message
-            : "Checkout configuration could not be loaded. Please try again.",
-        publishableKey: null,
-        status: "error",
-        stripePromise: null,
-      };
-    }
-
-    return createRuntimeConfigFromPublishableKey(
-      readRuntimePublishableKey(payload),
-    );
-  } catch (error) {
-    if (signal.aborted) {
-      return null;
-    }
-
-    if (error instanceof DOMException && error.name === "AbortError") {
-      return null;
-    }
-
-    return {
-      error:
-        "Checkout configuration could not be loaded. Please refresh and try again.",
-      publishableKey: null,
-      status: "error",
-      stripePromise: null,
-    };
-  }
+function targetLine(link: CheckoutLink, amountCents: number) {
+  return link.target?.kind === "missionary"
+    ? { missionaryId: link.target.id, amountCents }
+    : { fundId: link.target?.id ?? "", amountCents };
 }
 
-const readCheckoutFrequency = (value: SearchParamInput): Frequency | null => {
-  return normalizeCheckoutFrequency(readSearchParam(value));
-};
+function feeCents(amountCents: number, coverFees: boolean) {
+  if (!coverFees || amountCents <= 0) return 0;
+  return quoteGiftProcessingFee({
+    giftAmountCents: amountCents,
+    coverFees: true,
+    paymentMethod: "card",
+  }).coverAmountCents;
+}
 
-const normalizeCheckoutSearchParams = (
-  searchParams: CheckoutPageSearchParams,
-): CheckoutSearchParams => {
-  const fundAlias = readDesignationSearchParam(searchParams.fund);
-  const rawFundId = readDesignationSearchParam(searchParams.fund_id);
-  const rawMissionaryId =
-    readDesignationSearchParam(searchParams.missionary_id) ??
-    readDesignationSearchParam(searchParams.missionary);
+function loginHref() {
+  const next = `${window.location.pathname}${window.location.search}`;
+  return `/login?next=${encodeURIComponent(next)}`;
+}
 
-  return {
-    amount: readSearchParam(searchParams.amount),
-    frequency: readCheckoutFrequency(searchParams.frequency),
-    fundId:
-      resolveCheckoutFundId(rawFundId) ?? resolveCheckoutFundId(fundAlias),
-    fundLabel: fundAlias,
-    missionaryId: rawMissionaryId,
-    workerId: readSearchParam(searchParams.workerId),
-  };
-};
-
-interface SummaryCardProps {
-  worker: { title?: string; image?: string } | null;
-  /** Set when the gift came from a sample worker profile. */
-  sampleProfileTitle?: string | null;
-  amount: number;
-  frequency: Frequency;
+function GiveForm(props: {
+  client: CheckoutPageClientProps;
+  config: Extract<Config, { state: "ready" }>;
+  amountCents: number;
   coverFees: boolean;
-  fees: number;
-  total: number;
-}
-
-function SummaryCard({
-  worker,
-  sampleProfileTitle,
-  amount,
-  frequency,
-  coverFees,
-  fees,
-  total,
-}: SummaryCardProps) {
-  return (
-    <Card className="gap-0 py-0 overflow-hidden">
-      <div className="p-8 bg-muted/50 border-b border-border">
-        <h3 className="text-sm font-medium text-foreground/80 mb-6">
-          Contribution Summary
-        </h3>
-        <div className="flex items-center gap-4">
-          <Avatar className="size-16">
-            <AvatarImage src={worker?.image} />
-            <AvatarFallback>GH</AvatarFallback>
-          </Avatar>
-          <div className="min-w-0 space-y-1 wrap-anywhere">
-            <p className="text-sm font-medium text-foreground">Supporting</p>
-            <p className="text-xl font-semibold text-foreground font-display leading-tight">
-              {worker?.title || "General Mission Fund"}
-            </p>
-          </div>
-        </div>
-        {sampleProfileTitle ? (
-          <p className="mt-4 text-sm text-muted-foreground">
-            {sampleProfileTitle} is a sample profile. Your gift goes to the
-            missionary account it’s linked to in this demo organization.
-          </p>
-        ) : null}
-      </div>
-
-      <div className="p-8 space-y-6">
-        <div className="space-y-4">
-          <div className="flex justify-between items-center text-sm">
-            <span className="text-muted-foreground font-medium">Your gift</span>
-            <span className="font-semibold text-foreground font-display">
-              {formatCurrency(amount)}
-            </span>
-          </div>
-
-          {coverFees && (
-            <div className="flex justify-between items-center text-sm animate-in fade-in slide-in-from-top-2">
-              <span className="text-muted-foreground font-medium flex items-center gap-2">
-                <Zap className="size-3.5 text-foreground fill-current" /> Cover
-                processing fees
-              </span>
-              <span className="font-semibold text-foreground font-display">
-                {formatCurrency(fees)}
-              </span>
-            </div>
-          )}
-
-          <div className="flex justify-between items-center text-sm">
-            <span className="text-muted-foreground font-medium">Frequency</span>
-            <Badge variant="secondary">{frequency}</Badge>
-          </div>
-        </div>
-
-        <Separator />
-
-        <div className="flex justify-between items-end pt-2">
-          <div className="space-y-1">
-            <span className="text-sm font-medium text-muted-foreground">
-              Amount Due Today
-            </span>
-            <span className="block text-3xl font-semibold text-foreground font-display tracking-tighter">
-              {formatCurrency(total)}
-            </span>
-          </div>
-        </div>
-      </div>
-
-      <div className="px-8 py-4 bg-primary flex flex-wrap gap-4 items-center justify-between text-sm font-medium text-primary-foreground/80">
-        <div className="flex items-center gap-2">
-          <Shield className="size-3.5" /> Secure SSL
-        </div>
-        <div className="flex items-center gap-2">
-          <Lock className="size-3.5" /> PCI Compliant
-        </div>
-      </div>
-    </Card>
-  );
-}
-
-const checkoutSteps: { key: Step; label: string }[] = [
-  { key: "config", label: "AMOUNT" },
-  { key: "details", label: "DETAILS" },
-  { key: "payment", label: "PAYMENT" },
-];
-
-function StepIndicator({ currentStep }: { currentStep: Step }) {
-  const currentIdx = checkoutSteps.findIndex((s) => s.key === currentStep);
-
-  return (
-    <nav
-      className="flex items-center justify-center gap-2 sm:gap-4 mb-20"
-      aria-label="Checkout progress"
-    >
-      {checkoutSteps.map((s, idx) => (
-        <div key={s.key} className="flex items-center gap-2 sm:gap-4">
-          <div className="flex flex-col items-center gap-2">
-            <div
-              className={cn(
-                "h-1.5 rounded-full transition-colors duration-700 ease-[var(--ease-out-soft)]",
-                currentIdx === idx
-                  ? "bg-primary w-12"
-                  : currentIdx > idx
-                    ? "bg-primary w-6"
-                    : "bg-muted w-6",
-              )}
-              aria-hidden="true"
-            />
-            <span
-              aria-current={currentIdx === idx ? "step" : undefined}
-              className={cn(
-                "text-sm font-medium ",
-                currentIdx === idx
-                  ? "text-foreground"
-                  : "text-muted-foreground",
-              )}
-            >
-              {s.label}
-            </span>
-          </div>
-          {idx < checkoutSteps.length - 1 && (
-            <div className="h-px w-4 sm:w-8 bg-muted mb-6" aria-hidden="true" />
-          )}
-        </div>
-      ))}
-    </nav>
-  );
-}
-
-function SuccessView({
-  donorInfo,
-  mode,
-  total,
-  workerTitle,
-}: {
-  donorInfo: DonorInfo;
-  mode: CheckoutMode;
-  total: number;
-  workerTitle: string;
+  mode: "guest" | "signed_in";
+  onGuest: () => void;
 }) {
-  return (
-    <div className="min-h-dvh bg-muted flex items-center justify-center p-6">
-      <motion.div
-        initial={{ opacity: 0, y: 40 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="bg-card max-w-2xl w-full rounded-3xl shadow-sm overflow-hidden text-center"
-      >
-        <div className="bg-primary px-6 py-12 sm:px-12 sm:pt-24 sm:pb-32 text-primary-foreground relative overflow-hidden">
-          <div className="absolute inset-0 opacity-20" aria-hidden="true">
-            <div className="absolute top-0 right-0 size-64 bg-radial from-muted-foreground to-transparent rounded-full" />
-            <div className="absolute bottom-0 left-0 size-64 bg-radial from-muted-foreground to-transparent rounded-full" />
-          </div>
-
-          <motion.div
-            initial={{ scale: 0.5, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            transition={{ delay: 0.3, type: "spring" }}
-            className="size-24 bg-card rounded-4xl flex items-center justify-center mx-auto mb-10 shadow-sm"
-          >
-            <Check
-              className="size-12 text-foreground"
-              strokeWidth={3}
-              aria-hidden="true"
-            />
-          </motion.div>
-
-          <h1 className="text-3xl sm:text-5xl md:text-6xl font-semibold mb-4 font-display tracking-normal">
-            Contribution Confirmed.
-          </h1>
-          <p className="text-primary-foreground/80 font-semibold text-xs">
-            Thank you for your support
-          </p>
-        </div>
-
-        <div className="px-6 py-10 sm:px-16 sm:py-20 space-y-12">
-          <div className="space-y-4">
-            <p className="text-sm font-medium text-muted-foreground">
-              Total Contribution
-            </p>
-            <p className="text-4xl sm:text-7xl font-semibold text-foreground font-display tracking-tighter tabular-nums wrap-anywhere">
-              {formatCurrency(total)}
-            </p>
-          </div>
-
-          <div className="space-y-3">
-            <p className="text-lg sm:text-xl text-muted-foreground leading-relaxed font-light tracking-tight break-words">
-              Your payment was accepted. Your gift is designated for{" "}
-              <span className="text-foreground font-semibold">
-                {workerTitle}
-              </span>
-              .
-            </p>
-            <p className="text-sm text-muted-foreground break-words">
-              Contact email for this gift:{" "}
-              <span className="text-foreground font-semibold">
-                {donorInfo.email}
-              </span>
-            </p>
-          </div>
-
-          {mode === "test" && (
-            <div
-              role="status"
-              className="inline-flex items-center gap-3 rounded-full bg-muted px-6 py-3 text-sm font-medium text-foreground dark:bg-muted/10 dark:text-foreground"
-            >
-              <AlertTriangle className="size-3.5" aria-hidden="true" /> Test
-              mode — no card charge collected
-            </div>
-          )}
-
-          <div className="flex flex-col sm:flex-row gap-4 pt-4">
-            <Link
-              href="/donor-dashboard"
-              className={cn(
-                buttonVariants({ variant: "maia", size: "lg" }),
-                "sm:flex-1",
-              )}
-            >
-              Enter Dashboard
-            </Link>
-            <Link
-              href="/"
-              className={cn(
-                buttonVariants({ variant: "maia-outline", size: "lg" }),
-                "sm:flex-1",
-              )}
-            >
-              Back to Home
-            </Link>
-          </div>
-        </div>
-      </motion.div>
-    </div>
-  );
-}
-
-function ConfigStep({
-  amount,
-  calculatedFees,
-  coverFees,
-  customAmount,
-  onAmountSelect,
-  onCoverFeesChange,
-  onCustomAmountChange,
-  onNext,
-}: {
-  amount: number;
-  calculatedFees: number;
-  coverFees: boolean;
-  customAmount: string;
-  onAmountSelect: (value: number) => void;
-  onCoverFeesChange: (value: boolean) => void;
-  onCustomAmountChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
-  onNext: () => void;
-}) {
-  return (
-    <motion.div
-      key="config"
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -20 }}
-      transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-      className="space-y-12"
-    >
-      <header className="space-y-4">
-        <span className="text-sm font-medium text-foreground">
-          Set Up Support
-        </span>
-        <StepHeading className="text-3xl sm:text-5xl md:text-6xl font-semibold text-foreground font-display tracking-normal">
-          Your Gift.
-        </StepHeading>
-        <p className="text-2xl text-muted-foreground font-light tracking-tight">
-          Configure the amount of your one-time gift.
-        </p>
-      </header>
-
-      <div className="space-y-8">
-        <div className="rounded-4xl border border-border bg-muted p-6">
-          <p className="text-sm font-medium text-foreground/80">
-            Contribution Frequency
-          </p>
-          <p className="mt-2 font-semibold text-foreground font-display">
-            One-time gift
-          </p>
-        </div>
-
-        <fieldset className="space-y-6">
-          <legend className="text-sm font-medium text-muted-foreground">
-            Support Amount
-          </legend>
-          <RadioGroup
-            className="grid-cols-2 md:grid-cols-4 gap-4"
-            aria-label="Preset support amounts"
-            value={customAmount ? null : amount}
-            onValueChange={(value) => {
-              if (typeof value === "number") onAmountSelect(value);
-            }}
-          >
-            {PRESET_AMOUNTS.map((val) => (
-              <RadioGroupItem
-                key={val}
-                value={val}
-                nativeButton
-                variant="amount"
-                render={<button />}
-              >
-                ${val}
-              </RadioGroupItem>
-            ))}
-          </RadioGroup>
-
-          <div className="mt-8">
-            <Label className="sr-only" htmlFor="custom-amount">
-              Custom amount
-            </Label>
-            <InputGroup>
-              <InputGroupAddon aria-hidden="true">$</InputGroupAddon>
-              <InputGroupInput
-                id="custom-amount"
-                type="text"
-                inputMode="decimal"
-                placeholder="Other Amount"
-                value={customAmount}
-                onChange={onCustomAmountChange}
-              />
-            </InputGroup>
-          </div>
-        </fieldset>
-
-        <Field orientation="horizontal">
-          <div
-            className={cn(
-              "size-14 shrink-0 rounded-2xl flex items-center justify-center transition-colors",
-              coverFees ? "bg-primary/10" : "bg-muted",
-            )}
-          >
-            <Heart
-              className={cn(
-                "size-6",
-                coverFees
-                  ? "text-primary fill-current"
-                  : "text-muted-foreground",
-              )}
-              aria-hidden="true"
-            />
-          </div>
-          <FieldLabel htmlFor="cover-processing-fees" className="grow">
-            <FieldContent>
-              <FieldTitle>Cover Processing Fees</FieldTitle>
-              <FieldDescription className="mt-1 text-xs leading-relaxed">
-                Add <strong>{formatCurrency(calculatedFees)}</strong> to help
-                cover estimated processing costs.
-              </FieldDescription>
-            </FieldContent>
-          </FieldLabel>
-          <Switch
-            id="cover-processing-fees"
-            role="switch"
-            aria-label="Cover processing fees"
-            checked={coverFees}
-            onCheckedChange={onCoverFeesChange}
-          />
-        </Field>
-      </div>
-
-      <Button
-        variant="maia"
-        onClick={onNext}
-        disabled={amount <= 0}
-        size="lg"
-        className="w-full"
-      >
-        Next Step <ArrowRight data-icon="inline-end" aria-hidden="true" />
-      </Button>
-    </motion.div>
-  );
-}
-
-function DetailsStep({
-  donorInfo,
-  onBack,
-  onDonorInfoChange,
-  onNext,
-}: {
-  donorInfo: DonorInfo;
-  onBack: () => void;
-  onDonorInfoChange: (patch: Partial<DonorInfo>) => void;
-  onNext: () => void | Promise<void>;
-}) {
-  const [errors, setErrors] = useState<DonorInfoErrors>({});
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const submissionPendingRef = useRef(false);
-
-  const updateField = (field: keyof DonorInfo, value: string) => {
-    if (submissionPendingRef.current) return;
-    onDonorInfoChange({ [field]: value });
-    if (errors[field]) setErrors((current) => ({ ...current, [field]: "" }));
-  };
-
-  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    if (submissionPendingRef.current) return;
-    const trimmed = trimDonorInfo(donorInfo);
-    const nextErrors: DonorInfoErrors = {};
-    if (!trimmed.firstName) nextErrors.firstName = "Enter your first name.";
-    if (!trimmed.lastName) nextErrors.lastName = "Enter your last name.";
-    if (!trimmed.email) nextErrors.email = "Enter your email address.";
-    else if (!EMAIL_PATTERN.test(trimmed.email))
-      nextErrors.email = "Enter an email address like name@example.com.";
-    setErrors(nextErrors);
-    const firstInvalid = DONOR_INFO_FIELDS.find((field) => nextErrors[field]);
-    if (firstInvalid) {
-      const control = event.currentTarget.elements.namedItem(firstInvalid);
-      if (control instanceof HTMLElement) control.focus();
-      return;
-    }
-    onDonorInfoChange(trimmed);
-    submissionPendingRef.current = true;
-    try {
-      const preparation = onNext();
-      if (preparation) {
-        setIsSubmitting(true);
-        await preparation;
-      }
-    } finally {
-      submissionPendingRef.current = false;
-      setIsSubmitting(false);
-    }
-  };
-
-  return (
-    <motion.div
-      key="details"
-      initial={{ opacity: 0, x: 40 }}
-      animate={{ opacity: 1, x: 0 }}
-      exit={{ opacity: 0, x: -40 }}
-      transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-      className="space-y-12"
-    >
-      <header className="space-y-4">
-        <span className="text-sm font-medium text-foreground">
-          Donor Information
-        </span>
-        <StepHeading className="text-3xl sm:text-5xl md:text-6xl font-semibold text-foreground font-display tracking-normal">
-          Your Details.
-        </StepHeading>
-        <p className="text-2xl text-muted-foreground font-light tracking-tight">
-          Information for tax receipts and donation tracking.
-        </p>
-      </header>
-
-      <form
-        noValidate
-        aria-label="Your details"
-        aria-busy={isSubmitting}
-        onSubmit={handleSubmit}
-        className="space-y-12"
-      >
-        {Object.values(errors).some(Boolean) ? (
-          <Alert
-            role="alert"
-            aria-label="Check your details"
-            variant="destructive"
-          >
-            <AlertDescription>
-              Check the highlighted fields before continuing.
-            </AlertDescription>
-          </Alert>
-        ) : null}
-        <div className="bg-muted p-6 sm:p-12 rounded-3xl border border-border space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <DetailsField
-              id="checkout-first-name"
-              label="First Name"
-              error={errors.firstName}
-              disabled={isSubmitting}
-              name="firstName"
-              value={donorInfo.firstName}
-              onChange={(e) => updateField("firstName", e.target.value)}
-              placeholder="Jane"
-              autoComplete="given-name"
-            />
-            <DetailsField
-              id="checkout-last-name"
-              label="Last Name"
-              error={errors.lastName}
-              disabled={isSubmitting}
-              name="lastName"
-              value={donorInfo.lastName}
-              onChange={(e) => updateField("lastName", e.target.value)}
-              placeholder="Doe"
-              autoComplete="family-name"
-            />
-          </div>
-          <DetailsField
-            id="checkout-email"
-            label="Email Address"
-            error={errors.email}
-            disabled={isSubmitting}
-            description="Your receipt is sent here."
-            name="email"
-            type="email"
-            inputMode="email"
-            value={donorInfo.email}
-            onChange={(e) => updateField("email", e.target.value)}
-            placeholder="jane.doe@example.com"
-            autoComplete="email"
-            spellCheck={false}
-          />
-        </div>
-
-        <div className="flex flex-col sm:flex-row gap-6">
-          <Button
-            type="button"
-            variant="outline"
-            disabled={isSubmitting}
-            onClick={() => {
-              if (!submissionPendingRef.current) onBack();
-            }}
-            size="lg"
-          >
-            Back
-          </Button>
-          <Button
-            type="submit"
-            variant="maia"
-            disabled={isSubmitting}
-            size="lg"
-            className="grow"
-          >
-            {isSubmitting
-              ? "Preparing secure checkout…"
-              : "Continue to Payment"}
-          </Button>
-        </div>
-      </form>
-      <p
-        role="status"
-        aria-atomic="true"
-        className={cn(
-          "text-sm text-muted-foreground",
-          !isSubmitting && "sr-only",
-        )}
-      >
-        {isSubmitting
-          ? "Preparing secure checkout. No payment has been submitted."
-          : null}
-      </p>
-    </motion.div>
-  );
-}
-
-function PaymentStep({
-  cardElement,
-  elements,
-  error,
-  isProcessing,
-  mode,
-  onBack,
-  onConfirmPayment,
-  onPaymentMethodChange,
-  onPostalCodeChange,
-  paymentMethod,
-  postalCode,
-  stripe,
-  total,
-}: {
-  cardElement?: React.ReactNode;
-  elements: StripeElements | null;
-  error: string | null;
-  isProcessing: boolean;
-  mode: CheckoutMode;
-  onBack: () => void;
-  onConfirmPayment: (
-    stripe: Stripe | null,
-    elements: StripeElements | null,
-  ) => void;
-  onPaymentMethodChange: (value: PaymentMethod) => void;
-  onPostalCodeChange: (value: string) => void;
-  paymentMethod: PaymentMethod;
-  postalCode: string;
-  stripe: Stripe | null;
-  total: number;
-}) {
-  const paymentLabelId = React.useId();
-  return (
-    <motion.div
-      key="payment"
-      initial={{ opacity: 0, x: 40 }}
-      animate={{ opacity: 1, x: 0 }}
-      exit={{ opacity: 0, x: -40 }}
-      transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-      className="space-y-12"
-    >
-      <header className="space-y-4">
-        <span className="text-sm font-medium text-foreground">
-          Payment Information
-        </span>
-        <StepHeading className="text-3xl sm:text-5xl md:text-6xl font-semibold text-foreground font-display tracking-normal">
-          Secure Payment.
-        </StepHeading>
-        <p className="text-2xl text-muted-foreground font-light tracking-tight">
-          Safely authorize your contribution.
-        </p>
-      </header>
-
-      <Tabs
-        value={paymentMethod}
-        onValueChange={(value) => {
-          if (
-            !isProcessing &&
-            (value === "card" || value === "ach" || value === "wallet")
-          ) {
-            onPaymentMethodChange(value);
-          }
-        }}
-        className="bg-muted p-6 sm:p-12 rounded-3xl border border-border space-y-10"
-      >
-        <TabsList
-          activateOnFocus
-          aria-label="Payment method"
-          className="grid w-full grid-cols-3 gap-1 p-2 bg-card rounded-2xl border border-border group-data-[orientation=horizontal]/tabs:h-auto"
-        >
-          {(
-            [
-              ["card", "Card"],
-              ["ach", "Bank"],
-              ["wallet", "Apple/Google"],
-            ] as const
-          ).map(([value, label]) => (
-            <TabsTrigger
-              key={value}
-              value={value}
-              disabled={isProcessing}
-              className={cn(
-                "min-h-11 min-w-0 whitespace-normal wrap-anywhere px-1 py-2 text-xs font-medium rounded-xl transition-colors press-feedback outline-none focus-visible:outline-2 focus-visible:outline-ring focus-visible:outline-offset-2 text-muted-foreground data-active:bg-primary data-active:text-primary-foreground data-active:shadow-sm",
-                isProcessing && "cursor-not-allowed opacity-60",
-              )}
-            >
-              {label}
-            </TabsTrigger>
-          ))}
-        </TabsList>
-
-        <div className="min-h-75 flex flex-col justify-center">
-          <TabsContent value="card" key="card">
-            {paymentMethod === "card" && (
-              <motion.div
-                key="card"
-                initial={{ opacity: 0, scale: 0.98 }}
-                animate={{ opacity: 1, scale: 1 }}
-                className="space-y-8"
-              >
-                <div className="space-y-3" data-testid="stripe-card-panel">
-                  <p className="text-sm font-medium text-foreground/80 pl-2">
-                    Card Details
-                  </p>
-                  {mode === "live" ? (
-                    <div className="bg-card rounded-2xl border border-border p-4 sm:p-8 shadow-sm">
-                      {cardElement ?? (
-                        <CardElement options={{ hidePostalCode: true }} />
-                      )}
-                    </div>
-                  ) : (
-                    <div
-                      role="status"
-                      className="rounded-4xl border border-dashed border-border bg-card p-8 text-sm font-medium leading-relaxed text-foreground"
-                    >
-                      Test mode does not collect card details. Configure a
-                      Stripe publishable key to mount live Elements.
-                    </div>
-                  )}
-                </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                  <div className="space-y-3">
-                    <Label htmlFor="country">Country</Label>
-                    <Input
-                      id="country"
-                      autoComplete="country-name"
-                      defaultValue="United States"
-                      disabled
-                    />
-                  </div>
-                  <div className="space-y-3">
-                    <Label htmlFor="postal-code">Postal Code</Label>
-                    <Input
-                      id="postal-code"
-                      placeholder="12345"
-                      autoComplete="postal-code"
-                      disabled={isProcessing}
-                      inputMode="numeric"
-                      onChange={(event) =>
-                        onPostalCodeChange(event.target.value)
-                      }
-                      value={postalCode}
-                    />
-                  </div>
-                </div>
-              </motion.div>
-            )}
-          </TabsContent>
-
-          <TabsContent value="ach" key="ach">
-            {paymentMethod === "ach" && (
-              <motion.div
-                key="ach"
-                initial={{ opacity: 0, scale: 0.98 }}
-                animate={{ opacity: 1, scale: 1 }}
-                className="space-y-12 text-center"
-              >
-                <div className="size-24 bg-muted rounded-4xl flex items-center justify-center mx-auto">
-                  <Landmark
-                    className="size-10 text-foreground"
-                    aria-hidden="true"
-                  />
-                </div>
-                <div className="space-y-4">
-                  <h3 className="text-2xl font-semibold font-display">
-                    Instant Bank Link
-                  </h3>
-                  <p className="text-foreground/80 max-w-sm mx-auto leading-relaxed">
-                    Paying by bank transfer isn&apos;t available yet. Choose
-                    Card to complete your gift.
-                  </p>
-                </div>
-              </motion.div>
-            )}
-          </TabsContent>
-
-          <TabsContent value="wallet" key="wallet">
-            {paymentMethod === "wallet" && (
-              <motion.div
-                key="wallet"
-                initial={{ opacity: 0, scale: 0.98 }}
-                animate={{ opacity: 1, scale: 1 }}
-                className="flex flex-col items-center justify-center gap-4 h-full min-h-75 text-center"
-              >
-                <Wallet
-                  className="size-10 text-foreground"
-                  aria-hidden="true"
-                />
-                <p className="text-foreground/80 max-w-sm mx-auto leading-relaxed">
-                  Paying with Apple Pay or Google Pay isn&apos;t available yet.
-                  Choose Card to complete your gift.
-                </p>
-              </motion.div>
-            )}
-          </TabsContent>
-        </div>
-      </Tabs>
-
-      {mode === "test" && (
-        <div
-          role="status"
-          className="flex items-start gap-4 rounded-3xl border border-border bg-muted p-6 text-left dark:border-border/30 dark:bg-muted/10"
-        >
-          <AlertTriangle
-            className="size-5 shrink-0 text-foreground dark:text-foreground"
-            aria-hidden="true"
-          />
-          <div className="space-y-1">
-            <p className="text-sm font-medium text-foreground dark:text-foreground">
-              Test mode — card capture disabled
-            </p>
-            <p className="text-sm font-medium leading-relaxed text-foreground/80 dark:text-foreground/80">
-              Live card processing needs Stripe credentials that aren&apos;t
-              configured yet. Your contribution is recorded server-side; the
-              card charge is not collected in this mode.
-            </p>
-          </div>
-        </div>
-      )}
-
-      {error && (
-        <Alert variant="destructive" aria-live="assertive">
-          <AlertTriangle aria-hidden="true" />
-          <AlertDescription>{error}</AlertDescription>
-        </Alert>
-      )}
-
-      <div className="flex flex-col sm:flex-row gap-6">
-        <Button
-          variant="maia-outline"
-          onClick={onBack}
-          disabled={isProcessing}
-          size="lg"
-        >
-          Back
-        </Button>
-        <Button
-          variant="maia"
-          onClick={() => onConfirmPayment(stripe, elements)}
-          // Only card payments are implemented; the other tabs explain that,
-          // so Confirm is not offered as an action that can only fail.
-          disabled={isProcessing || paymentMethod !== "card"}
-          focusableWhenDisabled={isProcessing}
-          aria-labelledby={paymentLabelId}
-          size="lg"
-          className="grow"
-        >
-          <span id={paymentLabelId} className="sr-only">
-            {isProcessing
-              ? "Processing payment"
-              : `Confirm ${formatCurrency(total)}`}
-          </span>
-          {isProcessing ? (
-            <Loader2 className="animate-spin" aria-hidden="true" />
-          ) : (
-            `Confirm ${formatCurrency(total)}`
-          )}
-        </Button>
-      </div>
-    </motion.div>
-  );
-}
-
-function StripePaymentStep(
-  props: Omit<React.ComponentProps<typeof PaymentStep>, "elements" | "stripe">,
-) {
   const stripe = useStripe();
   const elements = useElements();
+  const [email, setEmail] = useState("");
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
+  const [anonymous, setAnonymous] = useState(false);
+  const [token, setToken] = useState<string | null>(null);
+  const [resetSignal, setResetSignal] = useState(0);
+  const [busy, setBusy] = useState(false);
+  const [outcome, setOutcome] = useState<Outcome | null>(null);
+  const heldChecked = useRef(false);
+  const total =
+    props.amountCents + feeCents(props.amountCents, props.coverFees);
+  const signedIn = props.mode === "signed_in";
 
-  return <PaymentStep {...props} elements={elements} stripe={stripe} />;
-}
+  const freshChallenge = () => setResetSignal((n) => n + 1);
 
-function CheckoutConfigurationState({
-  message,
-  title,
-}: {
-  message: string;
-  title: string;
-}) {
-  return (
-    <div
-      role="status"
-      className="flex min-h-90 flex-col items-center justify-center gap-6 rounded-3xl border border-border bg-muted p-12 text-center"
-    >
-      <Loader2
-        className="size-8 animate-spin text-muted-foreground"
-        aria-hidden="true"
-      />
-      <div className="space-y-2">
-        <h2 className="font-display text-2xl font-semibold text-foreground">
-          {title}
-        </h2>
-        <p className="max-w-md text-sm font-medium leading-relaxed text-foreground/80">
-          {message}
-        </p>
-      </div>
-    </div>
+  const readPayment = useCallback(
+    async (clientSecret: string): Promise<Outcome | null> => {
+      if (!stripe) return null;
+      const result = (await stripe.retrievePaymentIntent(clientSecret)) as {
+        paymentIntent?: { status: string };
+      };
+      const status = result.paymentIntent?.status;
+      if (!status) return null;
+      const final = FINAL_STATES.has(status);
+      if (final) forgetGiftKey(safeStorage("local"), safeStorage("session"));
+      return { notice: paymentStateNotice(status), final };
+    },
+    [stripe],
   );
-}
 
-function CheckoutConfigurationError({
-  message,
-  onBack,
-}: {
-  message: string | null;
-  onBack: () => void;
-}) {
-  return (
-    <div className="space-y-12">
-      <header className="space-y-4">
-        <span className="text-sm font-medium text-foreground">
-          Payment Information
-        </span>
-        <StepHeading className="text-3xl sm:text-5xl md:text-6xl font-semibold text-foreground font-display tracking-normal">
-          Secure Payment.
-        </StepHeading>
-        <p className="text-2xl text-muted-foreground font-light tracking-tight">
-          Safely authorize your contribution.
-        </p>
-      </header>
-
-      <Alert variant="destructive">
-        <AlertTriangle aria-hidden="true" />
-        <AlertDescription>
-          {message ??
-            "Checkout configuration could not be loaded. Please refresh and try again."}
-        </AlertDescription>
-      </Alert>
-      <Button type="button" variant="outline" onClick={onBack} size="lg">
-        Back
-      </Button>
-    </div>
-  );
-}
-
-function resolveMountedPublishableKey(
-  runtimeConfig: CheckoutRuntimeConfig,
-  stripeOverride: CheckoutStripeOverride | undefined,
-): string | null {
-  if (stripeOverride) {
-    return normalizePublishableKey(stripeOverride.publishableKey);
-  }
-
-  if (runtimeConfig.status === "ready") {
-    return runtimeConfig.publishableKey;
-  }
-
-  return null;
-}
-
-function resolveCheckoutSummaryWorkerTitle({
-  hasGeneralGivingTarget,
-  missionaryId,
-}: {
-  hasGeneralGivingTarget: boolean;
-  missionaryId: string | null;
-}): string {
-  if (hasGeneralGivingTarget) {
-    return "General Mission Fund";
-  }
-
-  if (missionaryId) {
-    return "Missionary Support";
-  }
-
-  return "Urgent Needs";
-}
-
-/** Reached with no recipient (a bare or outdated checkout link). */
-function CheckoutMissingTargetState() {
-  return (
-    <div className="min-h-dvh flex items-center justify-center bg-card px-6">
-      <div className="text-center space-y-6 max-w-md">
-        <div className="size-20 bg-background rounded-3xl flex items-center justify-center mx-auto border border-border shadow-sm">
-          <Heart className="size-8 text-muted-foreground" aria-hidden="true" />
-        </div>
-        <div className="space-y-2">
-          <h1 className="text-3xl font-semibold text-foreground font-display text-balance">
-            Choose who you’d like to support
-          </h1>
-          <p className="text-muted-foreground leading-relaxed">
-            This link doesn’t say who the gift is for. Pick a missionary from
-            the directory to start your gift.
-          </p>
-        </div>
-        <Link
-          href="/workers"
-          className={cn(buttonVariants({ size: "lg" }), "rounded-full px-8")}
-        >
-          Find a missionary
-        </Link>
-      </div>
-    </div>
-  );
-}
-
-function CheckoutPaymentPane({
-  checkoutMode,
-  error,
-  isProcessing,
-  onBack,
-  onConfirmPayment,
-  onPaymentMethodChange,
-  onPostalCodeChange,
-  paymentMethod,
-  postalCode,
-  runtimeConfig,
-  stripeOverride,
-  total,
-}: {
-  checkoutMode: CheckoutMode;
-  error: string | null;
-  isProcessing: boolean;
-  onBack: () => void;
-  onConfirmPayment: (
-    stripe: Stripe | null,
-    elements: StripeElements | null,
-  ) => void;
-  onPaymentMethodChange: (value: PaymentMethod) => void;
-  onPostalCodeChange: (value: string) => void;
-  paymentMethod: PaymentMethod;
-  postalCode: string;
-  runtimeConfig: CheckoutRuntimeConfig;
-  stripeOverride?: CheckoutStripeOverride;
-  total: number;
-}) {
-  const sharedPaymentProps = {
-    error,
-    isProcessing,
-    mode: checkoutMode,
-    onBack,
-    onConfirmPayment,
-    onPaymentMethodChange,
-    onPostalCodeChange,
-    paymentMethod,
-    postalCode,
-    total,
-  };
-
-  if (stripeOverride) {
-    return (
-      <PaymentStep
-        {...sharedPaymentProps}
-        cardElement={stripeOverride.cardElement}
-        elements={stripeOverride.elements}
-        stripe={stripeOverride.stripe}
-      />
-    );
-  }
-
-  if (runtimeConfig.status === "loading") {
-    return (
-      <CheckoutConfigurationState
-        title="Preparing secure checkout"
-        message="Loading this organization's payment configuration."
-      />
-    );
-  }
-
-  if (runtimeConfig.status === "error") {
-    return (
-      <CheckoutConfigurationError
-        message={runtimeConfig.error}
-        onBack={onBack}
-      />
-    );
-  }
-
-  if (checkoutMode === "live" && runtimeConfig.stripePromise) {
-    return (
-      <Elements
-        key={runtimeConfig.publishableKey}
-        stripe={runtimeConfig.stripePromise}
-      >
-        <StripePaymentStep {...sharedPaymentProps} />
-      </Elements>
-    );
-  }
-
-  return <PaymentStep {...sharedPaymentProps} elements={null} stripe={null} />;
-}
-
-function CheckoutActiveFlow({
-  amount,
-  calculatedFees,
-  coverFees,
-  customAmount,
-  donorInfo,
-  frequency,
-  hasGeneralGivingTarget,
-  missionaryId,
-  onAmountSelect,
-  onBack,
-  onCoverFeesChange,
-  onCustomAmountChange,
-  onDonorInfoChange,
-  onNext,
-  paymentPane,
-  step,
-  total,
-  worker,
-  sampleProfileTitle,
-}: {
-  amount: number;
-  calculatedFees: number;
-  coverFees: boolean;
-  customAmount: string;
-  donorInfo: DonorInfo;
-  frequency: Frequency;
-  hasGeneralGivingTarget: boolean;
-  missionaryId: string | null;
-  onAmountSelect: (value: number) => void;
-  onBack: () => void;
-  onCoverFeesChange: (value: boolean) => void;
-  onCustomAmountChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
-  onDonorInfoChange: (patch: Partial<DonorInfo>) => void;
-  onNext: () => void | Promise<void>;
-  paymentPane: React.ReactNode;
-  step: Step;
-  total: number;
-  worker: { image?: string; title?: string } | null;
-  sampleProfileTitle: string | null;
-}) {
-  // A donor arriving from their dashboard sees who they already support.
-  const knownRecipient = knownDonorRecipient(missionaryId);
-  const summaryWorker =
-    worker ||
-    (knownRecipient
-      ? {
-          title: knownRecipient.name,
-          image: knownRecipient.avatarUrl ?? undefined,
-        }
-      : {
-          title: resolveCheckoutSummaryWorkerTitle({
-            hasGeneralGivingTarget,
-            missionaryId,
-          }),
-        });
-
-  // Headings that mount with the flow are the first view and leave focus
-  // where the browser put it; later ones were reached by Next or Back. The
-  // cleanup keeps a StrictMode remount from counting as an arrival.
-  const flowCommittedRef = useRef(false);
-  useEffect(() => {
-    flowCommittedRef.current = true;
-    return () => {
-      flowCommittedRef.current = false;
-    };
-  }, []);
-  const focusOnArrival = useCallback((node: HTMLHeadingElement | null) => {
-    if (node && flowCommittedRef.current) node.focus({ preventScroll: true });
-  }, []);
-
-  return (
-    <StepHeadingFocusContext value={focusOnArrival}>
-      <div className="min-h-dvh bg-background font-sans pb-24 pt-24 selection:bg-invert/10">
-        <div className="container mx-auto px-6 max-w-7xl">
-          <StepIndicator currentStep={step} />
-
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-16 items-start">
-            <div className="lg:col-span-7 space-y-16">
-              <AnimatePresence mode="wait">
-                {step === "config" ? (
-                  <ConfigStep
-                    amount={amount}
-                    calculatedFees={calculatedFees}
-                    coverFees={coverFees}
-                    customAmount={customAmount}
-                    onAmountSelect={onAmountSelect}
-                    onCoverFeesChange={onCoverFeesChange}
-                    onCustomAmountChange={onCustomAmountChange}
-                    onNext={onNext}
-                  />
-                ) : null}
-
-                {step === "details" ? (
-                  <DetailsStep
-                    donorInfo={donorInfo}
-                    onBack={onBack}
-                    onDonorInfoChange={onDonorInfoChange}
-                    onNext={onNext}
-                  />
-                ) : null}
-
-                {step === "payment" ? paymentPane : null}
-              </AnimatePresence>
-            </div>
-
-            <aside
-              aria-label="Contribution summary"
-              className="lg:col-span-5 min-w-0 lg:sticky lg:top-32 self-start"
-            >
-              <SummaryCard
-                worker={summaryWorker}
-                sampleProfileTitle={sampleProfileTitle}
-                amount={amount}
-                frequency={frequency}
-                coverFees={coverFees}
-                fees={calculatedFees}
-                total={total}
-              />
-            </aside>
-          </div>
-        </div>
-      </div>
-    </StepHeadingFocusContext>
-  );
-}
-
-function CheckoutContent(props: Parameters<typeof useCheckoutModel>[0]) {
-  const model = useCheckoutModel(props);
-  if (model.view === "missing_target") return <CheckoutMissingTargetState />;
-  if (model.view === "success")
-    return (
-      <SuccessView
-        donorInfo={model.success.donorInfo}
-        mode={model.success.mode}
-        total={model.success.total}
-        workerTitle={model.success.workerTitle}
-      />
-    );
-  return <CheckoutFlowView flow={model.flow} />;
-}
-
-function CheckoutFlowView({
-  flow,
-}: {
-  flow: Extract<
-    ReturnType<typeof useCheckoutModel>,
-    { view: "active" }
-  >["flow"];
-}) {
-  const {
-    onAmountSelect: handleAmountSelect,
-    onBack: handleBack,
-    onCoverFeesChange: handleCoverFeesChange,
-    onCustomAmountChange: handleCustomAmountChange,
-    onDonorInfoChange: handleDonorInfoChange,
-    onNext: handleNext,
-  } = flow;
-  return (
-    <CheckoutActiveFlow
-      amount={flow.amount}
-      calculatedFees={flow.calculatedFees}
-      coverFees={flow.coverFees}
-      customAmount={flow.customAmount}
-      donorInfo={flow.donorInfo}
-      frequency={flow.frequency}
-      hasGeneralGivingTarget={flow.hasGeneralGivingTarget}
-      missionaryId={flow.missionaryId}
-      onAmountSelect={handleAmountSelect}
-      onBack={handleBack}
-      onCoverFeesChange={handleCoverFeesChange}
-      onCustomAmountChange={handleCustomAmountChange}
-      onDonorInfoChange={handleDonorInfoChange}
-      onNext={handleNext}
-      paymentPane={flow.paymentPane}
-      step={flow.step}
-      total={flow.total}
-      worker={flow.worker}
-      sampleProfileTitle={flow.sampleProfileTitle}
-    />
-  );
-}
-
-export function CheckoutPageClient({
-  searchParams,
-  stripeOverride,
-}: {
-  searchParams: CheckoutPageSearchParams;
-  stripeOverride?: CheckoutStripeOverride;
-}) {
-  const normalizedSearchParams = normalizeCheckoutSearchParams(searchParams);
-  return (
-    <CheckoutContent
-      searchParams={normalizedSearchParams}
-      stripeOverride={stripeOverride}
-    />
-  );
-}
-
-function createCheckoutPaymentSubmission({
-  activePaymentAttemptRef,
-  checkoutStateRef,
-  hasGivingTarget,
-  setCheckoutState,
-  paymentMethod,
-  stripeOverride,
-  checkoutMode,
-  mountedPublishableKey,
-  setRuntimeConfig,
-  currentRequestFingerprint,
-  donorInfo,
-  total,
-  worker,
-  paymentAttemptIdRef,
-  checkoutState,
-  currentRequestFingerprintRef,
-  amount,
-  coverFees,
-  missionaryId,
-  fundId,
-  isPaymentAttemptActive,
-  exitStalePaymentAttempt,
-  postalCode,
-  mountedPublishableKeyRef,
-  commitPaymentAttemptState,
-  commitSuccessfulOriginalPaymentAttempt,
-}: {
-  activePaymentAttemptRef: React.RefObject<PaymentAttempt | null>;
-  checkoutStateRef: React.RefObject<CheckoutState>;
-  hasGivingTarget: boolean;
-  setCheckoutState: React.Dispatch<React.SetStateAction<CheckoutState>>;
-  paymentMethod: CheckoutPaymentMethod;
-  stripeOverride: CheckoutStripeOverride | undefined;
-  checkoutMode: CheckoutMode;
-  mountedPublishableKey: string | null;
-  setRuntimeConfig: React.Dispatch<React.SetStateAction<CheckoutRuntimeConfig>>;
-  currentRequestFingerprint: string;
-  donorInfo: DonorInfo;
-  total: number;
-  /** Who the gift goes to; only the title is used, for the confirmation. */
-  worker: { title?: string } | null;
-  paymentAttemptIdRef: React.RefObject<number>;
-  checkoutState: CheckoutState;
-  currentRequestFingerprintRef: React.RefObject<string>;
-  amount: number;
-  coverFees: boolean;
-  missionaryId: string | null;
-  fundId: string | null;
-  isPaymentAttemptActive: (attempt: PaymentAttempt) => boolean;
-  exitStalePaymentAttempt: (attempt: PaymentAttempt) => boolean;
-  postalCode: string;
-  mountedPublishableKeyRef: React.RefObject<string | null>;
-  commitPaymentAttemptState: (
-    attempt: PaymentAttempt,
-    updater: (prev: CheckoutState) => CheckoutState,
-  ) => boolean;
-  commitSuccessfulOriginalPaymentAttempt: (
-    attempt: PaymentAttempt,
-    donation: ServerDonation,
-  ) => boolean;
-}) {
-  const handlePayment = async (
-    stripe: Stripe | null,
-    elements: StripeElements | null,
-  ) => {
-    if (
-      activePaymentAttemptRef.current ||
-      checkoutStateRef.current.isProcessing
-    ) {
-      return;
-    }
-
-    if (!hasGivingTarget) {
-      setCheckoutState((prev) => ({
-        ...prev,
-        error:
-          "This checkout link does not include a valid giving target. Please return to the missionary directory and try again.",
-      }));
-      return;
-    }
-
-    if (paymentMethod !== "card") {
-      setCheckoutState((prev) => ({
-        ...prev,
-        error:
-          "Card payments are the only checkout method currently available. Bank and wallet checkout need a live Stripe flow before they can be used.",
-      }));
-      return;
-    }
-
-    if (
-      !stripeOverride &&
-      (checkoutMode === "test" || !mountedPublishableKey)
-    ) {
-      setRuntimeConfig(createRuntimeConfigError());
-      setCheckoutState((prev) => ({
-        ...prev,
-        donation: null,
-        error: CHECKOUT_CONFIGURATION_ERROR,
-        isProcessing: false,
-        step: "payment",
-        successSnapshot: null,
-      }));
-      return;
-    }
-
-    const requestFingerprint = currentRequestFingerprint;
-    const attemptSuccessSnapshot = createPaymentSuccessSnapshot({
-      donorInfo,
-      total,
-      workerTitle: resolveSuccessWorkerTitle(worker),
-    });
-    const paymentAttempt = {
-      fingerprint: requestFingerprint,
-      id: paymentAttemptIdRef.current + 1,
-      successSnapshot: attemptSuccessSnapshot,
-    };
-    paymentAttemptIdRef.current = paymentAttempt.id;
-    activePaymentAttemptRef.current = paymentAttempt;
-    const { idempotencyKey, isNewKey } = resolveCheckoutIdempotencyKey({
-      currentFingerprint: requestFingerprint,
-      existingFingerprint: checkoutState.idempotencyFingerprint,
-      existingKey: checkoutState.idempotencyKey,
-      generateKey: () => crypto.randomUUID(),
-    });
-
-    currentRequestFingerprintRef.current = requestFingerprint;
-    const processingState: CheckoutState = {
-      ...checkoutStateRef.current,
-      donation: isNewKey ? null : checkoutStateRef.current.donation,
-      error: null,
-      idempotencyFingerprint: requestFingerprint,
-      idempotencyKey,
-      isProcessing: true,
-      paymentAttemptId: paymentAttempt.id,
-      step: "payment",
-      successSnapshot: null,
-    };
-    checkoutStateRef.current = processingState;
-    setCheckoutState(() => processingState);
-
+  const give = async () => {
+    if (!stripe || !elements || busy) return;
+    setBusy(true);
+    setOutcome(null);
     try {
-      const body = buildDonateRequestBody({
-        amount,
-        currency: "usd",
-        coverFees,
-        paymentMethod,
-        missionaryId,
-        fundId,
-      });
-
+      const submitted = (await elements.submit()) as {
+        error?: { message?: string };
+      };
+      if (submitted.error) {
+        setOutcome({
+          notice: {
+            tone: "error",
+            text: submitted.error.message ?? CHECKOUT_WORDS.declined,
+          },
+          final: false,
+        });
+        return;
+      }
+      if (!token) {
+        setOutcome({
+          notice: { tone: "error", text: CHECKOUT_WORDS.challenge },
+          final: false,
+        });
+        return;
+      }
+      const lines = [targetLine(props.client.link, props.amountCents)];
+      const key = await giftKeyFor(
+        {
+          lines,
+          coverFees: props.coverFees,
+          isAnonymous: anonymous,
+          surface: props.client.surface,
+        },
+        safeStorage("local"),
+      );
       const response = await ownApiFetch("/api/donate", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Idempotency-Key": idempotencyKey,
-        },
-        body: JSON.stringify(body),
-      });
-
-      if (!isPaymentAttemptActive(paymentAttempt)) {
-        exitStalePaymentAttempt(paymentAttempt);
-        return;
-      }
-
-      // The donate API returns interpretable JSON on every status, so the
-      // payload is read for both branches with the status checked first.
-      const { status, body: payload } = await readJsonBody<unknown>(response);
-
-      if (!isPaymentAttemptActive(paymentAttempt)) {
-        exitStalePaymentAttempt(paymentAttempt);
-        return;
-      }
-
-      const result = interpretDonateResponse(status, payload);
-
-      if (isDonationInitialized(result)) {
-        const trimmedPostalCode = postalCode.trim();
-        const returnedPublishableKey = normalizePublishableKey(
-          result.donation.publishableKey,
-        );
-        const currentMountedPublishableKey = mountedPublishableKeyRef.current;
-
-        if (returnedPublishableKey !== currentMountedPublishableKey) {
-          if (!stripeOverride) {
-            setRuntimeConfig(
-              returnedPublishableKey
-                ? createReadyRuntimeConfig(returnedPublishableKey)
-                : createRuntimeConfigError(),
-            );
-          }
-
-          commitPaymentAttemptState(paymentAttempt, (prev) => ({
-            ...prev,
-            donation: null,
-            error:
-              "Checkout configuration changed while payment was preparing. Please try again.",
-            isProcessing: false,
-          }));
-          return;
-        }
-
-        if (checkoutMode === "test") {
-          commitPaymentAttemptState(paymentAttempt, (prev) => ({
-            ...prev,
-            donation: result.donation,
-            error: null,
-            isProcessing: false,
-            step: "success",
-            successSnapshot: paymentAttempt.successSnapshot,
-          }));
-          return;
-        }
-
-        if (!result.donation.clientSecret) {
-          commitPaymentAttemptState(paymentAttempt, (prev) => ({
-            ...prev,
-            donation: null,
-            error:
-              "Payment was initialized, but Stripe did not return a client secret. Please try again.",
-            isProcessing: false,
-          }));
-          return;
-        }
-
-        if (!stripe || !elements) {
-          commitPaymentAttemptState(paymentAttempt, (prev) => ({
-            ...prev,
-            donation: null,
-            error:
-              "Stripe is still initializing. Please wait a moment and try again.",
-            isProcessing: false,
-          }));
-          return;
-        }
-
-        const cardElement = elements.getElement(
-          CardElement,
-        ) as StripeCardElement | null;
-        if (!cardElement) {
-          commitPaymentAttemptState(paymentAttempt, (prev) => ({
-            ...prev,
-            donation: null,
-            error:
-              "Card details are not ready yet. Please check the card form and try again.",
-            isProcessing: false,
-          }));
-          return;
-        }
-
-        const billingDetails = {
-          ...(trimmedPostalCode
-            ? {
-                address: {
-                  postal_code: trimmedPostalCode,
-                },
-              }
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          key,
+          mode: props.mode,
+          surface: props.client.surface,
+          lines,
+          coverFees: props.coverFees,
+          paymentMethod: "card",
+          isAnonymous: anonymous,
+          contact: signedIn
+            ? { email: props.client.signedInEmail ?? "" }
+            : { email, firstName, lastName },
+          challengeToken: token,
+          ...(props.client.link.sourceSiteId
+            ? { sourceSiteId: props.client.link.sourceSiteId }
             : {}),
-          email: donorInfo.email,
-          name: `${donorInfo.firstName} ${donorInfo.lastName}`.trim(),
-        };
-
-        const confirmation = await stripe.confirmCardPayment(
-          result.donation.clientSecret,
-          {
-            payment_method: {
-              card: cardElement,
-              billing_details: billingDetails,
-            },
-          },
-        );
-
-        if (confirmation.error) {
-          if (!isPaymentAttemptActive(paymentAttempt)) {
-            exitStalePaymentAttempt(paymentAttempt);
-            return;
-          }
-
-          commitPaymentAttemptState(paymentAttempt, (prev) => ({
-            ...prev,
-            donation: null,
-            error:
-              confirmation.error.message ??
-              "Stripe could not confirm this card payment. Please check your card details and try again.",
-            isProcessing: false,
-          }));
-          return;
-        }
-
-        if (confirmation.paymentIntent?.status === "processing") {
-          if (!isPaymentAttemptActive(paymentAttempt)) {
-            exitStalePaymentAttempt(paymentAttempt);
-            return;
-          }
-
-          commitPaymentAttemptState(paymentAttempt, (prev) => ({
-            ...prev,
-            donation: null,
-            error: PAYMENT_PROCESSING_MESSAGE,
-            isProcessing: false,
-          }));
-          return;
-        }
-
-        if (!isStripeFinalCheckoutSuccess(confirmation.paymentIntent?.status)) {
-          if (!isPaymentAttemptActive(paymentAttempt)) {
-            exitStalePaymentAttempt(paymentAttempt);
-            return;
-          }
-
-          commitPaymentAttemptState(paymentAttempt, (prev) => ({
-            ...prev,
-            donation: null,
-            error:
-              "Stripe has not confirmed this payment yet. Please try again or use another card.",
-            isProcessing: false,
-          }));
-          return;
-        }
-
-        commitSuccessfulOriginalPaymentAttempt(paymentAttempt, result.donation);
-        return;
-      }
-
-      const message =
-        result.kind === "processing"
-          ? PAYMENT_PROCESSING_MESSAGE
-          : result.message;
-      commitPaymentAttemptState(paymentAttempt, (prev) => ({
-        ...prev,
-        error: message,
-        isProcessing: false,
-      }));
-    } catch {
-      if (!isPaymentAttemptActive(paymentAttempt)) {
-        exitStalePaymentAttempt(paymentAttempt);
-        return;
-      }
-
-      commitPaymentAttemptState(paymentAttempt, (prev) => ({
-        ...prev,
-        error:
-          "We couldn't reach the server to confirm your contribution. Please try again.",
-        isProcessing: false,
-      }));
-    }
-  };
-
-  return { handlePayment };
-}
-
-function useCheckoutRuntimeConfiguration(
-  stripeOverride: CheckoutStripeOverride | undefined,
-) {
-  const [runtimeConfig, setRuntimeConfig] = useState<CheckoutRuntimeConfig>(
-    () =>
-      stripeOverride
-        ? createReadyRuntimeConfig(stripeOverride.publishableKey)
-        : LOADING_RUNTIME_CONFIG,
-  );
-  const runtimeConfigAbortRef = useRef<AbortController | null>(null);
-  const runtimeConfigRequestRef =
-    useRef<Promise<CheckoutRuntimeConfig | null> | null>(null);
-  // Starts (or restarts) the tenant config request. State is written only in
-  // the promise callback, so the mount effect below performs no synchronous
-  // state update; `loadCheckoutRuntimeConfig` adds the loading transition for
-  // user-initiated retries.
-  const requestRuntimeConfig = () => {
-    runtimeConfigAbortRef.current?.abort();
-    const abortController = new AbortController();
-    runtimeConfigAbortRef.current = abortController;
-
-    const request = fetchCheckoutRuntimeConfig(abortController.signal)
-      .then((next) => {
-        if (
-          runtimeConfigAbortRef.current !== abortController ||
-          abortController.signal.aborted
-        ) {
-          return null;
-        }
-        if (next) {
-          setRuntimeConfig(next);
-        }
-        return next;
-      })
-      .finally(() => {
-        if (runtimeConfigAbortRef.current === abortController) {
-          runtimeConfigRequestRef.current = null;
-        }
+        }),
       });
-    runtimeConfigRequestRef.current = request;
-    return request;
-  };
-
-  const loadCheckoutRuntimeConfig = () => {
-    if (stripeOverride) {
-      setRuntimeConfig(createReadyRuntimeConfig(stripeOverride.publishableKey));
-      return;
+      const answer = (await response.json().catch(() => ({}))) as Record<
+        string,
+        unknown
+      >;
+      if (!response.ok) {
+        const refusal = { status: response.status, ...answer } as IntakeRefusal;
+        const held = rememberedPayment(safeStorage("session"));
+        const heldOutcome =
+          refusal.error === "idempotency_key_reused" && held?.key === key
+            ? await readPayment(held.clientSecret)
+            : null;
+        if (heldOutcome) {
+          setOutcome(heldOutcome);
+          return;
+        }
+        if (
+          refusal.error === "idempotency_key_reused" ||
+          refusal.error === "gift_closed"
+        )
+          safeStorage("local")?.removeItem(GIFT_KEY_STORAGE);
+        if (
+          [400, 429, 503].includes(response.status) ||
+          refusal.error === "gift_closed"
+        )
+          freshChallenge();
+        setOutcome({
+          notice: {
+            tone:
+              refusal.error === "gift_already_completed" ? "success" : "error",
+            text: intakeRefusalWords(refusal),
+          },
+          final: refusal.error === "gift_already_completed",
+          signIn: response.status === 401,
+        });
+        return;
+      }
+      const clientSecret = String(answer.clientSecret);
+      rememberPayment(safeStorage("session"), {
+        key,
+        clientSecret,
+        account: props.config.account,
+        publishableKey: props.config.publishableKey,
+      });
+      const name = signedIn ? "" : `${firstName} ${lastName}`.trim();
+      const confirmed = (await stripe.confirmPayment({
+        elements,
+        clientSecret,
+        confirmParams: {
+          return_url: window.location.href,
+          payment_method_data: {
+            billing_details: signedIn
+              ? { email: props.client.signedInEmail ?? undefined }
+              : { email, name },
+          },
+        },
+        redirect: "if_required",
+      })) as {
+        error?: { type?: string; code?: string; message?: string };
+        paymentIntent?: { status: string };
+      };
+      if (confirmed.error) {
+        const code = confirmed.error.code ?? "";
+        setOutcome({
+          notice: {
+            tone: "error",
+            text:
+              confirmed.error.type === "card_error" ||
+              confirmed.error.type === "validation_error"
+                ? CHECKOUT_WORDS.declined
+                : code === "payment_intent_authentication_failure"
+                  ? CHECKOUT_WORDS.cancelled
+                  : CHECKOUT_WORDS.lostConnection,
+          },
+          final: false,
+        });
+        return;
+      }
+      const status = confirmed.paymentIntent?.status ?? "processing";
+      if (FINAL_STATES.has(status))
+        forgetGiftKey(safeStorage("local"), safeStorage("session"));
+      setOutcome({
+        notice: paymentStateNotice(status),
+        final: FINAL_STATES.has(status),
+      });
+    } catch {
+      setOutcome({
+        notice: { tone: "error", text: CHECKOUT_WORDS.lostConnection },
+        final: false,
+      });
+    } finally {
+      setBusy(false);
     }
-
-    if (runtimeConfigRequestRef.current) {
-      return runtimeConfigRequestRef.current;
-    }
-
-    setRuntimeConfig(LOADING_RUNTIME_CONFIG);
-    return requestRuntimeConfig();
   };
 
   useEffect(() => {
-    // Overrides start in the ready state already (see the initializer).
-    if (stripeOverride) {
-      return;
-    }
+    if (heldChecked.current || !stripe) return;
+    heldChecked.current = true;
+    const held = rememberedPayment(safeStorage("session"));
+    const shared = safeStorage("local")?.getItem(GIFT_KEY_STORAGE);
+    if (!held || !shared || !shared.includes(held.key)) return;
+    void readPayment(held.clientSecret).then(
+      (heldOutcome) => heldOutcome && setOutcome(heldOutcome),
+    );
+  }, [stripe, readPayment]);
 
-    requestRuntimeConfig();
+  if (outcome?.final) {
+    return (
+      <div className="flex flex-col gap-4">
+        <Alert role="status">
+          <AlertDescription>{outcome.notice.text}</AlertDescription>
+        </Alert>
+        {outcome.notice.tone === "success" ? (
+          <p className="text-sm text-muted-foreground">
+            {CHECKOUT_WORDS.claimOffer}
+          </p>
+        ) : null}
+        {props.config.wayBackHost ? (
+          <a
+            className="text-sm underline"
+            href={`https://${props.config.wayBackHost}`}
+            rel="noreferrer"
+          >
+            Back to {props.config.wayBackHost}
+          </a>
+        ) : null}
+      </div>
+    );
+  }
 
-    return () => {
-      runtimeConfigAbortRef.current?.abort();
-      runtimeConfigAbortRef.current = null;
-      runtimeConfigRequestRef.current = null;
-    };
-  }, [stripeOverride]);
-
-  return { runtimeConfig, setRuntimeConfig, loadCheckoutRuntimeConfig };
+  return (
+    <form
+      className="flex flex-col gap-5"
+      onSubmit={(event) => {
+        event.preventDefault();
+        void give();
+      }}
+    >
+      {signedIn ? (
+        <div className="flex flex-col gap-2">
+          <p className="text-sm">Giving as {props.client.signedInEmail}</p>
+          <Button
+            type="button"
+            variant="link"
+            className="self-start"
+            onClick={props.onGuest}
+          >
+            Give as a guest instead
+          </Button>
+        </div>
+      ) : (
+        <div className="grid gap-4 sm:grid-cols-2">
+          <Field className="sm:col-span-2">
+            <FieldLabel htmlFor="checkout-email">Email</FieldLabel>
+            <Input
+              id="checkout-email"
+              type="email"
+              autoComplete="email"
+              required
+              value={email}
+              onChange={(event) => setEmail(event.target.value)}
+            />
+          </Field>
+          <Field>
+            <FieldLabel htmlFor="checkout-first-name">First name</FieldLabel>
+            <Input
+              id="checkout-first-name"
+              autoComplete="given-name"
+              value={firstName}
+              onChange={(event) => setFirstName(event.target.value)}
+            />
+          </Field>
+          <Field>
+            <FieldLabel htmlFor="checkout-last-name">Last name</FieldLabel>
+            <Input
+              id="checkout-last-name"
+              autoComplete="family-name"
+              value={lastName}
+              onChange={(event) => setLastName(event.target.value)}
+            />
+          </Field>
+        </div>
+      )}
+      <PaymentElement
+        options={{
+          wallets: { applePay: "never", googlePay: "never" },
+          fields: { billingDetails: { name: "never", email: "never" } },
+        }}
+      />
+      <div className="flex items-center gap-3">
+        <Checkbox
+          id="checkout-anonymous"
+          aria-labelledby="checkout-anonymous-label"
+          checked={anonymous}
+          onCheckedChange={(checked) => setAnonymous(checked === true)}
+        />
+        <label
+          id="checkout-anonymous-label"
+          htmlFor="checkout-anonymous"
+          className="text-sm"
+        >
+          Give anonymously to the missionary and the public
+        </label>
+      </div>
+      <CheckoutTurnstile
+        siteKey={props.client.turnstileSiteKey}
+        onToken={setToken}
+        resetSignal={resetSignal}
+      />
+      {outcome ? (
+        <Alert
+          variant={outcome.notice.tone === "error" ? "destructive" : "default"}
+          role="alert"
+        >
+          <AlertDescription>{outcome.notice.text}</AlertDescription>
+          {outcome.signIn ? (
+            <div className="mt-3 flex flex-wrap gap-3">
+              <a className="text-sm underline" href={loginHref()}>
+                Sign in again
+              </a>
+              <Button type="button" variant="link" onClick={props.onGuest}>
+                Give as a guest instead
+              </Button>
+            </div>
+          ) : null}
+        </Alert>
+      ) : null}
+      <Button
+        type="submit"
+        disabled={busy || !stripe || !elements}
+        aria-busy={busy}
+      >
+        Give {formatCurrency(total / 100)}
+      </Button>
+    </form>
+  );
 }
 
-function useCheckoutModel({
-  searchParams,
-  stripeOverride,
-}: {
-  searchParams: CheckoutSearchParams;
-  stripeOverride?: CheckoutStripeOverride;
-}) {
-  const workerId = searchParams.workerId;
-  const missionaryId = searchParams.missionaryId;
-  const initialAmount = searchParams.amount;
-  const worker = (workerId ? getFieldWorkerById(workerId) : null) ?? null;
-  // Public worker profiles are sample content. A gift from one goes to the
-  // missionary account the link designates (`missionary_id`), so the
-  // summary says so instead of implying the sample is the recipient.
-  const sampleProfileTitle =
-    missionaryId && worker?.title ? worker.title : null;
-  const fundId = searchParams.fundId;
-  const hasGeneralGivingTarget = isGeneralCheckoutAlias(searchParams.fundLabel);
-  const hasGivingTarget = Boolean(
-    missionaryId || fundId || hasGeneralGivingTarget,
+export function CheckoutPageClient(props: CheckoutPageClientProps) {
+  const { link } = props;
+  const [onceChosen, setOnceChosen] = useState(!link.monthly);
+  const [amountCents, setAmountCents] = useState(link.amountCents ?? 2500);
+  const [coverFees, setCoverFees] = useState(false);
+  const [config, setConfig] = useState<Config>({
+    state: link.target ? "loading" : "idle",
+  });
+  const [email, setEmail] = useState<string | null>(
+    props.signedInEmail ?? null,
   );
-  const { runtimeConfig, setRuntimeConfig, loadCheckoutRuntimeConfig } =
-    useCheckoutRuntimeConfiguration(stripeOverride);
-  const [checkoutState, setCheckoutState] = useState<CheckoutState>(() => ({
-    amount: initialAmount ? Number(initialAmount) : 100,
-    coverFees: false,
-    customAmount: "",
-    donation: null,
-    donorInfo: {
-      email: "",
-      firstName: "",
-      lastName: "",
-    },
-    endDate: "",
-    error: null,
-    frequency: "one-time",
-    hasEndDate: false,
-    idempotencyFingerprint: null,
-    idempotencyKey: null,
-    isProcessing: false,
-    paymentAttemptId: null,
-    paymentMethod: "card",
-    postalCode: "",
-    startDate: "",
-    step: "config",
-    successSnapshot: null,
-  }));
-  const {
-    amount,
-    coverFees,
-    customAmount,
-    donation,
-    donorInfo,
-    endDate,
-    error,
-    frequency,
-    hasEndDate,
-    isProcessing,
-    paymentMethod,
-    postalCode,
-    startDate,
-    step,
-    successSnapshot,
-  } = checkoutState;
-  const checkoutStateRef = useRef(checkoutState);
-  const activePaymentAttemptRef = useRef<PaymentAttempt | null>(null);
-  const paymentAttemptIdRef = useRef(0);
-  const setStep = (value: Step) =>
-    setCheckoutState((prev) => ({ ...prev, step: value }));
-  const setAmount = (value: number) =>
-    setCheckoutState((prev) => ({ ...prev, amount: value }));
-  const setCustomAmount = (value: string) =>
-    setCheckoutState((prev) => ({ ...prev, customAmount: value }));
-  const setCoverFees = (value: boolean) =>
-    setCheckoutState((prev) => ({ ...prev, coverFees: value }));
-  const setPaymentMethod = (value: PaymentMethod) =>
-    setCheckoutState((prev) =>
-      prev.isProcessing ? prev : { ...prev, paymentMethod: value },
-    );
-  const setDonorInfo = (value: DonorInfo) =>
-    setCheckoutState((prev) => ({ ...prev, donorInfo: value }));
-  const setPostalCode = (value: string) =>
-    setCheckoutState((prev) => ({ ...prev, postalCode: value }));
-
-  const feeQuote = useMemo(
-    () =>
-      quoteGuestGivingCheckoutFees({
-        giftAmount: amount,
-        coverFees,
-        paymentMethod,
-      }),
-    [amount, coverFees, paymentMethod],
+  const [mode, setMode] = useState<"guest" | "signed_in">(
+    props.signedInEmail && (props.isHome || props.surface === "donor_account")
+      ? "signed_in"
+      : "guest",
   );
-  const calculatedFees = feeQuote.coverAmount;
-  const total = feeQuote.chargedAmount;
-  const mountedPublishableKey = resolveMountedPublishableKey(
-    runtimeConfig,
-    stripeOverride,
-  );
-  const checkoutMode =
-    stripeOverride?.mode ?? resolveCheckoutMode(mountedPublishableKey);
-  const mountedPublishableKeyRef = useRef(mountedPublishableKey);
-  const currentRequestFingerprint = useMemo(
-    () =>
-      buildCheckoutRequestFingerprint({
-        amount,
-        coverFees,
-        currency: "usd",
-        donorEmail: donorInfo.email,
-        donorFirstName: donorInfo.firstName,
-        donorLastName: donorInfo.lastName,
-        endDate: hasEndDate ? endDate : "",
-        frequency,
-        fundId,
-        missionaryId,
-        paymentMethod,
-        postalCode,
-        startDate,
-      }),
-    [
-      amount,
-      coverFees,
-      donorInfo.email,
-      donorInfo.firstName,
-      donorInfo.lastName,
-      endDate,
-      frequency,
-      fundId,
-      hasEndDate,
-      missionaryId,
-      paymentMethod,
-      postalCode,
-      startDate,
-    ],
-  );
-  const currentRequestFingerprintRef = useRef(currentRequestFingerprint);
-
-  useLayoutEffect(() => {
-    synchronizePaymentAttemptState(checkoutState, {
-      activePaymentAttemptRef,
-      checkoutStateRef,
-    });
-    currentRequestFingerprintRef.current = currentRequestFingerprint;
-  }, [checkoutState, currentRequestFingerprint]);
-
-  useLayoutEffect(() => {
-    mountedPublishableKeyRef.current = mountedPublishableKey;
-  }, [mountedPublishableKey]);
 
   useEffect(() => {
-    if (step === "success" && donation && successSnapshot)
-      window.scrollTo(0, 0);
-  }, [step, donation, successSnapshot]);
-
-  const paymentAttemptRefs = {
-    activePaymentAttemptRef,
-    checkoutStateRef,
-    currentRequestFingerprintRef,
-    setCheckoutState,
-  };
-
-  const isPaymentAttemptActive = (attempt: PaymentAttempt) =>
-    isCurrentPaymentAttemptIdentity(
-      attempt,
-      activePaymentAttemptRef.current,
-      currentRequestFingerprintRef.current,
-    );
-
-  const commitPaymentAttemptState = (
-    attempt: PaymentAttempt,
-    updater: (prev: CheckoutState) => CheckoutState,
-  ) => commitPaymentAttemptSnapshot(attempt, updater, paymentAttemptRefs);
-
-  const commitSuccessfulOriginalPaymentAttempt = (
-    attempt: PaymentAttempt,
-    donation: ServerDonation,
-  ) =>
-    commitSuccessfulOriginalPaymentSnapshot(
-      attempt,
-      donation,
-      paymentAttemptRefs,
-    );
-
-  const exitStalePaymentAttempt = (attempt: PaymentAttempt) =>
-    exitStalePaymentSnapshot(attempt, paymentAttemptRefs);
-
-  const handleAmountSelect = (val: number) => {
-    setAmount(val);
-    setCustomAmount("");
-  };
-
-  const handleCustomAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const val = e.target.value;
-    if (val === "" || /^\d*\.?\d{0,2}$/.test(val)) {
-      setCustomAmount(val);
-      if (val && !isNaN(parseFloat(val))) {
-        setAmount(parseFloat(val));
-      } else if (val === "") {
-        setAmount(0);
-      }
-    }
-  };
-
-  const handleNext = () => {
-    window.scrollTo({ top: 0, behavior: "smooth" });
-    if (step === "config") setStep("details");
-    else if (step === "details") {
-      const configuration = loadCheckoutRuntimeConfig();
-      if (configuration) {
-        return configuration.then((next) => {
-          if (next) setStep("payment");
-        });
-      }
-      setStep("payment");
-    }
-  };
-
-  const handleBack = () => {
-    if (isProcessing) {
+    if (
+      props.signedInEmail !== undefined ||
+      !(props.isHome || props.surface === "donor_account")
+    )
       return;
-    }
-
-    window.scrollTo({ top: 0, behavior: "smooth" });
-    if (step === "details") setStep("config");
-    else if (step === "payment") setStep("details");
-  };
-
-  // The submission reads and writes the payment refs, so it is built when the
-  // donor confirms, from this render's values, never during render (AL-1958).
-  const handlePayment = (
-    stripe: Stripe | null,
-    elements: StripeElements | null,
-  ) =>
-    createCheckoutPaymentSubmission({
-      activePaymentAttemptRef,
-      checkoutStateRef,
-      hasGivingTarget,
-      setCheckoutState,
-      paymentMethod,
-      stripeOverride,
-      checkoutMode,
-      mountedPublishableKey,
-      setRuntimeConfig,
-      currentRequestFingerprint,
-      donorInfo,
-      total,
-      worker,
-      paymentAttemptIdRef,
-      checkoutState,
-      currentRequestFingerprintRef,
-      amount,
-      coverFees,
-      missionaryId,
-      fundId,
-      isPaymentAttemptActive,
-      exitStalePaymentAttempt,
-      postalCode,
-      mountedPublishableKeyRef,
-      commitPaymentAttemptState,
-      commitSuccessfulOriginalPaymentAttempt,
-    }).handlePayment(stripe, elements);
-
-  if (step !== "success" && !hasGivingTarget) {
-    return { view: "missing_target" as const };
-  }
-
-  // Success renders ONLY when Stripe confirmation has accepted the initialized
-  // donation and the attempt has the immutable values that should be confirmed.
-  // If either is missing, fall through rather than showing an unbacked receipt.
-  if (step === "success" && donation && successSnapshot) {
-    return {
-      view: "success" as const,
-      success: {
-        donorInfo: successSnapshot.donorInfo,
-        mode: checkoutMode,
-        total: successSnapshot.total,
-        workerTitle: successSnapshot.workerTitle,
-      },
+    let active = true;
+    void createBrowserClient()
+      .auth.getUser()
+      .then(({ data }) => {
+        if (!active || !data.user?.email) return;
+        setEmail(data.user.email);
+        setMode("signed_in");
+      })
+      .catch(() => undefined);
+    return () => {
+      active = false;
     };
-  }
+  }, [props.signedInEmail, props.isHome, props.surface]);
 
-  return {
-    view: "active" as const,
-    flow: {
-      amount: amount,
-      calculatedFees: calculatedFees,
-      coverFees: coverFees,
-      customAmount: customAmount,
-      donorInfo: donorInfo,
-      frequency: frequency,
-      hasGeneralGivingTarget: hasGeneralGivingTarget,
-      missionaryId: missionaryId,
-      onAmountSelect: handleAmountSelect,
-      onBack: handleBack,
-      onCoverFeesChange: setCoverFees,
-      onCustomAmountChange: handleCustomAmountChange,
-      onDonorInfoChange: (patch) => setDonorInfo({ ...donorInfo, ...patch }),
-      onNext: handleNext,
-      paymentPane: (
-        <CheckoutPaymentPane
-          checkoutMode={checkoutMode}
-          error={error}
-          isProcessing={isProcessing}
-          onBack={handleBack}
-          onConfirmPayment={handlePayment}
-          onPaymentMethodChange={setPaymentMethod}
-          onPostalCodeChange={setPostalCode}
-          paymentMethod={paymentMethod}
-          postalCode={postalCode}
-          runtimeConfig={runtimeConfig}
-          stripeOverride={stripeOverride}
-          total={total}
-        />
-      ),
-      step: step,
-      total: total,
-      worker: worker ?? null,
-      sampleProfileTitle,
-    } satisfies React.ComponentProps<typeof CheckoutActiveFlow>,
-  };
+  useEffect(() => {
+    if (!link.target) return;
+    let active = true;
+    void ownApiFetch("/api/checkout/config", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        targets: [
+          link.target.kind === "fund"
+            ? { fundId: link.target.id }
+            : { missionaryId: link.target.id },
+        ],
+        surface: props.surface,
+        ...(link.sourceSiteId ? { sourceSiteId: link.sourceSiteId } : {}),
+      }),
+    })
+      .then(async (response) => {
+        const body = (await response.json().catch(() => ({}))) as Record<
+          string,
+          unknown
+        >;
+        if (!active) return;
+        setConfig(
+          response.ok &&
+            typeof body.publishableKey === "string" &&
+            typeof body.connectedAccountId === "string"
+            ? {
+                state: "ready",
+                publishableKey: body.publishableKey,
+                account: body.connectedAccountId,
+                wayBackHost:
+                  typeof body.wayBackHost === "string"
+                    ? body.wayBackHost
+                    : null,
+              }
+            : { state: "unavailable" },
+        );
+      })
+      .catch(() => active && setConfig({ state: "unavailable" }));
+    return () => {
+      active = false;
+    };
+  }, [link.target, link.sourceSiteId, props.surface]);
+
+  const stripePromise = useMemo<Promise<Stripe | null> | null>(
+    () =>
+      config.state === "ready"
+        ? loadStripe(config.publishableKey, { stripeAccount: config.account })
+        : null,
+    [config],
+  );
+
+  const total = amountCents + feeCents(amountCents, coverFees);
+  const accountOnly = props.surface === "donor_account";
+
+  return (
+    <main className="min-h-dvh bg-background pb-24 pt-24 font-sans">
+      <div className="container mx-auto max-w-2xl px-4">
+        <Card className="flex flex-col gap-6 p-6">
+          <h1 className="text-2xl font-semibold tracking-tight">Give</h1>
+          {!link.target ? (
+            <Alert role="status">
+              <AlertDescription>
+                {CHECKOUT_WORDS.chooseDesignation}{" "}
+                <Link className="underline" href="/workers">
+                  See who you can support
+                </Link>
+              </AlertDescription>
+            </Alert>
+          ) : !onceChosen ? (
+            <div className="flex flex-col gap-3">
+              <Alert role="status">
+                <AlertDescription>{CHECKOUT_WORDS.monthly}</AlertDescription>
+              </Alert>
+              <Button
+                type="button"
+                className="self-start"
+                onClick={() => setOnceChosen(true)}
+              >
+                Give once instead
+              </Button>
+            </div>
+          ) : (
+            <>
+              <p className="text-sm text-muted-foreground">
+                {CHECKOUT_WORDS.oneEntityNotice}
+              </p>
+              <Field>
+                <FieldLabel htmlFor="checkout-amount">Amount (USD)</FieldLabel>
+                <Input
+                  id="checkout-amount"
+                  inputMode="decimal"
+                  value={(amountCents / 100).toFixed(2)}
+                  onChange={(event) => {
+                    const cents = Math.round(Number(event.target.value) * 100);
+                    if (Number.isFinite(cents) && cents >= 0)
+                      setAmountCents(cents);
+                  }}
+                />
+              </Field>
+              <div className="flex items-center gap-3">
+                <Checkbox
+                  id="checkout-cover"
+                  aria-labelledby="checkout-cover-label"
+                  checked={coverFees}
+                  onCheckedChange={(checked) => setCoverFees(checked === true)}
+                />
+                <label
+                  id="checkout-cover-label"
+                  htmlFor="checkout-cover"
+                  className="text-sm"
+                >
+                  Add the card fee so the full amount reaches the ministry
+                </label>
+              </div>
+              {props.surface === "website" &&
+              !props.isHome &&
+              props.homeHost &&
+              link.target ? (
+                <a
+                  className="self-start text-sm underline"
+                  href={handOffHref({
+                    homeHost: props.homeHost,
+                    target: link.target,
+                    amountCents,
+                    coverFees,
+                    sourceSiteId: props.siteId,
+                  })}
+                >
+                  Give signed in
+                </a>
+              ) : null}
+              {config.state === "unavailable" ? (
+                <Alert role="alert" variant="destructive">
+                  <AlertDescription>
+                    {CHECKOUT_WORDS.configUnavailable}
+                  </AlertDescription>
+                </Alert>
+              ) : accountOnly && mode !== "signed_in" ? (
+                <Link
+                  className="self-start text-sm underline"
+                  href="/login?next=%2Fcheckout"
+                >
+                  Sign in to give from your account
+                </Link>
+              ) : config.state === "ready" &&
+                stripePromise &&
+                amountCents > 0 ? (
+                <Elements
+                  stripe={stripePromise}
+                  options={{
+                    mode: "payment",
+                    amount: total,
+                    currency: "usd",
+                    allowedPaymentMethodTypes: ["card"],
+                  }}
+                >
+                  <GiveForm
+                    client={{ ...props, signedInEmail: email }}
+                    config={config}
+                    amountCents={amountCents}
+                    coverFees={coverFees}
+                    mode={mode}
+                    onGuest={() => setMode("guest")}
+                  />
+                </Elements>
+              ) : null}
+            </>
+          )}
+        </Card>
+      </div>
+    </main>
+  );
 }
