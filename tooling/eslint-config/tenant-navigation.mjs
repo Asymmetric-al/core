@@ -60,6 +60,7 @@ const OFF_MODE_ID_SITES = [
 ];
 
 const NAMES_ORGANIZATION = /tenant|organi[sz]ation/i;
+const NAMES_ORGANIZATION_ID = /(?:tenant|organi[sz]ation)_?id$/i;
 
 /** Workspaces the rule covers, with the helper modules each one holds. */
 export const tenantNavigationScopes = {
@@ -138,6 +139,27 @@ function namesOrganization(node) {
     case "TSNonNullExpression":
     case "TSSatisfiesExpression":
       return namesOrganization(node.expression);
+    default:
+      return false;
+  }
+}
+
+function namesOrganizationId(node) {
+  if (!node) return false;
+  switch (node.type) {
+    case "Identifier":
+      return NAMES_ORGANIZATION_ID.test(node.name);
+    case "MemberExpression": {
+      const name = memberName(node) ?? "";
+      return (
+        NAMES_ORGANIZATION_ID.test(name) ||
+        (/^id$/i.test(name) && namesOrganization(node.object))
+      );
+    }
+    case "TSAsExpression":
+    case "TSNonNullExpression":
+    case "TSSatisfiesExpression":
+      return namesOrganizationId(node.expression);
     default:
       return false;
   }
@@ -391,7 +413,7 @@ const noPrefixlessNavigation = {
       TemplateLiteral(node) {
         if (
           node.quasis[0]?.value.cooked === "/" &&
-          namesOrganization(node.expressions[0])
+          namesOrganizationId(node.expressions[0])
         ) {
           reportOrganizationId(node);
         }
@@ -409,7 +431,7 @@ const noPrefixlessNavigation = {
         if (
           first.type === "Literal" &&
           first.value === "/" &&
-          namesOrganization(secondOperand(node))
+          namesOrganizationId(secondOperand(node))
         ) {
           reportOrganizationId(node);
         }
