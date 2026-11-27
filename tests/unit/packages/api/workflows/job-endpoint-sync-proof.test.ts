@@ -271,6 +271,45 @@ describe("the job endpoint starts a sync only on proof (AL-2671)", () => {
     expect(sent).toEqual([]);
   });
 
+  it("runs a signed execution POST, as today (guard)", async () => {
+    const { POST, sent } = await endpoint();
+    const envelope = {
+      dispatchRequestId: "22222222-2222-4222-8222-222222222222",
+      schemaVersion: 1,
+      subject: { id: "smoke-1", type: "workflow_smoke" },
+      tenantId: "11111111-1111-4111-8111-111111111111",
+      workflowName: "workflows/smoke.requested",
+    };
+    const event = { data: envelope, name: "workflows/smoke.requested" };
+    const body = JSON.stringify({
+      ctx: {
+        attempt: 0,
+        disable_immediate_execution: false,
+        run_id: "01JRUNFIXTURE000000000000",
+        stack: { current: 0, stack: [] },
+        use_api: false,
+      },
+      event,
+      events: [event],
+      steps: {},
+      version: 1,
+    });
+    const response = await POST(
+      request(
+        "POST",
+        `${PRODUCTION}/api/inngest?fnId=asym-core-workflows-workflow-smoke&stepId=step`,
+        {
+          "content-type": "application/json",
+          "x-inngest-signature": sign(body),
+        },
+        body,
+      ),
+    );
+    expect([200, 206]).toContain(response.status);
+    expect(await response.text()).toContain(envelope.dispatchRequestId);
+    expect(sent).toEqual([]);
+  });
+
   it("refuses an unsigned POST and an unsigned GET in cloud mode, as today (guard)", async () => {
     const { POST, GET, sent } = await endpoint();
     const post = await POST(
