@@ -102,16 +102,18 @@ async function catchRedirect(fn: () => Promise<never>): Promise<string> {
 }
 
 describe("Item 6b: server redirects (Server Component, JS action, no-JS MPA action)", () => {
-  it("keeps Server Component redirectInTenant and permanentRedirectInTenant app-relative so Next never doubles basePath", async () => {
+  it("keeps Server Component redirectInTenant and permanentRedirectInTenant app-relative so Next never doubles basePath (D-18, N2 part 2b: on, the proxy's prefix is /~finance, without the ID)", async () => {
     vi.stubEnv("CORE_SERVE_UNDER_PATHS", "1");
     vi.stubEnv("CORE_APP_BASE_PATH", "/admin");
-    state.requestHeaders = new Headers({ "x-asym-address-prefix": `/${TA}` });
+    state.requestHeaders = new Headers({
+      "x-asym-address-prefix": "/~finance",
+    });
 
     expect(await catchRedirect(() => redirectInTenant("/crm"))).toBe(
-      `/${TA}/crm`,
+      "/~finance/crm",
     );
     expect(await catchRedirect(() => permanentRedirectInTenant("/crm"))).toBe(
-      `/${TA}/crm`,
+      "/~finance/crm",
     );
   });
 

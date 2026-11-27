@@ -55,3 +55,7 @@
 .versions .page-controls__inner {
   flex-wrap: wrap;
 }
+
+:root:has([data-web-studio-generation]) .query-inspector__api-url-open-button {
+  display: none;
+}

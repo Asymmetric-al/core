@@ -27,6 +27,16 @@ The proxy renders a tenant address from a page whose own path has no tenant pref
 
 8. **Do not refresh the page a crossing is leaving.** `loadCrossing` in `packages/auth/tenant-navigation.tsx` sets `crossingLoadBegun` before starting the document load. `useTenantRouter` skips `refresh()` while that mark is set so the old page does not render again. A same-segment `push` or `replace` leaves the mark alone. The mark clears on a zero-delay timer so refresh still works if the browser cancels the load or restores the document. Web Studio's Payload router adapter in `apps/admin/src/cms/payload-next-router-adapter.tsx` takes its `refresh` from `useTenantRouter`. For navigation outside Web Studio's pages, it uses `loadDocument` in `apps/admin/src/cms/web-studio-document-load.ts`, which calls `loadCrossing`. Cited: [council round 2, AR3; round 3, AR14; joined release JC8][reviews].
 
+9. **With the switch on, the segments carry no organization.** The helpers
+   read the address with `parseSubRoleAddress` instead of the ID form: a
+   document's segment is `/~<sub-role>`, or `""` for every page path outside
+   `OUTSIDE_TENANT_SEGMENT_ROOTS` that is not a sub-role address
+   (`nameAddressSegmentOf`). A crossing between two of them, or into and out
+   of them, is a document load as before. `useCopiedLinkHref` gives the path
+   without any prefix for a link a person copies and gives to someone else
+   (R6), and the document's prefix off. See
+   [0015](0015-organization-from-the-verified-name.md), decision 24.
+
 [plan]: ../../../../docs/audits/core-crm-cms-database-target-architecture.md#52-choosing-the-tenant
 [reviews]: ../../../../docs/audits/core-crm-cms-database-implementation-record.md#11-council-reviews
 [issue]: https://github.com/Asymmetric-al/core/issues/2675

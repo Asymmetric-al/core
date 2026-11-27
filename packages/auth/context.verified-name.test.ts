@@ -436,11 +436,11 @@ describe("on: the E2E bypass refuses the same conflicts (D-18, N2 part 2a: dashb
   });
 });
 
-describe("on: readDocumentScope compares the name (D-18, N2 part 2a: the page's headers carry the name's generation)", () => {
+describe("on: readDocumentScope compares the name (D-18, N2 part 2a: the page's headers carry the name's generation; N2 part 2b: on, the proxy's prefix is empty for one row)", () => {
   it("throws when the name's organization differs from the assignment's", async () => {
     mocks.headers.set(NAME, TA);
     mocks.headers.set("x-asym-name-generation", "7");
-    mocks.headers.set("x-asym-address-prefix", `/${TB}`);
+    mocks.headers.set("x-asym-address-prefix", "");
     await expect(
       readDocumentScope({
         userId: USER,
@@ -465,7 +465,7 @@ describe("on: readDocumentScope compares the name (D-18, N2 part 2a: the page's 
         profileId: "profile-p",
         isAuthenticated: true,
       }),
-    ).resolves.toMatchObject({ tenantId: TB, addressPrefix: `/${TB}` });
+    ).resolves.toMatchObject({ tenantId: TB, addressPrefix: "" });
   });
 });
 

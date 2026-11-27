@@ -5,12 +5,13 @@ import { getDefaultProjectTestIgnore } from "../../playwright.config";
 // shouldReuseExistingServer behavior is covered at its module interface in
 // tests/unit/playwright-shared.test.ts.
 
-describe("getDefaultProjectTestIgnore", () => {
+describe("getDefaultProjectTestIgnore (D-18, N2 part 2c: the on-mode proof's specs run only through their own configuration)", () => {
   const defaultProjectIgnores = [
     "**/missionary-account-frame.spec.ts",
     "**/upload-crop.spec.ts",
     "**/donor-giving-history.spec.ts",
     "**/mc-contributions-live-query.spec.ts",
+    "**/n2-on-*.spec.ts",
   ];
 
   const donorOnlyProjectIgnores = [
