@@ -14,13 +14,16 @@ import {
   claimEvent,
   configFor,
   digest,
+  dualHost,
   expireLease,
   feeFund,
   inTx,
+  missionary,
   moneyRows,
   paymentIntent,
   person,
   rateToken,
+  readyOnlyHost,
   report,
   role,
   seedTwoTenants,
@@ -119,6 +122,43 @@ describe.skipIf(!ADMIN_URL)(
           expect(
             await configFor(db, w.hostsA.home, [{ fund: w.A.fund }]),
           ).toEqual([{ connected_account_id: w.A.account }]);
+          const both = await dualHost(db, w.A, w.hostsA);
+          expect(await configFor(db, both, [{ fund: w.A.fund }])).toEqual([
+            { connected_account_id: w.A.account },
+          ]);
+        }));
+
+      it("a Site switched off, a name not yet active, another organization's worker and an inactive fund get the same nothing (outcome 2 of 27 November)", () =>
+        inTx(db, async () => {
+          const w = await world();
+          const ready = await readyOnlyHost(db, w.A);
+          const bWorker = await missionary(db, w.B);
+          const aWorker = await missionary(db, w.A);
+          await role(db, null);
+          const closed = (
+            await db.query(
+              "INSERT INTO public.funds (tenant_id, legal_entity_id, name, is_active) VALUES ($1, $2, 'Closed fund', false) RETURNING id",
+              [w.A.tenant, w.A.entity],
+            )
+          ).rows[0].id as string;
+          expect(
+            await configFor(db, w.hostsA.site, [{ missionary: aWorker }]),
+          ).toEqual([{ connected_account_id: w.A.account }]);
+          expect(await configFor(db, ready, [{ fund: w.A.fund }])).toEqual([]);
+          expect(
+            await configFor(db, w.hostsA.site, [{ missionary: bWorker }]),
+          ).toEqual([]);
+          expect(
+            await configFor(db, w.hostsA.site, [{ fund: closed }]),
+          ).toEqual([]);
+          await role(db, null);
+          await db.query(
+            "UPDATE public.sites SET status = 'inactive' WHERE id = $1",
+            [w.hostsA.siteId],
+          );
+          expect(
+            await configFor(db, w.hostsA.site, [{ fund: w.A.fund }]),
+          ).toEqual([]);
         }));
 
       it("every other case gets the same nothing: unclaimed host, inactive organization, two entities, a reserved fund, another organization's target, no target, a binding not active", () =>
@@ -334,6 +374,162 @@ describe.skipIf(!ADMIN_URL)(
           )
         ).rows[0];
         expect(writes).toEqual({ links: 0, memberships: 0, profile: null });
+      }));
+
+    it("R2 in place (row 1): a first signed-in gift on the shared website and home name keeps the Site, and the claim finds the giver's donor, not linked; no link and no membership is written", () =>
+      inTx(db, async () => {
+        const w = await world();
+        const both = await dualHost(db, w.A, w.hostsA);
+        const giver = await person(db, w.A, { confirmed: true });
+        const r = begun(
+          await begin(db, {
+            host: both,
+            lines: [{ fund: w.A.fund, amount: 3000 }],
+            contact: {
+              email: giver.email,
+              first_name: "Ina",
+              last_name: "Place",
+            },
+            actor: {
+              user_id: giver.user,
+              email: giver.email,
+              email_confirmed: true,
+            },
+          }),
+        );
+        const pi = paymentIntent();
+        const claimed = await claim(db, r.operation_id);
+        await report(db, r.operation_id, claimed.attempt as number, {
+          result: "succeeded",
+          provider_object_id: pi,
+        });
+        const event = await storeEvent(db, w.A, {
+          pi,
+          amount: 3000,
+          metadata: {
+            asym_operation: r.operation_id,
+            asym_intake: r.donation_id,
+          },
+        });
+        expect((await work(db, event.id)).outcome).toBe("applied");
+        await role(db, null);
+        const gift = (
+          await db.query(
+            "SELECT donor_id, site_id, entry_surface FROM public.donations WHERE id = $1",
+            [r.donation_id],
+          )
+        ).rows[0] as {
+          donor_id: string;
+          site_id: string;
+          entry_surface: string;
+        };
+        expect(gift).toMatchObject({
+          site_id: w.hostsA.siteId,
+          entry_surface: "website",
+        });
+        const claimRow = (
+          await db.query("SELECT * FROM private.account_claim_donor($1, $2)", [
+            w.A.tenant,
+            giver.email,
+          ])
+        ).rows;
+        expect(claimRow).toEqual([
+          expect.objectContaining({ donor_id: gift.donor_id, linked: false }),
+        ]);
+        const writes = (
+          await db.query(
+            `SELECT (SELECT count(*)::int FROM public.account_links WHERE user_id = $1) AS links,
+                    (SELECT count(*)::int FROM authz.memberships WHERE user_id = $1) AS memberships`,
+            [giver.user],
+          )
+        ).rows[0];
+        expect(writes).toEqual({ links: 0, memberships: 0 });
+      }));
+
+    it("a guest whose e-mail is known and one whose e-mail is not get the same answer, byte for byte apart from opaque ids, with no Party id or match flag in it; no link or membership is written (ruling of 27 November, section 6)", () =>
+      inTx(db, async () => {
+        const w = await world();
+        const known = await person(db, w.A, {
+          confirmed: true,
+          link: true,
+          donor: true,
+          donorEmail: null,
+        });
+        await role(db, null);
+        await db.query("UPDATE public.donors SET email = $2 WHERE id = $1", [
+          known.donor,
+          known.email,
+        ]);
+        const pay = async (email: string) => {
+          const r = begun(
+            await begin(db, {
+              host: w.hostsA.site,
+              lines: [{ fund: w.A.fund, amount: 2700 }],
+              contact: { email, first_name: "Same", last_name: "Answer" },
+            }),
+          );
+          const pi = paymentIntent();
+          const claimed = await claim(db, r.operation_id);
+          await report(db, r.operation_id, claimed.attempt as number, {
+            result: "succeeded",
+            provider_object_id: pi,
+          });
+          const event = await storeEvent(db, w.A, {
+            pi,
+            amount: 2700,
+            metadata: {
+              asym_operation: r.operation_id,
+              asym_intake: r.donation_id,
+            },
+          });
+          const applied = await work(db, event.id);
+          const opaque = [r.donation_id, r.operation_id, pi, event.id];
+          const mask = (value: unknown) =>
+            opaque.reduce(
+              (text, id) => text.split(id).join("<id>"),
+              JSON.stringify(value),
+            );
+          return { begun: mask(r), outcome: applied.outcome, raw: r };
+        };
+        const before = (
+          await db.query(
+            `SELECT (SELECT count(*)::int FROM public.account_links WHERE user_id = $1) AS links,
+                    (SELECT count(*)::int FROM authz.memberships WHERE user_id = $1) AS memberships`,
+            [known.user],
+          )
+        ).rows[0];
+        const knownAnswer = await pay(known.email);
+        const unknownAnswer = await pay(
+          `stranger-${randomUUID()}@example.test`,
+        );
+        expect(knownAnswer.begun).toBe(unknownAnswer.begun);
+        expect(knownAnswer.outcome).toBe(unknownAnswer.outcome);
+        for (const answer of [knownAnswer, unknownAnswer]) {
+          expect(Object.keys(answer.raw).sort()).toEqual(
+            [
+              "amount",
+              "currency",
+              "donation_id",
+              "operation_id",
+              "outcome",
+              "payment_intent",
+              "provider_account",
+              "tenant_id",
+            ].sort(),
+          );
+          expect(answer.begun).not.toContain(known.party!);
+          expect(answer.begun).not.toContain(known.donor!);
+          expect(answer.begun).not.toMatch(/party|match|donor|linked/i);
+        }
+        await role(db, null);
+        const after = (
+          await db.query(
+            `SELECT (SELECT count(*)::int FROM public.account_links WHERE user_id = $1) AS links,
+                    (SELECT count(*)::int FROM authz.memberships WHERE user_id = $1) AS memberships`,
+            [known.user],
+          )
+        ).rows[0];
+        expect(after).toEqual(before);
       }));
 
     describe("connected refunds and disputes are deferred to WP8c (ruling 2)", () => {

@@ -198,6 +198,17 @@ describe.skipIf(!ADMIN_URL)(
         });
         expect(fake.objects()).toHaveLength(1);
         const pi = fake.objects()[0]!.id;
+        const sentCreates = fake
+          .requests()
+          .filter(
+            (q) => q.method === "POST" && /\/payment_intents$/.test(q.path),
+          );
+        expect(sentCreates.length).toBeGreaterThan(0);
+        for (const sent of sentCreates) {
+          expect(sent.body.payment_method_types).toEqual(["card"]);
+          expect(sent.body).not.toHaveProperty("automatic_payment_methods");
+          expect(sent.account).toBe(fx.A.account);
+        }
 
         const legacyBetween = await legacyGift(db, fx.A);
         await role(db, null);

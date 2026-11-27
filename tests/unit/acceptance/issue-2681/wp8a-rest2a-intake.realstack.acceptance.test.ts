@@ -13,6 +13,7 @@ import {
   BEGIN_SQL,
   begun,
   configFor,
+  dualHost,
   feeFund,
   guestContact,
   inTx,
@@ -23,6 +24,7 @@ import {
   role,
   secondEntityBinding,
   seedTwoTenants,
+  verifiedActor,
   type Fixture,
   type GiftRequest,
   type Hosts,
@@ -205,28 +207,38 @@ describe.skipIf(!ADMIN_URL)(
         );
       }));
 
-    it("a wallet gift is sent as a card payment, an anonymous choice is frozen on the intake", () =>
+    it("cards only (ruling of 27 November, section 3): a card gift's request names the card and never automatic payment methods; a wallet is refused and writes nothing; an anonymous choice is frozen on the intake", () =>
       inTx(db, async () => {
         const w = await world();
         const r = begun(
           await begin(db, {
             host: w.hostsA.site,
             lines: [{ fund: w.A.fund, amount: 2500 }],
-            method: "wallet",
             anonymous: true,
           }),
         );
         expect(await intake(r.donation_id)).toMatchObject({
-          payment_method: "wallet",
+          payment_method: "card",
           is_anonymous: true,
           amount: 2500,
         });
-        expect(
-          (await requestsOf(r.donation_id))[0]!.request_params,
-        ).toMatchObject({
+        const params = (await requestsOf(r.donation_id))[0]!
+          .request_params as Record<string, unknown>;
+        expect(params).toMatchObject({
           payment_method_types: ["card"],
-          metadata: { payment_method: "wallet", cover_fees: "false" },
+          metadata: { payment_method: "card", cover_fees: "false" },
         });
+        expect(params).not.toHaveProperty("automatic_payment_methods");
+        const before = await intakeCounts(db, w.A.tenant);
+        const wallet = await begin(db, {
+          host: w.hostsA.site,
+          lines: [{ fund: w.A.fund, amount: 2500 }],
+          method: "wallet",
+        });
+        expect(`${wallet.code} ${wallet.message}`).toBe(
+          "22023 payment_method_refused",
+        );
+        expect(await intakeCounts(db, w.A.tenant)).toEqual(before);
       }));
 
     it("a signed-in giver's account-area gift carries no Site, the donor portal as its entry surface and the verified actor; the home name serves no guest", () =>
@@ -269,11 +281,18 @@ describe.skipIf(!ADMIN_URL)(
         const w = await world();
         const readyHost = await readyOnlyHost(db, w.A);
         const bFund = w.B.fund;
+        const bWorker = await missionary(db, w.B);
         await role(db, null);
         const otherEntityFund = (
           await db.query(
             "INSERT INTO public.funds (tenant_id, legal_entity_id, name) VALUES ($1, $2, 'Second entity fund') RETURNING id",
             [w.A.tenant, w.A.otherEntity],
+          )
+        ).rows[0].id as string;
+        const inactiveFund = (
+          await db.query(
+            "INSERT INTO public.funds (tenant_id, legal_entity_id, name, is_active) VALUES ($1, $2, 'Closed fund', false) RETURNING id",
+            [w.A.tenant, w.A.entity],
           )
         ).rows[0].id as string;
         const ok: GiftRequest = {
@@ -330,6 +349,16 @@ describe.skipIf(!ADMIN_URL)(
             { ...ok, lines: [{ fund: bFund, amount: 1000 }] },
             "22023 target_not_found",
           ],
+          [
+            "another organization's worker",
+            { ...ok, lines: [{ missionary: bWorker, amount: 1000 }] },
+            "22023 target_not_found",
+          ],
+          [
+            "an inactive fund",
+            { ...ok, lines: [{ fund: inactiveFund, amount: 1000 }] },
+            "22023 target_not_found",
+          ],
           ["no lines", { ...ok, lines: [] }, "22023 lines_invalid"],
           [
             "a zero line",
@@ -345,6 +374,11 @@ describe.skipIf(!ADMIN_URL)(
           [
             "bank debit",
             { ...ok, method: "ach" },
+            "22023 payment_method_refused",
+          ],
+          [
+            "a wallet",
+            { ...ok, method: "wallet" },
             "22023 payment_method_refused",
           ],
           [
@@ -364,7 +398,7 @@ describe.skipIf(!ADMIN_URL)(
             "22023 contact_required",
           ],
           [
-            "an actor on a Site (while private.site_checkout_serves_guests() holds)",
+            "an actor on a Site's name that is not the organization's home (row 6)",
             {
               ...ok,
               actor: {
@@ -378,6 +412,20 @@ describe.skipIf(!ADMIN_URL)(
           [
             "no actor in the account area",
             { ...ok, host: w.hostsA.home, surface: "donor_account" },
+            "22023 actor_required",
+          ],
+          [
+            "a malformed actor in the account area",
+            {
+              ...ok,
+              host: w.hostsA.home,
+              surface: "donor_account",
+              actor: {
+                user_id: "forged",
+                email: "a@example.test",
+                email_confirmed: true,
+              },
+            },
             "22023 actor_required",
           ],
           ["an empty key", { ...ok, key: "" }, "22023 client_key_invalid"],
@@ -417,6 +465,18 @@ describe.skipIf(!ADMIN_URL)(
         const pending = await begin(db, ok);
         expect(`${pending.code} ${pending.message}`).toBe(
           "55000 binding_unavailable",
+        );
+        await db.query(
+          "UPDATE public.payment_account_bindings SET status = 'active' WHERE id = $1",
+          [w.A.binding],
+        );
+        await db.query(
+          "UPDATE public.sites SET status = 'inactive' WHERE id = $1",
+          [w.hostsA.siteId],
+        );
+        const siteOff = await begin(db, ok);
+        expect(`${siteOff.code} ${siteOff.message}`).toBe(
+          "42501 host_not_admitted",
         );
         expect(await intakeCounts(db, w.A.tenant)).toEqual(before);
       }));
@@ -757,76 +817,23 @@ describe.skipIf(!ADMIN_URL)(
         }));
     });
 
-    describe("a signed-in giver on a Site's checkout: one named check, private.site_checkout_serves_guests(), under the owner's review (outcome 3 of 27 November)", () => {
-      async function homeServesSite(w: Awaited<ReturnType<typeof world>>) {
-        await role(db, null);
-        const host = `both-${randomUUID().slice(0, 8)}.give.example.test`;
-        await db.query(
-          `INSERT INTO public.site_domains (host, tenant_id, site_id, surfaces, expected_project,
-             control_proved_at, attached_at, routing_proved_at, https_proved_at, sign_in_ready_at, activation_proved_at)
-           VALUES ($1, $2, $3, ARRAY['website', 'donor_account'], 'donor', now(), now(), now(), now(), now(), now())`,
-          [host, w.A.tenant, w.hostsA.siteId],
-        );
-        await db.query(
-          "UPDATE public.donor_portal_hosts SET primary_domain = $2 WHERE tenant_id = $1",
-          [w.A.tenant, host],
-        );
-        return host;
-      }
-
-      async function checkOff() {
-        await role(db, null);
-        await db.query(
-          "CREATE OR REPLACE FUNCTION private.site_checkout_serves_guests() RETURNS boolean LANGUAGE sql IMMUTABLE SET search_path = '' AS 'SELECT false'",
-        );
-      }
-
-      const actor = () => ({
-        user_id: randomUUID(),
-        email: "inplace@example.test",
-        email_confirmed: true,
-      });
-
-      it("the check is one postgres-owned function that answers true today, which only tenant_guard executes", () =>
+    describe("the six admission cases of the ruling of 27 November (decision-signed-in-giving, section 3), under the guard's locks", () => {
+      it("the guest-only constant is retired: no private.site_checkout_serves_guests() remains", () =>
         inTx(db, async () => {
           await role(db, null);
-          const row = (
+          const left = (
             await db.query(
-              `SELECT private.site_checkout_serves_guests() AS on,
-                      pg_get_userbyid(p.proowner) AS owner,
-                      has_function_privilege('tenant_guard', p.oid, 'EXECUTE') AS guard,
-                      has_function_privilege('service_role', p.oid, 'EXECUTE') AS service,
-                      has_function_privilege('authenticated', p.oid, 'EXECUTE') AS signed_in
-                 FROM pg_proc AS p WHERE p.oid = 'private.site_checkout_serves_guests()'::regprocedure`,
+              "SELECT to_regprocedure('private.site_checkout_serves_guests()') AS f",
             )
-          ).rows[0];
-          expect(row).toEqual({
-            on: true,
-            owner: "postgres",
-            guard: true,
-            service: false,
-            signed_in: false,
-          });
+          ).rows[0].f;
+          expect(left).toBeNull();
         }));
 
-      it("while the check holds, a verified actor is refused on a Site's checkout even when that name is also the home domain", () =>
+      it("row 1: a verified actor on the name that is both a Site's and the organization's home gives in place: the host's Site, the website as entry surface, the actor recorded", () =>
         inTx(db, async () => {
           const w = await world();
-          const host = await homeServesSite(w);
-          const a = await begin(db, {
-            host,
-            lines: [{ fund: w.A.fund, amount: 1500 }],
-            actor: actor(),
-          });
-          expect(`${a.code} ${a.message}`).toBe("22023 actor_not_admitted");
-        }));
-
-      it("with the check off, a verified actor on the home domain that serves the Site gives in place: the Site frozen from the host, the website as entry surface, the actor recorded", () =>
-        inTx(db, async () => {
-          const w = await world();
-          const host = await homeServesSite(w);
-          await checkOff();
-          const giver = actor();
+          const host = await dualHost(db, w.A, w.hostsA);
+          const giver = verifiedActor();
           const r = begun(
             await begin(db, {
               host,
@@ -840,41 +847,112 @@ describe.skipIf(!ADMIN_URL)(
           });
           expect(await contactOf(r.donation_id)).toMatchObject({
             actor_user_id: giver.user_id,
+            actor_email: giver.email,
             actor_email_confirmed: true,
-          });
-          const guest = begun(
-            await begin(db, {
-              host,
-              lines: [{ fund: w.A.fund, amount: 1500 }],
-            }),
-          );
-          expect(await intake(guest.donation_id)).toMatchObject({
-            site_id: w.hostsA.siteId,
-            entry_surface: "website",
           });
         }));
 
-      it("with the check off, an actor on a Site's name that is not the home domain is still refused, and an unverified one is required", () =>
+      it("row 5: a guest on that shared name, and on a website-only name, gets the host's Site and the website as entry surface, with no actor", () =>
         inTx(db, async () => {
           const w = await world();
-          const host = await homeServesSite(w);
-          await checkOff();
+          const host = await dualHost(db, w.A, w.hostsA);
+          for (const name of [host, w.hostsA.site]) {
+            const r = begun(
+              await begin(db, {
+                host: name,
+                lines: [{ fund: w.A.fund, amount: 1500 }],
+              }),
+            );
+            expect(await intake(r.donation_id), name).toMatchObject({
+              site_id: w.hostsA.siteId,
+              entry_surface: "website",
+            });
+            expect(await contactOf(r.donation_id), name).toMatchObject({
+              actor_user_id: null,
+              actor_email_confirmed: null,
+            });
+          }
+        }));
+
+      it("rows 2 to 4 on the shared name: the account area there keeps a current source Site, drops another organization's, and a gift started inside the account carries none", () =>
+        inTx(db, async () => {
+          const w = await world();
+          const host = await dualHost(db, w.A, w.hostsA);
+          const account = async (sourceSite: string | null) =>
+            intake(
+              begun(
+                await begin(db, {
+                  host,
+                  surface: "donor_account",
+                  lines: [{ fund: w.A.fund, amount: 1500 }],
+                  actor: verifiedActor(),
+                  sourceSite,
+                }),
+              ).donation_id,
+            );
+          expect(await account(w.hostsA.siteId)).toMatchObject({
+            site_id: w.hostsA.siteId,
+            entry_surface: "donor_account",
+          });
+          expect(await account(w.hostsB.siteId)).toMatchObject({
+            site_id: null,
+            entry_surface: "donor_account",
+          });
+          expect(await account(null)).toMatchObject({
+            site_id: null,
+            entry_surface: "donor_account",
+          });
+        }));
+
+      it("row 6: an actor on a Site's name that is not the home is refused 22023 actor_not_admitted and writes nothing, also once the organization has a shared home", () =>
+        inTx(db, async () => {
+          const w = await world();
+          await dualHost(db, w.A, w.hostsA);
+          const before = await intakeCounts(db, w.A.tenant);
           const elsewhere = await begin(db, {
             host: w.hostsA.site,
             lines: [{ fund: w.A.fund, amount: 1500 }],
-            actor: actor(),
+            actor: verifiedActor(),
           });
           expect(`${elsewhere.code} ${elsewhere.message}`).toBe(
             "22023 actor_not_admitted",
           );
-          const unverified = await begin(db, {
+          expect(await intakeCounts(db, w.A.tenant)).toEqual(before);
+        }));
+
+      it("an actor named on the shared name that is unverified or malformed is 22023 actor_required; a source Site there is 22023 source_site_not_admitted; nothing is written", () =>
+        inTx(db, async () => {
+          const w = await world();
+          const host = await dualHost(db, w.A, w.hostsA);
+          const before = await intakeCounts(db, w.A.tenant);
+          for (const actor of [
+            { user_id: randomUUID(), email: "x@example.test" },
+            {
+              user_id: "forged",
+              email: "x@example.test",
+              email_confirmed: true,
+            },
+            { email: "x@example.test", email_confirmed: true },
+          ]) {
+            const a = await begin(db, {
+              host,
+              lines: [{ fund: w.A.fund, amount: 1500 }],
+              actor,
+            });
+            expect(`${a.code} ${a.message}`, JSON.stringify(actor)).toBe(
+              "22023 actor_required",
+            );
+          }
+          const source = await begin(db, {
             host,
             lines: [{ fund: w.A.fund, amount: 1500 }],
-            actor: { user_id: randomUUID(), email: "x@example.test" },
+            actor: verifiedActor(),
+            sourceSite: w.hostsA.siteId,
           });
-          expect(`${unverified.code} ${unverified.message}`).toBe(
-            "22023 actor_required",
+          expect(`${source.code} ${source.message}`).toBe(
+            "22023 source_site_not_admitted",
           );
+          expect(await intakeCounts(db, w.A.tenant)).toEqual(before);
         }));
     });
 
@@ -978,6 +1056,10 @@ describe.skipIf(!ADMIN_URL)(
     describe("a change committed while the command waits on its lock (two sessions, committed, removed in finally)", () => {
       async function race(
         change: (fx: Fixture, hosts: Hosts, s1: pg.Client) => Promise<void>,
+        request: (fx: Fixture, hosts: Hosts) => GiftRequest = (fx, hosts) => ({
+          host: hosts.site,
+          lines: [{ fund: fx.A.fund, amount: 1000 }],
+        }),
       ) {
         const s1 = new pg.Client({ connectionString: ADMIN_URL });
         const s2 = new pg.Client({ connectionString: ADMIN_URL });
@@ -994,13 +1076,7 @@ describe.skipIf(!ADMIN_URL)(
           await s2.query("BEGIN");
           await s2.query("SET LOCAL ROLE service_role");
           const pending = s2
-            .query(
-              BEGIN_SQL,
-              beginArgs({
-                host: hosts.site,
-                lines: [{ fund: fx.A.fund, amount: 1000 }],
-              }),
-            )
+            .query(BEGIN_SQL, beginArgs(request(fx, hosts)))
             .then(() => "committed")
             .catch(
               (e: { code?: string; message?: string }) =>
@@ -1018,7 +1094,8 @@ describe.skipIf(!ADMIN_URL)(
           const outcome = await pending;
           await s2.query("ROLLBACK");
           const counts = await intakeCounts(db, fx.A.tenant);
-          return { waited, outcome, counts };
+          const countsB = await intakeCounts(db, fx.B.tenant);
+          return { waited, outcome, counts, countsB };
         } finally {
           await s1.query("ROLLBACK").catch(() => undefined);
           await s2.query("ROLLBACK").catch(() => undefined);
@@ -1072,6 +1149,61 @@ describe.skipIf(!ADMIN_URL)(
         expect(r).toMatchObject({
           waited: true,
           outcome: "55000 organization_inactive",
+          counts: { intakes: 0, keys: 0 },
+        });
+      });
+
+      it("(d) the name moves to another organization between the wrapper's resolution and the guard's lock: host_not_admitted, nothing written in either", async () => {
+        const r = await race(async (fx, hosts, s1) => {
+          await s1.query("DELETE FROM public.site_domains WHERE host = $1", [
+            hosts.site,
+          ]);
+          const siteB = (
+            await s1.query(
+              "INSERT INTO public.sites (tenant_id, name) VALUES ($1, 'Taken over') RETURNING id",
+              [fx.B.tenant],
+            )
+          ).rows[0].id as string;
+          await s1.query(
+            `INSERT INTO public.site_domains (host, tenant_id, site_id, surfaces, expected_project,
+               control_proved_at, attached_at, routing_proved_at, https_proved_at, sign_in_ready_at, activation_proved_at)
+             VALUES ($1, $2, $3, ARRAY['website'], 'donor', now(), now(), now(), now(), now(), now())`,
+            [hosts.site, fx.B.tenant, siteB],
+          );
+        });
+        expect(r).toMatchObject({
+          waited: true,
+          outcome: "42501 host_not_admitted",
+          counts: { intakes: 0, keys: 0 },
+          countsB: { intakes: 0, keys: 0 },
+        });
+      });
+
+      it("(e) the organization's home moves to another name while a signed-in gift waits on the home record: host_not_admitted, nothing written", async () => {
+        const r = await race(
+          async (fx, _hosts, s1) => {
+            const moved = `moved-${randomUUID().slice(0, 8)}.give.example.test`;
+            await s1.query(
+              `INSERT INTO public.site_domains (host, tenant_id, site_id, surfaces, expected_project,
+                 control_proved_at, attached_at, routing_proved_at, https_proved_at, sign_in_ready_at, activation_proved_at)
+               VALUES ($1, $2, NULL, ARRAY['donor_account'], 'donor', now(), now(), now(), now(), now(), now())`,
+              [moved, fx.A.tenant],
+            );
+            await s1.query(
+              "UPDATE public.donor_portal_hosts SET primary_domain = $2 WHERE tenant_id = $1",
+              [fx.A.tenant, moved],
+            );
+          },
+          (fx, hosts) => ({
+            host: hosts.home,
+            surface: "donor_account",
+            lines: [{ fund: fx.A.fund, amount: 1000 }],
+            actor: verifiedActor(),
+          }),
+        );
+        expect(r).toMatchObject({
+          waited: true,
+          outcome: "42501 host_not_admitted",
           counts: { intakes: 0, keys: 0 },
         });
       });

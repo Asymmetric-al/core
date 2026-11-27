@@ -104,6 +104,33 @@ describe("AL-2681 PR 2a: the anonymous config read's route (W8-R18)", () => {
     }
   });
 
+  it("takes the host only from Host: a forwarded host, the front's host, a tenant header, a name-tenant header and Origin change nothing (outcome 2 of 27 November)", async () => {
+    const s = setup();
+    await s.handler(
+      new Request("https://give.example.test/api/checkout/config", {
+        method: "POST",
+        headers: {
+          host: "give.example.test",
+          "content-type": "application/json",
+          "x-forwarded-host": "other.example.test",
+          "x-asym-front-host": "other.example.test",
+          "x-asym-tenant": "66666666-6666-4666-8666-666666666666",
+          "x-asym-name-tenant": "66666666-6666-4666-8666-666666666666",
+          origin: "https://other.example.test",
+        },
+        body: JSON.stringify({
+          targets: [{ fundId: FUND }],
+          host: "other.example.test",
+          tenantId: "66666666-6666-4666-8666-666666666666",
+        }),
+      }),
+    );
+    expect(s.rpc).toHaveBeenCalledWith("checkout_giving_config", {
+      p_host: "give.example.test",
+      p_targets: [{ fund_id: FUND }],
+    });
+  });
+
   it("asks nothing of the database while the switch is off", async () => {
     const s = setup({ enabled: () => false });
     await s.handler(request({ targets: [{ fundId: FUND }] }));

@@ -45,6 +45,27 @@ export async function admitHosts(db: pg.Client, side: Side): Promise<Hosts> {
   return { site, siteId, home };
 }
 
+export async function dualHost(db: pg.Client, side: Side, hosts: Hosts) {
+  await role(db, null);
+  const host = hostOf("both");
+  await db.query(
+    `INSERT INTO public.site_domains (host, tenant_id, site_id, surfaces, expected_project, ${PROOFS})
+     VALUES ($1, $2, $3, ARRAY['website', 'donor_account'], 'donor', now(), now(), now(), now(), now(), now())`,
+    [host, side.tenant, hosts.siteId],
+  );
+  await db.query(
+    "UPDATE public.donor_portal_hosts SET primary_domain = $2 WHERE tenant_id = $1",
+    [side.tenant, host],
+  );
+  return host;
+}
+
+export const verifiedActor = (email = uniqueEmail("signed")) => ({
+  user_id: randomUUID(),
+  email,
+  email_confirmed: true,
+});
+
 export async function readyOnlyHost(db: pg.Client, side: Side) {
   await role(db, null);
   const siteId = (

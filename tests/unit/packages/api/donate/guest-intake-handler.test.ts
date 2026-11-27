@@ -84,6 +84,7 @@ function setup(
     rpc: () => rpc as never,
     sendFirst,
     clientSecret,
+    isHomeHost: async () => true,
     resolveActor: async () => null,
     ...over,
   };
@@ -215,6 +216,7 @@ describe("AL-2681 PR 2a: the guest intake handler (tested directly; not mounted 
     ).toBe(0);
     for (const bad of [
       body({ paymentMethod: "ach" }),
+      body({ paymentMethod: "wallet" }),
       body({ lines: [] }),
       body({ lines: [{ fundId: FUND, amountCents: 10.5 }] }),
       body({
@@ -332,31 +334,137 @@ describe("AL-2681 PR 2a: the guest intake handler (tested directly; not mounted 
     }
   });
 
-  it("the account area needs a signed-in giver and passes the verified actor; a guest body cannot name one", async () => {
+  const sessionActor = {
+    user_id: "66666666-6666-4666-8666-666666666666",
+    email: "sam@example.test",
+    email_confirmed: true,
+  };
+  const forgedActor = {
+    user_id: "77777777-7777-4777-8777-777777777777",
+    email: "forged@example.test",
+    email_confirmed: true,
+  };
+  const actorSent = (s: ReturnType<typeof setup>) =>
+    s.calls.find((c) => c.fn === "begin_line_gift")!.args.p_actor;
+
+  it("the account area needs a signed-in giver on the organization's home and passes the session's actor, never the body's; off the home it reads no session and is unavailable", async () => {
     const none = setup();
     const res = await none.handler(request(body({ surface: "donor_account" })));
     expect(res.status).toBe(401);
     expect(await res.json()).toEqual({ error: "sign_in_required" });
     expect(none.calls).toEqual([]);
 
-    const actor = {
-      user_id: "66666666-6666-4666-8666-666666666666",
-      email: "sam@example.test",
-      email_confirmed: true,
-    };
-    const signed = setup({ resolveActor: async () => actor });
+    const signed = setup({ resolveActor: async () => sessionActor });
     await signed.handler(
-      request(body({ surface: "donor_account", actor: { user_id: "forged" } })),
+      request(body({ surface: "donor_account", actor: forgedActor })),
     );
     const begin = signed.calls.find((c) => c.fn === "begin_line_gift")!;
     expect(begin.args.p_entry_surface).toBe("donor_account");
-    expect(begin.args.p_actor).toEqual(actor);
+    expect(begin.args.p_actor).toEqual(sessionActor);
 
-    const guest = setup({ resolveActor: async () => actor });
-    await guest.handler(request(body({ actor: { user_id: "forged" } })));
+    const resolveActor = vi.fn(async () => sessionActor);
+    const away = setup({ isHomeHost: async () => false, resolveActor });
+    const res2 = await away.handler(
+      request(body({ surface: "donor_account" })),
+    );
+    expect(res2.status).toBe(503);
+    expect(await res2.json()).toEqual({ error: "giving_unavailable" });
+    expect(resolveActor).not.toHaveBeenCalled();
+    expect(away.calls).toEqual([]);
+  });
+
+  it("row 1: on the organization's home a signed-in giver gives in place on the website surface with the session's actor; a forged body actor is never read (ruling of 27 November, section 3)", async () => {
+    const isHomeHost = vi.fn(async () => true);
+    const signed = setup({
+      isHomeHost,
+      resolveActor: async () => sessionActor,
+    });
+    await signed.handler(request(body({ actor: forgedActor })));
+    expect(isHomeHost).toHaveBeenCalledWith("give.example.test");
+    const begin = signed.calls.find((c) => c.fn === "begin_line_gift")!;
+    expect(begin.args.p_entry_surface).toBe("website");
+    expect(begin.args.p_actor).toEqual(sessionActor);
+
+    const anonymous = setup({ resolveActor: async () => null });
+    await anonymous.handler(request(body({ actor: forgedActor })));
+    expect(actorSent(anonymous)).toBeNull();
+  });
+
+  it("'give as a guest instead' can only remove the actor: no session is read and the command gets none; it cannot be combined with the account area (section 5)", async () => {
+    const resolveActor = vi.fn(async () => sessionActor);
+    const s = setup({ resolveActor });
+    const res = await s.handler(
+      request(body({ asGuest: true, actor: forgedActor })),
+    );
+    expect(res.status).toBe(200);
+    expect(resolveActor).not.toHaveBeenCalled();
+    expect(actorSent(s)).toBeNull();
     expect(
-      guest.calls.find((c) => c.fn === "begin_line_gift")!.args.p_actor,
-    ).toBeNull();
+      s.calls.find((c) => c.fn === "begin_line_gift")!.args.p_entry_surface,
+    ).toBe("website");
+
+    const both = setup({ resolveActor });
+    const res2 = await both.handler(
+      request(body({ asGuest: true, surface: "donor_account" })),
+    );
+    expect(res2.status).toBe(400);
+    expect(await res2.json()).toEqual({ error: "invalid_request" });
+    expect(both.calls).toEqual([]);
+  });
+
+  it("row 6: off the organization's home a session is never read, so a cookie on another Site's name is ignored and the gift is a guest's", async () => {
+    const resolveActor = vi.fn(async () => sessionActor);
+    const s = setup({ isHomeHost: async () => false, resolveActor });
+    const res = await s.handler(request(body({ actor: forgedActor })));
+    expect(res.status).toBe(200);
+    expect(resolveActor).not.toHaveBeenCalled();
+    expect(actorSent(s)).toBeNull();
+  });
+
+  it("a failed home lookup reads no session, writes nothing and asks for a retry", async () => {
+    const resolveActor = vi.fn(async () => sessionActor);
+    const s = setup({
+      isHomeHost: async () => {
+        throw new Error("database down");
+      },
+      resolveActor,
+    });
+    const res = await s.handler(request(body()));
+    expect(res.status).toBe(503);
+    expect(await res.json()).toEqual({
+      error: "payment_not_started",
+      retry: true,
+    });
+    expect(resolveActor).not.toHaveBeenCalled();
+    expect(s.calls).toEqual([]);
+  });
+
+  it("answers only the intake, the client secret, the account and the amount, whatever else the command's answer carries: no Party id, donor or match flag (section 6)", async () => {
+    const s = setup({
+      begin: {
+        data: {
+          outcome: "created",
+          donation_id: INTAKE,
+          operation_id: OPERATION,
+          tenant_id: "55555555-5555-4555-8555-555555555555",
+          amount: 10330,
+          currency: "usd",
+          provider_account: "acct_alpha1",
+          payment_intent: null,
+          party_id: "88888888-8888-4888-8888-888888888888",
+          donor_id: "99999999-9999-4999-8999-999999999999",
+          matched: true,
+        },
+        error: null,
+      },
+    });
+    const res = await s.handler(request(body()));
+    expect(res.status).toBe(200);
+    const text = await res.text();
+    expect(Object.keys(JSON.parse(text)).sort()).toEqual(
+      ["amountCents", "clientSecret", "connectedAccountId", "intakeId"].sort(),
+    );
+    expect(text).not.toMatch(/8888|9999|matched|party|donor|tenant/i);
   });
 
   it("takes the host only from the request's own Host header: forwarded hosts, front headers, a tenant header and body fields are ignored (W8-R41)", async () => {
@@ -368,6 +476,8 @@ describe("AL-2681 PR 2a: the guest intake handler (tested directly; not mounted 
           "x-forwarded-host": "evil.example",
           "x-asym-front-host": "evil.example",
           "x-asym-tenant": "66666666-6666-4666-8666-666666666666",
+          "x-asym-name-tenant": "66666666-6666-4666-8666-666666666666",
+          origin: "https://evil.example",
         },
       ),
     );
