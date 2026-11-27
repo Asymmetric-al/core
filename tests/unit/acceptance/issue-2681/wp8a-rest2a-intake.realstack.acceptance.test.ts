@@ -12,6 +12,7 @@ import {
   beginArgs,
   BEGIN_SQL,
   begun,
+  configFor,
   feeFund,
   guestContact,
   inTx,
@@ -20,6 +21,7 @@ import {
   readyOnlyHost,
   removeRest2aTenants,
   role,
+  secondEntityBinding,
   seedTwoTenants,
   type Fixture,
   type GiftRequest,
@@ -752,6 +754,103 @@ describe.skipIf(!ADMIN_URL)(
           expect(`${onSite.code} ${onSite.message}`).toBe(
             "22023 source_site_not_admitted",
           );
+        }));
+    });
+
+    describe("an organization with two legal entities, each with its own active test binding (plan :1141; the contract's Legal Entity section)", () => {
+      it("a target of each entity gets that entity's connected account from the config read, and an intake on that entity's binding", () =>
+        inTx(db, async () => {
+          const w = await world();
+          const second = await secondEntityBinding(db, w.A);
+          expect(
+            await configFor(db, w.hostsA.site, [{ fund: w.A.fund }]),
+          ).toEqual([{ connected_account_id: w.A.account }]);
+          expect(
+            await configFor(db, w.hostsA.site, [{ fund: second.fund }]),
+          ).toEqual([{ connected_account_id: second.account }]);
+          const first = begun(
+            await begin(db, {
+              host: w.hostsA.site,
+              lines: [{ fund: w.A.fund, amount: 1000 }],
+            }),
+          );
+          const other = begun(
+            await begin(db, {
+              host: w.hostsA.site,
+              lines: [{ fund: second.fund, amount: 1200 }],
+            }),
+          );
+          expect(first.provider_account).toBe(w.A.account);
+          expect(other.provider_account).toBe(second.account);
+          expect(await intake(first.donation_id)).toMatchObject({
+            legal_entity_id: w.A.entity,
+            payment_account_binding_id: w.A.binding,
+            provider_account_ref: w.A.account,
+          });
+          expect(await intake(other.donation_id)).toMatchObject({
+            legal_entity_id: w.A.otherEntity,
+            payment_account_binding_id: second.binding,
+            provider_account_ref: second.account,
+          });
+          expect((await requestsOf(other.donation_id))[0]).toMatchObject({
+            provider_account_ref: second.account,
+          });
+        }));
+
+      it("a gift with one line of each entity is refused with nothing written, and the config read answers nothing for the pair", () =>
+        inTx(db, async () => {
+          const w = await world();
+          const second = await secondEntityBinding(db, w.A);
+          const before = await intakeCounts(db, w.A.tenant);
+          const mixed = await begin(db, {
+            host: w.hostsA.site,
+            lines: [
+              { fund: w.A.fund, amount: 1000 },
+              { fund: second.fund, amount: 1000 },
+            ],
+          });
+          expect(`${mixed.code} ${mixed.message}`).toBe(
+            "22023 lines_span_entities",
+          );
+          expect(await intakeCounts(db, w.A.tenant)).toEqual(before);
+          expect(
+            await configFor(db, w.hostsA.site, [
+              { fund: w.A.fund },
+              { fund: second.fund },
+            ]),
+          ).toEqual([]);
+        }));
+
+      it("the second entity's binding pending refuses its targets and leaves the first entity's working", () =>
+        inTx(db, async () => {
+          const w = await world();
+          const second = await secondEntityBinding(db, w.A);
+          await role(db, null);
+          await db.query(
+            "UPDATE public.payment_account_bindings SET status = 'pending' WHERE id = $1",
+            [second.binding],
+          );
+          expect(
+            await configFor(db, w.hostsA.site, [{ fund: second.fund }]),
+          ).toEqual([]);
+          const refused = await begin(db, {
+            host: w.hostsA.site,
+            lines: [{ fund: second.fund, amount: 1000 }],
+          });
+          expect(`${refused.code} ${refused.message}`).toBe(
+            "55000 binding_unavailable",
+          );
+          expect(
+            await configFor(db, w.hostsA.site, [{ fund: w.A.fund }]),
+          ).toEqual([{ connected_account_id: w.A.account }]);
+          expect(
+            begun(
+              await begin(db, {
+                host: w.hostsA.site,
+                lines: [{ fund: w.A.fund, amount: 1000 }],
+              }),
+            ).provider_account,
+          ).toBe(w.A.account);
         }));
     });
 

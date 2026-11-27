@@ -208,3 +208,37 @@ export async function removeRest2aTenants(db: pg.Client, fx: Fixture) {
   }
   await removeTwoTenants(db, fx);
 }
+
+export async function secondEntityBinding(db: pg.Client, side: Side) {
+  await role(db, null);
+  const account = `acct_${randomUUID().replaceAll("-", "").slice(0, 16)}`;
+  const intent = randomUUID();
+  const binding = randomUUID();
+  const fund = randomUUID();
+  await db.query(
+    `INSERT INTO public.payment_onboarding_intents
+       (id, tenant_id, legal_entity_id, livemode, version, status, reason, created_by, assignment_id,
+        provider_account_id, confirmed_at, confirmed_by_event)
+     VALUES ($1, $2, $3, false, 1, 'confirmed', 'Second entity', gen_random_uuid(), gen_random_uuid(),
+             $4, now(), 'evt_rest2a_second')`,
+    [intent, side.tenant, side.otherEntity, account],
+  );
+  await db.query(
+    `INSERT INTO public.payment_provider_accounts
+       (tenant_id, legal_entity_id, provider_account_id, livemode, onboarding_intent_id, confirmed_at)
+     VALUES ($1, $2, $3, false, $4, now())`,
+    [side.tenant, side.otherEntity, account, intent],
+  );
+  await db.query(
+    `INSERT INTO public.payment_account_bindings
+       (id, tenant_id, legal_entity_id, version, status, provider_account_ref, livemode,
+        onboarding_intent_id, activated_at)
+     VALUES ($1, $2, $3, 1, 'active', $4, false, $5, now())`,
+    [binding, side.tenant, side.otherEntity, account, intent],
+  );
+  await db.query(
+    "INSERT INTO public.funds (id, tenant_id, legal_entity_id, name) VALUES ($1, $2, $3, 'Second entity fund')",
+    [fund, side.tenant, side.otherEntity],
+  );
+  return { account, binding, fund };
+}
