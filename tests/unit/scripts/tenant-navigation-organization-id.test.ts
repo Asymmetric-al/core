@@ -41,6 +41,14 @@ const BUILT_WITH_AN_ID: ReadonlyArray<[string, string]> = [
     "a concatenation",
     'export const a = (tenantId: string) => "/" + tenantId + "/donors";',
   ],
+  [
+    "an organization's id",
+    "export const a = (organization: { id: string }) => `/${organization.id}/donors`;",
+  ],
+  [
+    "a tenant ID in capitals",
+    "export const a = (tenantID: string) => `/${tenantID}`;",
+  ],
 ];
 
 const NOT_AN_ID_PATH: ReadonlyArray<[string, string]> = [
@@ -54,6 +62,22 @@ const NOT_AN_ID_PATH: ReadonlyArray<[string, string]> = [
   ],
   ["a slug", "export const a = (slug: string) => `/${slug}`;"],
   ["a storage key", "export const a = (tenantId: string) => `${tenantId}/x`;"],
+  [
+    "an organization slug (base: reported)",
+    "export const a = (organizationSlug: string) => `/${organizationSlug}`;",
+  ],
+  [
+    "a tenant slug (base: reported)",
+    "export const a = (tenantSlug: string) => `/${tenantSlug}/donors`;",
+  ],
+  [
+    "a tenant slug field (base: reported)",
+    "export const a = (payload: { tenant_slug: string }) => `/${payload.tenant_slug}`;",
+  ],
+  [
+    "a tenant name (base: reported)",
+    'export const a = (tenantName: string) => "/" + tenantName;',
+  ],
 ];
 
 describe("an organization ID built into a path", () => {
