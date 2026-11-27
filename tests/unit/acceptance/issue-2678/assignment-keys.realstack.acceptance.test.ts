@@ -19,6 +19,7 @@ import {
   captureFingerprint,
   diffFingerprints,
 } from "../../../../scripts/release/schema-fingerprint.mjs";
+import { reviewLater } from "../issue-2680/later-gate-data";
 
 it.runIf(IN_MIGRATE_JOB && !ADMIN_URL)("migrate supplies its database", () =>
   expect(ADMIN_URL).toBeTruthy(),
@@ -763,7 +764,7 @@ describe.skipIf(!ADMIN_URL)(
       });
     });
 
-    it("12. catalog: the four functions are owned by postgres and executable by nobody else, the two trigger functions are definers with an empty search path; ours are the last BEFORE ROW triggers of each table; no unique index or foreign key includes the key; the field-policy census passes (red: 42883)", async () => {
+    it("12. catalog: the four functions are owned by postgres and executable by nobody else, the two trigger functions are definers with an empty search path; ours are the last BEFORE ROW triggers of each table; no unique index or foreign key on the five key tables includes the key (AL-2680: public.publication_policies, a later table, keys its own rows to the worker); the field-policy census passes (red: 42883)", async () => {
       for (const fn of FUNCTIONS)
         for (const role of ["anon", "authenticated", "service_role"])
           expect(
@@ -825,15 +826,20 @@ describe.skipIf(!ADMIN_URL)(
         `select c.conrelid::regclass::text as t, c.conname from pg_constraint c
            join pg_attribute a on a.attrelid = c.conrelid and a.attnum = any(c.conkey)
           where a.attname = 'ministry_assignment_id' and c.contype in ('f', 'u', 'p', 'x')
+            and c.conrelid::regclass::text = any($1::text[])
          union all
          select i.indrelid::regclass::text, i.indexrelid::regclass::text from pg_index i
            join pg_attribute a on a.attrelid = i.indrelid and a.attnum = any(i.indkey)
-          where a.attname = 'ministry_assignment_id' and i.indisunique`,
+          where a.attname = 'ministry_assignment_id' and i.indisunique
+            and i.indrelid::regclass::text = any($1::text[])`,
+        [TABLES.map((t) => `public.${t}`).concat([...TABLES])],
       );
       expect(keyed.rows).toEqual([]);
       const columns = await db.query(
         `select table_name, data_type, is_nullable, column_default from information_schema.columns
-          where table_schema = 'public' and column_name = 'ministry_assignment_id' order by 1`,
+          where table_schema = 'public' and column_name = 'ministry_assignment_id'
+            and table_name = any($1::text[]) order by 1`,
+        [TABLES],
       );
       expect(columns.rows).toEqual(
         [...TABLES].sort().map((table_name) => ({
@@ -1087,7 +1093,7 @@ describe.skipIf(!ADMIN_URL)(
       }
     });
 
-    it("10. the committed check is false before the file and true after; a second run stops at its first ADD COLUMN (42701) and changes nothing; the Down, in the header's order, restores the task functions and search_crm_donors byte for byte, removes the key's five field-policy rows (which the schema fingerprint does not see) so the table's contents are the base's again, and the catalog gate passes but for service_role's table privileges and CREATE on authz, which 20261126190000, later in the chain than this scratch database, closes (D-18, issue 2841: the gate holds service_role since then)", async () => {
+    it("10. the committed check is false before the file and true after; a second run stops at its first ADD COLUMN (42701) and changes nothing; the Down, in the header's order, restores the task functions and search_crm_donors byte for byte, removes the key's five field-policy rows (which the schema fingerprint does not see) so the table's contents are the base's again, and the catalog gate passes but for service_role's table privileges and CREATE on authz, which 20261126190000, later in the chain than this scratch database, closes (D-18, issue 2841: the gate holds service_role since then), and but for the review's gate data, which 20261127070000 and 20261127070100 satisfy (AL-2680)", async () => {
       const sources = await definitions();
       const base = captureFingerprint({ databaseUrl: url });
       const basePolicies = await policies();
@@ -1147,11 +1153,15 @@ console.log(JSON.stringify(await m.runTenantRlsCatalogGate({ databaseUrl: proces
       );
       const verdict = JSON.parse(
         gate.stdout.trim().split("\n").pop() || "{}",
-      ) as { ok?: boolean; failures?: { code: string; table?: string }[] };
+      ) as {
+        ok?: boolean;
+        failures?: { code: string; table?: string; function?: string }[];
+      };
       expect(verdict.failures, gate.stderr).toBeInstanceOf(Array);
-      const later = (f: { code: string; table?: string }) =>
+      const later = (f: { code: string; table?: string; function?: string }) =>
         f.code === "SERVICE_ROLE_UNSAFE_PRIVILEGE" ||
-        (f.code === "SERVICE_ROLE_SCHEMA_CREATE" && f.table === "authz");
+        (f.code === "SERVICE_ROLE_SCHEMA_CREATE" && f.table === "authz") ||
+        reviewLater(f);
       expect(
         verdict.failures!.filter((f) => !later(f)),
         gate.stderr,

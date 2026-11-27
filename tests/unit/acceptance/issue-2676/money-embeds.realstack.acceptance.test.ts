@@ -116,7 +116,7 @@ const INVENTORY: InventorySite[] = [
   },
 ];
 
-const EXEMPTIONS: Exemption[] = [1, 2, 3, 4].map(() => ({
+const EXEMPTIONS: Exemption[] = [1, 2, 3].map(() => ({
   file: "packages/graphql/handler.ts",
   embed: "missionary:missionaries!missionary_id(",
   parent: "posts",
@@ -784,11 +784,11 @@ describe("positive scanner controls (round O, A)", () => {
     ]);
   });
 
-  it("allows the four posts exemptions when bound to .from('posts')", () => {
+  it("allows the three posts exemptions when bound to .from('posts') (AL-2680: GraphQL's posts and post share one select)", () => {
     const res = evaluateEmbeds(
       scanText(
         "packages/graphql/handler.ts",
-        [1, 2, 3, 4]
+        [1, 2, 3]
           .map(
             () =>
               `client.from("posts").select("*, missionary:missionaries!missionary_id(*, profile:profiles!profile_id(*))");`,
@@ -798,7 +798,7 @@ describe("positive scanner controls (round O, A)", () => {
       EXEMPTIONS,
     );
     expect(res.violations).toEqual([]);
-    expect(res.usedExemptions).toBe(4);
+    expect(res.usedExemptions).toBe(3);
     expect(res.unusedExemptions).toEqual([]);
   });
 
