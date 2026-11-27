@@ -236,7 +236,7 @@ describe("donor reaction route handlers", () => {
   });
 
   it.each(mutationCases)(
-    "$label uses the admin RPC after auth and tenant validation",
+    "$label uses the admin RPC after auth and tenant validation, and revalidates only the post's own tag (AL-2680: the tenant's posts tag is gone, since a feed is read per request and no server cache holds it)",
     async ({ handler, rpcName }) => {
       const requestClient = mockRequestClient();
       const adminRpc = mockAdminRpc({

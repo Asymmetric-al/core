@@ -66,7 +66,7 @@ function mount() {
     </QueryProvider>,
   );
 }
-it("loads server-authorized posts even when the shell identity is unresolved", async () => {
+it("loads server-authorized posts even when the shell identity is unresolved, in four reads (AL-2680: the publication policies are the fourth)", async () => {
   identity.tenant.id = "";
   identity.user.id = "";
   const fetcher = vi.fn(async (url: string) => Response.json(response(url)));

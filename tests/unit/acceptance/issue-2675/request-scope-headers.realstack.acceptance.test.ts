@@ -351,7 +351,7 @@ describe.skipIf(!ADMIN_URL)(
       return want;
     }
 
-    describe("every read gives exactly the rows its class may see when the headers are sent", () => {
+    describe("every read gives exactly the rows its class may see when the headers are sent (AL-2680: each class's posts rule is the review's, the author's own, a reviewer's published ones and approved ones, no longer every published post)", () => {
       it.each(SURFACES)("%s", async (_label, sub, user, tenant, role) => {
         const headers = {
           "x-asym-tenant": tenant,
@@ -394,7 +394,7 @@ describe.skipIf(!ADMIN_URL)(
       });
     });
 
-    describe("without the headers, with the tenant alone, or with another organization's id, no tenant row and no error", () => {
+    describe("without the headers, with the tenant alone, or with another organization's id, no tenant row and no error (AL-2680: posts follow the review's rules here too)", () => {
       it.each(SURFACES)("%s", async (_label, sub, user, tenant, role) => {
         const other = tenant === DEMO ? SECOND : DEMO;
         const own = row(user, tenant, role);
