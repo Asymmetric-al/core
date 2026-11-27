@@ -587,17 +587,17 @@ security and grantees unchanged.
 
 ## Functions added by AL-2671 (N4, pull request 1)
 
-| Function                                  | Security | EXECUTE grantees (exact)           |
-| ----------------------------------------- | -------- | ---------------------------------- |
-| `public.take_sign_in_attempt(text, text)` | DEFINER  | `postgres` (owner), `service_role` |
-| `public.record_sign_in_failure(text)`     | DEFINER  | `postgres` (owner), `service_role` |
+| Function                                    | Security | EXECUTE grantees (exact)           |
+| ------------------------------------------- | -------- | ---------------------------------- |
+| `public.take_sign_in_attempt(text, text)`   | DEFINER  | `postgres` (owner), `service_role` |
+| `public.record_sign_in_failure(text, text)` | DEFINER  | `postgres` (owner), `service_role` |
 
 `20261127100000_n4_sign_in_limits.sql`: Core's sign-in limits.
-`public.take_sign_in_attempt` counts one password attempt against the client
-address in a fifteen-minute window, trims ended windows, and answers whether
-the attempt may go to the provider (not past 30 from the address, nor at 10
-refused passwords for the account); `public.record_sign_in_failure` counts one
-refused password for the account. Both keep SHA-256 digests only in
+`public.take_sign_in_attempt` trims ended windows and answers whether a
+password attempt may go to the provider: not at 30 refused passwords from the
+client address, nor at 10 for the account, in a fifteen-minute window.
+`public.record_sign_in_failure` counts one refused password against both; a
+password the provider accepts counts nothing. Both keep SHA-256 digests only in
 `private.sign_in_windows`, take no organization and name nothing in `auth`.
 The file revokes `PUBLIC`, `anon`, `authenticated` and `service_role` by name
 before granting.
