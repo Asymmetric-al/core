@@ -691,11 +691,12 @@ COMMENT ON FUNCTION tenant_guard.accept_membership_invitation(TEXT, TEXT) IS
   'through private.accept_worker_invitation (login set where NULL, account link ''invitation''), refusing a worker with a login (55006) '
   'and a login tied to another Party there (21000); its answer adds party_id and assignment_id.';
 
-RESET ROLE;
-REVOKE CREATE ON SCHEMA tenant_guard FROM tenant_guard;
-
+-- Granted as its owner: on Supabase postgres is no superuser and cannot
+-- change the grants of a function tenant_guard owns.
 REVOKE ALL ON FUNCTION tenant_guard.invite_worker(UUID, TEXT, UUID, TEXT, TEXT, TEXT, TEXT, UUID, TEXT) FROM PUBLIC, anon, authenticated, service_role;
 GRANT EXECUTE ON FUNCTION tenant_guard.invite_worker(UUID, TEXT, UUID, TEXT, TEXT, TEXT, TEXT, UUID, TEXT) TO authenticated;
+RESET ROLE;
+REVOKE CREATE ON SCHEMA tenant_guard FROM tenant_guard;
 
 -- 3. The wrapper.
 CREATE FUNCTION public.invite_worker(

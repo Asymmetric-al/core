@@ -202,11 +202,12 @@ END;
 $$;
 COMMENT ON FUNCTION tenant_guard.create_worker(UUID, TEXT, TEXT, TEXT, TEXT, TEXT, TEXT, UUID, TEXT) IS
   'Human command (AL-2678, WP5 rest part B): staff with safety.restrict_publication add a worker with no login: one Party and worker row, worker_created, then set_worker_identity (standard and unreviewed when no level is given). Names and reason required by the safety normalization; the legal name is in no answer.';
-RESET ROLE;
-REVOKE CREATE ON SCHEMA tenant_guard FROM tenant_guard;
-
+-- Granted as its owner: on Supabase postgres is no superuser and cannot
+-- change the grants of a function tenant_guard owns.
 REVOKE ALL ON FUNCTION tenant_guard.create_worker(UUID, TEXT, TEXT, TEXT, TEXT, TEXT, TEXT, UUID, TEXT) FROM PUBLIC, anon, authenticated, service_role;
 GRANT EXECUTE ON FUNCTION tenant_guard.create_worker(UUID, TEXT, TEXT, TEXT, TEXT, TEXT, TEXT, UUID, TEXT) TO authenticated;
+RESET ROLE;
+REVOKE CREATE ON SCHEMA tenant_guard FROM tenant_guard;
 
 -- 3. The wrapper.
 CREATE FUNCTION public.create_worker(

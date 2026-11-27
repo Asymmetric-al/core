@@ -97,11 +97,12 @@ END;
 $$;
 COMMENT ON FUNCTION tenant_guard.confirm_worker_security_level(UUID, UUID, TEXT, TEXT, TEXT) IS
   'Human command (AL-2678, WP5 rest part B; issue 2835): confirms a worker''s security level only while the Party still holds the level and source the staff member read, checked under restrict_worker_publication''s locks; otherwise 22023 and nothing written. Needs safety.restrict_publication.';
-RESET ROLE;
-REVOKE CREATE ON SCHEMA tenant_guard FROM tenant_guard;
-
+-- Granted as its owner: on Supabase postgres is no superuser and cannot
+-- change the grants of a function tenant_guard owns.
 REVOKE ALL ON FUNCTION tenant_guard.confirm_worker_security_level(UUID, UUID, TEXT, TEXT, TEXT) FROM PUBLIC, anon, authenticated, service_role;
 GRANT EXECUTE ON FUNCTION tenant_guard.confirm_worker_security_level(UUID, UUID, TEXT, TEXT, TEXT) TO authenticated;
+RESET ROLE;
+REVOKE CREATE ON SCHEMA tenant_guard FROM tenant_guard;
 
 CREATE FUNCTION public.confirm_worker_security_level(
   p_tenant_id UUID,
