@@ -393,12 +393,13 @@ NO KEY UPDATE` first.
     to 99,999,999 cents, the range Stripe takes (`22023
 amount_out_of_range`), before any write; keeps the client key and the
     request as SHA-256 digests only; answers a replay with its first
-    intake and refuses the key with another request (`23505`); and says
-    whether the gift can still be paid (`payable`: false once the intake
-    is abandoned or its create request is `refused`, `dead_letter` or
-    `abandoned`; a declined card's gift stays payable on its
-    PaymentIntent), which the handler answers `409 gift_closed`. No
-    browser total, tenant, entity or binding is read.
+    intake and refuses the key with another request (`23505`); and names
+    the gift's state (`gift_state`): `paid` once the intake is completed or
+    a success is recorded (answered `409 gift_already_completed`, never
+    `gift_closed`), `closed` once it is abandoned or its create request is
+    `refused`, `dead_letter` or `abandoned` (answered `409 gift_closed`),
+    otherwise `open`, a declined card's gift included (answered its
+    PaymentIntent). No browser total, tenant, entity or binding is read.
 50. **The rate limit is a Postgres counter of digests.** Ten requests per
     address in a ten-minute window pass, the eleventh is refused; each call
     removes up to 200 rows of ended windows (`SKIP LOCKED`), so the table

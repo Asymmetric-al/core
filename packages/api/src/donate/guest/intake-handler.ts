@@ -76,7 +76,7 @@ const intakeSchema = z.object({
     .string()
     .regex(/^pi_[A-Za-z0-9]+$/)
     .nullable(),
-  payable: z.boolean(),
+  gift_state: z.enum(["open", "closed", "paid"]),
 });
 
 const INPUT_REFUSALS = new Set([
@@ -250,7 +250,10 @@ export function createGuestIntakeHandler(deps: GuestIntakeDeps) {
     if (begun.error) return refusal(begun.error);
     const intake = intakeSchema.safeParse(begun.data);
     if (!intake.success) return notStarted();
-    if (!intake.data.payable) return json(409, { error: "gift_closed" });
+    if (intake.data.gift_state === "paid")
+      return json(409, { error: "gift_already_completed" });
+    if (intake.data.gift_state === "closed")
+      return json(409, { error: "gift_closed" });
 
     let paymentIntentId = intake.data.payment_intent;
     if (!paymentIntentId) {
