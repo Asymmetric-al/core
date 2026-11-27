@@ -331,7 +331,7 @@ describe("AL-2681 PR 2a: the money schedule, one step-free function on the */30 
     expect(run).toHaveBeenCalledTimes(1);
   });
 
-  it("its default runner holds an RPC-only client: one call of money_due_work and no table read (W8-R40)", async () => {
+  it("its default runner holds an RPC-only client: one call of money_due_work and no table read (W8-R40; D-18, AL-2681 PR 2b: the purge of expired gift attempts comes first)", async () => {
     adminClient.rpc.mockClear();
     adminClient.from.mockClear();
     const step = new Proxy(
@@ -346,6 +346,7 @@ describe("AL-2681 PR 2a: the money schedule, one step-free function on the */30 
       parts: Array<{ status: string }>;
     };
     expect(adminClient.rpc.mock.calls.map((c) => c[0])).toEqual([
+      "purge_intake_attempts",
       "money_due_work",
     ]);
     expect(adminClient.from).not.toHaveBeenCalled();
@@ -480,5 +481,62 @@ describe("AL-2681 part 2a fix round: the schedule tells the truth and keeps its 
         failures: 1,
       },
     );
+  });
+});
+
+describe("AL-2681 PR 2b: the schedule purges the limit's expired rows and keeps a send inside its budget", () => {
+  it("each tick removes the limit's expired attempts first, also when nothing is due", async () => {
+    const { rpc, calls } = fakeRpc([]);
+    await runMoneySchedule(deps({}, rpc));
+    expect(calls.map((c) => c.fn)).toEqual([
+      "purge_intake_attempts",
+      "money_due_work",
+    ]);
+  });
+
+  it("guard (passes on the base): a failed purge does not stop the tick", async () => {
+    const { rpc, calls } = fakeRpc([], {
+      purge_intake_attempts: { data: null, error: { message: "purge failed" } },
+    });
+    const result = await runMoneySchedule(deps({}, rpc));
+    expect(calls.map((c) => c.fn)).toContain("money_due_work");
+    expect(result.parts.every((p) => p.status === "idle")).toBe(true);
+  });
+
+  it("item 34: an operation is handed the time left of the budget, and none starts with less than a send and its report left", async () => {
+    const { rpc } = fakeRpc(
+      [OP, OP2].map((id) => ({
+        kind: "operation",
+        id,
+        tenant_id: TENANT,
+        detail: null,
+      })),
+    );
+    let now = 0;
+    const budgets: Array<number | undefined> = [];
+    const runOperation = vi.fn(async (input: { budgetMs?: number }) => {
+      budgets.push(input.budgetMs);
+      now += 31_000;
+      return {
+        sent: true,
+        claim: { data: { outcome: "claimed" }, error: null },
+      } as never;
+    });
+    const result = await runMoneySchedule(
+      deps(
+        {
+          clock: () => now,
+          budgetMs: 45_000,
+          runOperation: runOperation as never,
+        },
+        rpc,
+      ),
+    );
+    expect(runOperation).toHaveBeenCalledTimes(1);
+    expect(budgets).toEqual([45_000]);
+    expect(result.parts.find((p) => p.part === "worker")).toMatchObject({
+      handled: 1,
+      deferred: 1,
+    });
   });
 });

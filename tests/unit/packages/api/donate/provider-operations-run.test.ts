@@ -690,3 +690,43 @@ describe("WP8a part 2 R1b: runProviderOperation, one request from claim to repor
     });
   });
 });
+
+describe("AL-2681 PR 2b, issue 2857 item 34: a provider operation keeps inside its caller's budget", () => {
+  it("given the caller's remaining budget, the send's timeout leaves five seconds of it for the report", async () => {
+    const { rpc } = claimedRpc();
+    const { adapter, createPayment } = stubAdapter({
+      result: "succeeded",
+      providerObjectId: "pi_3Stub0002",
+    });
+    const clock = { monotonicMs: () => 1_000 };
+    await runProviderOperation({
+      rpc,
+      adapter,
+      operationId: OPERATION,
+      clock,
+      budgetMs: 20_000,
+    });
+    const timeoutMs = (
+      createPayment.mock.calls[0] as unknown as [{ timeoutMs: number }]
+    )[0].timeoutMs;
+    expect(timeoutMs).toBe(15_000);
+  });
+
+  it("with less than the minimum send left of the caller's budget, nothing is sent", async () => {
+    const { rpc } = claimedRpc();
+    const { adapter, createPayment } = stubAdapter({
+      result: "succeeded",
+      providerObjectId: "pi_3Stub0003",
+    });
+    const clock = { monotonicMs: () => 1_000 };
+    const run = await runProviderOperation({
+      rpc,
+      adapter,
+      operationId: OPERATION,
+      clock,
+      budgetMs: 12_000,
+    });
+    expect(createPayment).not.toHaveBeenCalled();
+    expect(run.sent).toBe(false);
+  });
+});
