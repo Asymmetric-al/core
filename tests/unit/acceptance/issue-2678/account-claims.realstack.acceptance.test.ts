@@ -799,6 +799,10 @@ describe.skipIf(!ADMIN_URL)(
           "delete from authz.memberships where tenant_id = $1 or user_id = any($2::uuid[])",
           [tenant, users],
         );
+        await admin.query(
+          "delete from public.donor_merge_candidates where tenant_id = $1",
+          [tenant],
+        );
         await admin.query("delete from public.donors where tenant_id = $1", [
           tenant,
         ]);
@@ -901,7 +905,7 @@ describe.skipIf(!ADMIN_URL)(
         };
       }));
 
-    it("one login redeeming two tokens at once: one served, one refused, never 23505", () =>
+    it("one login redeeming two tokens at once: one served, one refused, never 23505; the refused one, whose login is now linked to the other donor's Party, offers that pair to staff once (D-18: fix round F4 of pull request 2859 records the pair for a linked login, so the cleanup removes it before the donors)", () =>
       race(async (admin, tenant) => {
         const user = await newUser(
           admin,
@@ -931,6 +935,20 @@ describe.skipIf(!ADMIN_URL)(
               [tenant, user],
             );
             expect(state.rows).toEqual([{ links: "1", memberships: "1" }]);
+            expect(
+              (
+                await a.query(
+                  "select existing_donor_id, incoming_donor_id, status from public.donor_merge_candidates where tenant_id = $1",
+                  [tenant],
+                )
+              ).rows,
+            ).toEqual([
+              {
+                existing_donor_id: donors[0],
+                incoming_donor_id: donors[1],
+                status: "open",
+              },
+            ]);
           },
         };
       }));
