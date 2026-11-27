@@ -406,7 +406,7 @@ async function deliverReceiptEmailForGift(input: {
     sent_at: result.success ? new Date().toISOString() : null,
     error_code: result.errors?.[0]?.code ?? null,
     error_message: result.errors?.[0]?.message ?? null,
-    retry_count: result.retryCount,
+    retry_count: result.retryCount ?? 0,
     metadata: input.metadata,
   });
   const sent = log.status === "sent";
