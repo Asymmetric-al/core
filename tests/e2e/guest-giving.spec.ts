@@ -35,7 +35,8 @@ const WORDS = {
     "Each gift goes to one legal entity of this ministry. Designations of different entities need separate gifts.",
   received: "Your gift was received.",
   claim: "Verify your email to claim your giving history.",
-  pending: "Your payment is processing. You don't need to keep this page open.",
+  lostConnection:
+    "We lost the connection before we could confirm your payment. Reload this page to see whether your gift went through before you try again.",
   monthly:
     "Monthly giving isn't available online yet. You can give once now instead.",
   configUnavailable:
@@ -295,7 +296,7 @@ test.describe("Guest giving with the switch on (Level 1: Stripe.js stubbed at th
     const heldSecret = ["pi_journey", "secret", "held"].join("_");
     await page.addInitScript(() => {
       (window as Window & { __stripeStubPlan?: unknown }).__stripeStubPlan = {
-        confirm: { paymentIntent: { status: "processing" } },
+        confirm: { error: { type: "api_connection_error" } },
         retrieve: { paymentIntent: { status: "succeeded" } },
       };
     });
@@ -324,7 +325,7 @@ test.describe("Guest giving with the switch on (Level 1: Stripe.js stubbed at th
     await typeGuest(page, `thanks-${Date.now()}@example.test`);
     await waitForChallenge(page);
     await page.getByRole("button", { name: /^Give \$/ }).click();
-    await expect(page.getByText(WORDS.pending)).toBeVisible();
+    await expect(page.getByText(WORDS.lostConnection)).toBeVisible();
     await expect(page.getByText(WORDS.received)).toHaveCount(0);
     await page.reload();
     await expect(page.getByText(WORDS.received)).toBeVisible();

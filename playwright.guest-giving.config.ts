@@ -18,7 +18,7 @@ const SERVER_TIMEOUT_MS = Number(
 const givingEnv: Record<string, string | undefined> = {
   ...process.env,
   E2E_AUTH_BYPASS: "false",
-  SKIP_ENV_VALIDATION: process.env.SKIP_ENV_VALIDATION || "1",
+  SKIP_ENV_VALIDATION: undefined,
   EVE_BASE_URL: process.env.EVE_BASE_URL || "http://127.0.0.1:9",
   CORE_SERVE_UNDER_PATHS: undefined,
   GUEST_GIVING_ENABLED: "true",

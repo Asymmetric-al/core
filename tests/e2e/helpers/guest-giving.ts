@@ -166,8 +166,8 @@ export async function createGivingWorld(
       [tenants.A, hosts.homeA],
     );
     await db.query(
-      "INSERT INTO public.donor_account_brands (tenant_id, display_name) VALUES ($1, $2), ($3, $4)",
-      [tenants.A, `Guest giving A ${run}`, tenants.B, `Guest giving B ${run}`],
+      "INSERT INTO public.donor_account_brands (tenant_id, display_name) VALUES ($1, $2)",
+      [tenants.A, `Guest giving A ${run}`],
     );
     await db.query("COMMIT");
     return {
@@ -249,6 +249,9 @@ export const STRIPE_JS_STUB = `(() => {
     return {
       _registerWrapper() {},
       registerAppInfo() {},
+      createToken() { return Promise.resolve({ error: { message: "stub" } }); },
+      createPaymentMethod() { return Promise.resolve({ error: { message: "stub" } }); },
+      confirmCardPayment() { return Promise.resolve({ error: { message: "stub" } }); },
       elements(options) {
         log.elements.push(options || {});
         return {
