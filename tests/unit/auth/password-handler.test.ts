@@ -26,10 +26,7 @@ vi.mock("next/headers", () => ({
 vi.mock(
   "../../../packages/api/src/identity/sign-in-limits",
   async (importActual) => {
-    const actual =
-      await importActual<
-        typeof import("../../../packages/api/src/identity/sign-in-limits")
-      >();
+    const actual = await importActual<Record<string, unknown>>();
     return {
       ...actual,
       takeSignInAttempt: fixture.take,
@@ -38,8 +35,8 @@ vi.mock(
   },
 );
 
-import { SignInLimitsUnavailableError } from "../../../packages/api/src/identity/sign-in-limits";
 import { POST } from "../../../packages/api/src/auth/password";
+import { SignInLimitsUnavailableError } from "../../../packages/api/src/identity/sign-in-limits";
 
 const CURRENT = "current account phrase";
 const NEXT = "next account phrase";
@@ -70,7 +67,7 @@ function jwt(amr: Array<{ method: string; timestamp: number }>) {
       exp: nowSeconds() + 3600,
       amr,
     }),
-    "fixture-signature",
+    Buffer.from("fixture-signature").toString("base64url"),
   ].join(".");
 }
 

@@ -28,10 +28,7 @@ vi.mock("next/headers", () => ({
 vi.mock(
   "../../../packages/api/src/identity/sign-in-limits",
   async (importActual) => {
-    const actual =
-      await importActual<
-        typeof import("../../../packages/api/src/identity/sign-in-limits")
-      >();
+    const actual = await importActual<Record<string, unknown>>();
     return {
       ...actual,
       takeSignInAttempt: fixture.take,
@@ -40,8 +37,8 @@ vi.mock(
   },
 );
 
-import { SignInLimitsUnavailableError } from "../../../packages/api/src/identity/sign-in-limits";
 import { POST } from "../../../packages/api/src/auth/sign-in";
+import { SignInLimitsUnavailableError } from "../../../packages/api/src/identity/sign-in-limits";
 
 const RIGHT = "right sign-in phrase";
 const WRONG = "wrong sign-in phrase";
@@ -56,8 +53,7 @@ const USER = {
 };
 const PROVIDER_TEXT = /invalid login credentials|email not confirmed/i;
 
-/** The provider's password grant, as the installed Auth server answers it. */
-function fakeProvider(options: { down?: boolean } = {}) {
+function fakeInstalledPasswordGrant(options: { down?: boolean } = {}) {
   return vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
     const url = input instanceof Request ? input.url : input.toString();
     if (options.down) throw new TypeError("fetch failed");
@@ -119,7 +115,7 @@ async function answer(response: Response) {
   };
 }
 
-let provider: ReturnType<typeof fakeProvider>;
+let provider: ReturnType<typeof fakeInstalledPasswordGrant>;
 const logged: unknown[][] = [];
 
 beforeEach(() => {
@@ -127,7 +123,7 @@ beforeEach(() => {
   fixture.writes.length = 0;
   fixture.take.mockReset().mockResolvedValue(true);
   fixture.record.mockReset().mockResolvedValue(undefined);
-  provider = fakeProvider();
+  provider = fakeInstalledPasswordGrant();
   vi.stubGlobal("fetch", provider);
   logged.length = 0;
   for (const level of ["log", "info", "warn", "error", "debug"] as const)
@@ -226,7 +222,7 @@ describe("Core's sign-in route (AL-2671 N4 PR 1)", () => {
   });
 
   it("is unavailable when the provider is, and records nothing", async () => {
-    provider = fakeProvider({ down: true });
+    provider = fakeInstalledPasswordGrant({ down: true });
     vi.stubGlobal("fetch", provider);
     const response = await signIn({ email: USER.email, password: RIGHT });
     const body = await response.text();
@@ -250,7 +246,7 @@ describe("Core's sign-in route (AL-2671 N4 PR 1)", () => {
     await signIn({ email: USER.email, password: RIGHT });
     fixture.record.mockRejectedValueOnce(new SignInLimitsUnavailableError());
     await signIn({ email: USER.email, password: WRONG });
-    provider = fakeProvider({ down: true });
+    provider = fakeInstalledPasswordGrant({ down: true });
     vi.stubGlobal("fetch", provider);
     await signIn({ email: USER.email, password: RIGHT });
 

@@ -19,11 +19,7 @@ import {
   takeSignInAttempt,
 } from "../../../packages/api/src/identity/sign-in-limits";
 
-/**
- * Refuses what the database functions refuse (a blank or over-long key, 22023),
- * as a test double of a database rule must (brief, "What must never happen").
- */
-function databaseRpc(answer: boolean) {
+function databaseRpcRefusingBlankKeys(answer: boolean) {
   return async (name: string, args: Record<string, string>) => {
     const account = args.p_account?.trim() ?? "";
     const address = args.p_address?.trim() ?? "";
@@ -56,7 +52,7 @@ describe("Core's sign-in limits adapter (AL-2671 N4 PR 1)", () => {
   });
 
   it("asks the database whether an attempt may go to the provider, by account and client address", async () => {
-    admin.rpc.mockImplementation(databaseRpc(true));
+    admin.rpc.mockImplementation(databaseRpcRefusingBlankKeys(true));
     await expect(
       takeSignInAttempt({
         account: "known@example.test",
@@ -68,7 +64,7 @@ describe("Core's sign-in limits adapter (AL-2671 N4 PR 1)", () => {
       p_address: "198.51.100.7",
     });
 
-    admin.rpc.mockImplementation(databaseRpc(false));
+    admin.rpc.mockImplementation(databaseRpcRefusingBlankKeys(false));
     await expect(
       takeSignInAttempt({
         account: "known@example.test",
@@ -78,7 +74,7 @@ describe("Core's sign-in limits adapter (AL-2671 N4 PR 1)", () => {
   });
 
   it("records one refused password against the account and the client address", async () => {
-    admin.rpc.mockImplementation(databaseRpc(true));
+    admin.rpc.mockImplementation(databaseRpcRefusingBlankKeys(true));
     await recordSignInFailure({
       account: "known@example.test",
       address: "198.51.100.7",
@@ -90,7 +86,7 @@ describe("Core's sign-in limits adapter (AL-2671 N4 PR 1)", () => {
   });
 
   it("fails closed: a database refusal, an error or no service client is unavailable, never a pass", async () => {
-    admin.rpc.mockImplementation(databaseRpc(true));
+    admin.rpc.mockImplementation(databaseRpcRefusingBlankKeys(true));
     await expect(
       takeSignInAttempt({ account: " ", address: "198.51.100.7" }),
     ).rejects.toBeInstanceOf(SignInLimitsUnavailableError);
