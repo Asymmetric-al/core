@@ -86,6 +86,19 @@
 -- Down begins
 -- BEGIN;
 -- SET LOCAL lock_timeout = '5s';
+-- DO $$
+-- DECLARE
+--   v_newest TEXT;
+-- BEGIN
+--   IF pg_catalog.to_regclass('supabase_migrations.schema_migrations') IS NULL THEN
+--     RAISE EXCEPTION 'rollback_20261127040000: this database has no migration ledger (supabase_migrations.schema_migrations), so it cannot show that 20261127040000 is its newest migration; nothing was changed';
+--   END IF;
+--   LOCK TABLE supabase_migrations.schema_migrations IN SHARE ROW EXCLUSIVE MODE;
+--   SELECT pg_catalog.max(version) INTO v_newest FROM supabase_migrations.schema_migrations;
+--   IF v_newest IS DISTINCT FROM '20261127040000' THEN
+--     RAISE EXCEPTION 'rollback_20261127040000: the newest migration recorded is %, not 20261127040000. Reverse every later migration first, newest first, then run this file; nothing was changed', COALESCE(v_newest, 'none');
+--   END IF;
+-- END $$;
 -- CREATE FUNCTION authz.is_super_admin()
 -- RETURNS boolean
 -- LANGUAGE sql
@@ -534,10 +547,6 @@ ALTER POLICY "support hub staff select" ON public.support_teams
 ALTER POLICY "support tickets select" ON public.support_tickets
   USING (tenant_id = (SELECT authz.current_tenant_id()) AND (SELECT authz.staff_read()));
 
--- 3. The function, last, without CASCADE: a dependent this file missed fails
--- the file.
-DROP FUNCTION authz.is_super_admin();
-
 DO $$
 -- post-assert: no super-admin branch
 DECLARE
@@ -576,5 +585,9 @@ BEGIN
     RAISE EXCEPTION 'AL-2675: % read policies stand on the staff-read helper, not 59', on_helper;
   END IF;
 END $$;
+
+-- 3. The function, last, without CASCADE: a dependent this file missed fails
+-- the file.
+DROP FUNCTION authz.is_super_admin();
 
 COMMIT;
