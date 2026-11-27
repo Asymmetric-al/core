@@ -369,11 +369,15 @@ NO KEY UPDATE` first.
     `22023 actor_not_admitted`. A required or supplied actor without a
     user ID or the e-mail's confirmation is `22023 actor_required`, and a
     source Site on a Site's checkout is `22023 source_site_not_admitted`;
-    a refusal writes nothing. The handler takes the host only from `Host`,
-    reads the session only for a submission to the organization's home,
-    takes the actor only from it, and lets "give as a guest instead" only
-    remove it. Plan lines 169, 179, 201, 210, 221 and 1179 are amended to
-    say so.
+    a refusal writes nothing. The handler takes the host only from `Host`;
+    the request names its path (`mode`: `guest` or `signed_in`, `guest`
+    when absent) and the server never changes it: the guest path never
+    reads a session and cannot ask for the account area; the signed-in
+    path reads the session only on the organization's home, takes the
+    actor only from it, and without one answers `401 sign_in_required`
+    before the rate token and the command, so an expired session never
+    becomes a guest gift (fix round F3). Plan lines 169, 179, 201, 210,
+    221 and 1179 are amended to say so.
 49. **The intake command** freezes the Site, the entry surface, the source
     code (an active listed code by its id; a well-formed code off the list
     kept apart for triage; a malformed or absent one stays absent) and
@@ -384,9 +388,17 @@ NO KEY UPDATE` first.
     `22023 payment_method_refused`, the ruling on intent conflicts of
     27 November, section 3), so its one create request names
     `payment_method_types: ["card"]` and never `automatic_payment_methods`;
-    keeps the client key and the request as SHA-256 digests only; answers a
-    replay with its first intake and refuses the key with another request
-    (`23505`). No browser total, tenant, entity or binding is read.
+    refuses a fee cover above five percent of the donor's lines plus 100
+    cents (`22023 fee_cover_out_of_range`) and a US-dollar total outside 50
+    to 99,999,999 cents, the range Stripe takes (`22023
+amount_out_of_range`), before any write; keeps the client key and the
+    request as SHA-256 digests only; answers a replay with its first
+    intake and refuses the key with another request (`23505`); and says
+    whether the gift can still be paid (`payable`: false once the intake
+    is abandoned or its create request is `refused`, `dead_letter` or
+    `abandoned`; a declined card's gift stays payable on its
+    PaymentIntent), which the handler answers `409 gift_closed`. No
+    browser total, tenant, entity or binding is read.
 50. **The rate limit is a Postgres counter of digests.** Ten requests per
     address in a ten-minute window pass, the eleventh is refused; each call
     removes up to 200 rows of ended windows (`SKIP LOCKED`), so the table
@@ -399,7 +411,9 @@ NO KEY UPDATE` first.
     answers one connected account or nothing, the same nothing for every
     reason; its route answers one generic "giving unavailable" while
     `GUEST_GIVING_ENABLED` is off, the publishable key is not a test key, or
-    anything fails.
+    anything fails. It reads through a sessionless public-key client
+    (`createAnonymousClient`): no cookie is read or written, so a
+    visitor's expired session changes nothing (fix round F4).
 52. **The payment-event destination (W8-R39)** checks the signature, test
     mode and integer amounts in the raw text (decision 17's refusal of
     `1e2`) before any database call, takes the organization from the event's
@@ -409,11 +423,18 @@ NO KEY UPDATE` first.
 53. **Connected refunds and disputes are kept for WP8c (ruling 2):** the
     event is `deferred` (a terminal status the claim answers), one Mission
     Control task per gift (or per event when no intake is known) carries
-    every such event's link, and no money row changes.
+    every such event's link, and no money row changes. The deferral locks
+    as the apply does (the event, the account, the gift) and refuses
+    `55000 lease_lost` unless the event's lease is live and the account's
+    sync lease names the event (fix round F2).
 54. **One scheduled function (W8-R40).** `money-schedule` runs every thirty
     minutes with no step, no retry and one at a time: worker, sweep, events
     and reconciliation, each leaving at once with nothing due and failing
-    alone, within a 45-second budget. Inngest counts a run and each step as
+    alone, within a 45-second budget; a provider operation whose claim or
+    report came back as an RPC error counts as failed; the account reader
+    has a ten-second deadline and no automatic retry, and no row that reads
+    the provider starts with less than that left (fix round F7). Inngest
+    counts a run and each step as
     an execution, so it costs one execution a run: 48 a day, 1,440 in a
     thirty-day month and 1,488 in a thirty-one-day month per deployed
     environment at zero traffic, and nothing per gift, because the person at
@@ -430,9 +451,15 @@ NO KEY UPDATE` first.
     no new schedule task (a dead letter, a drift) and the stored rows
     unchanged; the Inngest dashboard names the cap.
 55. **The reconciliation reads each mapped test-mode account** whose binding
-    is active or restricted, maps the reading as the account apply does,
-    and opens one task when it differs from the binding; only the account's
-    own events move a binding.
+    is pending, active or restricted, maps the reading as the account apply
+    does, and opens one task when it differs from the binding; only the
+    account's own events move a binding. It locks the account and stamps
+    `reconciled_at` as its first write, whatever its outcome (a failed
+    provider read is handed over as `read_failed`, stamped and opens
+    nothing), and the due work orders accounts by it, never read first:
+    every account is read again within ceil(N / limit) ticks, a failing
+    read goes to the back, and two reconciliations of one account open one
+    task (fix round F5).
 56. **`donations.tenant_id` is NOT NULL behind its migration's count gate
     (W8-R16, record line 964):** it refuses with the count and changes
     nothing while a gift has no organization; the database's three writers
