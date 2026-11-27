@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 
 import {
+  formatReadinessReport,
   PROJECTS,
   readHealth,
   summarizeProjectReadiness,
@@ -94,4 +95,108 @@ describe("production readiness for serving under paths", () => {
     expect(await readHealth(admin, true, true, {}, request)).toBeNull();
     expect(request).not.toHaveBeenCalled();
   });
+});
+
+describe("readiness compares the switch state each app reports", () => {
+  const donor = {
+    key: "donor",
+    project: "asym-donor",
+    vercelConfigPath: "apps/donor/vercel.json",
+    healthUrl: "https://donor.asymmetric.al/api/health",
+    requiredEnv: [],
+  };
+  const onValues = {
+    CORE_SERVE_UNDER_PATHS: "1",
+    FRONT_ADMIN_ORIGIN: "https://admin.asymmetric.al",
+    FRONT_MISSIONARY_ORIGIN: "https://missionary.asymmetric.al",
+    FRONT_STAMP_KEY_ADMIN: "a".repeat(32),
+    FRONT_STAMP_KEY_MISSIONARY: "m".repeat(32),
+  };
+
+  function donorReport(
+    reported: boolean | undefined,
+    envValues: Record<string, string> = onValues,
+    requestedPaths = false,
+  ) {
+    return summarizeProjectReadiness({
+      project: donor,
+      envKeys: Object.keys(envValues),
+      envValues,
+      envTypes: {},
+      deployments: [
+        {
+          url: "donor.example.vercel.app",
+          state: "READY",
+          target: "production",
+          createdAt: 1,
+          commitSha: "built",
+          commitRef: "production",
+        },
+      ],
+      commit: "built",
+      health: {
+        url: "https://donor.asymmetric.al/api/health/migrations",
+        status: 200,
+        releaseCommit: "built",
+        serveUnderPaths: reported,
+      },
+      productionBranch: "production",
+      productionGitDeployments: false,
+      requestedPaths,
+    });
+  }
+
+  it("reads the state an app reports beside its commit", async () => {
+    const request = vi.fn(async (_url: string, _init?: RequestInit) =>
+      Response.json({
+        status: "ok",
+        release: { commit: "built", serveUnderPaths: false },
+      }),
+    );
+    const project = PROJECTS.find((p) => p.key === "donor")!;
+    const health = await readHealth(project, false, true, {}, request);
+    expect(health?.serveUnderPaths).toBe(false);
+  });
+
+  it("is ready when the donor reports the expected path mode (guard)", () => {
+    expect(donorReport(true).ready).toBe(true);
+  });
+
+  it.each([
+    ["reports off", false],
+    ["reports no state", undefined],
+  ] as const)(
+    "is not ready when path mode is expected and the donor %s, and the summary names it",
+    (_label, reported) => {
+      for (const report of [
+        donorReport(reported),
+        donorReport(
+          reported,
+          { ...onValues, CORE_SERVE_UNDER_PATHS: "0" },
+          true,
+        ),
+      ]) {
+        expect(report.ready).toBe(false);
+        const text = formatReadinessReport({
+          commit: "built",
+          reports: [report],
+        });
+        expect(text).toContain("Overall: BLOCKED (asym-donor)");
+        expect(text).toContain(
+          `Release health serveUnderPaths: ${reported ?? "absent"} (expected true)`,
+        );
+      }
+    },
+  );
+
+  it.each([false, undefined, true])(
+    "off, the reported state (%s) changes nothing, as today (guard)",
+    (reported) => {
+      const report = donorReport(reported, {}, false);
+      expect(report.ready).toBe(true);
+      expect(
+        formatReadinessReport({ commit: "built", reports: [report] }),
+      ).not.toContain("Release health serveUnderPaths");
+    },
+  );
 });
