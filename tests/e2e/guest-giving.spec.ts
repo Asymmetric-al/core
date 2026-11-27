@@ -19,7 +19,6 @@ import {
   origin,
   removeGivingWorld,
   stubStripeAtTheNetwork,
-  waitForChallenge,
   type GivingAccounts,
   type GivingWorld,
 } from "./helpers/guest-giving";
@@ -44,6 +43,19 @@ const WORDS = {
   declined:
     "Your card was declined, and you haven't been charged. Check the card details or try another card.",
 };
+
+async function waitForChallenge(page: Page) {
+  await page.waitForFunction(
+    () =>
+      Array.from(
+        document.querySelectorAll<HTMLInputElement>(
+          'input[name="cf-turnstile-response"]',
+        ),
+      ).some((input) => input.value.length > 0),
+    undefined,
+    { timeout: 120_000 },
+  );
+}
 
 let db: pg.Client;
 let world: GivingWorld;

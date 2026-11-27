@@ -315,16 +315,3 @@ export async function stubStripeAtTheNetwork(page: Page): Promise<string[]> {
   );
   return escaped;
 }
-
-export async function waitForChallenge(page: Page) {
-  await page.waitForFunction(
-    () =>
-      Array.from(
-        document.querySelectorAll<HTMLInputElement>(
-          'input[name="cf-turnstile-response"]',
-        ),
-      ).some((input) => input.value.length > 0),
-    undefined,
-    { timeout: 120_000 },
-  );
-}
