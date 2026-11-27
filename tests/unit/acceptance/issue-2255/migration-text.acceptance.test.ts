@@ -174,9 +174,25 @@ describe("#2255 forward migration text", () => {
     expect(c).toMatch(/raw/i);
   });
 
-  it("no other forward migration creates or alters these tables (redefinition scan, all forward files) (D-18, AL-2678: the account claim migration of WP5, which builds the claim, adds the token's proof columns and the claim commands to account_claim_requests and ends its requester read; it creates and drops neither table and leaves legacy_account_invitations alone)", () => {
+  it("no other forward migration creates or alters these tables (redefinition scan, all forward files) (D-18, AL-2678: the account claim migration of WP5, which builds the claim, adds the token's proof columns and the claim commands to account_claim_requests and ends its requester read; it creates and drops neither table and leaves legacy_account_invitations alone; D-18, AL-2678 WP5 rest 2: the party-lock migration replaces the claim redemption, which reads and updates claim rows, and creates, drops or alters neither table)", () => {
     const re = new RegExp(`\\b(${TABLES.join("|")})\\b`, "i");
     const CLAIM_MIGRATION = /^\d{14}_account_claim_commands\.sql$/;
+    const PARTY_LOCK_MIGRATION = /^\d{14}_wp5_rest2_party_lock\.sql$/;
+    const partyLock = code(
+      readFileSync(
+        path.join(
+          DIR,
+          readdirSync(DIR).find((f) => PARTY_LOCK_MIGRATION.test(f))!,
+        ),
+        "utf8",
+      ),
+    );
+    expect(partyLock).not.toMatch(
+      new RegExp(
+        `\\b(CREATE|DROP|ALTER)\\s+TABLE\\s+(IF\\s+(NOT\\s+)?EXISTS\\s+)?(public\\.)?(${TABLES.join("|")})\\b`,
+        "i",
+      ),
+    );
     const claimMigration = readdirSync(DIR).find((f) =>
       CLAIM_MIGRATION.test(f),
     );
@@ -190,7 +206,12 @@ describe("#2255 forward migration text", () => {
     const POLICY_MIGRATION = /^\d{14}_request_tenant_policies\.sql$/;
     const hits = readdirSync(DIR)
       .filter((f) => /^\d{14}_.*\.sql$/.test(f) && f !== OWN)
-      .filter((f) => !POLICY_MIGRATION.test(f) && !CLAIM_MIGRATION.test(f))
+      .filter(
+        (f) =>
+          !POLICY_MIGRATION.test(f) &&
+          !CLAIM_MIGRATION.test(f) &&
+          !PARTY_LOCK_MIGRATION.test(f),
+      )
       .filter((f) => re.test(code(readFileSync(path.join(DIR, f), "utf8"))));
     expect(hits).toEqual([]);
     const policyMigration = readdirSync(DIR).find((f) =>
