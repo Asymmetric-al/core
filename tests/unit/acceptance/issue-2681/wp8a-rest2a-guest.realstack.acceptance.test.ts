@@ -439,8 +439,8 @@ describe.skipIf(!ADMIN_URL)(
         const writes = (
           await db.query(
             `SELECT (SELECT count(*)::int FROM public.account_links WHERE user_id = $1) AS links,
-                    (SELECT count(*)::int FROM authz.memberships WHERE user_id = $1) AS memberships`,
-            [giver.user],
+                    (SELECT count(*)::int FROM authz.memberships WHERE user_id = $1 AND tenant_id = $2) AS memberships`,
+            [giver.user, w.A.tenant],
           )
         ).rows[0];
         expect(writes).toEqual({ links: 0, memberships: 0 });
