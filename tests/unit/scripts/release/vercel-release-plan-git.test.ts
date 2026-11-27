@@ -114,7 +114,8 @@ describe("release job: Vercel steps", () => {
         return {
           status: 200,
           json: async () => ({
-            observability: { release: { commit: liveByHost[host] } },
+            status: "ok",
+            release: { commit: liveByHost[host] },
           }),
         } as Response;
       });
@@ -129,9 +130,9 @@ describe("release job: Vercel steps", () => {
 
       expect(readFileSync(outputFile, "utf8")).toBe("apps=admin,missionary\n");
       expect(logs).toEqual([
-        `admin: build - changed app file: ${adminPath}`,
-        "donor: skip - changed files do not affect this Vercel app",
-        "missionary: build - live commit is not an ancestor",
+        `admin: build - changed app file: ${adminPath} [deploymentId=unreported serveUnderPaths=absent]`,
+        "donor: skip - changed files do not affect this Vercel app [deploymentId=unreported serveUnderPaths=absent]",
+        "missionary: build - live commit is not an ancestor [deploymentId=unreported serveUnderPaths=absent]",
       ]);
     } finally {
       process.chdir(previousCwd);
@@ -205,7 +206,8 @@ describe("release job: Vercel steps", () => {
       const request = vi.fn(async () => ({
         status: 200,
         json: async () => ({
-          observability: { release: { commit: liveSha } },
+          status: "ok",
+          release: { commit: liveSha },
         }),
       }));
 
@@ -219,9 +221,9 @@ describe("release job: Vercel steps", () => {
 
       expect(readFileSync(outputFile, "utf8")).toBe("apps=admin\n");
       expect(logs).toEqual([
-        "admin: build - changed app file: apps/admin/app/moved-note.ts",
-        "donor: skip - changed files do not affect this Vercel app",
-        "missionary: skip - changed files do not affect this Vercel app",
+        "admin: build - changed app file: apps/admin/app/moved-note.ts [deploymentId=unreported serveUnderPaths=absent]",
+        "donor: skip - changed files do not affect this Vercel app [deploymentId=unreported serveUnderPaths=absent]",
+        "missionary: skip - changed files do not affect this Vercel app [deploymentId=unreported serveUnderPaths=absent]",
       ]);
     } finally {
       process.chdir(previousCwd);
@@ -323,7 +325,8 @@ describe("release job: Vercel steps", () => {
         return {
           status: 200,
           json: async () => ({
-            observability: { release: { commit: liveByHost[host] } },
+            status: "ok",
+            release: { commit: liveByHost[host] },
           }),
         } as Response;
       });
@@ -338,9 +341,9 @@ describe("release job: Vercel steps", () => {
 
       expect(readFileSync(outputFile, "utf8")).toBe("apps=admin,donor\n");
       expect(logs).toEqual([
-        "admin: build - live commit is not an ancestor",
-        "donor: build - could not determine ancestry",
-        "missionary: skip - already serving this commit",
+        "admin: build - live commit is not an ancestor [deploymentId=unreported serveUnderPaths=absent]",
+        "donor: build - could not determine ancestry [deploymentId=unreported serveUnderPaths=absent]",
+        "missionary: skip - already serving this commit [deploymentId=unreported serveUnderPaths=absent]",
       ]);
 
       const spawnErrOutput = path.join(dir, "github-output-spawn-err");
@@ -357,9 +360,9 @@ describe("release job: Vercel steps", () => {
         "apps=admin,donor,missionary\n",
       );
       expect(spawnErrLogs).toEqual([
-        "admin: build - could not determine ancestry",
-        "donor: build - could not determine ancestry",
-        "missionary: build - could not determine ancestry",
+        "admin: build - could not determine ancestry [deploymentId=unreported serveUnderPaths=absent]",
+        "donor: build - could not determine ancestry [deploymentId=unreported serveUnderPaths=absent]",
+        "missionary: build - could not determine ancestry [deploymentId=unreported serveUnderPaths=absent]",
       ]);
     } finally {
       if (previousPath === undefined) {
