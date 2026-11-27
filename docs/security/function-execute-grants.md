@@ -496,3 +496,23 @@ security and grantees. `private.replace_line_based_allocations` does not exist:
 the line-based review lives in the four-argument
 `public.replace_staged_gift_allocations`, whose owner, security and grantees do
 not change.
+
+## Functions added by AL-2678 (WP5 rest, pull request 2a)
+
+| Function                                                 | Security | EXECUTE grantees (exact)           |
+| -------------------------------------------------------- | -------- | ---------------------------------- |
+| `private.login_party(uuid, uuid)`                        | DEFINER  | `postgres` (owner), `tenant_guard` |
+| `private.record_claim_merge_candidate(uuid, uuid, uuid)` | DEFINER  | `postgres` (owner), `tenant_guard` |
+
+Each revokes `PUBLIC`, `anon`, `authenticated` and `service_role` by name
+before granting (`20261127060000_wp5_rest2_party_lock.sql`). Both refuse a
+call outside the tenant the transaction entered (42501) and read nothing from
+`auth`. `private.login_party` answers the Party a login resolves to in the
+donor writer's order (account link, else sole worker row, else that login's
+donor); `private.record_claim_merge_candidate` writes one open
+`donor_merge_candidates` row for a claim refused because the login is tied to
+another Party, and never merges. `begin_donation_saga`,
+`atomic_create_donation_with_audit` and `tenant_guard.redeem_account_claim`
+are replaced, and `tenant_guard.add_partner` by
+`20261127060100_wp5_rest2_add_partner_digest.sql`, each with its owner,
+security and grantees unchanged.
