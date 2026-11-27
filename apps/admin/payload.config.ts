@@ -14,6 +14,10 @@ import { SitePresentations } from "./src/cms/collections/site-presentations";
 import { webStudioCreateFromTemplateEndpoint } from "./src/cms/create-from-template-endpoint";
 import { keepDocumentLocksInOrganization } from "./src/cms/document-locks";
 import {
+  webStudioMediaRegisterEndpoint,
+  webStudioMediaRemoveEndpoint,
+} from "./src/cms/media-endpoints";
+import {
   assertPayloadDatabaseConfiguration,
   resolvePayloadDatabaseConfig,
 } from "./src/cms/payload-database-config";
@@ -109,7 +113,11 @@ export default buildConfig({
       baseDir: path.resolve(dirname),
     },
   },
-  endpoints: [webStudioCreateFromTemplateEndpoint],
+  endpoints: [
+    webStudioCreateFromTemplateEndpoint,
+    webStudioMediaRegisterEndpoint,
+    webStudioMediaRemoveEndpoint,
+  ],
   hooks: {
     // A Web Studio REST call the strategy signed nobody in for is answered
     // with JSON that says why: 401 for an ended session, 409 for a page

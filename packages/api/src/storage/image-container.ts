@@ -15,6 +15,17 @@ const JPEG_SOF_MARKERS = new Set([
   0xc0, 0xc1, 0xc2, 0xc3, 0xc5, 0xc6, 0xc7, 0xc9, 0xca, 0xcb, 0xcd, 0xce, 0xcf,
 ]);
 
+const PNG_ANIMATION_CHUNKS = new Set(["acTL", "fcTL", "fdAT"]);
+const WEBP_ANIMATION_CHUNKS = new Set(["ANIM", "ANMF"]);
+const WEBP_ANIMATION_FLAG = 0x02;
+
+function refuseAnimation(): never {
+  throw new ApiHttpError(
+    415,
+    "Animated images are not allowed; upload a still JPEG, PNG or WebP",
+  );
+}
+
 function isAsciiLetter(byte: number): boolean {
   return (byte >= 0x41 && byte <= 0x5a) || (byte >= 0x61 && byte <= 0x7a);
 }
@@ -61,6 +72,8 @@ function parseStrictPng(rawBytes: Buffer): VerifiedImageContainer {
       sawIhdr = true;
     } else if (chunkType === "IHDR") {
       throw new ApiHttpError(415, "Duplicate PNG IHDR chunk");
+    } else if (PNG_ANIMATION_CHUNKS.has(chunkType)) {
+      refuseAnimation();
     } else if (chunkType === "IEND") {
       if (chunkLength !== 0) {
         throw new ApiHttpError(415, "Invalid PNG IEND chunk");
@@ -102,9 +115,18 @@ function parseStrictWebp(rawBytes: Buffer): VerifiedImageContainer {
     if (paddedEnd > rawBytes.byteLength) {
       throw new ApiHttpError(415, "Corrupted WebP chunk length");
     }
+    if (chunkSize & 1 && rawBytes[payloadStart + chunkSize] !== 0) {
+      throw new ApiHttpError(415, "Corrupted WebP chunk padding");
+    }
+    if (WEBP_ANIMATION_CHUNKS.has(fourcc)) {
+      refuseAnimation();
+    }
     if (fourcc === "VP8X" && width === 0) {
       if (chunkSize < 10) {
         throw new ApiHttpError(415, "Corrupted WebP VP8X header");
+      }
+      if (rawBytes[payloadStart]! & WEBP_ANIMATION_FLAG) {
+        refuseAnimation();
       }
       width =
         1 +

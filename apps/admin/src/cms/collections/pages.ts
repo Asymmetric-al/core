@@ -15,6 +15,7 @@ import {
   recordPageWriteMode,
   refuseLiveWrite,
   refusePublishedStatus,
+  refuseRestoreUnderLock,
 } from "../tenancy/page-rules";
 import { tenantScoped } from "../tenancy/tenant-scoped";
 
@@ -43,7 +44,7 @@ export const Pages: CollectionConfig = tenantScoped(
   {
     slug: "pages",
     authorship: true,
-    hooks: { beforeOperation: [recordPageWriteMode] },
+    hooks: { beforeOperation: [refuseRestoreUnderLock, recordPageWriteMode] },
     admin: {
       defaultColumns: ["title", "slug", "family", "updatedAt"],
       useAsTitle: "title",

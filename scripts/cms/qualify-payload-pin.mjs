@@ -48,6 +48,13 @@ import pg from "pg";
 
 import { isLoopbackDatabaseUrl } from "../lib/psql.mjs";
 import { adminAppDir, cmsScriptsDir, repoRoot } from "./lib/paths.mjs";
+import {
+  judgeLedgerKey,
+  judgePoolingProbe,
+  judgeSuppliedMediaIds,
+  poolingPlan,
+  summarizeQualification,
+} from "./lib/qualify-checks.mjs";
 
 const RESULT_PREFIX = "PAYLOAD_QUALIFICATION_RESULT ";
 const DATABASE_NAME = /^[a-z][a-z0-9_]{0,62}$/;
@@ -109,8 +116,14 @@ function databaseUrl(server, database, login) {
 
 const results = [];
 function record(name, pass, detail = {}) {
-  results.push({ name, pass: Boolean(pass), detail });
-  process.stdout.write(`${pass ? "PASS" : "FAIL"}  ${name}\n`);
+  const outcome = pass ? "PASS" : "FAIL";
+  results.push({ name, pass: Boolean(pass), outcome, detail });
+  process.stdout.write(`${outcome}  ${name}\n`);
+}
+
+function skip(name, reason) {
+  results.push({ name, pass: null, outcome: "SKIPPED", detail: { reason } });
+  process.stdout.write(`SKIPPED  ${name} (${reason})\n`);
 }
 
 function childEnv(overrides) {
@@ -416,6 +429,53 @@ async function constraintProblems(admin, expected) {
   });
 }
 
+const POOLING_CHECK =
+  "Pooling mode: eight concurrent draft saves of one page through the pooler, every one answered and the stored draft one of them (plan 9.3: session mode until this passes)";
+
+async function poolingCheck({ admin, runtimeLogin, database }) {
+  const plan = poolingPlan({
+    poolerUrl: process.env.PAYLOAD_QUALIFICATION_POOLER_URL,
+    directUrl: adminServerUrl().toString(),
+  });
+  if (plan.kind === "skipped") {
+    skip(POOLING_CHECK, plan.reason);
+    return;
+  }
+  if (!isLoopbackDatabaseUrl(plan.url)) {
+    record(POOLING_CHECK, false, {
+      reason: "the pooler address is not on this machine",
+    });
+    return;
+  }
+  const pooled = new URL(plan.url);
+  pooled.username ||= runtimeLogin.role;
+  pooled.password = runtimeLogin.password;
+  pooled.pathname = `/${database}`;
+  const probe = await runtimeMode("pooling-probe", {
+    NODE_ENV: "development",
+    PAYLOAD_DATABASE_URI: pooled.toString(),
+    PAYLOAD_DISABLE_SCHEMA_PUSH: "1",
+    E2E_AUTH_BYPASS: "true",
+    NEXT_PUBLIC_SUPABASE_URL: "https://example.supabase.co",
+    NEXT_PUBLIC_SUPABASE_ANON_KEY: "example-anon-key",
+  });
+  const versions = probe.result?.pageId
+    ? Number(
+        (
+          await admin.query(
+            "SELECT count(*)::int AS n FROM cms._pages_v WHERE parent_id = $1",
+            [probe.result.pageId],
+          )
+        ).rows[0].n,
+      )
+    : 0;
+  const outcome = probe.result ? { ...probe.result, versions } : null;
+  record(POOLING_CHECK, judgePoolingProbe(outcome), {
+    probe: outcome,
+    tail: outcome ? undefined : tail(probe.run.output, 30),
+  });
+}
+
 async function baselineChecks({ admin, ownerUrl, runtimeUrl }) {
   const devEnv = {
     NODE_ENV: "development",
@@ -512,6 +572,11 @@ async function baselineChecks({ admin, ownerUrl, runtimeUrl }) {
     },
   );
   record(
+    "A media record created with a supplied ID and no upload: the service port keeps it, REST and the actor port are refused (403), and a page create discards its ID (plan 6.7)",
+    judgeSuppliedMediaIds(proof?.suppliedMediaIds),
+    proof?.suppliedMediaIds ?? { tail: tail(baseline.run.output, 30) },
+  );
+  record(
     "Supplied presentation IDs: the service port keeps one, and a REST create of a presentation is refused",
     proof?.suppliedPresentationIds?.servicePortKept === true &&
       proof?.suppliedPresentationIds?.restCreateStatus === 403,
@@ -548,6 +613,7 @@ async function baselineChecks({ admin, ownerUrl, runtimeUrl }) {
     ...devEnv,
     PAYLOAD_QUALIFICATION_PAGE_ID: proof?.jsonBlocks?.pageId ?? "",
     PAYLOAD_QUALIFICATION_MEDIA_ID: proof?.jsonBlocks?.mediaId ?? "",
+    PAYLOAD_QUALIFICATION_TENANT_ID: proof?.jsonBlocks?.tenantId ?? "",
   });
   const mediaId = proof?.jsonBlocks?.mediaId;
   const depth0 = proof?.jsonBlocks?.depth0;
@@ -722,6 +788,24 @@ export async function main(argv = process.argv.slice(2)) {
     record("Payload migration status after migrating", status.status === 0, {
       tail: tail(status.output, migrationFiles.length + 6),
     });
+    const ledgerKey = await admin
+      .query(
+        `SELECT
+           (SELECT data_type FROM information_schema.columns
+             WHERE table_schema = 'cms' AND table_name = 'payload_migrations'
+               AND column_name = 'id') AS id_type,
+           to_regclass('cms.payload_migrations_id_seq')::text AS sequence`,
+      )
+      .then(({ rows }) => ({
+        idType: rows[0]?.id_type ?? null,
+        sequence: rows[0]?.sequence ?? null,
+      }))
+      .catch((error) => ({ error: error.message }));
+    record(
+      "Payload's migration ledger is keyed by UUID and payload_migrations_id_seq is gone (2b Q3)",
+      judgeLedgerKey(ledgerKey),
+      ledgerKey,
+    );
 
     // 3. Ownership and grants.
     const ownership = await admin.query(`
@@ -941,6 +1025,7 @@ export async function main(argv = process.argv.slice(2)) {
     qualificationConfig = writeQualificationConfig();
     try {
       await baselineChecks({ admin, ownerUrl, runtimeUrl });
+      await poolingCheck({ admin, runtimeLogin, database: options.database });
     } finally {
       rmSync(qualificationConfig.dir, { recursive: true, force: true });
       qualificationConfig = null;
@@ -1068,11 +1153,11 @@ export async function main(argv = process.argv.slice(2)) {
       `${JSON.stringify({ database: options.database, results }, null, 2)}\n`,
     );
   }
-  const failed = results.filter((result) => !result.pass);
+  const summary = summarizeQualification(results);
   process.stdout.write(
-    `\n${results.length - failed.length} passed, ${failed.length} failed\n`,
+    `\n${summary.passed} passed, ${summary.failed} failed, ${summary.skipped} skipped\n`,
   );
-  process.exitCode = failed.length === 0 && results.length > 0 ? 0 : 1;
+  process.exitCode = summary.exitCode;
 }
 
 if (path.resolve(process.argv[1] ?? "") === fileURLToPath(import.meta.url))

@@ -35,3 +35,16 @@ export function canCreateCollection(
     (create as { permission?: unknown }).permission === true,
   );
 }
+
+export function canUpdateCollection(
+  permissions: Pick<SanitizedPermissions, "collections"> | null | undefined,
+  slug: string,
+): boolean {
+  const update: unknown = permissions?.collections?.[slug]?.update;
+  if (update === true) return true;
+  return Boolean(
+    update &&
+    typeof update === "object" &&
+    (update as { permission?: unknown }).permission === true,
+  );
+}

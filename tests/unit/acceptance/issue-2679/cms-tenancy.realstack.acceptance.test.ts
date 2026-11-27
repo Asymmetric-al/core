@@ -1546,5 +1546,165 @@ describe.skipIf(!ADMIN_URL)(
         ).toBe(owner);
       });
     });
+    describe("WP6 rest, pull request 2: media records by any spelling of their id, removed only in their organization (rule 13, invariant 4)", () => {
+      it("registers an upper-case id and tenant as the one lower-case row, and registers it again as the same row", async () => {
+        const id = randomUUID();
+        const first = (await s.service.registerMediaRecord(s.payload as never, {
+          id: id.toUpperCase(),
+          tenantId: A.toUpperCase(),
+          alt: "Upper",
+        })) as Doc;
+        s.created.push(["media", id]);
+        expect(first).toMatchObject({ id, tenant: A });
+        const again = (await s.service.registerMediaRecord(s.payload as never, {
+          id,
+          tenantId: A,
+          alt: "Upper",
+        })) as Doc;
+        expect(again.id).toBe(id);
+        expect(
+          (
+            await s.admin.query(
+              "select count(*) from cms.media where id = $1",
+              [id],
+            )
+          ).rows[0].count,
+        ).toBe("1");
+      });
+
+      it("deleteMediaRecord refuses another organization's row and leaves it", async () => {
+        const before = await row("media", mediaB.id);
+        const outcome = await s.settle(
+          s.service.deleteMediaRecord(s.payload as never, mediaB.id, A),
+        );
+        expect(outcome.ok).toBe(false);
+        expect(await row("media", mediaB.id)).toEqual(before);
+      });
+
+      it("deleteMediaRecord deletes the organization's own row by a non-RFC id in upper case, and a second call does nothing", async () => {
+        const id = "a1b2c3d4-0000-1111-2222-333344445555";
+        await s.media(A, id, "Fixture-like");
+        await s.service.deleteMediaRecord(
+          s.payload as never,
+          id.toUpperCase(),
+          A,
+        );
+        expect(await row("media", id)).toBeUndefined();
+        await expect(
+          s.service.deleteMediaRecord(s.payload as never, id, A),
+        ).resolves.toBeUndefined();
+      });
+    });
+
+    describe("WP6 rest, pull request 2, fix round F5: the media library's register and remove refuse as every Web Studio call does", () => {
+      it.each([
+        ["register", { alt: "Refused" }],
+        ["remove", {}],
+      ])(
+        "%s: a page opened for another organization answers 409 scope_mismatch, an ended session 401 no_session, and nothing is written",
+        async (action, extra) => {
+          const assetId = randomUUID();
+          const path = `/web-studio/api/web-studio/media/${action}`;
+          const stale = await s.restAs(
+            editorA,
+            "POST",
+            path,
+            { assetId, ...extra },
+            { tenantHeader: B },
+          );
+          expect([stale.status, stale.refusal]).toEqual([
+            409,
+            "scope_mismatch",
+          ]);
+          const ended = await s.restAs(
+            editorA,
+            "POST",
+            path,
+            { assetId, ...extra },
+            { signedIn: false },
+          );
+          expect([ended.status, ended.refusal]).toEqual([401, "no_session"]);
+          expect(await row("media", assetId)).toBeUndefined();
+        },
+      );
+    });
+
+    describe("WP6 rest, pull request 2: a restore over another person's lock is refused (invariant 7; #2809 F4)", () => {
+      let page: Doc;
+      let version: string;
+      let lockHolder: Person;
+
+      const lockPage = async (holder: Person) => {
+        await s.payload.db.create({
+          collection: "payload-locked-documents",
+          data: {
+            document: { relationTo: "pages", value: page.id },
+            user: { relationTo: "principal-links", value: holder.id },
+          },
+          req: await s.reqFor(holder),
+        });
+      };
+      const unlock = () =>
+        s.admin.query(
+          "delete from cms.payload_locked_documents where id in (select parent_id from cms.payload_locked_documents_rels where pages_id = $1)",
+          [page.id],
+        );
+      const restoreAs = (user: Person) =>
+        s.settle(
+          s.payload.restoreVersion({
+            collection: "pages",
+            id: version,
+            draft: true,
+            overrideAccess: false,
+            user,
+          }),
+        );
+
+      beforeAll(async () => {
+        page = await s.page(A, siteA.id);
+        for (const title of ["Second draft", "Third draft"]) {
+          await s.payload.update({
+            collection: "pages",
+            id: page.id,
+            data: { title },
+            draft: true,
+            overrideAccess: false,
+            user: editorA,
+          });
+        }
+        version = (
+          await s.admin.query(
+            "select id from cms._pages_v where parent_id = $1 order by created_at asc limit 1",
+            [page.id],
+          )
+        ).rows[0].id as string;
+        lockHolder = await s.person(A);
+      });
+
+      it("refuses a restore while another person holds an unexpired lock, and changes nothing", async () => {
+        await lockPage(lockHolder);
+        const before = await row("pages", page.id);
+        const outcome = await restoreAs(editorA);
+        expect(outcome.ok).toBe(false);
+        expect(await row("pages", page.id)).toEqual(before);
+        await unlock();
+      });
+
+      it("lets the holder restore", async () => {
+        await lockPage(lockHolder);
+        expect((await restoreAs(lockHolder)).ok).toBe(true);
+        await unlock();
+      });
+
+      it("lets another person restore once the lock has expired", async () => {
+        await lockPage(lockHolder);
+        await s.admin.query(
+          "update cms.payload_locked_documents set updated_at = now() - interval '10 minutes' where id in (select parent_id from cms.payload_locked_documents_rels where pages_id = $1)",
+          [page.id],
+        );
+        expect((await restoreAs(editorA)).ok).toBe(true);
+        await unlock();
+      });
+    });
   },
 );

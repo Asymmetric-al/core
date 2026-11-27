@@ -14,11 +14,13 @@ import {
 import { ArrowLeft, Plus, Trash2 } from "lucide-react";
 import { useId } from "react";
 
+import { DocumentThumbnailSource } from "./document-thumbnail-source";
 import {
   getStudioListConfig,
   type StudioListCollectionSlug,
 } from "./list-config";
 import { NativeCollectionGrid } from "./NativeCollectionGrid";
+import { resolveDocumentThumbnail } from "./payload-list-grid";
 import { Link } from "../../../routing";
 import { StudioLayout } from "../../../shell/studio-layout";
 
@@ -61,6 +63,8 @@ export type NativeCollectionListViewProps = {
   /** Payload's grouped documents while the list has a groupBy. */
   groupedData?: ListViewGroup[];
   viewType: ViewTypes;
+  studioActions?: React.ReactNode;
+  thumbnail?: (doc: Record<string, unknown>) => string | null;
 };
 
 /**
@@ -101,6 +105,8 @@ function StudioCollectionListView({
   Table,
   groupedData,
   viewType,
+  studioActions,
+  thumbnail,
 }: NativeCollectionListViewProps) {
   const recordsId = useId();
   const { data } = useListQuery();
@@ -156,6 +162,7 @@ function StudioCollectionListView({
             </Link>
           ) : (
             <>
+              {studioActions}
               {trashEnabled ? (
                 <Link
                   href={`${studioConfig.listPath}/trash`}
@@ -191,21 +198,25 @@ function StudioCollectionListView({
                 totalDocs={data?.totalDocs ?? 0}
               >
                 <div id={recordsId} tabIndex={-1}>
-                  <NativeCollectionGrid
-                    title={title}
-                    singularTitle={studioConfig.titleSingular}
-                    bulk={bulk}
-                    useAsTitle={useAsTitle}
-                    hasDrafts={studioConfig.hasDrafts}
-                    listPath={studioConfig.listPath}
-                    createHref={createHref}
-                    createLabel={studioConfig.createLabel}
-                    fields={collectionConfig?.fields ?? []}
-                    groupedTable={Table}
-                    groupedData={groupedData}
-                    trash={trash}
-                    trashEnabled={trashEnabled}
-                  />
+                  <DocumentThumbnailSource.Provider
+                    value={thumbnail ?? resolveDocumentThumbnail}
+                  >
+                    <NativeCollectionGrid
+                      title={title}
+                      singularTitle={studioConfig.titleSingular}
+                      bulk={bulk}
+                      useAsTitle={useAsTitle}
+                      hasDrafts={studioConfig.hasDrafts}
+                      listPath={studioConfig.listPath}
+                      createHref={createHref}
+                      createLabel={studioConfig.createLabel}
+                      fields={collectionConfig?.fields ?? []}
+                      groupedTable={Table}
+                      groupedData={groupedData}
+                      trash={trash}
+                      trashEnabled={trashEnabled}
+                    />
+                  </DocumentThumbnailSource.Provider>
                 </div>
               </SelectionProvider>
             </RelationshipProvider>

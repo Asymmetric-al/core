@@ -54,6 +54,7 @@ const TEST_NAME_RE = /\.(?:test|spec)\.[cm]?[jt]sx?$|\.d\.ts$/;
 
 export const SERVICE_PORT_CALLERS = Object.freeze([
   "apps/admin/src/cms/auth/supabase-strategy.ts",
+  "apps/admin/src/cms/media-endpoints.ts",
   "apps/admin/src/cms/site-presentation-step.ts",
   "apps/admin/src/cms/tenancy/page-rules.ts",
   "apps/admin/src/cms/tenancy/reference-guard.ts",
@@ -64,8 +65,11 @@ export const SERVICE_PORT_CALLERS = Object.freeze([
 
 const SERVICE_PORT_SPECIFIER =
   /(?:^|\/)ports\/service-port(?:\.[cm]?[jt]sx?)?$/;
+const SOURCE_EXTENSION = /\.[cm]?[jt]sx?$/;
 const OVERRIDE_KEY = "overrideAccess";
 const LOCAL_API_METHODS = new Set([
+  "cancel",
+  "cancelByID",
   "count",
   "countGlobalVersions",
   "countVersions",
@@ -82,12 +86,18 @@ const LOCAL_API_METHODS = new Set([
   "findVersions",
   "forgotPassword",
   "login",
+  "queue",
+  "renameFile",
   "resetPassword",
   "restoreGlobalVersion",
   "restoreVersion",
+  "run",
+  "runByID",
   "unlock",
   "update",
   "updateGlobal",
+  "validate",
+  "validateGlobal",
   "verifyEmail",
 ]);
 
@@ -204,11 +214,24 @@ function isAssignment(node) {
   );
 }
 
-function isServicePortSpecifier(node) {
+function resolvesToServicePort(specifier, importer) {
+  if (!specifier.startsWith(".")) return false;
+  const resolved = path.posix.normalize(
+    path.posix.join(path.posix.dirname(importer), specifier),
+  );
   return (
-    node !== undefined &&
-    (ts.isStringLiteral(node) || ts.isNoSubstitutionTemplateLiteral(node)) &&
-    SERVICE_PORT_SPECIFIER.test(node.text)
+    resolved.replace(SOURCE_EXTENSION, "") ===
+    SERVICE_PORT_FILE.replace(SOURCE_EXTENSION, "")
+  );
+}
+
+function isServicePortSpecifier(node, importer) {
+  if (node === undefined) return false;
+  const specifier = foldKey(node);
+  return (
+    specifier !== null &&
+    (SERVICE_PORT_SPECIFIER.test(specifier) ||
+      resolvesToServicePort(specifier, importer))
   );
 }
 
@@ -349,14 +372,14 @@ export function collectOverrideInventoryFindings(relativePath, source) {
     }
     if (
       ts.isImportDeclaration(node) &&
-      isServicePortSpecifier(node.moduleSpecifier) &&
+      isServicePortSpecifier(node.moduleSpecifier, relativePath) &&
       !isTypeOnlyImport(node)
     ) {
       add("service-port-import", node);
     }
     if (
       ts.isExportDeclaration(node) &&
-      isServicePortSpecifier(node.moduleSpecifier) &&
+      isServicePortSpecifier(node.moduleSpecifier, relativePath) &&
       !node.isTypeOnly
     ) {
       add("service-port-import", node, { reexport: true });
@@ -365,7 +388,7 @@ export function collectOverrideInventoryFindings(relativePath, source) {
       ts.isImportEqualsDeclaration(node) &&
       !node.isTypeOnly &&
       ts.isExternalModuleReference(node.moduleReference) &&
-      isServicePortSpecifier(node.moduleReference.expression)
+      isServicePortSpecifier(node.moduleReference.expression, relativePath)
     ) {
       add("service-port-import", node);
     }
@@ -374,7 +397,7 @@ export function collectOverrideInventoryFindings(relativePath, source) {
       (node.expression.kind === ts.SyntaxKind.ImportKeyword ||
         (ts.isIdentifier(node.expression) &&
           node.expression.text === "require")) &&
-      isServicePortSpecifier(node.arguments[0])
+      isServicePortSpecifier(node.arguments[0], relativePath)
     ) {
       add("service-port-import", node);
     }

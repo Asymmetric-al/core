@@ -1,3 +1,4 @@
+import { withAppBasePath } from "@asym/database/app-base-path";
 import { resolvePublicCmsCtaHref } from "@asym/lib/cms/public-page";
 
 import type { SerializedPublicMedia } from "@asym/api/cms/public";
@@ -192,6 +193,15 @@ function serializeStat(value: unknown) {
   };
 }
 
+const HEX_UUID =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+function mediaRoute(id: unknown, variant?: "w320") {
+  if (typeof id !== "string" || !HEX_UUID.test(id)) return null;
+  const path = `/api/media/${id.toLowerCase()}`;
+  return withAppBasePath(variant ? `${path}?variant=${variant}` : path);
+}
+
 function serializePublicMedia(value: unknown) {
   if (
     typeof value === "string" ||
@@ -213,9 +223,9 @@ function serializePublicMedia(value: unknown) {
         ? String(media.id)
         : null,
     alt: readOptionalString(media.alt),
-    url: null,
-    thumbnailURL: null,
-    cardURL: null,
+    url: mediaRoute(media.id),
+    thumbnailURL: mediaRoute(media.id, "w320"),
+    cardURL: mediaRoute(media.id),
     width: null,
     height: null,
     mimeType: null,

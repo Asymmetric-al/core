@@ -63,6 +63,48 @@ export async function openCoreSession(
   return { client, tenantId: actor.tenantId };
 }
 
+export type MediaCustody = {
+  id: string;
+  tenant_id: string;
+  status: string;
+};
+
+export type MediaCustodyRead =
+  | { kind: "found"; asset: MediaCustody }
+  | { kind: "missing" }
+  | { kind: "unreadable" };
+
+export async function readMediaCustody(
+  session: CoreSession,
+  assetId: string,
+): Promise<MediaCustodyRead> {
+  const { data, error } = await session.client
+    .from("media_assets")
+    .select("id, tenant_id, status")
+    .eq("id", assetId)
+    .eq("tenant_id", session.tenantId)
+    .maybeSingle();
+  if (error) return { kind: "unreadable" };
+  if (!data) return { kind: "missing" };
+  const row = data as Partial<MediaCustody>;
+  if (
+    typeof row.id !== "string" ||
+    typeof row.tenant_id !== "string" ||
+    typeof row.status !== "string" ||
+    row.tenant_id.toLowerCase() !== session.tenantId.toLowerCase()
+  ) {
+    return { kind: "unreadable" };
+  }
+  return {
+    kind: "found",
+    asset: {
+      id: row.id.toLowerCase(),
+      tenant_id: row.tenant_id.toLowerCase(),
+      status: row.status,
+    },
+  };
+}
+
 type MissionaryLabelRow = {
   id: string;
   profile_id: string | null;

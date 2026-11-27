@@ -2523,6 +2523,58 @@ describe("AL-2679 WP6 rest: the release gives every Site its presentation", () =
     expect(printed).not.toMatch(/postgres(?:ql)?:\/\//);
   });
 
+  it("scrubs the cms_runtime password in the percent-encoded form the sweep's PAYLOAD_DATABASE_URI carries (#2839, item zero 3)", () => {
+    const special = `p@ss/w:rd%#?[]^|${"q".repeat(20)}`;
+    const env = { ...passwords, RELEASE_CMS_RUNTIME_PASSWORD: special };
+    const fake = fakeDatabase({ sites: [{ id: S1, tenantId: T1 }] });
+    let raw = "";
+    const runCommand = vi.fn(
+      (
+        command: string,
+        args: string[],
+        options: { env: Record<string, string> },
+      ) => {
+        if (command === "bun" && args[0] === SWEEP) {
+          raw = new URL(options.env.PAYLOAD_DATABASE_URI!).password;
+          return {
+            status: 1,
+            stdout: "",
+            stderr: `sweep-site-presentations: auth failed with ${raw} after ${special}\n`,
+          };
+        }
+        fake.events.push(command === "bun" ? "payload" : "supabase");
+        return { status: 0 };
+      },
+    );
+    const lines: string[] = [];
+    let message = "";
+    try {
+      migrate({
+        settings: readReleaseSettings({
+          RELEASE_ENVIRONMENT: "production",
+          RELEASE_SUPABASE_PROJECT_REF: ref,
+          RELEASE_DATABASE_URL: databaseUrl,
+          RELEASE_CMS_OWNER_PASSWORD: "owner-password-fixture",
+          RELEASE_CMS_RUNTIME_PASSWORD: special,
+          RELEASE_DATABASE_SSL_CA: CA,
+        }),
+        env,
+        query: fake.query,
+        run: fake.run,
+        runCommand,
+        log: (line: string) => lines.push(line),
+      });
+    } catch (error) {
+      message = (error as Error).message;
+    }
+    const printed = [...lines, message].join("\n");
+    expect(raw).not.toBe("");
+    expect(raw).not.toBe(special);
+    expect(printed).toContain("auth failed");
+    expect(printed).not.toContain(raw);
+    expect(printed).not.toContain(special);
+  });
+
   it("says what its number is: the Sites handed to the sweep, each of which has its presentation afterwards", () => {
     const fake = fakeDatabase({
       presentations: [{ id: S1, tenant: T1 }],
