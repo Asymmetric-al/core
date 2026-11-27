@@ -142,5 +142,7 @@ it("describes the 4 MB cropped upload on the missionary photo and cover controls
     "apps/missionary/app/profile/profile-form-column.tsx",
     "utf8",
   );
-  expect(source.match(/4 MB/g)).toHaveLength(2);
+  const copy = source.replace(/\s+/g, " ");
+  expect(copy).toContain("Cropped photo up to 4 MB.");
+  expect(copy).toContain("Cropped cover up to 4 MB.");
 });
