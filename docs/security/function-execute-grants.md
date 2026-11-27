@@ -584,3 +584,20 @@ records nothing. `begin_donation_saga`,
 are replaced, and `tenant_guard.add_partner` by
 `20261127060100_wp5_rest2_add_partner_digest.sql`, each with its owner,
 security and grantees unchanged.
+
+## Functions added by AL-2671 (N4, pull request 1)
+
+| Function                                  | Security | EXECUTE grantees (exact)           |
+| ----------------------------------------- | -------- | ---------------------------------- |
+| `public.take_sign_in_attempt(text, text)` | DEFINER  | `postgres` (owner), `service_role` |
+| `public.record_sign_in_failure(text)`     | DEFINER  | `postgres` (owner), `service_role` |
+
+`20261127100000_n4_sign_in_limits.sql`: Core's sign-in limits.
+`public.take_sign_in_attempt` counts one password attempt against the client
+address in a fifteen-minute window, trims ended windows, and answers whether
+the attempt may go to the provider (not past 30 from the address, nor at 10
+refused passwords for the account); `public.record_sign_in_failure` counts one
+refused password for the account. Both keep SHA-256 digests only in
+`private.sign_in_windows`, take no organization and name nothing in `auth`.
+The file revokes `PUBLIC`, `anon`, `authenticated` and `service_role` by name
+before granting.
