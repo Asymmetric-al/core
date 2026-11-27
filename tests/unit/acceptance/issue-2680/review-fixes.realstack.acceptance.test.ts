@@ -361,6 +361,77 @@ describe.skipIf(!ADMIN_URL)(
         expect((await state(straight)).review_state).toBe("approved");
       }));
 
+    const unread = async (post: string) => {
+      for (const caller of [null, follower, nonFollower])
+        expect(await sees(caller, post)).toBe(false);
+    };
+
+    it("G1: under automatic, an update a reviewer rejected stays waiting through its author's second edit, and no one but its author and a reviewer reads it", () =>
+      inSavepoint(async () => {
+        const post = await submit(missionary, "Rejected, then edited twice");
+        const reject = await act(
+          reviewer,
+          rejectSql(id.TA, post, await versionOf(db, post), "Names a village"),
+        );
+        expect(reject.code, reject.message).toBeNull();
+        await automatic();
+        await submit(missionary, "First edit", { post });
+        expect((await state(post)).review_state).toBe("submitted");
+        await submit(missionary, "Second edit", { post });
+        expect((await state(post)).review_state).toBe("submitted");
+        await unread(post);
+      }));
+
+    it("G1: under automatic, an update a reviewer withdrew stays waiting through its author's second edit, and no one but its author and a reviewer reads it", () =>
+      inSavepoint(async () => {
+        const post = await submit(missionary, "Withdrawn, then edited twice");
+        await approve(post);
+        const pull = await act(
+          reviewer,
+          withdrawSql(id.TA, post, "Names a partner"),
+        );
+        expect(pull.code, pull.message).toBeNull();
+        await automatic();
+        await submit(missionary, "First edit", { post });
+        await submit(missionary, "Second edit", { post });
+        expect((await state(post)).review_state).toBe("submitted");
+        await unread(post);
+      }));
+
+    it("G1: an update submitted under review is still waiting after the policy turns automatic and its author edits it", () =>
+      inSavepoint(async () => {
+        const post = await submit(missionary, "Waiting under review");
+        expect((await state(post)).review_state).toBe("submitted");
+        await automatic();
+        await submit(missionary, "Edited under automatic", { post });
+        expect((await state(post)).review_state).toBe("submitted");
+        await unread(post);
+      }));
+
+    it("G1 guard: under automatic, an update a reviewer approved stays approved through its author's edit", () =>
+      inSavepoint(async () => {
+        const post = await submit(missionary, "Approved by a reviewer");
+        await approve(post);
+        await automatic();
+        await submit(missionary, "Edited under automatic", { post });
+        expect(await state(post)).toMatchObject({
+          review_state: "approved",
+          review_reason: "automatic",
+        });
+        expect(await sees(null, post)).toBe(true);
+      }));
+
+    it("G1 guard: under automatic, a new update is approved", () =>
+      inSavepoint(async () => {
+        await automatic();
+        const post = await submit(missionary, "New under automatic");
+        expect(await state(post)).toMatchObject({
+          review_state: "approved",
+          review_reason: "automatic",
+        });
+        expect(await sees(null, post)).toBe(true);
+      }));
+
     it("S6: a change of only the post's missionary keeps its review state and version and recomputes withheld from the derived key", () =>
       inSavepoint(async () => {
         const post = await submit(missionary, "Moves to another worker");
