@@ -53,7 +53,7 @@ describe("requireSupportHubAccess", () => {
     expect(result.response.status).toBe(403);
   });
 
-  it("returns the typed context for a staff caller", async () => {
+  it("returns the typed context for a staff caller (D-18, AL-2675: the context no longer carries isSuperAdmin; no membership ever set it)", async () => {
     getAuthContextMock.mockResolvedValue({
       isAuthenticated: true,
       userId: "user-1",

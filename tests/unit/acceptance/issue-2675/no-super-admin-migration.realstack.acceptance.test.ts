@@ -32,6 +32,45 @@ const BRANCH = "( SELECT authz.is_super_admin() AS is_super_admin)";
 const HELPER = "( SELECT authz.staff_read() AS staff_read)";
 const BARE =
   "( SELECT authz.assignment_is('staff'::authz.membership_role) AS assignment_is)";
+const BASE_SUPER_ADMIN_BRANCH_KEYS = Object.freeze([
+  "public.audit_logs authz staff tenant select audit_logs",
+  "public.crm_command_logs authz staff tenant select crm_command_logs",
+  "public.crm_record_links authz staff tenant select crm_record_links",
+  "public.donations donations owner or staff select",
+  "public.donor_activities donor activities owner or staff select",
+  "public.donor_pledges donor pledges owner or staff select",
+  "public.donors donors owner or staff select",
+  "public.field_policies field_policies_read",
+  "public.notification_queue authz staff tenant select notification_queue",
+  "public.pdf_template_artifacts pdf template artifacts select",
+  "public.pdf_template_audit_events pdf template audit events select",
+  "public.pdf_template_batch_jobs pdf template batch jobs select",
+  "public.pdf_template_batches pdf template batches select",
+  "public.pdf_template_renders pdf template renders select",
+  "public.pdf_template_versions pdf template versions select",
+  "public.pdf_templates authz staff tenant select pdf_templates",
+  "public.support_agents support hub staff select",
+  "public.support_assignments support hub staff select",
+  "public.support_audit_log support hub staff select",
+  "public.support_automation_rules support hub staff select",
+  "public.support_business_hours support hub staff select",
+  "public.support_canned_responses support hub staff select",
+  "public.support_contacts support contacts select",
+  "public.support_conversation_labels support hub staff select",
+  "public.support_conversations support hub staff select",
+  "public.support_inbox_settings support hub staff select",
+  "public.support_inboxes support hub staff select",
+  "public.support_labels support hub staff select",
+  "public.support_macros support hub staff select",
+  "public.support_message_attachments support hub staff select",
+  "public.support_messages support hub staff select",
+  "public.support_notification_preferences support hub staff select",
+  "public.support_saved_views support hub staff select",
+  "public.support_signatures support hub staff select",
+  "public.support_sla_policies support hub staff select",
+  "public.support_teams support hub staff select",
+  "public.support_tickets support tickets select",
+]);
 
 describe("AL-2675 WP2c rest B: the migration's form", () => {
   it("takes its locks under a limit, creates the helper first, alters the policies by table name and drops the function last, without CASCADE", () => {
@@ -132,19 +171,25 @@ describe.skipIf(!ADMIN_URL)(
       before: Map<string, Record<string, unknown>>,
       after: Record<string, unknown>[],
     ) => {
-      let branches = 0;
+      const expectedBranches = new Set<string>(BASE_SUPER_ADMIN_BRANCH_KEYS);
+      const restoredBranches: string[] = [];
       for (const p of after) {
-        const was = before.get(p.key as string)!;
-        expect(was, `${p.key} existed before`).toBeDefined();
+        const key = p.key as string;
+        const was = before.get(key)!;
+        expect(was, `${key} existed before`).toBeDefined();
         const back = (was.using_text as string).replaceAll(HELPER, BARE);
-        if ((p.using_text as string).startsWith(`(${BRANCH} OR `)) {
-          branches += 1;
-          expect(p.using_text, p.key as string).toBe(`(${BRANCH} OR ${back})`);
-        } else expect(p.using_text, p.key as string).toBe(back);
-        expect(p.check_text, p.key as string).toBe(was.check_text);
+        if (expectedBranches.has(key)) {
+          restoredBranches.push(key);
+          expect(p.using_text, key).toBe(`(${BRANCH} OR ${back})`);
+        } else {
+          expect(p.using_text, key).toBe(back);
+        }
+        expect(p.check_text, key).toBe(was.check_text);
       }
       expect(after).toHaveLength(before.size);
-      expect(branches).toBe(37);
+      expect(restoredBranches.sort()).toEqual([
+        ...BASE_SUPER_ADMIN_BRANCH_KEYS,
+      ]);
     };
 
     const downSql = () =>

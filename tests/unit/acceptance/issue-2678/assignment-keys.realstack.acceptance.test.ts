@@ -1152,19 +1152,37 @@ console.log(JSON.stringify(await m.runTenantRlsCatalogGate({ databaseUrl: proces
         failures?: { code: string; table?: string; detail?: string }[];
       };
       expect(verdict.failures, gate.stderr).toBeInstanceOf(Array);
-      const superAdminTables = new Set(
-        verdict
-          .failures!.filter((f) => f.code === "POLICY_SUPER_ADMIN_BRANCH")
-          .map((f) => f.table),
+      const noSuperAdminBody = readFileSync(
+        migration("_wp2c_rest_no_super_admin"),
+        "utf8",
+      )
+        .split("\n")
+        .filter((line) => !/^\s*--/.test(line))
+        .join("\n");
+      const alteredByWp2cB = new Set(
+        [
+          ...noSuperAdminBody.matchAll(
+            /^ALTER POLICY "([^"]+)" ON public\.([a-z_]+)$/gm,
+          ),
+        ].map((m) => `${m[2]}|${m[1]}`),
       );
+      expect(alteredByWp2cB.size).toBe(62);
+      const isAltered = (f: { table?: string; detail?: string }) => {
+        const policy = /^policy "([^"]+)"/.exec(f.detail ?? "")?.[1];
+        return (
+          policy !== undefined && alteredByWp2cB.has(`${f.table}|${policy}`)
+        );
+      };
       const later = (f: { code: string; table?: string; detail?: string }) =>
         f.code === "SERVICE_ROLE_UNSAFE_PRIVILEGE" ||
         (f.code === "SERVICE_ROLE_SCHEMA_CREATE" && f.table === "authz") ||
-        f.code === "POLICY_SUPER_ADMIN_BRANCH" ||
-        f.code === "STAFF_READ_ON_BARE_STAFF_CHECK" ||
-        (f.code === "TENANT_CONDITION_MISSING" &&
-          superAdminTables.has(f.table)) ||
-        (f.code === "POLICY_EXCEPTION_CHANGED" && f.table === "field_policies");
+        ((f.code === "POLICY_SUPER_ADMIN_BRANCH" ||
+          f.code === "TENANT_CONDITION_MISSING" ||
+          f.code === "STAFF_READ_ON_BARE_STAFF_CHECK") &&
+          isAltered(f)) ||
+        (f.code === "POLICY_EXCEPTION_CHANGED" &&
+          f.table === "field_policies" &&
+          /^policy "field_policies_read"/.test(f.detail ?? ""));
       expect(
         later({
           code: "TENANT_CONDITION_MISSING",

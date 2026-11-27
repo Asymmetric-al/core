@@ -3,6 +3,7 @@ import { randomUUID } from "node:crypto";
 import pg from "pg";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
+import { totp } from "../../../e2e/helpers/totp";
 import { insertRow, removeTenants } from "./no-super-admin-fixture";
 
 const url = process.env.WP2C_REST_IT_URL;
@@ -75,6 +76,38 @@ describe.skipIf(!ready)(
         },
       });
 
+    async function secondFactor(aal1Token: string) {
+      const auth = (path: string, body: Record<string, unknown>) =>
+        fetch(`${url}/auth/v1${path}`, {
+          method: "POST",
+          headers: {
+            apikey: anon!,
+            Authorization: `Bearer ${aal1Token}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(body),
+        });
+      const enrolled = await auth("/factors", {
+        factor_type: "totp",
+        friendly_name: `wp2cb-${randomUUID()}`,
+      });
+      const enrolledJson = (await enrolled.json()) as {
+        id: string;
+        totp: { secret: string };
+      };
+      expect(enrolled.ok, JSON.stringify(enrolledJson)).toBe(true);
+      const challenge = await auth(`/factors/${enrolledJson.id}/challenge`, {});
+      const challengeJson = (await challenge.json()) as { id: string };
+      expect(challenge.ok, JSON.stringify(challengeJson)).toBe(true);
+      const verified = await auth(`/factors/${enrolledJson.id}/verify`, {
+        challenge_id: challengeJson.id,
+        code: totp(enrolledJson.totp.secret),
+      });
+      const verifiedJson = (await verified.json()) as { access_token: string };
+      expect(verified.ok, JSON.stringify(verifiedJson)).toBe(true);
+      return verifiedJson.access_token;
+    }
+
     beforeAll(async () => {
       if (
         ![url!, database!].every((value) =>
@@ -82,6 +115,7 @@ describe.skipIf(!ready)(
         )
       )
         throw Error("A disposable local Supabase stack is required");
+      await db.connect();
       for (const who of PEOPLE) {
         const credentials = {
           email: `wp2cb-${who.toLowerCase()}-${id.TA}@example.test`,
@@ -102,7 +136,7 @@ describe.skipIf(!ready)(
         expect(login.ok, `Sign-in ${who}: ${login.status}`).toBe(true);
         token[who] = (await login.json()).access_token;
       }
-      await db.connect();
+      token.O = await secondFactor(token.O);
       const u = (who: Person) => `'${user[who]}'`;
       await db.query("begin");
       try {
@@ -257,15 +291,23 @@ describe.skipIf(!ready)(
 
     afterAll(async () => {
       try {
-        await removeTenants(db, [id.TA!, id.TB!], Object.values(user), {
-          logins: false,
-        });
-        for (const who of PEOPLE)
-          if (user[who])
-            await api(`auth/v1/admin/users/${user[who]}`, {
-              key: service!,
-              method: "DELETE",
-            });
+        try {
+          await removeTenants(db, [id.TA!, id.TB!], Object.values(user), {
+            logins: false,
+          });
+        } finally {
+          for (const who of PEOPLE)
+            if (user[who]) {
+              const removed = await api(`auth/v1/admin/users/${user[who]}`, {
+                key: service!,
+                method: "DELETE",
+              });
+              expect(
+                removed.ok,
+                `Auth teardown ${who}: ${removed.status}`,
+              ).toBe(true);
+            }
+        }
       } finally {
         await db.end();
       }

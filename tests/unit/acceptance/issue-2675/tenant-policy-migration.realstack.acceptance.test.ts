@@ -1942,7 +1942,7 @@ describe.skipIf(!ADMIN_URL)(
         }));
 
       // R13: a malformed header is an error only where a policy's lookup runs.
-      it("R13: a malformed header on a read whose lookup never runs gives an empty answer, not an error (D-18, AL-2675: removing donors' super-admin OR branch made its tenant and staff predicates top-level conjuncts, so a missing-id lookup now evaluates the policy and raises 22P02 while a false filter still skips it)", () =>
+      it("R13: a malformed header raises 22P02 whenever the plan evaluates a request helper (including an absent-id lookup on donors, where removing the super-admin OR branch made the tenant condition top-level, D-18, AL-2675), while a statement proved empty without reading the table (where false) still answers empty", () =>
         tx(async () => {
           const headers = {
             "x-asym-tenant": "not-a-uuid",
