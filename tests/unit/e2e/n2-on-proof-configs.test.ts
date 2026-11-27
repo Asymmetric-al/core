@@ -141,6 +141,24 @@ describe("the runner", () => {
     expect(Object.values(proof)).not.toContain(first.payloadSecret);
   });
 
+  it("names the admin server's own address as its one operations name, and gives the proof that address", () => {
+    const ports = proofPorts({});
+    const secrets = freshSecrets();
+    const stack = stackValuesFromStatus(STATUS);
+    const env = appEnvironment(stack, ports, secrets, {});
+    expect(serverEnvironment("admin", env, secrets).OPERATIONS_NAMES).toBe(
+      `localhost:${ports.admin}`,
+    );
+    for (const app of ["donor", "missionary"] as const) {
+      expect(serverEnvironment(app, env, secrets), app).not.toHaveProperty(
+        "OPERATIONS_NAMES",
+      );
+    }
+    expect(
+      proofEnvironment(stack, ports, secrets, {}).N2_ON_OPERATIONS_URL,
+    ).toBe(`http://localhost:${ports.admin}`);
+  });
+
   it("gives the servers no list of names: the lookup admits them, as in production", () => {
     const env = appEnvironment(
       stackValuesFromStatus(STATUS),
