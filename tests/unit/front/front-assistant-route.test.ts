@@ -133,7 +133,6 @@ beforeEach(() => {
   vi.stubEnv("FRONT_MISSIONARY_ORIGIN", MISSIONARY_ORIGIN);
   vi.stubEnv("FRONT_STAMP_KEY_ADMIN", adminKey);
   vi.stubEnv("FRONT_STAMP_KEY_MISSIONARY", missionaryKey);
-  vi.stubEnv("FRONT_NAMES", "one.example.test,two.example.test");
 });
 
 afterEach(() => {

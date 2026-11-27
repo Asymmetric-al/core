@@ -270,7 +270,6 @@ export const env = createEnv({
         "FRONT_MISSIONARY_ORIGIN must be a canonical https:// origin or a loopback http:// origin.",
       )
       .optional(),
-    FRONT_NAMES: z.string().optional(),
     OPERATIONS_NAMES: z
       .string()
       .refine(
@@ -419,7 +418,6 @@ export const env = createEnv({
     FRONT_STAMP_KEY_PREVIOUS: process.env.FRONT_STAMP_KEY_PREVIOUS,
     FRONT_ADMIN_ORIGIN: process.env.FRONT_ADMIN_ORIGIN,
     FRONT_MISSIONARY_ORIGIN: process.env.FRONT_MISSIONARY_ORIGIN,
-    FRONT_NAMES: process.env.FRONT_NAMES,
     OPERATIONS_NAMES: process.env.OPERATIONS_NAMES,
     NEXT_PUBLIC_SITE_URL: process.env.NEXT_PUBLIC_SITE_URL,
     NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL,

@@ -15,11 +15,13 @@ import {
 import { admitApiMutation } from "./mutation-admission";
 import {
   ADDRESS_PREFIX_HEADER,
+  NAME_GENERATION_HEADER,
   NAME_TENANT_HEADER,
   PAGE_SCOPE_HEADERS,
   ROLE_CLASS_HEADER,
   TENANT_REWRITE_HEADER,
 } from "./request-headers";
+import { lookUpVerifiedName, verifiedNameUnavailable } from "./verified-name";
 
 export {
   FRONT_ORIGIN_HEADER,
@@ -168,15 +170,6 @@ export function matchesDashboardPrefix(pathname: string): string | null {
   return null;
 }
 
-export function frontNamesFromEnv(
-  env: Record<string, string | undefined>,
-): string[] {
-  return (env.FRONT_NAMES ?? "")
-    .split(",")
-    .map((name) => name.trim().toLowerCase())
-    .filter(Boolean);
-}
-
 export function dashboardsFromEnv(
   env: Record<string, string | undefined>,
   options: { log?: boolean } = {},
@@ -229,12 +222,9 @@ export function dashboardsFromEnv(
   ];
 }
 
-export function frontOrigin(
-  request: NextRequest,
-  names: readonly string[],
-): string | null {
+export function frontOrigin(request: NextRequest): string | null {
   const host = request.headers.get("host")?.trim().toLowerCase() ?? "";
-  if (!host || !names.includes(host)) return null;
+  if (!host) return null;
   return canonicalOrigin(`${request.nextUrl.protocol}//${host}`);
 }
 
@@ -256,11 +246,7 @@ export async function routeToDashboard(
 
   const dashboards = dashboardsFromEnv(env, { log: true });
   const dashboard = dashboards?.find((entry) => entry.prefix === prefix);
-  const names = frontNamesFromEnv(env);
-  if (names.length === 0) {
-    logFrontConfigIssueOnce("FRONT_NAMES", "missing");
-  }
-  const origin = frontOrigin(request, names);
+  const origin = frontOrigin(request);
   if (!dashboard || !origin) {
     return frontNotFound();
   }
@@ -270,11 +256,18 @@ export async function routeToDashboard(
   if (destination === null) {
     return frontNotFound();
   }
+  const name = await lookUpVerifiedName(
+    new URL(origin).host,
+    prefix === APP_BASE_PATHS.admin ? "staff" : "missionary",
+  );
+  if (name.kind === "unavailable") return verifiedNameUnavailable();
+  if (name.kind !== "admitted") return frontNotFound();
 
   const headers = new Headers(request.headers);
   stripFrontHeaders(headers);
   headers.delete("x-forwarded-host");
   headers.delete(NAME_TENANT_HEADER);
+  headers.delete(NAME_GENERATION_HEADER);
   for (const name of PROTECTION_BYPASS_HEADERS) {
     headers.delete(name);
   }
@@ -420,6 +413,7 @@ export async function admitExemptRequest(
   if (refusal) return refusal;
   const headers = new Headers(cleaned.headers);
   headers.delete(NAME_TENANT_HEADER);
+  headers.delete(NAME_GENERATION_HEADER);
   if (pathname.startsWith("/api/")) {
     headers.set("x-asym-pathname", pathname);
     if (roleClass) headers.set(ROLE_CLASS_HEADER, roleClass);

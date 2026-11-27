@@ -21,7 +21,6 @@ export const ORGANIZATION_B_SLUG = "harbor-light-mission";
 export const PERSON_P_EMAIL = "demo-owner@givehope.test";
 export const PERSON_Q_EMAIL = "member-care@givehope.test";
 export const NAME_A = "give-hope-demo.localhost";
-export const NAME_B = "harbor-light-mission.localhost";
 
 export interface ProofPorts {
   front: number;
@@ -74,10 +73,6 @@ export function stackValuesFromStatus(output: string): StackValues {
   return values;
 }
 
-export function frontNames(ports: ProofPorts): string {
-  return [NAME_A, NAME_B].map((name) => `${name}:${ports.front}`).join(",");
-}
-
 export interface RunSecrets {
   adminStampKey: string;
   missionaryStampKey: string;
@@ -120,7 +115,6 @@ export function appEnvironment(
     ALLOW_DEMO_ACCOUNTS: "false",
     DEMO_ONLY_LOGIN: "false",
     E2E_AUTH_BYPASS: "false",
-    FRONT_NAMES: frontNames(ports),
     FRONT_ADMIN_ORIGIN: `http://localhost:${ports.admin}`,
     FRONT_MISSIONARY_ORIGIN: `http://localhost:${ports.missionary}`,
   };
