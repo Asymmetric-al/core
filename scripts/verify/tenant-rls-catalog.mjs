@@ -109,12 +109,7 @@ const WRITE_COMMANDS = ["INSERT", "UPDATE", "DELETE"];
  * through a parent row (council R3): every signed-in policy on them is a
  * reviewed pin, and none of them may be published.
  */
-export const PARENT_SCOPED_TABLES = [
-  "post_comments",
-  "post_fires",
-  "post_likes",
-  "post_prayers",
-];
+export const PARENT_SCOPED_TABLES = [];
 
 const quoted = (names) => names.map((s) => `'${s}'`).join(", ");
 const PUBLIC_EXECUTE = `exists (select 1 from aclexplode(coalesce(p.proacl, acldefault('f', p.proowner))) a

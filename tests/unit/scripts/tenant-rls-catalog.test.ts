@@ -35,6 +35,7 @@ it("allows the reviewed CMS tenant-key debt to shrink, never to grow", () => {
 });
 
 import {
+  PARENT_SCOPED_TABLES,
   TENANT_RLS_CATALOG_SQL,
   evaluateTenantRlsCatalog,
   formatTenantRlsCatalogSummary,
@@ -44,6 +45,7 @@ import {
   stripParens,
   tenantBound,
 } from "../../../scripts/verify/tenant-rls-catalog.mjs";
+import { ownMinistryCommandRows } from "../../fixtures/own-ministry-commands";
 import { preMembershipCommandRows } from "../../fixtures/pre-membership-commands";
 
 const table = (name: string, over: Record<string, unknown> = {}) => ({
@@ -355,15 +357,23 @@ describe("WP4 command boundaries", () => {
       published: [],
     };
     expect(
-      codes(evaluateTenantRlsCatalog({ ...empty, commands: [] }, listed())),
+      codes(
+        evaluateTenantRlsCatalog({ ...empty, commands: [] }, listed()),
+      ).sort(),
     ).toEqual(
-      preMembershipEntries.map(
-        (entry) => `COMMAND_EXCEPTION_UNREVIEWED ${entry.function}`,
-      ),
+      [...preMembershipEntries, ...ownMinistryEntries]
+        .map((entry) => `COMMAND_EXCEPTION_UNREVIEWED ${entry.function}`)
+        .sort(),
     );
     expect(
       evaluateTenantRlsCatalog(
-        { ...empty, commands: preMembershipCommandRows() },
+        {
+          ...empty,
+          commands: [
+            ...preMembershipCommandRows(),
+            ...ownMinistryCommandRows(),
+          ],
+        },
         listed(),
       ).failures,
     ).toEqual([]);
@@ -386,6 +396,7 @@ const evaluate = (
     serviceRole?: object[];
     serviceRoleSchemas?: string[];
     serviceRoleExceptions?: unknown;
+    ownMinistry?: unknown;
   } = {},
 ) =>
   evaluateTenantRlsCatalog(
@@ -406,6 +417,7 @@ const evaluate = (
     more.policyExceptions ?? { entries: [] },
     [],
     more.serviceRoleExceptions ?? { entries: [] },
+    more.ownMinistry ?? { entries: [], reviewed: {} },
   );
 const codes = (result: ReturnType<typeof evaluate>) =>
   result.failures.map(
@@ -1626,7 +1638,7 @@ describe("evaluateTenantRlsCatalog: the request's tenant on every signed-in poli
   const TABLES = [
     table("donors"),
     table("posts"),
-    table("post_comments", { tenant: false }),
+    table("post_comments"),
     table("currency_metadata", { tenant: false }),
   ];
   const run = (
@@ -1932,36 +1944,32 @@ describe("evaluateTenantRlsCatalog: the request's tenant on every signed-in poli
     }
   });
 
-  // Council R3: the tables with no tenant column whose rows reach their
-  // tenant through a parent row. Postgres ORs every permissive policy, so a
-  // second one beside the pin would widen it unseen.
-  it("on a table that reaches its tenant through a parent, fails every signed-in policy that is not pinned and a pin with a per-row lookup (D-18, AL-2678: donor_activities carries its own tenant now and left the parent-scoped list)", () => {
-    const comments = policy(
-      "post_comments",
-      "(EXISTS ( SELECT 1 FROM posts p WHERE (p.id = post_comments.post_id)))",
-      { policy: "tanstack browser read" },
-    );
-    expect(
-      run([comments], { policyExceptions: pin(comments) }).failures,
-    ).toEqual([]);
-    const second = policy("post_comments", "true", { policy: "another read" });
-    expect(
-      codes(run([comments, second], { policyExceptions: pin(comments) })),
-    ).toEqual(["PARENT_SCOPED_POLICY_NOT_PINNED post_comments"]);
-    for (const parentScoped of ["post_fires", "post_likes", "post_prayers"])
-      expect(codes(run([policy(parentScoped, "true")])), parentScoped).toEqual([
-        `PARENT_SCOPED_POLICY_NOT_PINNED ${parentScoped}`,
-      ]);
-    // Once a statement holds for a pinned text too.
-    const perRow = policy(
-      "post_comments",
-      "(EXISTS ( SELECT 1 FROM posts p WHERE ((p.id = post_comments.post_id) AND authz.has_membership(p.tenant_id))))",
-      { policy: "tanstack browser read" },
-    );
-    expect(codes(run([perRow], { policyExceptions: pin(perRow) }))).toEqual([
-      "POLICY_LOOKUP_PER_ROW post_comments",
+  it("leaves no table on the parent-scoped list once the four post tables carry their own tenant (WP7 pull request 1, AL-2680): post_comments is judged as a tenant table, its signed-in read needs the request's tenant, and its anonymous read stands only as a pinned exception", () => {
+    expect(PARENT_SCOPED_TABLES).toEqual([]);
+    const parent =
+      "(EXISTS ( SELECT 1 FROM posts parent_post WHERE (parent_post.id = post_comments.post_id)))";
+    const signedIn = policy("post_comments", `(${T} AND ${parent})`, {
+      policy: "post_comments tenant read",
+    });
+    expect(run([signedIn]).failures).toEqual([]);
+    const unbound = policy("post_comments", parent, {
+      policy: "post_comments tenant read",
+    });
+    expect(codes(run([unbound]))).toEqual([
+      "TENANT_CONDITION_MISSING post_comments",
     ]);
-    // A table with no tenant column and no parent is outside the rule.
+    const anonymous = policy("post_comments", parent, {
+      policy: "post_comments anonymous read",
+      roles: ["anon"],
+    });
+    expect(codes(run([signedIn, anonymous]))).toEqual([
+      "TENANT_CONDITION_MISSING post_comments",
+    ]);
+    expect(
+      run([signedIn, anonymous], {
+        policyExceptions: pin({ ...anonymous, roles: ["anon"] }),
+      }).failures,
+    ).toEqual([]);
     expect(run([policy("currency_metadata", "true")]).failures).toEqual([]);
   });
 
@@ -2013,10 +2021,7 @@ describe("evaluateTenantRlsCatalog: the request's tenant on every signed-in poli
     ).toEqual([]);
   });
 
-  // Amended by council R3 (record D-18): a table that reaches its tenant
-  // through a parent may not be published either, so the passing example of
-  // a published table with no tenant column is one with no parent.
-  it("fails a tenant table, or one that reaches its tenant through a parent, in a publication, and passes a published table with neither", () => {
+  it("fails a tenant table in a publication, the post tables among them since WP7 pull request 1 (AL-2680), and passes a published table with no tenant", () => {
     expect(codes(run([], { published: ["donors"] }))).toEqual([
       "TENANT_TABLE_PUBLISHED donors",
     ]);
@@ -2111,6 +2116,8 @@ describe("tenant keys", () => {
         allow(),
         { entries: [] },
         [],
+        undefined,
+        { entries: [], reviewed: {} },
       ),
     );
   const cms = (keyed: (table: string) => boolean) =>

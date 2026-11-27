@@ -47,8 +47,34 @@ export const preMembershipEntries = Object.freeze([
   }),
 ]);
 
-export const reviewedOwnMinistry = Object.freeze({});
-export const ownMinistryEntries = Object.freeze([]);
+const submitMinistryUpdate =
+  "tenant_guard.submit_ministry_update(p_tenant_id uuid, p_post_id uuid, p_title text, p_content text, p_media jsonb, p_visibility text, p_post_type text, p_publish boolean)";
+const withdrawOwnMinistryUpdate =
+  "tenant_guard.withdraw_own_ministry_update(p_tenant_id uuid, p_post_id uuid)";
+const submitMinistryUpdateReason =
+  "AL-2680 WP7 PR 1 invariant 1 (Q2): a missionary writes their own update. It opens with begin_human_command(<tenant>, NULL); tenant_guard.lock_live_assignment then refuses (42501) unless the selected assignment is the caller's live missionary row in an active tenant, and tenant_guard.own_ministry names the caller's own worker row through account_links and its Party; it writes only a post of that ministry that the caller authored, takes no owner, assignment, Party or profile argument, and the posts trigger sets the review state";
+const withdrawOwnMinistryUpdateReason =
+  "AL-2680 WP7 PR 1 invariant 1 (Q2): a missionary withdraws their own update with no reason. Same opening and checks as submit_ministry_update; it changes only a post of the caller's own ministry that the caller authored and writes one audit row";
+export const reviewedOwnMinistry = Object.freeze({
+  [submitMinistryUpdate]: Object.freeze({
+    reason: submitMinistryUpdateReason,
+    digest: "001e03eb1d9a3f9b69e17b2c2132e289b7d1831d0a99087f9e986a2d1910ea25",
+  }),
+  [withdrawOwnMinistryUpdate]: Object.freeze({
+    reason: withdrawOwnMinistryUpdateReason,
+    digest: "72c085f4d90076267a3859ebb7dfde5a5b5f4e07640ee45fd85a6dfa9a74c41d",
+  }),
+});
+export const ownMinistryEntries = Object.freeze([
+  Object.freeze({
+    function: submitMinistryUpdate,
+    reason: submitMinistryUpdateReason,
+  }),
+  Object.freeze({
+    function: withdrawOwnMinistryUpdate,
+    reason: withdrawOwnMinistryUpdateReason,
+  }),
+]);
 
 const OWN_MINISTRY_OPENING =
   /^\s*(?:PERFORM\s+|[a-z_][\w$]*\s*:=\s*)tenant_guard\.begin_human_command\s*\(\s*(?:[a-z_][\w$]*|\$[1-9]\d*)\s*,\s*NULL\s*\)\s*;/i;

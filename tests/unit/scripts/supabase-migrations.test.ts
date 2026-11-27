@@ -15,6 +15,7 @@ import { fileURLToPath } from "node:url";
 
 import { afterEach, describe, expect, it } from "vitest";
 
+import { ownMinistryCommandRows } from "../../fixtures/own-ministry-commands";
 import { preMembershipCommandRows } from "../../fixtures/pre-membership-commands";
 import { MIGRATION } from "../acceptance/issue-2256/harness";
 
@@ -166,7 +167,7 @@ function runVerifier(
     ],
     // AL-2674: the gate also reads the command-schema functions, the
     // wrappers that call into them and the unadmitted table grants.
-    commands: preMembershipCommandRows(),
+    commands: [...preMembershipCommandRows(), ...ownMinistryCommandRows()],
     wrappers: [],
     grants: [],
     service_role_grants: [],
@@ -315,7 +316,7 @@ else if (sql.startsWith("-- field-policy-manifest-gate:v1")) {
 
 describe("supabase migrations verifier", () => {
   itPosix(
-    "requires the reviewed census after applying the complete migration sequence (D-18, AL-2678: the fake catalog carries the two reviewed pre-membership claim commands, which the gate now requires; D-18, AL-2676: and public.resolve_home_host, the second allowlisted anonymous read since WP3b part 2)",
+    "requires the reviewed census after applying the complete migration sequence (D-18, AL-2678: the fake catalog carries the two reviewed pre-membership claim commands, which the gate now requires; D-18, AL-2676: and public.resolve_home_host, the second allowlisted anonymous read since WP3b part 2; AL-2680: and the two reviewed own-ministry commands)",
     () => {
       const result = runVerifier("clean");
       expect(result.status).toBe(0);
