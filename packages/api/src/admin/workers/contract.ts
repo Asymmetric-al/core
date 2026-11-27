@@ -84,6 +84,25 @@ export const confirmBodySchema = z.strictObject({
 
 export const revealBodySchema = z.strictObject({ reason });
 
+export const createBodySchema = z.strictObject({
+  displayName: z.string().max(ALIAS_MAX),
+  legalName: z.string().max(ALIAS_MAX),
+  realCountry: z.string().max(ALIAS_MAX).optional(),
+  preciseLocation: z.string().max(REASON_MAX).optional(),
+  level: z.enum(SECURITY_LEVELS).optional(),
+  alias: z.string().max(ALIAS_MAX).optional(),
+  legalEntityId: z.guid().optional(),
+  reason,
+});
+
+export const createResultSchema = z.strictObject({
+  tenant_id: z.guid(),
+  party_id: z.guid(),
+  assignment_id: z.guid(),
+  security_level: z.enum(SECURITY_LEVELS),
+  security_level_source: z.enum(LEVEL_SOURCES),
+});
+
 export type WorkerRow = z.infer<typeof workerRowSchema>;
 
 export function toWorker(row: WorkerRow): Worker {
@@ -125,6 +144,20 @@ export const WORKER_ERRORS = {
   },
   RETRY: { status: 503, text: "Mission Control is busy. Try again." },
   INVALID_INPUT: { status: 400, text: "Check the form and try again." },
+  DISPLAY_NAME_REQUIRED: { status: 400, text: "Give a display name." },
+  LEGAL_NAME_REQUIRED: { status: 400, text: "Give the worker's legal name." },
+  LEGAL_ENTITY_REQUIRED: {
+    status: 400,
+    text: "Choose the legal entity this worker serves under.",
+  },
+  LEGAL_ENTITY_NOT_FOUND: {
+    status: 404,
+    text: "That legal entity is not this organization's.",
+  },
+  NO_LEGAL_ENTITY: {
+    status: 400,
+    text: "This organization has no legal entity yet.",
+  },
 } as const;
 
 export type WorkerErrorCode = keyof typeof WORKER_ERRORS;
@@ -142,7 +175,14 @@ export function workerError(
 }
 
 export type WorkersOperation =
-  "list" | "count" | "record" | "restrict" | "lift" | "confirm" | "reveal";
+  | "list"
+  | "count"
+  | "record"
+  | "restrict"
+  | "lift"
+  | "confirm"
+  | "reveal"
+  | "create";
 
 async function reportWorkersFailure(
   operation: WorkersOperation,
@@ -195,9 +235,17 @@ function refusalOf(error: RpcError): WorkerErrorCode | null {
   if (code === "P0002")
     return message === "No private identity for that worker"
       ? "NO_IDENTITY"
-      : "NOT_FOUND";
+      : message === "No legal entity with that id in this organization"
+        ? "LEGAL_ENTITY_NOT_FOUND"
+        : "NOT_FOUND";
   if (code === "22023") {
     if (message === "A reason is required") return "REASON_REQUIRED";
+    if (message === "A display name is required")
+      return "DISPLAY_NAME_REQUIRED";
+    if (message === "A legal name is required") return "LEGAL_NAME_REQUIRED";
+    if (message === "Name the legal entity") return "LEGAL_ENTITY_REQUIRED";
+    if (message === "This organization has no legal entity")
+      return "NO_LEGAL_ENTITY";
     if (message === "Nothing to change") return "NOTHING_TO_CHANGE";
     if (
       message.startsWith("Lowering a level") ||

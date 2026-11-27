@@ -5,6 +5,8 @@ import {
   assignmentIdOf,
   commandResultSchema,
   confirmBodySchema,
+  createBodySchema,
+  createResultSchema,
   isBlank,
   liftBodySchema,
   readBody,
@@ -234,4 +236,46 @@ export const POST_REVEAL = withWorkersWrite(
     },
     WRITE,
   ),
+);
+
+export const POST_CREATE = withWorkersWrite(
+  withOperation(async ({ auth, request, sessionClient, requestId }) => {
+    const body = await readBody(request, createBodySchema);
+    if (!body.ok) return body.response;
+    const {
+      displayName,
+      legalName,
+      realCountry,
+      preciseLocation,
+      level,
+      alias,
+      legalEntityId,
+      reason,
+    } = body.data;
+    if (isBlank(reason)) return workerError("REASON_REQUIRED");
+    const client = rpcClient(sessionClient);
+    const result = await client.rpc("create_worker", {
+      p_tenant_id: auth.tenantId,
+      p_display_name: displayName,
+      p_legal_name: legalName,
+      p_real_country: realCountry ?? null,
+      p_precise_location: preciseLocation ?? null,
+      p_security_level: level ?? null,
+      p_public_alias:
+        alias === undefined || normalizesToNothing(alias) ? null : alias,
+      p_legal_entity_id: legalEntityId ?? null,
+      p_reason: reason,
+    });
+    if (result.error) return refusal("create", result.error, requestId);
+    const parsed = createResultSchema.safeParse(result.data);
+    if (!parsed.success || !sameId(parsed.data.tenant_id, auth.tenantId))
+      return workersOutcomeUnknown("create", null, requestId);
+    const reread = await readWorkerRows(client, parsed.data.assignment_id);
+    if (!reread.ok)
+      return workersOutcomeUnknown("create", codeOf(reread.error), requestId);
+    const [row] = reread.rows;
+    if (!row || reread.rows.length !== 1)
+      return workersOutcomeUnknown("create", null, requestId);
+    return NextResponse.json({ worker: toWorker(row) }, { status: 201 });
+  }, WRITE),
 );
