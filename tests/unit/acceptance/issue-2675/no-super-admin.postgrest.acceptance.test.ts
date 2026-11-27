@@ -38,7 +38,7 @@ const READ_KEYS: Record<string, { column: string; keys: string[] }> = {
   support_tickets: { column: "id", keys: ["tkA", "tkB"] },
   field_policies: { column: "field_key", keys: ["fpA", "fpB"] },
   funds: { column: "id", keys: ["fA", "fAfee", "fB"] },
-  donations: { column: "id", keys: ["gDON", "gOther", "gB"] },
+  donations: { column: "id", keys: ["gDON", "gOther", "gOtherMis", "gB"] },
   support_saved_views: {
     column: "id",
     keys: ["vWork", "vAdm", "vDev", "vB"],
@@ -52,7 +52,7 @@ describe.skipIf(!ready)(
   () => {
     const db = new pg.Client({ connectionString: database });
     const id: Record<string, string> = {};
-    for (const k of "TA TB dDON dOther dB misMIS gDON gOther gB aA aB tkA tkB fA fAfee fB nStd nRes nB pDON".split(
+    for (const k of "TA TB dDON dOther dB misMIS misOther gDON gOther gOtherMis gB aA aB tkA tkB fA fAfee fB nStd nRes nB pDON".split(
       " ",
     ))
       id[k] = randomUUID();
@@ -137,16 +137,21 @@ describe.skipIf(!ready)(
             profile_id: profile ? u(profile) : "null",
             email: `'${d.toLowerCase()}-${id[d]}@example.org'`,
           });
-        await insertRow(db, "missionaries", {
-          id: q("misMIS"),
-          tenant_id: q("TA"),
-          party_id: q("misMIS"),
-          profile_id: u("MIS"),
-        });
+        for (const [m, profile] of [
+          ["misMIS", "MIS"],
+          ["misOther", null],
+        ] as const)
+          await insertRow(db, "missionaries", {
+            id: q(m),
+            tenant_id: q("TA"),
+            party_id: q(m),
+            profile_id: profile ? u(profile) : "null",
+          });
         await db.query(
           `insert into public.parties (id, tenant_id, display_name) values
              (${q("dDON")}, ${q("TA")}, 'acc2675b'), (${q("dOther")}, ${q("TA")}, 'acc2675b'),
-             (${q("dB")}, ${q("TB")}, 'acc2675b'), (${q("misMIS")}, ${q("TA")}, 'acc2675b');
+             (${q("dB")}, ${q("TB")}, 'acc2675b'), (${q("misMIS")}, ${q("TA")}, 'acc2675b'),
+             (${q("misOther")}, ${q("TA")}, 'acc2675b');
            insert into public.account_links (tenant_id, user_id, party_id, linked_via) values
              (${q("TA")}, ${u("DON")}, ${q("dDON")}, 'profile_backfill'),
              (${q("TA")}, ${u("MIS")}, ${q("misMIS")}, 'profile_backfill');`,
@@ -154,6 +159,7 @@ describe.skipIf(!ready)(
         for (const [g, tenant, donor, missionary] of [
           ["gDON", "TA", "dDON", "misMIS"],
           ["gOther", "TA", "dOther", "misMIS"],
+          ["gOtherMis", "TA", "dOther", "misOther"],
           ["gB", "TB", "dB", "misMIS"],
         ] as const)
           await insertRow(db, "donations", {
@@ -298,6 +304,10 @@ describe.skipIf(!ready)(
       "x-asym-assignment": seat[who]!,
     });
     const only = (t: "TA" | "TB") => ({ "x-asym-tenant": id[t]! });
+    const claims = (jwt: string) =>
+      JSON.parse(
+        Buffer.from(jwt.split(".")[1]!, "base64url").toString("utf8"),
+      ) as Record<string, unknown>;
 
     const OWN_A: Record<string, string[]> = {
       audit_logs: ["aA"],
@@ -318,7 +328,8 @@ describe.skipIf(!ready)(
       }
     });
 
-    it("an operator with a staff row in A and a super_admin profile reads none of B's rows, and under A exactly what a development staff member of A reads but their own personal view", async () => {
+    it("an operator at aal2 with a staff row in A and a super_admin profile reads none of B's rows, and under A exactly what a development staff member of A reads but their own personal view", async () => {
+      expect(claims(token.O).aal).toBe("aal2");
       for (const table of [
         ...Object.keys(OWN_A),
         "support_saved_views",
@@ -340,8 +351,8 @@ describe.skipIf(!ready)(
       const expected: Record<string, Partial<Record<Person, string[]>>> = {
         funds: { DEV: ["fA"], ADM: ["fA"], DON: [], MIS: [], B: ["fB"] },
         donations: {
-          DEV: ["gDON", "gOther"],
-          ADM: ["gDON", "gOther"],
+          DEV: ["gDON", "gOther", "gOtherMis"],
+          ADM: ["gDON", "gOther", "gOtherMis"],
           DON: ["gDON"],
           MIS: ["gDON", "gOther"],
           B: ["gB"],
@@ -385,6 +396,28 @@ describe.skipIf(!ready)(
           read([]),
         );
       }
+    });
+
+    it("a donor's insert into crm_notes through PostgREST is refused with 403 and 42501", async () => {
+      const response = await fetch(`${url}/rest/v1/crm_notes`, {
+        method: "POST",
+        headers: {
+          apikey: anon!,
+          Authorization: `Bearer ${token.DON}`,
+          "Content-Type": "application/json",
+          ...under("DON"),
+        },
+        body: JSON.stringify({
+          id: randomUUID(),
+          tenant_id: id.TA,
+          title: "acc2675b",
+          body: "acc2675b refused",
+          visibility: "standard",
+        }),
+      });
+      const body = (await response.json()) as { code?: string };
+      expect(response.status, JSON.stringify(body)).toBe(403);
+      expect(body.code).toBe("42501");
     });
   },
 );
