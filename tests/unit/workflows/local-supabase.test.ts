@@ -277,6 +277,9 @@ describe("Local Supabase Stack workflow: the replay matches the platform's image
     for (const file of [
       suite,
       "tests/unit/acceptance/issue-2678/assignment-keys.realstack.acceptance.test.ts",
+      "tests/unit/acceptance/issue-2678/assignment-keys-race.realstack.acceptance.test.ts",
+      "tests/unit/acceptance/issue-2678/assignment-keys-migration.realstack.acceptance.test.ts",
+      "tests/unit/acceptance/issue-2678/assignment-keys.helpers.ts",
       "packages/api/src/admin/crm/**",
       "packages/database/types/crm-detail.ts",
       "packages/database/types/crm-grid.ts",

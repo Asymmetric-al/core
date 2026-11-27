@@ -92,6 +92,9 @@ on:
       # The assignment keys and the CRM's owner by key (AL-2678, WP5 part 2-r3).
       - tests/unit/acceptance/issue-2678/assignment-keys.postgrest.acceptance.test.ts
       - tests/unit/acceptance/issue-2678/assignment-keys.realstack.acceptance.test.ts
+      - tests/unit/acceptance/issue-2678/assignment-keys-race.realstack.acceptance.test.ts
+      - tests/unit/acceptance/issue-2678/assignment-keys-migration.realstack.acceptance.test.ts
+      - tests/unit/acceptance/issue-2678/assignment-keys.helpers.ts
       - packages/database/types/crm-detail.ts
       - packages/database/types/crm-grid.ts
       # The worker's record in Mission Control: its routes on real tokens, the
