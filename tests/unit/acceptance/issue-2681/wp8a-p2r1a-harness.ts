@@ -20,12 +20,12 @@ export const paymentIntent = () =>
   `pi_${randomUUID().replaceAll("-", "").slice(0, 24)}`;
 
 export const GUARD_TEST_GRANTS = [
-  "GRANT INSERT ON TABLE public.donations, public.donation_intake_lines TO tenant_guard",
+  "GRANT INSERT ON TABLE public.donations, public.donation_intake_lines, public.donation_intake_contacts TO tenant_guard",
   "GRANT INSERT (max_attempts) ON TABLE public.donation_saga_outbox TO tenant_guard",
 ];
 
 export const GUARD_TEST_REVOKES = [
-  "REVOKE INSERT ON TABLE public.donations, public.donation_intake_lines FROM tenant_guard",
+  "REVOKE INSERT ON TABLE public.donations, public.donation_intake_lines, public.donation_intake_contacts FROM tenant_guard",
   "REVOKE INSERT (max_attempts) ON TABLE public.donation_saga_outbox FROM tenant_guard",
 ];
 
@@ -187,12 +187,21 @@ export async function removeTwoTenants(db: pg.Client, fx: Fixture) {
       "public.mission_control_tasks",
       "public.audit_logs",
       "public.payment_observations",
+      "public.staged_gift_holds",
       "public.staged_gift_allocations",
       "public.staged_gifts",
       "public.payment_repair_cases",
+      "public.payment_event_cases",
       "public.donation_saga_outbox",
       "public.donation_intake_lines",
+      "public.donation_intake_contacts",
       "public.donations",
+      "public.contribution_approval_policies",
+      "public.account_links",
+      "authz.memberships",
+      "public.donors",
+      "public.missionaries",
+      "public.parties",
       "public.stripe_connect_events",
       "public.giving_target_entity_locks",
       "public.funds",

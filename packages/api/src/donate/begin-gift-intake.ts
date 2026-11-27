@@ -61,9 +61,28 @@ function readRequiredId(value: unknown): string | null {
   return value;
 }
 
+const RESERVED_KEY_PREFIX = Buffer.from("gift:", "ascii");
+
+export function isReservedIdempotencyKey(key: string): boolean {
+  const head = Buffer.from(key.trim(), "utf8").subarray(0, 5);
+  if (head.length < RESERVED_KEY_PREFIX.length) return false;
+  return head.every(
+    (byte, i) =>
+      (byte >= 0x41 && byte <= 0x5a ? byte + 0x20 : byte) ===
+      RESERVED_KEY_PREFIX[i],
+  );
+}
+
 export async function beginGiftIntake(
   input: BeginGiftIntakeInput,
 ): Promise<BeginGiftIntakeResult> {
+  if (isReservedIdempotencyKey(input.idempotencyKey))
+    return {
+      ok: false,
+      code: "invalid",
+      message: "Idempotency keys that begin with gift: are reserved.",
+    };
+
   const { data, error } = await input.rpc("begin_donation_saga", {
     p_tenant_id: input.tenantId,
     p_profile_id: input.profileId,

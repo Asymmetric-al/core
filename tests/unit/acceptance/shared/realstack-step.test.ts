@@ -17,7 +17,6 @@ import {
   realstackStepProblems,
   stepTestPaths,
 } from "./realstack-step";
-
 import {
   loadWorkflowJobs,
   type WorkflowStep,
@@ -400,6 +399,12 @@ const REAL_DATABASE_FILES = [
     "issue-2681/wp8a-p2r2a-schema.realstack",
     "issue-2681/wp8a-p2r2a-sessions.realstack",
     "issue-2681/wp8a-p2r2a-staging.realstack",
+    "issue-2681/wp8a-rest1-identity.realstack",
+    "issue-2681/wp8a-rest1-holds.realstack",
+    "issue-2681/wp8a-rest1-item-zero.realstack",
+    "issue-2681/wp8a-rest1-review.realstack",
+    "issue-2681/wp8a-rest1-sessions.realstack",
+    "issue-2681/wp8a-rest1-unpaid.realstack",
   ].map((f) => `${A}/${f}.acceptance.test.ts`),
   // #2714: the release job's database suites and Payload's CMS roles.
   "tests/unit/cms/cms-database-roles.realstack.test.ts",

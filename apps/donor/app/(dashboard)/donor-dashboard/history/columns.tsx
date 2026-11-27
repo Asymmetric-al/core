@@ -77,7 +77,8 @@ function receiptLabel(tx: Transaction) {
  */
 export function ReceiptLink({ tx }: { tx: Transaction }) {
   const { download, buttonProps } = useOwnApiDownload();
-  if (tx.status !== "Paid") {
+  const receiptUrl = tx.receiptUrl;
+  if (tx.status !== "Paid" || !receiptUrl) {
     return <span className="sr-only">No receipt</span>;
   }
   return (
@@ -86,7 +87,7 @@ export function ReceiptLink({ tx }: { tx: Transaction }) {
       size="sm"
       aria-label={receiptLabel(tx)}
       {...buttonProps}
-      onClick={() => void download(tx.receiptUrl)}
+      onClick={() => void download(receiptUrl)}
     >
       <Download data-icon="inline-start" aria-hidden />
       Receipt

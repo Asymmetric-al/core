@@ -942,6 +942,26 @@
         "missionary": "---",
         "public": "---",
         "export": "---"
+      },
+      "is_anonymous": {
+        "type": "boolean",
+        "nullable": true,
+        "category": "internal",
+        "mission_control": "v--",
+        "donor": "---",
+        "missionary": "---",
+        "public": "---",
+        "export": "---"
+      },
+      "abandoned_by": {
+        "type": "text",
+        "nullable": true,
+        "category": "internal",
+        "mission_control": "v--",
+        "donor": "---",
+        "missionary": "---",
+        "public": "---",
+        "export": "---"
       }
     },
     "donor_pledges": {

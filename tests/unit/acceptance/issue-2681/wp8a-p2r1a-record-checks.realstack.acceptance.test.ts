@@ -440,10 +440,10 @@ describe.skipIf(!ADMIN_URL)(
           await set(linked.operationId, "provider_object_id = NULL"),
         );
         got["7: parked_at while waiting"] = checkOf(
-          await set(w, "parked_at = now()"),
+          await set(w, "parked_at = now(), park_reason = 'outcome_unknown'"),
         );
         got["7 NULL: parked with no parked_at"] = checkOf(
-          await set(parked.operationId, "parked_at = NULL"),
+          await set(parked.operationId, "parked_at = NULL, park_reason = NULL"),
         );
         got["8: parked and known"] = checkOf(
           await set(parked.operationId, "outcome_unknown = false"),
@@ -661,7 +661,7 @@ describe.skipIf(!ADMIN_URL)(
         expect((await rowOf(db, fresh.operationId)).max_attempts).toBe(1000);
       }));
 
-    it("C9 (finding 6; narrowed by R1b, record :1062): a provider-row check or the legacy check whose clauses the NULL matrix above does not each refuse is written '<kind test> OR (<predicate>) IS TRUE', so a NULL in any clause refuses; the attempts and window checks leave this form test because the matrix refuses a NULL in each of their clauses (max_attempts and attempt_count; first_sent_at), and the ten others stay", async () => {
+    it("C9 (finding 6; narrowed by R1b, record :1062): a provider-row check or the legacy check whose clauses the NULL matrix above does not each refuse is written '<kind test> OR (<predicate>) IS TRUE', so a NULL in any clause refuses; the attempts and window checks leave this form test because the matrix refuses a NULL in each of their clauses (max_attempts and attempt_count; first_sent_at), and the ten others stay (D-18, AL-2681 rest PR 1: the park reason's two checks join them in the same form, twelve)", async () => {
       const defs = (
         await db.query(
           `SELECT conname, pg_get_constraintdef(oid) AS def FROM pg_constraint
@@ -675,6 +675,8 @@ describe.skipIf(!ADMIN_URL)(
         "donation_saga_outbox_lease_check",
         "donation_saga_outbox_legacy_check",
         "donation_saga_outbox_object_check",
+        "donation_saga_outbox_park_reason_check",
+        "donation_saga_outbox_park_reason_legacy_check",
         "donation_saga_outbox_parked_at_check",
         "donation_saga_outbox_request_check",
         "donation_saga_outbox_request_params_check",
@@ -691,7 +693,7 @@ describe.skipIf(!ADMIN_URL)(
       const sampled = defs.filter(
         (d) => !provenByTheMatrix.includes(d.conname),
       );
-      expect(sampled).toHaveLength(10);
+      expect(sampled).toHaveLength(12);
       for (const { conname, def } of sampled)
         expect(def, conname).toMatch(
           /^CHECK \(\(\(kind <> '(?:provider_request|legacy_saga)'::text\) OR \([\s\S]* IS TRUE\)\)\)$/,

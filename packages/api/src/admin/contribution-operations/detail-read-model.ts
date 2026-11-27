@@ -25,6 +25,7 @@ import {
 
 import type { CorrectionChangeLine } from "./correction-request-change";
 import type { ResolvedReceiptDeliverySelection } from "./receipt-delivery";
+import type { GiftHold } from "../../shared/line-based-gifts";
 import type { ContributionDesignationSet } from "@asym/database/types";
 
 export type ContributionDetailDonationInput = {
@@ -87,6 +88,7 @@ export interface ContributionDetailInput {
     crmPostStatus: string | null;
     reviewReason: string | null;
     twentyRecordId: string | null;
+    holds?: GiftHold[];
   } | null;
   auditEvents?: Array<{
     id: string;
