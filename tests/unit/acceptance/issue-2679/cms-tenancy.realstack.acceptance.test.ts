@@ -1596,6 +1596,33 @@ describe.skipIf(!ADMIN_URL)(
       });
     });
 
+    describe("WP6 rest, pull request 2, round 2, G2: an id of another organization's media answers as an id that exists nowhere", () => {
+      it.each([
+        ["remove", {}],
+        ["register", { alt: "Probe" }],
+      ])(
+        "%s: the same status and body, the caller's own id aside, and the other organization's row unchanged",
+        async (action, extra) => {
+          const path = `/web-studio/api/web-studio/media/${action}`;
+          const answer = async (assetId: string) => {
+            const response = await s.restAs(editorA, "POST", path, {
+              assetId,
+              ...extra,
+            });
+            return {
+              status: response.status,
+              body: JSON.stringify(response.json).replaceAll(assetId, "<id>"),
+            };
+          };
+          const before = await row("media", mediaB.id);
+          const foreign = await answer(mediaB.id);
+          const absent = await answer(randomUUID());
+          expect(foreign).toEqual(absent);
+          expect(await row("media", mediaB.id)).toEqual(before);
+        },
+      );
+    });
+
     describe("WP6 rest, pull request 2, fix round F5: the media library's register and remove refuse as every Web Studio call does", () => {
       it.each([
         ["register", { alt: "Refused" }],

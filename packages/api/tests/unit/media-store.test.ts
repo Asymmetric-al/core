@@ -707,6 +707,23 @@ describe("media-store custody and Sharp sanitization", () => {
     ).rejects.toMatchObject({ status: 404 });
   });
 
+  it("finalizes another organization's asset with the refusal an asset that exists nowhere gets (WP6 rest, pull request 2, round 2, G2)", async () => {
+    const assetB = randomUUID();
+    fakeState.rows.set(assetB, makeRow({ id: assetB, tenant_id: tenantB }));
+    const refusal = (assetId: string) =>
+      finalizeMediaUpload(authA, { assetId }).then(
+        () => null,
+        (error: { status?: number; message?: string }) => ({
+          status: error.status,
+          message: error.message,
+        }),
+      );
+    const foreign = await refusal(assetB);
+    expect(foreign).toEqual(await refusal(randomUUID()));
+    expect(foreign).toMatchObject({ status: 404 });
+    expect(fakeState.rows.get(assetB)!.status).toBe("uploading");
+  });
+
   it("strips EXIF GPS, ICC, and XMP, applies orientation 6, produces deterministic SHA-256, and never upscales", async () => {
     const dirtyJpeg = await createDirtyJpeg(1800, 1200);
     const beforeMeta = await sharp(dirtyJpeg).metadata();

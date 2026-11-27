@@ -315,6 +315,15 @@ describe("the upload form checks what the registration checks, and leads to the 
   });
 });
 
+describe("the upload dialog fits a short viewport and 200% zoom (round 2, G4)", () => {
+  it("scrolls its content inside the dialog, with the shared dialog's own option", async () => {
+    openUpload();
+    const dialog = await screen.findByRole("dialog", { name: "Upload image" });
+    expect(dialog.className).toContain("overflow-y-auto");
+    expect(dialog.className).toContain("max-h-[calc(100dvh");
+  });
+});
+
 describe("the media library's thumbnails (invariant 5)", () => {
   it("come from the signed-in media route's smallest variant", () => {
     expect(mediaThumbnail({ id: ASSET.toUpperCase(), alt: "x" })).toBe(

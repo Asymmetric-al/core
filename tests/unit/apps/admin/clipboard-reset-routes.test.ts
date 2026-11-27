@@ -39,6 +39,14 @@ vi.mock("@asym/api/auth/signout", () => ({
   },
 }));
 
+vi.mock("@asym/api/invitations/accept", () => ({
+  POST: async (request: Request) => {
+    const { NextResponse } = await import("next/server");
+    shared.requests.push(request);
+    return NextResponse.json({ destination: "/web-studio" });
+  },
+}));
+
 const MARK = "asym_clipboard_reset";
 
 function markOf(response: Response) {
@@ -76,6 +84,12 @@ describe("each way into or out of a session marks the browser, with no identifie
       "../../../../apps/admin/app/api/auth/signout/route",
       "POST",
       "https://admin.test/api/auth/signout",
+    ],
+    [
+      "an invitation's acceptance, which can bring a person into another organization (round 2, G3)",
+      "../../../../apps/admin/app/api/invitations/accept/route",
+      "POST",
+      "https://admin.test/api/invitations/accept",
     ],
   ])(
     "%s answers as the shared handler does and sets the mark",

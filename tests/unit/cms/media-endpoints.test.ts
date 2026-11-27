@@ -311,6 +311,26 @@ describe("the media library's registration and removal under /web-studio/api (WP
     expect(store.remove).not.toHaveBeenCalled();
   });
 
+  it("answers an id of another organization's media as it answers an id that exists nowhere, on remove and on register (round 2, G2)", async () => {
+    store.remove.mockResolvedValueOnce(undefined);
+    const absentRemove = await call(remove, { assetId: ASSET });
+    store.remove.mockRejectedValueOnce(
+      new Error("The media row belongs to another organization."),
+    );
+    const foreignRemove = await call(remove, { assetId: ASSET });
+    expect(foreignRemove).toEqual(absentRemove);
+
+    store.rows = [];
+    const absentRegister = await call(register, { assetId: ASSET, alt: "Alt" });
+    store.rows = [{ id: ASSET, tenant_id: TENANT_B, status: "ready" }];
+    const foreignRegister = await call(register, {
+      assetId: ASSET,
+      alt: "Alt",
+    });
+    expect(foreignRegister).toEqual(absentRegister);
+    expect(store.register).not.toHaveBeenCalled();
+  });
+
   it.each([
     ["scope_mismatch", 409],
     ["no_session", 401],

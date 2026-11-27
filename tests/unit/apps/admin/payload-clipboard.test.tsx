@@ -3,7 +3,10 @@
 import { readFileSync } from "node:fs";
 import path from "node:path";
 
-import { signOutClientSession } from "@asym/auth/client-session";
+import {
+  runSessionChangeCleanups,
+  signOutClientSession,
+} from "@asym/auth/client-session";
 import { cleanup, render } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -126,6 +129,13 @@ describe("Payload's copy-and-paste store never passes from one person to the nex
     localStorage.setItem(PAYLOAD_CLIPBOARD_KEY, COPIED);
     render(<PayloadClipboardGuard />);
     expect(localStorage.getItem(PAYLOAD_CLIPBOARD_KEY)).toBe(COPIED);
+  });
+
+  it("is emptied when a sign-in or an organization choice completes in this document, whatever was copied since the page loaded (round 2, G1)", () => {
+    render(<PayloadClipboardGuard />);
+    localStorage.setItem(PAYLOAD_CLIPBOARD_KEY, COPIED);
+    runSessionChangeCleanups();
+    expect(localStorage.getItem(PAYLOAD_CLIPBOARD_KEY)).toBeNull();
   });
 
   it("is guarded on every page of the admin app, where the mark is read", () => {

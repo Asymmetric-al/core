@@ -2100,7 +2100,22 @@ test("@cms no control offers publishing until WP7: the edit view and the bulk ba
         data: { _status: "published" },
       },
     );
-    expect(publish.status()).toBeGreaterThanOrEqual(400);
+    expect(publish.status()).toBe(400);
+    expect(await publish.json()).toMatchObject({
+      errors: [
+        {
+          name: "ValidationError",
+          data: {
+            errors: [
+              {
+                path: "_status",
+                message: "Publishing is not available in Web Studio yet.",
+              },
+            ],
+          },
+        },
+      ],
+    });
 
     await page.goto(`${base}/web-studio/collections/pages`);
     await page
@@ -2306,5 +2321,145 @@ test("@cms what one person copied is gone at a sign-out in Mission Control that 
     ).toBeDisabled();
     expect(await clipboardOf(page)).toBeNull();
     await page.keyboard.press("Escape");
+  }
+});
+
+const isAuthService = (url: URL) => url.pathname.startsWith("/auth/v1/");
+const isDataService = (url: URL) => url.pathname.startsWith("/rest/v1/");
+const isAdminServer = (url: URL) => url.origin === new URL(base).origin;
+
+function passwordSession(userId: string) {
+  const now = Math.floor(Date.now() / 1000);
+  const claims = Buffer.from(
+    JSON.stringify({ sub: userId, exp: now + 3600, role: "authenticated" }),
+  ).toString("base64url");
+  return {
+    access_token: `e30.${claims}.e2e`,
+    token_type: "bearer",
+    expires_in: 3600,
+    expires_at: now + 3600,
+    refresh_token: "e2e-refresh-token",
+    user: {
+      id: userId,
+      aud: "authenticated",
+      role: "authenticated",
+      email: `${userId}@example.test`,
+      app_metadata: { provider: "email", providers: ["email"] },
+      user_metadata: {},
+      created_at: "2026-11-27T00:00:00.000Z",
+    },
+  };
+}
+
+async function copyLayoutIn(tab: Page) {
+  await tab.goto(
+    `${base}/web-studio/collections/pages/${await draftPreviewPage(tab)}`,
+  );
+  await openLayoutClipboard(tab);
+  await tab.getByRole("menuitem", { name: "Copy Field" }).click();
+  await expect.poll(() => storedIn(tab)).not.toBeNull();
+}
+
+test("@cms what was copied after the sign-in page opened is gone once the next person signs in there with a password, and that person has nothing to paste (WP6 rest, pull request 2, round 2, G1)", async ({
+  page,
+}) => {
+  await signIn(page);
+  await enter(page, SECOND);
+  const stale = await page.context().newPage();
+  await stale.goto(
+    `${base}/web-studio/collections/pages/${await draftPreviewPage(stale)}`,
+  );
+  await page.goto(`${base}/${SECOND}`);
+  await page.getByRole("button", { name: "Open profile menu" }).click();
+  await page.getByRole("menuitem", { name: "Sign out" }).click();
+  await page.waitForURL((url) => url.pathname === "/login");
+  await expect.poll(() => clipboardOf(page)).toBeNull();
+
+  await openLayoutClipboard(stale);
+  await stale.getByRole("menuitem", { name: "Copy Field" }).click();
+  await expect.poll(() => storedIn(stale)).not.toBeNull();
+  await stale.close();
+
+  const next = fixturePerson("demoAdmin");
+  const watcher = await page.context().newPage();
+  try {
+    await watcher.goto(`${base}/icon.svg`);
+    await page.route(isAuthService, (route) =>
+      new URL(route.request().url()).pathname === "/auth/v1/token"
+        ? route.fulfill({ json: passwordSession(next.userId) })
+        : route.abort(),
+    );
+    await page.route(isDataService, (route) => route.abort());
+    await page.route(isAdminServer, (route) => route.abort());
+    await page.getByLabel("Email").fill(`${next.userId}@example.test`);
+    await page.getByLabel("Password").fill("e2e-password");
+    await page.getByRole("button", { name: "Sign in" }).click();
+    await expect.poll(() => storedIn(watcher)).toBeNull();
+  } finally {
+    await page.unrouteAll({ behavior: "ignoreErrors" });
+    await watcher.close();
+  }
+
+  await signInAs(page, "admin", "demoAdmin", base);
+  await page.goto(
+    `${base}/web-studio/collections/pages/${await draftPreviewPage(page)}`,
+  );
+  await openLayoutClipboard(page);
+  await expect(
+    page.getByRole("menuitem", { name: "Paste Field" }),
+  ).toBeDisabled();
+});
+
+test("@cms what was copied after the organization chooser opened is gone once an organization is chosen there (WP6 rest, pull request 2, round 2, G1)", async ({
+  page,
+}) => {
+  await signIn(page);
+  await enter(page, DEMO);
+  await page.goto(
+    `${base}/web-studio/organization?next=${encodeURIComponent("/web-studio")}`,
+  );
+  await expect.poll(() => clipboardOf(page)).toBeNull();
+
+  const stale = await page.context().newPage();
+  await copyLayoutIn(stale);
+  await stale.close();
+
+  await chooseOrganization(page, SECOND);
+  await page.waitForURL((url) => url.pathname === "/web-studio");
+  await expect.poll(() => clipboardOf(page)).toBeNull();
+  await page.goto(
+    `${base}/web-studio/collections/pages/${await draftPreviewPage(page)}`,
+  );
+  await openLayoutClipboard(page);
+  await expect(
+    page.getByRole("menuitem", { name: "Paste Field" }),
+  ).toBeDisabled();
+});
+
+test("@cms the upload dialog fits a short viewport and 200% zoom: each field and button is reached inside it, none cut off (WP6 rest, pull request 2, round 2, G4)", async ({
+  page,
+}) => {
+  await signIn(page);
+  await enter(page, DEMO);
+  await page.goto(`${base}/web-studio/collections/media`);
+  await page.getByRole("button", { name: "Upload image" }).click();
+  const dialog = page.getByRole("dialog", { name: "Upload image" });
+  await expect(dialog).toBeVisible();
+  for (const size of [
+    { width: 1280, height: 360 },
+    { width: 640, height: 360 },
+  ]) {
+    await page.setViewportSize(size);
+    for (const control of [
+      dialog.getByLabel("Image file"),
+      dialog.getByLabel("Alt text"),
+      dialog.getByLabel("Credit"),
+      dialog.getByLabel("Folder"),
+      dialog.getByRole("button", { name: "Cancel" }),
+      dialog.getByRole("button", { name: "Upload", exact: true }),
+    ]) {
+      await control.scrollIntoViewIfNeeded();
+      await expect(control).toBeInViewport({ ratio: 1 });
+    }
   }
 });
