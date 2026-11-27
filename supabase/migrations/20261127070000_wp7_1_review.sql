@@ -440,6 +440,7 @@ BEGIN
 END;
 $$;
 
+GRANT CREATE ON SCHEMA tenant_guard TO tenant_guard;
 ALTER FUNCTION tenant_guard.lock_live_assignment(tenant_guard.command_context, TEXT) OWNER TO tenant_guard;
 REVOKE ALL ON FUNCTION tenant_guard.lock_live_assignment(tenant_guard.command_context, TEXT) FROM PUBLIC, anon, authenticated, service_role;
 
@@ -825,6 +826,7 @@ BEGIN
   END LOOP;
 END;
 $grants$;
+REVOKE CREATE ON SCHEMA tenant_guard FROM tenant_guard;
 
 CREATE FUNCTION public.submit_ministry_update(
   p_tenant_id UUID,
