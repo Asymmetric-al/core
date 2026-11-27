@@ -402,7 +402,7 @@ CREATE FUNCTION tenant_guard.lock_live_assignment(
 RETURNS VOID
 LANGUAGE plpgsql
 VOLATILE
-SECURITY DEFINER
+SECURITY INVOKER
 SET search_path = ''
 AS $$
 DECLARE
@@ -440,15 +440,15 @@ BEGIN
 END;
 $$;
 
-GRANT CREATE ON SCHEMA tenant_guard TO tenant_guard;
-ALTER FUNCTION tenant_guard.lock_live_assignment(tenant_guard.command_context, TEXT) OWNER TO tenant_guard;
+ALTER FUNCTION tenant_guard.lock_live_assignment(tenant_guard.command_context, TEXT) OWNER TO postgres;
 REVOKE ALL ON FUNCTION tenant_guard.lock_live_assignment(tenant_guard.command_context, TEXT) FROM PUBLIC, anon, authenticated, service_role;
+GRANT EXECUTE ON FUNCTION tenant_guard.lock_live_assignment(tenant_guard.command_context, TEXT) TO tenant_guard;
 
 CREATE FUNCTION tenant_guard.own_ministry(p_ctx tenant_guard.command_context)
 RETURNS UUID
 LANGUAGE plpgsql
 STABLE
-SECURITY DEFINER
+SECURITY INVOKER
 SET search_path = ''
 AS $$
 DECLARE
@@ -470,8 +470,9 @@ BEGIN
 END;
 $$;
 
-ALTER FUNCTION tenant_guard.own_ministry(tenant_guard.command_context) OWNER TO tenant_guard;
+ALTER FUNCTION tenant_guard.own_ministry(tenant_guard.command_context) OWNER TO postgres;
 REVOKE ALL ON FUNCTION tenant_guard.own_ministry(tenant_guard.command_context) FROM PUBLIC, anon, authenticated, service_role;
+GRANT EXECUTE ON FUNCTION tenant_guard.own_ministry(tenant_guard.command_context) TO tenant_guard;
 
 
 CREATE FUNCTION tenant_guard.submit_ministry_update(
@@ -613,7 +614,7 @@ CREATE FUNCTION tenant_guard.review_ministry_update(
 RETURNS VOID
 LANGUAGE plpgsql
 VOLATILE
-SECURITY DEFINER
+SECURITY INVOKER
 SET search_path = ''
 AS $$
 DECLARE
@@ -694,8 +695,9 @@ BEGIN
 END;
 $$;
 
-ALTER FUNCTION tenant_guard.review_ministry_update(tenant_guard.command_context, UUID, TEXT, TEXT) OWNER TO tenant_guard;
+ALTER FUNCTION tenant_guard.review_ministry_update(tenant_guard.command_context, UUID, TEXT, TEXT) OWNER TO postgres;
 REVOKE ALL ON FUNCTION tenant_guard.review_ministry_update(tenant_guard.command_context, UUID, TEXT, TEXT) FROM PUBLIC, anon, authenticated, service_role;
+GRANT EXECUTE ON FUNCTION tenant_guard.review_ministry_update(tenant_guard.command_context, UUID, TEXT, TEXT) TO tenant_guard;
 
 CREATE FUNCTION tenant_guard.approve_ministry_update(p_tenant_id UUID, p_post_id UUID)
 RETURNS VOID
@@ -808,6 +810,7 @@ BEGIN
 END;
 $$;
 
+GRANT CREATE ON SCHEMA tenant_guard TO tenant_guard;
 DO $grants$
 DECLARE
   v_signature TEXT;
