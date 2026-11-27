@@ -28,6 +28,7 @@ import {
 import { normalizesToNothing } from "./safety-text";
 import { withOperation } from "../../shared/with-operation";
 
+import type { RequestSessionClient } from "../../shared/request-session-client";
 import type { z } from "zod";
 
 const WRITE = { capability: WORKERS_CAPABILITY } as const;
@@ -49,7 +50,7 @@ async function prepare<T extends { reason: string }>(
   operation: WorkersOperation,
   input: {
     request: Request;
-    sessionClient: unknown;
+    sessionClient: RequestSessionClient;
     requestId: string;
     context?: {
       params?: Promise<Record<string, string | string[] | undefined>>;

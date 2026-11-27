@@ -16,6 +16,8 @@ import {
 } from "../../shared/http-errors";
 import { READ_ALL_PAGE_SIZE, readAllPages } from "../../shared/read-all-pages";
 
+import type { RequestSessionClient } from "../../shared/request-session-client";
+
 export {
   FAILURE_TEXT,
   NOT_PERMITTED_TEXT,
@@ -320,8 +322,17 @@ export interface WorkersRpcClient {
   ): WorkersRpcQuery;
 }
 
-export function rpcClient(client: unknown): WorkersRpcClient {
-  return client as WorkersRpcClient;
+export function rpcClient(client: RequestSessionClient): WorkersRpcClient {
+  return {
+    rpc: (fn, args, options) =>
+      (options === undefined
+        ? client.rpc(fn as never, args as never)
+        : client.rpc(
+            fn as never,
+            args as never,
+            options,
+          )) as unknown as WorkersRpcQuery,
+  };
 }
 
 type WorkerRowsRead =
