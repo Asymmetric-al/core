@@ -132,11 +132,14 @@ export function serverEnvironment(
       FRONT_STAMP_KEY_MISSIONARY: secrets.missionaryStampKey,
     };
   }
-  return {
-    ...env,
-    FRONT_STAMP_KEY:
-      app === "admin" ? secrets.adminStampKey : secrets.missionaryStampKey,
-  };
+  if (app === "admin") {
+    return {
+      ...env,
+      FRONT_STAMP_KEY: secrets.adminStampKey,
+      OPERATIONS_NAMES: new URL(env.FRONT_ADMIN_ORIGIN ?? "").host,
+    };
+  }
+  return { ...env, FRONT_STAMP_KEY: secrets.missionaryStampKey };
 }
 
 export function proofEnvironment(
@@ -148,6 +151,7 @@ export function proofEnvironment(
   return {
     ...base,
     N2_ON_BASE_URL: `http://${NAME_A}:${ports.front}`,
+    N2_ON_OPERATIONS_URL: `http://localhost:${ports.admin}`,
     N2_ON_DB_URL: stack.dbUrl,
     N2_ON_PASSWORD: secrets.password,
     N2_ON_REQUIRED: "1",
