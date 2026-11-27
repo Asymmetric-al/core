@@ -67,6 +67,22 @@ beforeEach(() => {
   state.search = "";
   vi.stubGlobal("fetch", fetchMock);
   fetchMock.mockReset();
+  vi.stubGlobal(
+    "ResizeObserver",
+    class {
+      observe() {}
+      unobserve() {}
+      disconnect() {}
+    },
+  );
+  vi.stubGlobal("matchMedia", (media: string) => ({
+    media,
+    matches: false,
+    addEventListener() {},
+    removeEventListener() {},
+    addListener() {},
+    removeListener() {},
+  }));
 });
 
 afterEach(() => {
@@ -189,5 +205,27 @@ describe("AL-2678 r2b1: the workers' directory", () => {
     await waitFor(() =>
       expect(screen.getByRole("table", { name: "Workers" })).toBeTruthy(),
     );
+  });
+
+  it("a long directory is paged and searchable in the shared data table: of 30 workers a page shows 20 and the next page the other 10, and a search by name narrows it to the match (WP5 rest 2b, issue 2835 item 3; red: one table of every worker and no search)", async () => {
+    const workers = Array.from({ length: 30 }, (_, i) =>
+      worker(`00000000-0000-4000-8000-${String(i).padStart(12, "0")}`),
+    );
+    fetchMock.mockResolvedValue(reply(200, { workers }));
+    show();
+    const names = () =>
+      screen
+        .getAllByRole("link")
+        .map((link) => link.textContent ?? "")
+        .filter((text) => /^Worker \d{4}$/.test(text));
+    await waitFor(() => expect(names()).toHaveLength(20));
+    expect(names()[0]).toBe("Worker 0000");
+    fireEvent.click(screen.getByRole("button", { name: "Go to next page" }));
+    await waitFor(() => expect(names()).toHaveLength(10));
+    expect(names()).toContain("Worker 0029");
+    fireEvent.change(screen.getByRole("textbox", { name: "Search workers" }), {
+      target: { value: "0007" },
+    });
+    await waitFor(() => expect(names()).toEqual(["Worker 0007"]));
   });
 });
