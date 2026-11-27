@@ -93,7 +93,8 @@ describe.skipIf(!ADMIN_URL)("#2251 tenant table RLS posture (R)", () => {
     const sql = `insert into public.tenants (id, name, slug) values (:A, 'acc2251 A', 'acc2251-' || :A), (:B, 'acc2251 B', 'acc2251-' || :B);
       insert into auth.users (id) values (:U);
       insert into authz.memberships (user_id, tenant_id, role, staff_role, is_active) values (:U, :A, 'staff', 'finance', true);
-      insert into public.donors (id, tenant_id) values (:DA, :A), (:DB, :B);
+      -- D-18, AL-2678 WP5 rest 2a. each fixture donor names its Party through the Party writer, as every donor writer must before party_id becomes NOT NULL (r5b).
+      insert into public.donors (id, tenant_id, party_id) values (:DA, :A, public.donor_party_for_insert(:A, null, null, null)), (:DB, :B, public.donor_party_for_insert(:B, null, null, null));
       insert into public.donations (tenant_id, donor_id) values (:A, :DA), (:B, :DB);
       insert into public.donation_saga_outbox (tenant_id, donation_id, donor_id, amount, idempotency_key)
         select tenant_id, id, donor_id, 100, 'acc2251-' || id from public.donations where tenant_id in (:A, :B);

@@ -648,7 +648,7 @@ export async function applyApprovedCorrectionRequest<TContribution>(
   };
 }
 
-function stableSerialize(value: unknown): string {
+export function stableSerialize(value: unknown): string {
   if (value === undefined) {
     return '"__undefined__"';
   }

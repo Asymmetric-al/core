@@ -28,7 +28,7 @@ describe.skipIf(!ADMIN_URL)("tenant status under a selected membership", () => {
         await db.query(fixtureSql(id));
         await db.query(`insert into public.posts(id,tenant_id,content,status,visibility) values ('${id.TA}','${id.TA}','Fixture','published','public');
           insert into public.post_comments(post_id,user_id,content) values ('${id.TA}','${id.UADM}','Fixture');
-          insert into public.donors(id,tenant_id,profile_id) select '${id.TA}','${id.TA}',id from public.profiles where user_id='${id.UDON}';
+          insert into public.donors(id,tenant_id,party_id,profile_id) select '${id.TA}','${id.TA}',public.donor_party_for_insert('${id.TA}',id,null,null),id from public.profiles where user_id='${id.UDON}';
           insert into public.account_links(tenant_id,user_id,party_id,linked_via) select tenant_id,profile_id,party_id,'profile_backfill' from public.donors where id='${id.TA}';
           insert into public.donations(id,tenant_id,donor_id,amount) values ('${id.TA}','${id.TA}','${id.TA}',10)`);
         await db.query("update public.tenants set status=$1 where id=$2", [

@@ -278,6 +278,29 @@ describe("Partners roster safety", () => {
     expect(screen.getByText("Unknown")).toBeTruthy();
   });
 
+  it("marks no channel Preferred for a partner with no stored preference, and marks the stored one (fix round F2 of 2859; guard: the readers now pass none through)", () => {
+    mocks.rows = [
+      { ...donor(1), email: "", preferred_contact: null },
+      { ...donor(2), preferred_contact: "email" },
+    ];
+    render(
+      <QueryClientProvider client={new QueryClient()}>
+        <DonorsPageViewProvider>
+          <ActionsProbe />
+          <DonorsPageDetailContact />
+        </DonorsPageViewProvider>
+      </QueryClientProvider>,
+    );
+    fireEvent.click(
+      screen.getByRole("button", { name: "Select first partner" }),
+    );
+    expect(screen.queryByText("Preferred")).toBeNull();
+    fireEvent.click(
+      screen.getByRole("button", { name: "Select second partner" }),
+    );
+    expect(screen.getAllByText("Preferred")).toHaveLength(1);
+  });
+
   it("gives contact copy and external actions meaningful accessible names", () => {
     mocks.rows = [
       {

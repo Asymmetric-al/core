@@ -558,6 +558,33 @@ answers terminal. Each file revokes `PUBLIC`, `anon`, `authenticated` and
 `20261127050200_wp8a2_rest2a_guest_reads.sql`,
 `20261127050300_wp8a2_rest2a_deferred_events.sql`).
 
+## Functions added by AL-2678 (WP5 rest, pull request 2a)
+
+| Function                                                 | Security | EXECUTE grantees (exact)           |
+| -------------------------------------------------------- | -------- | ---------------------------------- |
+| `private.login_party(uuid, uuid)`                        | DEFINER  | `postgres` (owner), `tenant_guard` |
+| `private.record_claim_merge_candidate(uuid, uuid, uuid)` | DEFINER  | `postgres` (owner), `tenant_guard` |
+
+Each revokes `PUBLIC`, `anon`, `authenticated` and `service_role` by name
+before granting (`20261127060000_wp5_rest2_party_lock.sql`). Both refuse a
+call outside the tenant the transaction entered (42501) and read nothing from
+`auth`. `private.login_party` answers the Party a login resolves to in the
+donor writer's order (account link, else sole worker row, else that login's
+donor); `private.record_claim_merge_candidate` writes one open
+`donor_merge_candidates` row for a claim refused because the login is tied to
+another Party, by an account link, a worker row or its own donor, and never
+merges. It records nothing when that other Party holds no donor or several,
+when its one donor is the claimed donor, or when the pair is already open in
+either direction; it reads under the advisory lock
+(`donor_merge_candidate`, organization and the pair), so two refusals of one
+pair at once record one. A claim refused for another reason (the token, the
+person, the e-mail, the donor's contact, or a claimed donor already linked)
+records nothing. `begin_donation_saga`,
+`atomic_create_donation_with_audit` and `tenant_guard.redeem_account_claim`
+are replaced, and `tenant_guard.add_partner` by
+`20261127060100_wp5_rest2_add_partner_digest.sql`, each with its owner,
+security and grantees unchanged.
+
 ## Functions added by AL-2681 (WP8a part 2 rest, pull request 2b)
 
 | Function                                                   | Security | EXECUTE grantees (exact)                    |

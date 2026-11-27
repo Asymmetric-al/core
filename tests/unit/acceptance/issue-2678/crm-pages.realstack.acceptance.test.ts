@@ -152,8 +152,8 @@ describe.skipIf(!ADMIN_URL)(
       const row = randomUUID();
       return db
         .query(
-          `insert into public.donors (id, tenant_id, name, type, organization, spouse, status, location, updated_at, created_at)
-           values ($1, $2, $3, $4, $5, $6, $7, $8, coalesce($9::timestamptz, now()), coalesce($9::timestamptz, now()))`,
+          `insert into public.donors (id, tenant_id, party_id, name, type, organization, spouse, status, location, updated_at, created_at)
+           values ($1, $2, public.donor_party_for_insert($2, null, $3, null), $3, $4, $5, $6, $7, $8, coalesce($9::timestamptz, now()), coalesce($9::timestamptz, now()))`,
           [
             row,
             tenant,
