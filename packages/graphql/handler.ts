@@ -771,6 +771,7 @@ const resolvers = {
           currency,
           missionaryId: args.input.missionaryId,
           fundId: null,
+          ownDonorId: begin.donorId,
         },
         { userId: auth.userId, tenantId: auth.tenantId },
       );

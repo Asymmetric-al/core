@@ -62,21 +62,55 @@ export function giftMismatches(
   return checks.filter(([, ok]) => !ok).map(([field]) => field);
 }
 
+type GiftReader = Parameters<typeof findOwnDonor>[0];
+
 export async function callerGiftMismatches(
-  supabase: Parameters<typeof findOwnDonor>[0],
+  supabase: GiftReader,
   row: Record<string, unknown>,
-  gift: RequestedGift,
+  gift: RequestedGift & { ownDonorId?: string | null },
   person: { userId: string; tenantId: string },
 ): Promise<string[] | null> {
   const mismatched = giftMismatches(row, gift);
   if (!mismatched.includes("profile")) return mismatched;
-  const own = await findOwnDonor(supabase, person).then(
-    (lookup) => lookup,
-    () => null,
+  const own = await ownDonorOf(supabase, row, gift.profileId, person).then(
+    (donorId) => donorId,
+    () => undefined,
   );
-  if (own === null) return null;
-  if (own.status !== "found") return mismatched;
-  return giftMismatches(row, { ...gift, ownDonorId: own.donor.id });
+  if (own === undefined) return null;
+  if (own === null) return mismatched;
+  return giftMismatches(row, { ...gift, ownDonorId: own });
+}
+
+async function ownDonorOf(
+  supabase: GiftReader,
+  row: Record<string, unknown>,
+  profileId: string,
+  person: { userId: string; tenantId: string },
+): Promise<string | null> {
+  const linked = await findOwnDonor(supabase, person);
+  if (linked.status === "found") return linked.donor.id;
+  if (linked.status === "multiple") return null;
+  const donorId =
+    typeof row.donor_id === "string"
+      ? row.donor_id
+      : (row.donor as { id?: unknown } | null)?.id;
+  if (typeof donorId !== "string") return null;
+  const { data: workers, error: workersError } = await supabase
+    .from("missionaries")
+    .select("party_id")
+    .eq("tenant_id", person.tenantId)
+    .eq("profile_id", profileId)
+    .limit(2);
+  if (workersError) throw new Error(workersError.message);
+  if (workers?.length !== 1 || !workers[0]?.party_id) return null;
+  const { data: donor, error: donorError } = await supabase
+    .from("donors")
+    .select("party_id")
+    .eq("tenant_id", person.tenantId)
+    .eq("id", donorId)
+    .maybeSingle();
+  if (donorError) throw new Error(donorError.message);
+  return donor?.party_id === workers[0].party_id ? donorId : null;
 }
 
 /** A UUID in one comparable form (lowercase hex, no braces or hyphens). */

@@ -192,6 +192,7 @@ export async function POST(request: NextRequest) {
       currency,
       missionaryId,
       fundId: null,
+      ownDonorId: begin.donorId,
     };
     const caller = { userId: ctx.userId, tenantId: ctx.tenantId };
     const readBack = () =>
