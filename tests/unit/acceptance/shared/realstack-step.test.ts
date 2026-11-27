@@ -372,6 +372,7 @@ const REAL_DATABASE_FILES = [
     "issue-2678/assignment-keys-race.realstack",
     "issue-2678/assignment-keys.realstack",
     "issue-2678/backfill.realstack",
+    "issue-2678/care-worker-names.realstack",
     "issue-2678/crm-pages.realstack",
     "issue-2678/external-identifiers.realstack",
     "issue-2678/identity-spine.realstack",
