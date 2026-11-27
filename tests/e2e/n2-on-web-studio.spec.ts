@@ -134,7 +134,8 @@ test("a choice in Web Studio's chooser enters by a document load; the API tab sh
     const [preview] = await Promise.all([
       context.waitForEvent("page"),
       page
-        .getByRole("link", { name: /^Preview/ })
+        .locator(`a[href="/admin/web-studio/preview/pages/${id}"]`)
+        .filter({ visible: true })
         .first()
         .click(),
     ]);
