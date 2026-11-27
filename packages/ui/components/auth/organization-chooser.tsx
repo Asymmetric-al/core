@@ -1,6 +1,10 @@
 import { withAppBasePath } from "@asym/database/document-reload";
 import { CircleAlert } from "lucide-react";
 
+import {
+  OrganizationChoiceForm,
+  type OrganizationChoiceLoad,
+} from "./organization-choice-form";
 import { OrganizationChoiceSubmit } from "./organization-choice-submit";
 import { Alert, AlertDescription, AlertTitle } from "../shadcn/alert";
 import { ButtonLink } from "../shadcn/button";
@@ -53,8 +57,15 @@ type OrganizationChooserProps =
        * whole of Web Studio, so each option posts the choice to `action`,
        * which checks it and sets the cookie, then returns to `next`.
        */
-      choose: {
-        action: (formData: FormData) => void | Promise<void>;
+      choose: (
+        | { action: (formData: FormData) => void | Promise<void> }
+        | {
+            loadAction: (
+              state: OrganizationChoiceLoad,
+              formData: FormData,
+            ) => Promise<OrganizationChoiceLoad>;
+          }
+      ) & {
         next: string;
         /** The last choice posted was refused: the chooser says so. */
         refused?: boolean;
@@ -140,7 +151,7 @@ export function OrganizationChooser(props: OrganizationChooserProps) {
                       organization as OrganizationChooserOrganization<FormOption>
                     ).options.map((option) => (
                       <li key={option.assignmentId}>
-                        <form action={props.choose.action}>
+                        <ChoiceForm choose={props.choose}>
                           <input
                             type="hidden"
                             name="tenant"
@@ -162,7 +173,7 @@ export function OrganizationChooser(props: OrganizationChooserProps) {
                               subRole={option.subRole}
                             />
                           </OrganizationChoiceSubmit>
-                        </form>
+                        </ChoiceForm>
                       </li>
                     ))
                   : (
@@ -195,6 +206,22 @@ export function OrganizationChooser(props: OrganizationChooserProps) {
  * round 1, A9): an alert in the page, with a link that loads the chooser
  * again for the same choice, instead of the app's error page.
  */
+function ChoiceForm({
+  choose,
+  children,
+}: {
+  choose: NonNullable<OrganizationChooserProps["choose"]>;
+  children: ReactNode;
+}) {
+  return "loadAction" in choose ? (
+    <OrganizationChoiceForm action={choose.loadAction}>
+      {children}
+    </OrganizationChoiceForm>
+  ) : (
+    <form action={choose.action}>{children}</form>
+  );
+}
+
 export function OrganizationChooserUnavailable({
   retryHref,
 }: {

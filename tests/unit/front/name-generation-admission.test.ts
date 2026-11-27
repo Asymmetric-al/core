@@ -311,11 +311,21 @@ const CLIENT = { [NAME_GEN]: "6", [CLAIM]: "6" };
 describe("on: the proxies hand the name's generation to the handler", () => {
   const cases: Array<[App, string, string, boolean]> = [
     ["admin", "a page", "/login", false],
-    ["admin", "the tenant rewrite", `/${TA}~development/donors`, false],
+    [
+      "admin",
+      "the tenant rewrite (D-18, N2 part 2b: at /~development, without A's ID)",
+      "/~development/donors",
+      false,
+    ],
     ["admin", "/api/x", "/api/x", true],
     ["admin", "/web-studio/api/x", "/web-studio/api/x", true],
     ["missionary", "a page", "/login", false],
-    ["missionary", "the tenant rewrite", `/${TA}/feed`, false],
+    [
+      "missionary",
+      "the tenant rewrite (D-18, N2 part 2b: at the bare path, without A's ID)",
+      "/feed",
+      false,
+    ],
     ["missionary", "/api/x", "/api/x", true],
   ];
 
@@ -486,12 +496,6 @@ describe("on: the configuration's redirects answer only after the name is admitt
     ["admin", "/mc/x/", 308, `${ORIGIN}/admin/mc/x`],
     ["missionary", "/ministry-updates", 308, `${ORIGIN}/missionary/feed`],
     ["missionary", "/email-studio", 308, `${ORIGIN}/missionary/feed`],
-    [
-      "missionary",
-      `/${TA}/ministry-updates`,
-      308,
-      `${ORIGIN}/missionary/${TA}/feed`,
-    ],
     ["missionary", "/donors/", 308, `${ORIGIN}/missionary/donors`],
   ];
 
@@ -529,15 +533,17 @@ describe("on: the configuration's redirects answer only after the name is admitt
   });
 
   it.each([
+    [TA, `/${TA}/ministry-updates`],
     [TA, `/${TB}/ministry-updates`],
     [TC, `/${TC.toUpperCase()}/ministry-updates`],
     [TA, `/${TA}~finance/ministry-updates`],
   ])(
-    "missionary, the name's organization %s, %s: not answered by the table",
+    "missionary, the name's organization %s, %s: not answered by the table, 404 no-store (D-18, N2 part 2b: the table's form with an organization answers nothing on, R4)",
     async (tenantId, path) => {
       state.answer = () => home(tenantId, 7);
       const response = await stamped("missionary", path);
-      expect(response.headers.get("location") ?? "").not.toMatch(/\/feed$/);
+      expectNotFound(response);
+      expect(state.sessionReads).toBe(0);
     },
   );
 

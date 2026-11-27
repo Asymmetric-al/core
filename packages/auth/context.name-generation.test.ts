@@ -482,10 +482,10 @@ describe("on: what the generation does not cover still refuses (guards)", () => 
   });
 });
 
-describe("on: readDocumentScope carries the name's generation", () => {
+describe("on: readDocumentScope carries the name's generation (D-18, N2 part 2b: on, the proxy's prefix names the sub-role, never the organization)", () => {
   beforeEach(() => {
     mocks.headers.set(NAME, TA);
-    mocks.headers.set("x-asym-address-prefix", `/${TA}~finance`);
+    mocks.headers.set("x-asym-address-prefix", "/~finance");
   });
 
   it("sets generation 7 from the trusted header", async () => {
@@ -495,7 +495,7 @@ describe("on: readDocumentScope carries the name's generation", () => {
       userId: USER,
       tenantId: TA,
       assignmentId: P_FIN_A.id,
-      addressPrefix: `/${TA}~finance`,
+      addressPrefix: "/~finance",
       generation: 7,
     });
   });

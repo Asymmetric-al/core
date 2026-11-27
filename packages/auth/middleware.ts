@@ -43,9 +43,15 @@ import {
 import {
   CHOOSER_PATH,
   isOutsideTenantSegment,
+  parseSubRoleAddress,
   parseTenantAddress,
+  refusesAddressOnName,
 } from "./tenant-address";
-import { decideLanding, decideTenantAddress } from "./tenant-address-decisions";
+import {
+  decideLanding,
+  decideNameAddress,
+  decideTenantAddress,
+} from "./tenant-address-decisions";
 import {
   decideWebStudioAccess,
   isStrayWebStudioChooserPath,
@@ -282,6 +288,14 @@ function refusedAddress(): NextResponse {
   return new NextResponse(null, { status: 404 });
 }
 
+function notFoundKeepingSession(cookieSource: NextResponse): NextResponse {
+  const response = frontNotFound();
+  cookieSource.cookies.getAll().forEach((cookie) => {
+    response.cookies.set(cookie);
+  });
+  return response;
+}
+
 function chooserUrl(
   request: NextRequest,
   tenantId: string | null,
@@ -365,11 +379,14 @@ export function createAuthMiddleware(options: AuthMiddlewareOptions = {}) {
       return rewriteLeftServerResponse(addressPathname);
     }
 
-    const address = tenantAddress ? parseTenantAddress(addressPathname) : null;
-    const pathname = address ? address.innerPathname : addressPathname;
-    if (nameTenantId && address && address.tenantId !== nameTenantId) {
+    const onName = tenantAddress && nameTenantId !== undefined;
+    if (onName && refusesAddressOnName(addressPathname, roleClass)) {
       return frontNotFound();
     }
+    const address =
+      tenantAddress && !onName ? parseTenantAddress(addressPathname) : null;
+    const nameAddress = onName ? parseSubRoleAddress(addressPathname) : null;
+    const pathname = (address ?? nameAddress)?.innerPathname ?? addressPathname;
     const inName = <Row extends { tenantId: string }>(rows: readonly Row[]) =>
       nameTenantId ? rows.filter((row) => row.tenantId === nameTenantId) : rows;
 
@@ -414,7 +431,9 @@ export function createAuthMiddleware(options: AuthMiddlewareOptions = {}) {
     }
 
     const isProtectedPath =
-      address !== null || isProtectedRoute(pathname, protectedRoutePrefixes);
+      address !== null ||
+      nameAddress !== null ||
+      isProtectedRoute(pathname, protectedRoutePrefixes);
     const requiresAuthentication = !isExplicitlyPublic && isProtectedPath;
 
     if (!url || !key) {
@@ -636,6 +655,47 @@ export function createAuthMiddleware(options: AuthMiddlewareOptions = {}) {
           buildRedirectUrl(request, unauthorizedRedirectTo),
           supabaseResponse,
         );
+      }
+
+      if (onName && nameTenantId) {
+        const decision = decideNameAddress({
+          assignments,
+          roleClass,
+          nameTenantId,
+          subRole: nameAddress?.subRole ?? null,
+        });
+        switch (decision.kind) {
+          case "refuse":
+            reportAccessDiagnostic("no_assignment");
+            return redirectWithCookies(
+              buildRedirectUrl(request, unauthorizedRedirectTo),
+              supabaseResponse,
+            );
+          case "not_found":
+            return notFoundKeepingSession(supabaseResponse);
+          case "choose":
+            return redirectWithCookies(
+              chooserUrl(request, null, withSearch(request, pathname)),
+              supabaseResponse,
+            );
+          case "allow": {
+            const target = ownOriginUrl(request, withSearch(request, pathname));
+            if (!target) return refusedAddress();
+            requestHeaders.set(TENANT_HEADER, decision.assignment.tenantId);
+            requestHeaders.set(
+              ASSIGNMENT_HEADER,
+              decision.assignment.assignmentId,
+            );
+            requestHeaders.set(ADDRESS_PREFIX_HEADER, decision.prefix);
+            requestHeaders.set(TENANT_REWRITE_HEADER, TENANT_REWRITE_MARKER);
+            return withSessionFrom(
+              NextResponse.rewrite(target, {
+                request: { headers: requestHeaders },
+              }),
+              supabaseResponse,
+            );
+          }
+        }
       }
 
       if (!address) {

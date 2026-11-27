@@ -1,7 +1,7 @@
 "use client";
 
 import { formatSharedContributionAmount } from "@asym/api/admin/contribution-shared";
-import { useTenantHref } from "@asym/auth/tenant-navigation";
+import { useCopiedLinkHref } from "@asym/auth/tenant-navigation";
 import { withAppBasePath } from "@asym/database/document-reload";
 import { useLocaleFormat } from "@asym/lib/hooks/use-locale-format";
 import { getInitials } from "@asym/lib/utils";
@@ -216,7 +216,7 @@ function ContributionRowActions({
   onViewContribution: (contribution: Contribution) => void;
 }) {
   const donorLabel = contributionDonorLabel(contribution);
-  const tenantHref = useTenantHref();
+  const copiedLinkHref = useCopiedLinkHref();
   const amountLabel = formatSharedContributionAmount(
     contribution.shared.amountCents,
     contribution.shared.currencyCode,
@@ -257,7 +257,7 @@ function ContributionRowActions({
             onClick={() =>
               copyToClipboard(
                 contributionCopyUrl(
-                  tenantHref(
+                  copiedLinkHref(
                     `/contributions/${encodeURIComponent(contribution.id)}`,
                   ),
                   window.location.origin,

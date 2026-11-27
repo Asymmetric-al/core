@@ -2,6 +2,7 @@
 
 import {
   appPathname,
+  isServeUnderPathsEnabled,
   loadDocument,
   withAppBasePath,
 } from "@asym/database/document-reload";
@@ -14,6 +15,7 @@ import {
   isDocumentScopeFixed,
   useDocumentScope,
   type DocumentScope,
+  type DocumentSegment,
 } from "@asym/database/document-scope";
 import { ScopeReloadNotice } from "@asym/database/scope-reload-notice";
 import Link from "next/link";
@@ -30,6 +32,7 @@ import {
 
 import {
   isOutsideTenantSegment,
+  nameAddressSegmentOf,
   parseTenantAddress,
   stripTenantAddress,
   withTenantAddress,
@@ -43,10 +46,21 @@ import {
 
 import type { ComponentProps, MouseEvent, ReactNode } from "react";
 
+function documentPrefixOf(pathname: string): string | null {
+  return isServeUnderPathsEnabled()
+    ? nameAddressSegmentOf(pathname)
+    : (parseTenantAddress(pathname)?.prefix ?? null);
+}
+
+const NAME_EMPTY_PREFIX_SEGMENT: DocumentSegment = {
+  name: "/",
+  contains: (pathname) => nameAddressSegmentOf(pathname) === "",
+};
+
 function loadedSegment(): string | null | undefined {
   const pathname = loadedPathname();
   if (pathname === undefined) return undefined;
-  return parseTenantAddress(pathname)?.prefix ?? null;
+  return documentPrefixOf(pathname);
 }
 
 function loadedPathname(): string | undefined {
@@ -67,6 +81,7 @@ const SegmentContext = createContext<{
 
 function tenantSegmentOf(pathname: string): string | null {
   if (isWebStudioPagePath(pathname)) return WEB_STUDIO_SEGMENT.name;
+  if (isServeUnderPathsEnabled()) return nameAddressSegmentOf(pathname);
   const address = parseTenantAddress(pathname);
   if (address) return address.prefix;
   return isOutsideTenantSegment(pathname) ? null : "unprefixed";
@@ -74,7 +89,7 @@ function tenantSegmentOf(pathname: string): string | null {
 
 function addressSegmentOf(pathname: string): string | null {
   if (isWebStudioPagePath(pathname)) return WEB_STUDIO_SEGMENT.name;
-  return parseTenantAddress(pathname)?.prefix ?? null;
+  return documentPrefixOf(pathname);
 }
 
 function loadedAddressSegment(): string | null | undefined {
@@ -204,8 +219,7 @@ export function TenantDocument({
   scope: DocumentScope;
   children: ReactNode;
 }) {
-  const addressPrefix =
-    parseTenantAddress(usePathname() ?? "/")?.prefix ?? null;
+  const addressPrefix = documentPrefixOf(usePathname() ?? "/");
   const mismatch = addressPrefix !== scope.addressPrefix;
   if (mismatch && neverFixedScope() && isAtLoadedAddress(addressPrefix)) {
     throw new TenantScopeMismatchError(addressPrefix, scope.addressPrefix);
@@ -228,7 +242,12 @@ export function TenantDocument({
   }
   if (reload) return <ScopeReloadNotice requestReload={false} />;
   return (
-    <DocumentScopeProvider scope={scope}>
+    <DocumentScopeProvider
+      scope={scope}
+      segment={
+        scope.addressPrefix === "" ? NAME_EMPTY_PREFIX_SEGMENT : undefined
+      }
+    >
       <span
         hidden
         data-tenant-scope={scope.addressPrefix}
@@ -403,6 +422,14 @@ export function useTenantRouter(): AppRouter {
       },
     }),
     [router, toHref, crosses],
+  );
+}
+
+export function useCopiedLinkHref(): (href: string) => string {
+  const toHref = useTenantHref();
+  return useCallback(
+    (href: string) => (isServeUnderPathsEnabled() ? href : toHref(href)),
+    [toHref],
   );
 }
 

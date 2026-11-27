@@ -14,10 +14,14 @@ import {
 } from "@asym/auth/principal";
 import {
   ASSIGNMENT_HEADER,
+  isNameGenerationRefused,
   isNameTenantRefused,
   nameTenantIdOf,
+  readNameGeneration,
   readNameTenantState,
+  SCOPE_GENERATION_HEADER,
   TENANT_HEADER,
+  type NameGenerationState,
 } from "@asym/auth/request-headers";
 import {
   decideWebStudioAccess,
@@ -40,7 +44,7 @@ import {
 } from "./web-studio-refusal";
 
 import type { StaffSubrole } from "@asym/database/types";
-import type { AuthStrategy, BasePayload, PayloadRequest } from "payload";
+import type { AuthStrategy, BasePayload } from "payload";
 
 const STRATEGY_NAME = "supabase-session";
 type PayloadAuthStore = Pick<
@@ -56,7 +60,7 @@ type CmsAuthUser = PrincipalLinkRow & {
   isTenantAdmin: boolean;
 };
 
-type SupabaseStrategyDependencies = {
+export type SupabaseStrategyDependencies = {
   createSupabaseClient?: typeof createServerClient;
   readWebStudioCookie?: (value: string | null) => Promise<WebStudioCookieState>;
 };
@@ -149,17 +153,25 @@ const WRITE_METHODS = new Set(["POST", "PUT", "PATCH", "DELETE"]);
 function isFromCurrentDocument(
   {
     headers,
-    req,
+    request,
     isGraphQL,
-  }: { headers: Headers; req?: PayloadRequest; isGraphQL?: boolean },
+  }: { headers: Headers; request: CallerRequest | null; isGraphQL?: boolean },
   assignment: ActiveAssignment,
+  generation: NameGenerationState,
 ): boolean {
-  if (!req) return true;
+  if (!request) return true;
   const tenantId = headers.get(TENANT_HEADER)?.trim() || null;
   const assignmentId = headers.get(ASSIGNMENT_HEADER)?.trim() || null;
+  if (generation.kind === "valid") {
+    return (
+      headers.get(SCOPE_GENERATION_HEADER) === String(generation.generation) &&
+      tenantId === assignment.tenantId &&
+      assignmentId === assignment.assignmentId
+    );
+  }
   if (tenantId === null && assignmentId === null) {
     return (
-      !isGraphQL && !WRITE_METHODS.has((req.method ?? "GET").toUpperCase())
+      !isGraphQL && !WRITE_METHODS.has((request.method ?? "GET").toUpperCase())
     );
   }
   return (
@@ -175,6 +187,30 @@ const refused = (refusal: WebStudioRefusal | null): AuthenticationOutcome => ({
   refusal,
 });
 
+type CallerRequest = { method?: string };
+
+export type WebStudioCaller =
+  | {
+      kind: "allow";
+      userId: string;
+      email: string | null;
+      assignment: ActiveAssignment;
+      strategy: string;
+      generation: NameGenerationState;
+    }
+  | { kind: "refuse"; refusal: WebStudioRefusal | null };
+
+export type WebStudioCallerInput = {
+  headers: Headers;
+  request: CallerRequest | null;
+  isGraphQL?: boolean;
+};
+
+const refuse = (refusal: WebStudioRefusal | null): WebStudioCaller => ({
+  kind: "refuse",
+  refusal,
+});
+
 /**
  * The E2E bypass identity, when the bypass is enabled and the request carries
  * its signed cookie: judged by the Web Studio rule over the memberships the
@@ -182,21 +218,19 @@ const refused = (refusal: WebStudioRefusal | null): AuthenticationOutcome => ({
  * organization comes from the Web Studio cookie, never from the identity's
  * own default tenant. `null` when there is no bypass identity at all.
  */
-async function authenticateE2EBypass({
+async function decideE2EBypass({
   headers,
-  payload,
   requestCookies,
   cookie,
-  req,
+  request,
   isGraphQL,
 }: {
   headers: Headers;
-  payload: PayloadAuthStore;
   requestCookies: Array<{ name: string; value: string }>;
   cookie: WebStudioCookieState;
-  req?: PayloadRequest;
+  request: CallerRequest | null;
   isGraphQL?: boolean;
-}): Promise<AuthenticationOutcome | null> {
+}): Promise<WebStudioCaller | null> {
   if (!isE2EAuthBypassEnabled()) {
     return null;
   }
@@ -221,12 +255,13 @@ async function authenticateE2EBypass({
   }
 
   if (!isE2EStaffRole(e2eSession.role)) {
-    return refused(null);
+    return refuse(null);
   }
 
   const name = readNameTenantState(headers);
-  if (isNameTenantRefused(name)) {
-    return refused("no_selection");
+  const generation = readNameGeneration(headers);
+  if (isNameTenantRefused(name) || isNameGenerationRefused(name, generation)) {
+    return refuse("no_selection");
   }
   const decision = decideWebStudioAccess({
     assignments: listE2EAuthAssignments(e2eSession),
@@ -234,41 +269,42 @@ async function authenticateE2EBypass({
     nameTenantId: nameTenantIdOf(name),
   });
   if (decision.kind !== "allow") {
-    return refused("no_selection");
+    return refuse("no_selection");
   }
   const { assignment } = decision;
-  if (!isFromCurrentDocument({ headers, req, isGraphQL }, assignment)) {
-    return refused("scope_mismatch");
+  if (
+    !isFromCurrentDocument(
+      { headers, request, isGraphQL },
+      assignment,
+      generation,
+    )
+  ) {
+    return refuse("scope_mismatch");
   }
 
-  return signInPrincipal({
-    payload,
+  return {
+    kind: "allow",
     userId: e2eSession.userId,
     email: `${e2eSession.userId}@e2e.asym.local`,
     assignment,
     strategy: `${PRINCIPAL_LINKS_SLUG}-${STRATEGY_NAME}-e2e`,
-  });
+    generation,
+  };
 }
 
-export function createSupabaseAuthStrategy(
+export function createWebStudioCallerResolver(
   dependencies: SupabaseStrategyDependencies = {},
-): AuthStrategy {
+): (input: WebStudioCallerInput) => Promise<WebStudioCaller> {
   const createSupabaseClient =
     dependencies.createSupabaseClient ?? createServerClient;
   const readCookie =
     dependencies.readWebStudioCookie ?? readWebStudioTenantCookie;
 
-  async function authenticateRequest({
+  return async function resolveCaller({
     headers,
-    payload,
-    req,
+    request,
     isGraphQL,
-  }: {
-    headers: Headers;
-    payload: PayloadAuthStore;
-    req?: PayloadRequest;
-    isGraphQL?: boolean;
-  }): Promise<AuthenticationOutcome> {
+  }: WebStudioCallerInput): Promise<WebStudioCaller> {
     const requestCookies = parseCookieHeader(headers.get("cookie"));
     // The organization Web Studio works in: the signed cookie scoped to
     // `/web-studio` (plan 5.2), a proposal the resolver checks below.
@@ -276,12 +312,11 @@ export function createSupabaseAuthStrategy(
       readCookieValue(requestCookies, WEB_STUDIO_TENANT_COOKIE),
     );
     const e2e = () =>
-      authenticateE2EBypass({
+      decideE2EBypass({
         headers,
-        payload,
         requestCookies,
         cookie,
-        req,
+        request,
         isGraphQL,
       });
 
@@ -289,7 +324,7 @@ export function createSupabaseAuthStrategy(
     const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
     if (!supabaseURL || !supabaseAnonKey) {
-      return (await e2e()) ?? refused("no_session");
+      return (await e2e()) ?? refuse("no_session");
     }
 
     const supabase = createSupabaseClient(supabaseURL, supabaseAnonKey, {
@@ -315,7 +350,7 @@ export function createSupabaseAuthStrategy(
     } = await supabase.auth.getUser();
 
     if (!supabaseUser?.id) {
-      return (await e2e()) ?? refused("no_session");
+      return (await e2e()) ?? refuse("no_session");
     }
 
     // Web Studio acts on staff rows (plan 5.1): the row the Web Studio cookie
@@ -327,12 +362,16 @@ export function createSupabaseAuthStrategy(
     // choice, resolve nothing: there is no fallback to a first membership or
     // a profile. Its flag makes the CMS user an admin.
     const name = readNameTenantState(headers);
-    if (isNameTenantRefused(name)) {
-      return refused("no_selection");
+    const generation = readNameGeneration(headers);
+    if (
+      isNameTenantRefused(name) ||
+      isNameGenerationRefused(name, generation)
+    ) {
+      return refuse("no_selection");
     }
     const resolveInput = webStudioResolveInput(cookie, nameTenantIdOf(name));
     if (!resolveInput.ok) {
-      return refused("no_selection");
+      return refuse("no_selection");
     }
     const { ok: _ok, ...narrowing } = resolveInput;
     const resolution = await resolveActiveAssignment(
@@ -344,33 +383,55 @@ export function createSupabaseAuthStrategy(
       // the person can retry; only the resolver's own refusal of the row is
       // "choose an organization" (JR2's rule; last read of the first
       // release, L3).
-      return refused(
+      return refuse(
         resolution.reason === "reader_error" ? null : "no_selection",
       );
     }
     const { assignment } = resolution;
-    if (!isFromCurrentDocument({ headers, req, isGraphQL }, assignment)) {
-      return refused("scope_mismatch");
+    if (
+      !isFromCurrentDocument(
+        { headers, request, isGraphQL },
+        assignment,
+        generation,
+      )
+    ) {
+      return refuse("scope_mismatch");
     }
 
-    return signInPrincipal({
-      payload,
+    return {
+      kind: "allow",
       userId: supabaseUser.id,
       email: supabaseUser.email ?? null,
       assignment,
       strategy: `${PRINCIPAL_LINKS_SLUG}-${STRATEGY_NAME}`,
-    });
-  }
+      generation,
+    };
+  };
+}
+
+export function createSupabaseAuthStrategy(
+  dependencies: SupabaseStrategyDependencies = {},
+): AuthStrategy {
+  const resolveCaller = createWebStudioCallerResolver(dependencies);
 
   return {
     name: STRATEGY_NAME,
     authenticate: async ({ headers, payload, req, isGraphQL }) => {
-      const outcome = await authenticateRequest({
+      const caller = await resolveCaller({
         headers,
-        payload,
-        req,
+        request: req ? { method: req.method } : null,
         isGraphQL,
       });
+      const outcome =
+        caller.kind === "allow"
+          ? await signInPrincipal({
+              payload,
+              userId: caller.userId,
+              email: caller.email,
+              assignment: caller.assignment,
+              strategy: caller.strategy,
+            })
+          : refused(caller.refusal);
       if (outcome.user === null && outcome.refusal) {
         // Payload then refuses the anonymous operation; the afterError hook
         // turns that into the refusal's JSON answer (web-studio-refusal.ts).

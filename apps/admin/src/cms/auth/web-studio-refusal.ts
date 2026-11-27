@@ -51,6 +51,8 @@ export function isWebStudioRefusal(value: unknown): value is WebStudioRefusal {
 export const WEB_STUDIO_CLAIM_TENANT_HEADER = "x-asym-web-studio-tenant";
 export const WEB_STUDIO_CLAIM_ASSIGNMENT_HEADER =
   "x-asym-web-studio-assignment";
+export const WEB_STUDIO_CLAIM_GENERATION_HEADER =
+  "x-asym-web-studio-generation";
 
 /**
  * A server action cannot set a response header, so a refused server function
@@ -126,6 +128,20 @@ const STATUS: Record<WebStudioRefusal, number> = {
   no_selection: 403,
   scope_mismatch: 409,
 };
+
+export function webStudioRefusalResponse(refusal: WebStudioRefusal): Response {
+  const message = WEB_STUDIO_REFUSAL_MESSAGES[refusal];
+  return Response.json(
+    { message, errors: [{ message }], docs: [] },
+    {
+      status: STATUS[refusal],
+      headers: {
+        [WEB_STUDIO_REFUSAL_HEADER]: refusal,
+        "cache-control": "no-store",
+      },
+    },
+  );
+}
 
 const REFUSAL_ERROR_NAMES = new Set(["Forbidden", "UnauthorizedError"]);
 

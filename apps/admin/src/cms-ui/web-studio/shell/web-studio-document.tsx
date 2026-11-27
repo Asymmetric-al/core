@@ -66,6 +66,7 @@ export function WebStudioDocument({
           hidden
           data-web-studio-scope={scope.tenantId}
           data-web-studio-assignment={scope.assignmentId}
+          data-web-studio-generation={scope.generation}
         />
         {children}
         <WebStudioRefusalDialog />

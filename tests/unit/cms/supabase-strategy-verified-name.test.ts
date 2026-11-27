@@ -127,10 +127,14 @@ describe("on: Payload's strategy reads the name from its own headers", () => {
     }
   });
 
-  it("narrows an absent cookie to the name: P resolves in B on name B", async () => {
+  it("narrows an absent cookie to the name: P resolves in B on name B (D-18, N2 part 2d: a valid name comes with its generation, which the strategy now requires)", async () => {
     const { strategy, payload } = fakes(P);
     const { user } = await strategy.authenticate({
-      headers: new Headers({ cookie: "sb=1", [NAME]: TB }),
+      headers: new Headers({
+        cookie: "sb=1",
+        [NAME]: TB,
+        "x-asym-name-generation": "7",
+      }),
       payload,
     });
     expect(user).toMatchObject({ tenantId: TB });
@@ -190,7 +194,7 @@ describe("on: Payload's strategy reads the name from its own headers", () => {
     ["absent", {}],
     ["invalid", { [NAME]: "not-a-uuid" }],
   ] as const)(
-    "refuses the E2E bypass identity when the name is %s (no_selection), and admits it on name A",
+    "refuses the E2E bypass identity when the name is %s (no_selection), and admits it on name A (D-18, N2 part 2d: with the name's generation)",
     async (_l, headers) => {
       const e2e = await bypassCookie();
       const cookie = `${e2e}; ${await studioCookie(TA, P_DEV_A.id)}`;
@@ -204,7 +208,12 @@ describe("on: Payload's strategy reads the name from its own headers", () => {
       expect(refusedUser.user).toBeNull();
       expect(readWebStudioRefusal(request)).toBe("no_selection");
       const admitted = await strategy.authenticate({
-        headers: new Headers({ cookie, host: "localhost:3030", [NAME]: TA }),
+        headers: new Headers({
+          cookie,
+          host: "localhost:3030",
+          [NAME]: TA,
+          "x-asym-name-generation": "7",
+        }),
         payload,
       });
       expect(admitted.user).toMatchObject({ tenantId: TA });

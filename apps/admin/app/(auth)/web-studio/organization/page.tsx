@@ -6,6 +6,7 @@ import {
   WEB_STUDIO_REFUSED_PARAM,
   webStudioChooserAddress,
 } from "@asym/auth/web-studio";
+import { isServeUnderPathsEnabled } from "@asym/database/document-reload";
 import { AuthScreenSkeleton } from "@asym/ui/components/auth/AuthScreenSkeleton";
 import { OrganizationChooser } from "@asym/ui/components/auth/organization-chooser";
 import {
@@ -16,7 +17,10 @@ import {
 import { connection } from "next/server";
 import { Suspense } from "react";
 
-import { chooseWebStudioOrganization } from "./actions";
+import {
+  chooseWebStudioOrganization,
+  chooseWebStudioOrganizationToLoad,
+} from "./actions";
 
 import type { Metadata } from "next";
 
@@ -83,10 +87,12 @@ async function Choices({ searchParams }: WebStudioOrganizationPageProps) {
   // A link from Mission Control named this organization, and Web Studio
   // works in another or in none yet (JC3): offered first, and said why. Only
   // one the person holds a staff row in; the link chose nothing.
-  const cameFrom = choices.organizations.find(
-    (organization) =>
-      organization.tenantId === first(params[WEB_STUDIO_FROM_PARAM]),
-  );
+  const cameFrom = isServeUnderPathsEnabled()
+    ? undefined
+    : choices.organizations.find(
+        (organization) =>
+          organization.tenantId === first(params[WEB_STUDIO_FROM_PARAM]),
+      );
   const organizations = cameFrom
     ? [cameFrom, ...choices.organizations.filter((o) => o !== cameFrom)]
     : choices.organizations;
@@ -96,7 +102,9 @@ async function Choices({ searchParams }: WebStudioOrganizationPageProps) {
     <OrganizationChooser
       organizations={organizations}
       choose={{
-        action: chooseWebStudioOrganization,
+        ...(isServeUnderPathsEnabled()
+          ? { loadAction: chooseWebStudioOrganizationToLoad }
+          : { action: chooseWebStudioOrganization }),
         next,
         // The action refused the last choice (council C11).
         refused: first(params[WEB_STUDIO_REFUSED_PARAM]) === "1",
