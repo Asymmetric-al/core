@@ -9,7 +9,7 @@ import { type NextRequest, NextResponse } from "next/server";
 import { ZodError } from "zod";
 
 import { normalizeStoredPostContent } from "./content";
-import { FEED_POST_SELECT } from "./select";
+import { OWN_POST_SELECT } from "./select";
 import { postIdParamSchema, postUpdateSchema } from "../schemas/posts";
 import { CACHE_TAGS } from "../shared/cache-tags";
 import {
@@ -19,8 +19,7 @@ import {
 } from "../shared/http-errors";
 import { findProfileByUserId } from "../shared/queries";
 
-function revalidatePostTags(postId: string, tenantId: string) {
-  revalidateTag(CACHE_TAGS.tenantPosts(tenantId), "max");
+function revalidatePostTags(postId: string) {
   revalidateTag(CACHE_TAGS.post(postId), "max");
 }
 
@@ -144,7 +143,7 @@ export async function PATCH(
 
     const { data: post, error } = await supabaseAdmin
       .from("posts")
-      .select(FEED_POST_SELECT)
+      .select(OWN_POST_SELECT)
       .eq("id", postId)
       .single();
     if (error || !post) {
@@ -154,7 +153,7 @@ export async function PATCH(
       );
     }
 
-    revalidatePostTags(postId, ctx.tenantId);
+    revalidatePostTags(postId);
     return NextResponse.json({ post });
   } catch (e) {
     return toAuthAwareErrorResponse(e);
@@ -217,7 +216,7 @@ export async function DELETE(
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
-    revalidatePostTags(postId, ctx.tenantId);
+    revalidatePostTags(postId);
     return NextResponse.json({ success: true });
   } catch (e) {
     return toAuthAwareErrorResponse(e);

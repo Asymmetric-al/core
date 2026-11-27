@@ -1,5 +1,6 @@
 "use client";
 import { useLocaleFormat } from "@asym/lib/hooks/use-locale-format";
+import { useMC } from "@asym/lib/mission-control/context";
 import {
   MetricCard,
   MetricGrid,
@@ -47,10 +48,28 @@ import {
 import { useState } from "react";
 
 import {
+  PublicationPolicyDialog,
+  UpdateReviewActions,
+} from "./update-review-controls";
+import {
   useModerationFeed,
   type ModerationAuthor,
   type ModerationPostsResponse,
+  type PublicationMode,
 } from "./use-moderation-feed";
+
+const REVIEW_STATES: Record<
+  string,
+  {
+    label: string;
+    variant: "success" | "warning" | "destructive-subtle" | "secondary";
+  }
+> = {
+  submitted: { label: "Waiting for review", variant: "warning" },
+  approved: { label: "Approved", variant: "success" },
+  rejected: { label: "Not approved", variant: "destructive-subtle" },
+  withdrawn: { label: "Withdrawn", variant: "secondary" },
+};
 
 const POST_STATUSES: Record<
   string,
@@ -161,7 +180,15 @@ function PostFilter({
     </Select>
   );
 }
-function Posts({ data }: { data: ModerationPostsResponse }) {
+function Posts({
+  data,
+  policies,
+  canSetPolicy,
+}: {
+  data: ModerationPostsResponse;
+  policies: Map<string, PublicationMode>;
+  canSetPolicy: boolean;
+}) {
   const { formatDateTime } = useLocaleFormat();
   const [search, setSearch] = useState("");
   const [visibility, setVisibility] = useState("all");
@@ -268,6 +295,11 @@ function Posts({ data }: { data: ModerationPostsResponse }) {
                     </p>
                   ) : null}
                   <div className="flex flex-wrap gap-2">
+                    {post.review_state && REVIEW_STATES[post.review_state] ? (
+                      <Badge variant={REVIEW_STATES[post.review_state].variant}>
+                        {REVIEW_STATES[post.review_state].label}
+                      </Badge>
+                    ) : null}
                     <Badge
                       variant={POST_STATUSES[post.status]?.variant ?? "outline"}
                     >
@@ -296,12 +328,44 @@ function Posts({ data }: { data: ModerationPostsResponse }) {
                     </time>
                   ) : null}
                 </CardHeader>
-                <CardContent>
+                <CardContent className="flex flex-col gap-4">
                   {post.content ? (
                     <RichTextViewer value={post.content} />
                   ) : (
                     <p className="text-sm text-muted-foreground">No content</p>
                   )}
+                  {post.review_reason &&
+                  (post.review_state === "rejected" ||
+                    post.review_state === "withdrawn") ? (
+                    <p className="text-sm text-muted-foreground">
+                      Reason: {post.review_reason}
+                    </p>
+                  ) : null}
+                  {post.ministry_assignment_id ? (
+                    <div className="flex flex-wrap items-center gap-2">
+                      <p className="text-sm text-muted-foreground">
+                        {authorName(post.author)}’s updates{" "}
+                        {policies.get(post.ministry_assignment_id) ===
+                        "automatic"
+                          ? "publish without review"
+                          : "wait for review"}
+                      </p>
+                      {canSetPolicy ? (
+                        <PublicationPolicyDialog
+                          ministryAssignmentId={post.ministry_assignment_id}
+                          author={authorName(post.author)}
+                          mode={
+                            policies.get(post.ministry_assignment_id) ??
+                            "review"
+                          }
+                        />
+                      ) : null}
+                    </div>
+                  ) : null}
+                  <UpdateReviewActions
+                    post={post}
+                    name={post.title || authorName(post.author)}
+                  />
                 </CardContent>
               </Card>
             </li>
@@ -313,7 +377,16 @@ function Posts({ data }: { data: ModerationPostsResponse }) {
 }
 
 export default function ContentModerationPage() {
-  const { posts, review, comments } = useModerationFeed();
+  const { posts, review, comments, policies } = useModerationFeed();
+  const missionControl = useMC();
+  const canSetPolicy = missionControl.hasCapability(
+    "safety.restrict_publication",
+  );
+  const policyModes = new Map(
+    (policies.data?.policies ?? [])
+      .filter((policy) => policy.path === "update")
+      .map((policy) => [policy.ministry_assignment_id, policy.mode]),
+  );
   const [selectedTab, setSelectedTab] = useState<string | null>(null);
   const tab =
     selectedTab ??
@@ -326,11 +399,12 @@ export default function ContentModerationPage() {
     >
       <div className="flex flex-col gap-4 sm:gap-6">
         <Alert role="note">
-          <AlertTitle>Read-only for now</AlertTitle>
+          <AlertTitle>Updates wait for review</AlertTitle>
           <AlertDescription>
-            Approving, hiding, pinning and deleting are not connected here yet.
-            Missionaries publish updates from their app feed. Website ministry
-            updates are managed separately in Web Studio.
+            A missionary’s update reaches partners once someone other than its
+            author approves it, unless their publication policy publishes it
+            without review. Hiding, pinning and deleting are not connected here
+            yet. Website ministry updates are managed separately in Web Studio.
           </AlertDescription>
         </Alert>
         {posts.isSuccess ? (
@@ -359,7 +433,7 @@ export default function ContentModerationPage() {
               }
               unavailableReason="Couldn’t load the review count."
               value={review.data?.total}
-              detail="Flagged, hidden or pending review"
+              detail="Submitted by missionaries"
             />
             <MetricCard
               compactOnPhone
@@ -386,7 +460,11 @@ export default function ContentModerationPage() {
                 ) : review.isPending ? (
                   <Loading name="review queue" />
                 ) : (
-                  <Posts data={review.data} />
+                  <Posts
+                    data={review.data}
+                    policies={policyModes}
+                    canSetPolicy={canSetPolicy}
+                  />
                 )}
               </TabsContent>
               <TabsContent value="all">
@@ -399,7 +477,11 @@ export default function ContentModerationPage() {
                 ) : posts.isPending ? (
                   <Loading name="posts" />
                 ) : (
-                  <Posts data={posts.data} />
+                  <Posts
+                    data={posts.data}
+                    policies={policyModes}
+                    canSetPolicy={canSetPolicy}
+                  />
                 )}
               </TabsContent>
             </Tabs>

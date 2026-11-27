@@ -89,6 +89,7 @@ type WorkerFeedPageViewModel = {
   requestDeletePost: (postId: string) => void;
   cancelDeletePost: () => void;
   confirmDeletePost: () => Promise<void>;
+  withdrawPost: (postId: string) => Promise<void>;
   handleResolveRequest: (id: string, approved: boolean) => Promise<void>;
 };
 
@@ -541,7 +542,11 @@ export function useWorkerFeedPageView(): WorkerFeedPageViewModel {
         setPosts((prev) => placeSavedPost(prev, post, published));
         setDrafts((prev) => placeSavedPost(prev, post, !published));
 
-        if (published) {
+        if (published && post.review_state === "submitted") {
+          toast.success(
+            wasPublished ? "Changes sent for review" : "Update sent for review",
+          );
+        } else if (published) {
           toast.success(wasPublished ? "Changes saved" : "Update published");
         } else {
           setLastSaved(new Date());
@@ -731,6 +736,24 @@ export function useWorkerFeedPageView(): WorkerFeedPageViewModel {
     toast.success("Update deleted");
   };
 
+  const withdrawPost = async (postId: string) => {
+    const result = await fetchResult(`/api/posts/${postId}/withdraw`, {
+      method: "POST",
+    });
+    if (!result.ok) {
+      toast.error("Couldn’t withdraw that update. Try again.");
+      return;
+    }
+    setPosts((prev) =>
+      prev.map((post) =>
+        post.id === postId
+          ? { ...post, review_state: "withdrawn", review_reason: null }
+          : post,
+      ),
+    );
+    toast.success("Update withdrawn");
+  };
+
   // Optimistic: the request leaves the list and returns if the server refuses.
   const handleResolveRequest = async (id: string, approved: boolean) => {
     const request = followerRequests.find((f) => f.id === id);
@@ -798,6 +821,7 @@ export function useWorkerFeedPageView(): WorkerFeedPageViewModel {
     requestDeletePost,
     cancelDeletePost,
     confirmDeletePost,
+    withdrawPost,
     handleResolveRequest,
   };
 }

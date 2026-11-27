@@ -7,9 +7,11 @@ import {
 import { isAnonymousToRecipient } from "@asym/api/missionary-portal/redaction";
 import { CACHE_TAGS, revalidateTags } from "@asym/api/shared/cache-tags";
 import { findOwnDonor, type OwnDonorLookup } from "@asym/api/shared/queries";
+import { createRequestSessionClient } from "@asym/api/shared/request-session-client";
 import {
   getAuthContext,
   hasContextRoleClass,
+  requestScopeOf,
   requireAuth,
   requireCapability,
   requireRoleClass,
@@ -37,8 +39,43 @@ interface GraphQLContext {
   supabaseAdmin: SupabaseClient;
 }
 
-function revalidatePostTags(postId: string, tenantId: string) {
-  revalidateTags([CACHE_TAGS.tenantPosts(tenantId), CACHE_TAGS.post(postId)]);
+function revalidatePostTags(postId: string) {
+  revalidateTags([CACHE_TAGS.post(postId)]);
+}
+
+const POST_MISSIONARY_SELECT =
+  "id, missionary:missionaries!missionary_id(id, tenant_id, bio, mission_field, funding_goal, current_funding, created_at, updated_at, worker_public_name, profile:profiles!profile_id(id, avatar_url))";
+
+async function postsReadByCaller(
+  ctx: GraphQLContext,
+  auth: AuthenticatedContext,
+) {
+  return createRequestSessionClient(ctx.request, requestScopeOf(auth));
+}
+
+async function withPostMissionaries(
+  supabaseAdmin: SupabaseClient,
+  posts: Record<string, unknown>[],
+): Promise<Record<string, unknown>[]> {
+  if (posts.length === 0) return [];
+  const { data, error } = await supabaseAdmin
+    .from("posts")
+    .select(POST_MISSIONARY_SELECT)
+    .in(
+      "id",
+      posts.map((post) => post.id as string),
+    );
+  if (error) throw new Error(error.message);
+  const missionaries = new Map(
+    ((data ?? []) as { id: string; missionary?: unknown }[]).map((row) => [
+      row.id,
+      row.missionary ?? null,
+    ]),
+  );
+  return posts.map((post) => ({
+    ...post,
+    missionary: missionaries.get(post.id as string) ?? null,
+  }));
 }
 
 function yogaRpc(supabaseAdmin: SupabaseClient) {
@@ -300,25 +337,29 @@ const resolvers = {
       const limit = args.limit || 20;
       const offset = args.offset || 0;
 
-      const { data: posts } = await ctx.supabaseAdmin
+      const session = await postsReadByCaller(ctx, auth);
+      const { data: rows, error } = await session
         .from("posts")
-        .select(
-          "*, missionary:missionaries!missionary_id(id, tenant_id, bio, mission_field, funding_goal, current_funding, created_at, updated_at, worker_public_name, profile:profiles!profile_id(id, avatar_url))",
-        )
+        .select("*")
         .eq("tenant_id", auth.tenantId)
         .order("created_at", { ascending: false })
         .range(offset, offset + limit - 1);
-
-      const postIds = (posts || []).map((p: { id: string }) => p.id);
-      const interactionRows = await fetchUserPostInteractions(
+      if (error) throw new Error(error.message);
+      const posts = await withPostMissionaries(
         ctx.supabaseAdmin,
+        (rows ?? []) as Record<string, unknown>[],
+      );
+
+      const postIds = posts.map((p) => p.id as string);
+      const interactionRows = await fetchUserPostInteractions(
+        session,
         auth.userId,
         postIds,
       );
       const { likedPostIds, prayedPostIds } =
         toUserPostInteractionSets(interactionRows);
 
-      return (posts || []).map((post: Record<string, unknown>) => ({
+      return posts.map((post) => ({
         ...mapPost(post),
         userLiked: likedPostIds.has(post.id as string),
         userPrayed: prayedPostIds.has(post.id as string),
@@ -329,19 +370,22 @@ const resolvers = {
       requireAuth(ctx.auth);
       const auth = ctx.auth as AuthenticatedContext;
 
-      const { data: post } = await ctx.supabaseAdmin
+      const session = await postsReadByCaller(ctx, auth);
+      const { data: row } = await session
         .from("posts")
-        .select(
-          "*, missionary:missionaries!missionary_id(id, tenant_id, bio, mission_field, funding_goal, current_funding, created_at, updated_at, worker_public_name, profile:profiles!profile_id(id, avatar_url))",
-        )
+        .select("*")
         .eq("id", args.id)
         .eq("tenant_id", auth.tenantId)
-        .single();
+        .maybeSingle();
 
+      if (!row) return null;
+      const [post] = await withPostMissionaries(ctx.supabaseAdmin, [
+        row as Record<string, unknown>,
+      ]);
       if (!post) return null;
 
       const interactionRows = await fetchUserPostInteractions(
-        ctx.supabaseAdmin,
+        session,
         auth.userId,
         [args.id],
       );
@@ -553,7 +597,7 @@ const resolvers = {
 
       if (error || !post) throw new Error(error?.message ?? "Post not found");
 
-      revalidatePostTags(post.id, auth.tenantId);
+      revalidatePostTags(post.id);
       return { ...mapPost(post), userLiked: false, userPrayed: false };
     },
 
@@ -595,7 +639,7 @@ const resolvers = {
       );
       if (error) throw new Error(error.message);
 
-      revalidatePostTags(args.id, auth.tenantId);
+      revalidatePostTags(args.id);
       return true;
     },
 
@@ -703,7 +747,7 @@ const resolvers = {
           extensions: { code: "COMMENT_AUTHOR_NOT_FOUND" },
         });
 
-      revalidatePostTags(args.postId, auth.tenantId);
+      revalidatePostTags(args.postId);
       return mapComment(comment, author, auth);
     },
 
