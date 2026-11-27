@@ -930,6 +930,30 @@ describe("withdrawing one's own update (AL-2680, WP7 pull request 1)", () => {
     expect(toast.success).toHaveBeenCalledWith("Update withdrawn");
   });
 
+  it("sends one withdrawal while one is in flight, however often it is asked (fix round C2)", async () => {
+    let answer: (response: Response) => void = () => undefined;
+    feed(
+      () =>
+        new Promise<Response>((resolve) => {
+          answer = resolve;
+        }) as unknown as Response,
+    );
+    const { result } = renderHook(() => useWorkerFeedPageView());
+    await waitFor(() => expect(result.current.posts).toHaveLength(1));
+    let first: Promise<void> = Promise.resolve();
+    await act(async () => {
+      first = result.current.withdrawPost("post-1");
+      void result.current.withdrawPost("post-1");
+      void result.current.withdrawPost("post-1");
+    });
+    answer(jsonResponse(200, { success: true }));
+    await act(async () => {
+      await first;
+    });
+    expect(withdrawCalls()).toHaveLength(1);
+    expect(result.current.posts[0]?.review_state).toBe("withdrawn");
+  });
+
   it("keeps the update as it was and says so when the withdrawal fails", async () => {
     feed(() => jsonResponse(500, { error: "unavailable" }));
     const { result } = renderHook(() => useWorkerFeedPageView());

@@ -9,11 +9,13 @@ const s = vi.hoisted(() => ({
   sessionCalls: [] as Array<[string, ...unknown[]]>,
   adminCalls: [] as Array<[string, ...unknown[]]>,
   interactionClients: [] as unknown[],
+  authorError: null as { message: string } | null,
 }));
 
 function recorder(
   calls: Array<[string, ...unknown[]]>,
   rows: () => Record<string, unknown>[],
+  error: () => { message: string } | null = () => null,
 ) {
   const query: Record<string, unknown> = {};
   for (const name of ["select", "eq", "or", "in", "order", "range"])
@@ -21,9 +23,16 @@ function recorder(
       calls.push([name, ...args]);
       return query;
     };
+  query.single = async () => ({ data: rows()[0] ?? null, error: error() });
   query.then = (resolve: (value: unknown) => unknown) =>
-    resolve({ data: rows(), error: null });
+    resolve(
+      error() ? { data: null, error: error() } : { data: rows(), error: null },
+    );
   return {
+    rpc: async (fn: string, args: unknown) => {
+      calls.push(["rpc", fn, args]);
+      return { data: "post-new", error: null };
+    },
     from: (table: string) => {
       calls.push(["from", table]);
       return query;
@@ -32,7 +41,11 @@ function recorder(
 }
 
 const sessionClient = recorder(s.sessionCalls, () => s.sessionRows);
-const adminClient = recorder(s.adminCalls, () => s.authorRows);
+const adminClient = recorder(
+  s.adminCalls,
+  () => s.authorRows,
+  () => s.authorError,
+);
 
 vi.mock("next/cache", () => ({ cacheLife: vi.fn(), cacheTag: vi.fn() }));
 vi.mock("@asym/auth/context", async (importOriginal) => ({
@@ -62,14 +75,17 @@ vi.mock("@asym/database/supabase/post-interactions", () => ({
   }),
 }));
 
-import { GET } from "../../../../../packages/api/src/posts/index";
-import { FEED_POST_AUTHOR_SELECT } from "../../../../../packages/api/src/posts/select";
+import { GET, POST } from "../../../../../packages/api/src/posts/index";
+import {
+  FEED_POST_AUTHOR_SELECT,
+  FEED_POST_SELECT,
+} from "../../../../../packages/api/src/posts/select";
 
 function request(search: string) {
   return new NextRequest(`https://donor.example.test/api/posts${search}`);
 }
 
-const signedIn = (role: "donor" | "missionary") => ({
+const signedIn = (role: "donor" | "missionary" | "staff") => ({
   userId: "user-1",
   profileId: "profile-1",
   tenantId: "tenant-1",
@@ -84,6 +100,7 @@ beforeEach(() => {
   s.interactionClients.length = 0;
   s.sessionRows = [];
   s.authorRows = [];
+  s.authorError = null;
   s.getAuthContext.mockResolvedValue(signedIn("donor"));
 });
 
@@ -93,7 +110,7 @@ describe("GET /api/posts reads on the caller's own token (AL-2680, WP7 pull requ
 
     expect(response.status).toBe(200);
     expect(s.sessionCalls).toContainEqual(["from", "posts"]);
-    expect(s.sessionCalls).toContainEqual(["select", "*"]);
+    expect(s.sessionCalls).toContainEqual(["select", FEED_POST_SELECT]);
     expect(s.sessionCalls).toContainEqual(["eq", "tenant_id", "tenant-1"]);
     expect(s.sessionCalls).toContainEqual(["eq", "status", "published"]);
     expect(s.sessionCalls.some(([name]) => name === "or")).toBe(false);
@@ -150,6 +167,88 @@ describe("GET /api/posts reads on the caller's own token (AL-2680, WP7 pull requ
     s.getAuthContext.mockResolvedValue(signedIn("donor"));
     const refused = await GET(request("?status=draft"));
     expect(refused.status).toBe(403);
+  });
+});
+
+describe("AL-2680 fix round S5: the feed names its columns, and a reviewer's reason and the author's login reach only the author and a reviewer", () => {
+  it("selects named columns only, none of them the reviewer's identity", () => {
+    const columns = FEED_POST_SELECT.split(",").map((c) => c.trim());
+    expect(columns).not.toContain("*");
+    for (const hidden of ["reviewed_by", "reviewed_by_assignment_id"])
+      expect(columns).not.toContain(hidden);
+    for (const shown of ["id", "content", "review_state", "worker_withheld"])
+      expect(columns).toContain(shown);
+  });
+
+  it("keeps the reason and the author's login on the caller's own update and on every row for a reviewer, and drops them from another person's update", async () => {
+    s.sessionRows = [
+      {
+        id: "post-1",
+        author_user_id: "user-1",
+        review_state: "rejected",
+        review_reason: "Names a village",
+        worker_withheld: false,
+      },
+      {
+        id: "post-2",
+        author_user_id: "user-2",
+        review_state: "approved",
+        review_reason: "automatic",
+        worker_withheld: false,
+      },
+    ];
+    s.getAuthContext.mockResolvedValue(signedIn("missionary"));
+    const own = (await (await GET(request("?status=published"))).json()) as {
+      posts: Record<string, unknown>[];
+    };
+    expect(own.posts[0]).toMatchObject({
+      author_user_id: "user-1",
+      review_reason: "Names a village",
+    });
+    expect(own.posts[1]).not.toHaveProperty("author_user_id");
+    expect(own.posts[1]?.review_reason).toBeNull();
+
+    s.getAuthContext.mockResolvedValue(signedIn("staff"));
+    const reviewer = (await (
+      await GET(request("?status=published"))
+    ).json()) as { posts: Record<string, unknown>[] };
+    expect(reviewer.posts[1]).toMatchObject({
+      author_user_id: "user-2",
+      review_reason: "automatic",
+    });
+  });
+});
+
+describe("AL-2680 fix round A1: a submitted update is created once the command returned its id", () => {
+  it("answers 201 with the update when naming its author fails, and logs the failure", async () => {
+    const log = vi.spyOn(console, "error").mockImplementation(() => undefined);
+    s.getAuthContext.mockResolvedValue(signedIn("missionary"));
+    s.sessionRows = [{ id: "post-new", worker_withheld: false }];
+    s.authorError = { message: "author lookup detail" };
+    const response = await POST(
+      new NextRequest("https://missionary.example.test/api/posts", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          content: JSON.stringify({
+            type: "doc",
+            content: [
+              { type: "paragraph", content: [{ type: "text", text: "Hi" }] },
+            ],
+          }),
+        }),
+      }),
+    );
+    expect(response.status).toBe(201);
+    expect(
+      ((await response.json()) as { post: Record<string, unknown> }).post,
+    ).toMatchObject({
+      id: "post-new",
+      author: null,
+      post_author_public_name: null,
+    });
+    expect(log).toHaveBeenCalled();
+    log.mockRestore();
   });
 });
 

@@ -151,12 +151,13 @@ beforeEach(() => {
 });
 
 describe("POST /api/admin/posts/[postId]/review: approve, reject or withdraw another person's update (AL-2680, invariant 3)", () => {
-  it("approves through approve_ministry_update on the reviewer's own token, never the service key", async () => {
+  it("approves through approve_ministry_update on the reviewer's own token, naming the version the reviewer read, never the service key (fix round S4)", async () => {
     h.auth.mockResolvedValue(makeAuth("staff"));
     const rpc = stubSession({ approve_ministry_update: {} });
     const response = await REVIEW(
       send(`/api/admin/posts/${POST_ID}/review`, "POST", {
         decision: "approve",
+        version: 3,
       }),
       routeParams,
     );
@@ -164,8 +165,27 @@ describe("POST /api/admin/posts/[postId]/review: approve, reject or withdraw ano
     expect(rpc).toHaveBeenCalledWith("approve_ministry_update", {
       p_tenant_id: TENANT,
       p_post_id: POST_ID,
+      p_version: 3,
     });
     expect(h.serviceKeyUsed).not.toHaveBeenCalled();
+  });
+
+  it("refuses an approval or a rejection that names no version the reviewer read, before any command (fix round S4)", async () => {
+    h.auth.mockResolvedValue(makeAuth("staff"));
+    const rpc = stubSession({});
+    for (const payload of [
+      { decision: "approve" },
+      { decision: "reject", reason: "Too long" },
+      { decision: "approve", version: 0 },
+      { decision: "approve", version: "2" },
+    ]) {
+      const refused = await REVIEW(
+        send(`/api/admin/posts/${POST_ID}/review`, "POST", payload),
+        routeParams,
+      );
+      expect(refused.status, JSON.stringify(payload)).toBe(400);
+    }
+    expect(rpc).not.toHaveBeenCalled();
   });
 
   it("rejects and withdraws only with a reason that is not blank once normalised, and sends the reason to the command", async () => {
@@ -179,6 +199,7 @@ describe("POST /api/admin/posts/[postId]/review: approve, reject or withdraw ano
         const refused = await REVIEW(
           send(`/api/admin/posts/${POST_ID}/review`, "POST", {
             decision,
+            version: 2,
             ...(reason === undefined ? {} : { reason }),
           }),
           routeParams,
@@ -194,16 +215,27 @@ describe("POST /api/admin/posts/[postId]/review: approve, reject or withdraw ano
       const done = await REVIEW(
         send(`/api/admin/posts/${POST_ID}/review`, "POST", {
           decision,
+          version: 2,
           reason: "Names a partner church",
         }),
         routeParams,
       );
       expect(done.status).toBe(200);
-      expect(rpc).toHaveBeenCalledWith(fn, {
-        p_tenant_id: TENANT,
-        p_post_id: POST_ID,
-        p_reason: "Names a partner church",
-      });
+      expect(rpc).toHaveBeenCalledWith(
+        fn,
+        decision === "reject"
+          ? {
+              p_tenant_id: TENANT,
+              p_post_id: POST_ID,
+              p_version: 2,
+              p_reason: "Names a partner church",
+            }
+          : {
+              p_tenant_id: TENANT,
+              p_post_id: POST_ID,
+              p_reason: "Names a partner church",
+            },
+      );
     }
   });
 
@@ -213,6 +245,7 @@ describe("POST /api/admin/posts/[postId]/review: approve, reject or withdraw ano
     const forbidden = await REVIEW(
       send(`/api/admin/posts/${POST_ID}/review`, "POST", {
         decision: "approve",
+        version: 1,
       }),
       routeParams,
     );
@@ -232,6 +265,7 @@ describe("POST /api/admin/posts/[postId]/review: approve, reject or withdraw ano
     const own = await REVIEW(
       send(`/api/admin/posts/${POST_ID}/review`, "POST", {
         decision: "approve",
+        version: 1,
       }),
       routeParams,
     );
@@ -251,6 +285,7 @@ describe("POST /api/admin/posts/[postId]/review: approve, reject or withdraw ano
     const stale = await REVIEW(
       send(`/api/admin/posts/${POST_ID}/review`, "POST", {
         decision: "approve",
+        version: 1,
       }),
       routeParams,
     );
@@ -372,5 +407,25 @@ describe("POST /api/posts/[postId]/withdraw: a missionary withdraws their own up
     );
     expect(donor.status).toBe(403);
     expect(rpc).not.toHaveBeenCalled();
+  });
+
+  it("answers 409 with the command's words when the update is no longer submitted or approved (fix round C2)", async () => {
+    h.auth.mockResolvedValue(makeAuth("missionary"));
+    stubSession({
+      withdraw_own_ministry_update: {
+        error: {
+          code: "22023",
+          message: "Only a submitted or approved update can be withdrawn",
+        },
+      },
+    });
+    const late = await WITHDRAW_OWN(
+      send(`/api/posts/${POST_ID}/withdraw`, "POST"),
+      routeParams,
+    );
+    expect(late.status).toBe(409);
+    expect(await body(late)).toEqual({
+      error: "Only a submitted or approved update can be withdrawn",
+    });
   });
 });

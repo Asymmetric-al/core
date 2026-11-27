@@ -27,7 +27,11 @@ vi.mock("@asym/auth/context", () => ({
 vi.mock("../../../../packages/api/src/shared/request-session-client", () => ({
   createRequestSessionClient: mocks.session,
 }));
-import { GET as posts } from "../../../../packages/api/src/admin/posts/index";
+import {
+  GET as posts,
+  POST as createAdminPost,
+} from "../../../../packages/api/src/admin/posts/index";
+import { GET as onePost } from "../../../../packages/api/src/admin/posts/post";
 import { GET as comments } from "../../../../packages/api/src/admin/comments/index";
 import { TENANT_MEMBER_PAGE_SIZE } from "../../../../packages/api/src/shared/tenant-members";
 function query(result: object) {
@@ -220,4 +224,49 @@ it("fails the read when a count fails rather than claiming zero", async () => {
   );
   expect(response.status).toBe(500);
   expect((await response.json()).error).toBe("Count unavailable");
+});
+it("T5 partners.24 (AL-2680): Mission Control writes no update of its own: its POST answers 403 and opens no client", async () => {
+  mocks.admin.mockReset();
+  mocks.session.mockReset();
+  const response = await createAdminPost(
+    new Request("https://core.test/api/admin/posts", {
+      method: "POST",
+      body: JSON.stringify({ content: "x" }),
+    }) as NextRequest,
+  );
+  expect(response.status).toBe(403);
+  expect(await response.json()).toEqual({ error: "Read-only demo" });
+  expect(mocks.admin).not.toHaveBeenCalled();
+  expect(mocks.session).not.toHaveBeenCalled();
+});
+it("T5 races.11 (AL-2680): the single-update read takes the row on the reviewer's own token, then names its author through the service key by that one id", async () => {
+  const order: string[] = [];
+  const row = query({ data: null, error: null });
+  Object.assign(row, {
+    single: vi.fn(async () => {
+      order.push("token read");
+      return {
+        data: { id: "post-1", missionary_id: "profile-1" },
+        error: null,
+      };
+    }),
+  });
+  mocks.session.mockResolvedValue({ from: () => row });
+  const authors = query({
+    data: [{ id: "post-1", author: { id: "profile-1", first_name: "Lee" } }],
+    error: null,
+  });
+  authors.in.mockImplementation((...args: unknown[]) => {
+    order.push(`service key ${JSON.stringify(args)}`);
+    return authors;
+  });
+  mocks.admin.mockReturnValue({ client: { from: vi.fn(() => authors) } });
+  const response = await onePost(
+    new Request("https://core.test/api/admin/posts/post-1") as NextRequest,
+    { params: Promise.resolve({ postId: "post-1" }) },
+  );
+  expect(response.status).toBe(200);
+  expect(order).toEqual(["token read", 'service key ["id",["post-1"]]']);
+  expect(row.eq).toHaveBeenCalledWith("id", "post-1");
+  expect(row.eq).toHaveBeenCalledWith("tenant_id", "tenant-a");
 });
