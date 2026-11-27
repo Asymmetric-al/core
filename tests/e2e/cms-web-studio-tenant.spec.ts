@@ -2457,3 +2457,55 @@ test("@cms the upload dialog fits a short viewport and 200% zoom: each field and
     }
   }
 });
+
+test("@cms what was copied in another tab while the organization choice was on its way is gone once the choice completes (WP7 item zero, #2839)", async ({
+  page,
+}) => {
+  await signIn(page);
+  await enter(page, DEMO);
+  const stale = await page.context().newPage();
+  await stale.goto(
+    `${base}/web-studio/collections/pages/${await draftPreviewPage(stale)}`,
+  );
+  await openLayoutClipboard(stale);
+  await page.goto(
+    `${base}/web-studio/organization?next=${encodeURIComponent("/web-studio")}`,
+  );
+  let release!: () => void;
+  const held = new Promise<void>((resolve) => {
+    release = resolve;
+  });
+  let posted!: () => void;
+  const choicePosted = new Promise<void>((resolve) => {
+    posted = resolve;
+  });
+  await page.route(
+    (url) => url.pathname === "/web-studio/organization",
+    async (route) => {
+      if (route.request().method() !== "POST") return route.continue();
+      posted();
+      await held;
+      return route.continue();
+    },
+  );
+  try {
+    await chooseOrganization(page, SECOND);
+    await choicePosted;
+    await stale.getByRole("menuitem", { name: "Copy Field" }).click();
+    await expect.poll(() => clipboardOf(page)).not.toBeNull();
+    release();
+    await page.waitForURL((url) => url.pathname === "/web-studio");
+  } finally {
+    release();
+    await page.unrouteAll({ behavior: "ignoreErrors" });
+    await stale.close();
+  }
+  await expect.poll(() => clipboardOf(page)).toBeNull();
+  await page.goto(
+    `${base}/web-studio/collections/pages/${await draftPreviewPage(page)}`,
+  );
+  await openLayoutClipboard(page);
+  await expect(
+    page.getByRole("menuitem", { name: "Paste Field" }),
+  ).toBeDisabled();
+});
