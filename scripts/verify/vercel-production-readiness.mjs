@@ -6,6 +6,16 @@ import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
+import {
+  APP_BASE_PATHS,
+  frontUpstreamOrigin,
+  resolveServeUnderPaths,
+} from "../release/serve-under-paths.mjs";
+import {
+  BYPASS_SECRETS,
+  MIGRATION_HEALTH_PATH,
+} from "../release/vercel-release.mjs";
+
 const DEFAULT_SCOPE = "asymmetric-al";
 
 const isNonEmpty = (value) => typeof value === "string" && value.length > 0;
@@ -59,6 +69,39 @@ const required = (key, reason = "must be set", validate = isNonEmpty) => ({
   reason,
   validate,
 });
+
+function pathMode(env) {
+  try {
+    return resolveServeUnderPaths(env);
+  } catch {
+    throw new Error("Invalid CORE_SERVE_UNDER_PATHS");
+  }
+}
+
+const stampKey = (key) =>
+  required(
+    key,
+    "must be at least 32 UTF-8 bytes",
+    (value) => Buffer.byteLength(value, "utf8") >= 32,
+  );
+const pathRequirements = {
+  admin: [stampKey("FRONT_STAMP_KEY")],
+  missionary: [stampKey("FRONT_STAMP_KEY")],
+  donor: [
+    stampKey("FRONT_STAMP_KEY_ADMIN"),
+    stampKey("FRONT_STAMP_KEY_MISSIONARY"),
+    required(
+      "FRONT_ADMIN_ORIGIN",
+      "must be a canonical upstream origin",
+      frontUpstreamOrigin,
+    ),
+    required(
+      "FRONT_MISSIONARY_ORIGIN",
+      "must be a canonical upstream origin",
+      frontUpstreamOrigin,
+    ),
+  ],
+};
 
 const COMMON_REQUIRED_ENV = [
   required("NEXT_PUBLIC_SUPABASE_URL", "must be a URL", isUrl),
@@ -427,31 +470,36 @@ export function summarizeProjectReadiness({
   health,
   productionBranch,
   productionGitDeployments = false,
+  requestedPaths = false,
 }) {
   const resolvedEnvValues =
     envValues ??
     Object.fromEntries((envKeys ?? []).map((key) => [key, "present"]));
   const resolvedEnvKeys = envKeys ?? Object.keys(resolvedEnvValues);
   const resolvedEnvTypes = envTypes ?? {};
+  const paths = pathMode(resolvedEnvValues) || requestedPaths;
+  const requirements = paths
+    ? [...project.requiredEnv, ...pathRequirements[project.key]]
+    : project.requiredEnv;
   const missingEnv = unique([
-    ...missingEnvKeys(resolvedEnvKeys, project.requiredEnv),
+    ...missingEnvKeys(resolvedEnvKeys, requirements),
     ...visiblyEmptyEnvValues(
       resolvedEnvKeys,
       resolvedEnvValues,
       resolvedEnvTypes,
-      project.requiredEnv,
+      requirements,
     ),
   ]);
   const invalidEnv = invalidEnvValues(
     resolvedEnvValues,
-    project.requiredEnv,
+    requirements,
     resolvedEnvTypes,
   );
   const unreadableEnv = hiddenEnvValues(
     resolvedEnvKeys,
     resolvedEnvValues,
     resolvedEnvTypes,
-    project.requiredEnv,
+    requirements,
   );
   const deploymentForCommit = deployments.find(
     (deployment) =>
@@ -750,24 +798,38 @@ function readDeployments(project, scope) {
   return parseVercelDeployments(output);
 }
 
-async function readHealth(project, skipHealth) {
+export async function readHealth(
+  project,
+  skipHealth,
+  paths = false,
+  env = process.env,
+  request = fetch,
+) {
   if (skipHealth) return null;
 
+  const url = paths
+    ? new URL(
+        APP_BASE_PATHS[project.key] + MIGRATION_HEALTH_PATH,
+        project.healthUrl,
+      ).href
+    : project.healthUrl;
+  const bypass = paths && env[BYPASS_SECRETS[project.key]];
   const startedAt = Date.now();
 
   try {
-    const response = await fetch(project.healthUrl, { cache: "no-store" });
+    const response = await request(url, {
+      cache: "no-store",
+      redirect: "error",
+      headers: bypass ? { "x-vercel-protection-bypass": bypass } : {},
+    });
     const text = await response.text();
     const body = parseJson(text, null);
     const observability =
       body && typeof body === "object" ? body.observability : null;
-    const release =
-      observability && typeof observability === "object"
-        ? observability.release
-        : null;
+    const release = paths ? body?.release : observability?.release;
 
     return {
-      url: project.healthUrl,
+      url,
       status: response.status,
       latencyMs: Date.now() - startedAt,
       bodyStatus:
@@ -795,7 +857,7 @@ async function readHealth(project, skipHealth) {
     };
   } catch (error) {
     return {
-      url: project.healthUrl,
+      url,
       status: 0,
       latencyMs: Date.now() - startedAt,
       error: error instanceof Error ? error.message : String(error),
@@ -810,6 +872,7 @@ async function main() {
     return;
   }
 
+  const requestedPaths = pathMode(process.env);
   const commit = args.commit ?? readCurrentCommit();
   const reports = [];
 
@@ -821,10 +884,15 @@ async function main() {
       args.scope,
     );
     const deployments = readDeployments(project, args.scope);
-    const health = await readHealth(project, args.skipHealth);
+    const health = await readHealth(
+      project,
+      args.skipHealth,
+      pathMode(envValues) || requestedPaths,
+    );
     reports.push(
       summarizeProjectReadiness({
         project,
+        requestedPaths,
         envKeys,
         envTypes,
         envValues,
