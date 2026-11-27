@@ -90,7 +90,7 @@ describe.skipIf(!ADMIN_URL)(
           expect(reasons(doubled.holds)).toEqual(["name_mismatch"]);
         }));
 
-      it("possible duplicate on a miss, by street and city and by street and postal code; the new donor is still written; a weak signal alone never holds", () =>
+      it("possible duplicate on a miss, by street and city and by street and postal code; the new donor is still written, with the intake's own address, and the gift points to it, not to the twin (D-18, AL-2681 fix round F14: the assertion now tells a new donor from the twin); a weak signal alone never holds", () =>
         inTx(db, async () => {
           const fx = await seedTwoTenants(db);
           const twin = await existingDonor(db, fx.A, {
@@ -98,19 +98,32 @@ describe.skipIf(!ADMIN_URL)(
             email: uniqueEmail("other"),
             address: ADDRESS,
           });
-          const byCity = await paidGift(
-            await giftIntake(db, fx.A, {
-              contact: {
-                first: "Ann",
-                last: "Lee",
-                address: { street: " 1 main st", city: "SPRINGFIELD", zip: "" },
-              },
-            }),
-          );
+          const ownAddress = {
+            street: " 1 main st",
+            city: "SPRINGFIELD",
+            zip: "22222",
+          };
+          const cityIntake = await giftIntake(db, fx.A, {
+            contact: { first: "Ann", last: "Lee", address: ownAddress },
+          });
+          const byCity = await paidGift(cityIntake);
           expect(reasons(byCity.holds)).toEqual(["possible_duplicate"]);
           expect(byCity.holds[0]!.details).toMatchObject({
             candidates: [twin],
           });
+          await role(db, null);
+          const stored = (
+            await db.query(
+              `SELECT dn.id, dn.address, d.donor_id AS intake_donor
+                 FROM public.donations AS d
+                 JOIN public.donors AS dn ON dn.id = d.donor_id
+                WHERE d.id = $1`,
+              [cityIntake.donationId],
+            )
+          ).rows[0] as { id: string; address: unknown; intake_donor: string };
+          expect(stored.id).not.toBe(twin);
+          expect(stored.address).toEqual(ownAddress);
+          expect(byCity.gift.donor_id).toBe(stored.id);
           const byZip = await paidGift(
             await giftIntake(db, fx.A, {
               contact: {

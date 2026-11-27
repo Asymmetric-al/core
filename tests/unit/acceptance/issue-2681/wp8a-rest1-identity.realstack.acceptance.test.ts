@@ -12,7 +12,6 @@ import {
   failEvent,
   giftIntake,
   giftOf,
-  holdsOf,
   identityRows,
   inTx,
   intakeRow,
@@ -365,7 +364,7 @@ describe.skipIf(!ADMIN_URL)(
         expect(await identityRows(db, fx.A.tenant)).toEqual(after);
       }));
 
-    it("a declined and an abandoned checkout leave no Party, donor, link or membership; neither writes the intake's donor", () =>
+    it("a declined and an abandoned checkout leave no Party, donor, link or membership; neither writes the intake's donor or a gift (D-18, AL-2681 fix round F14: the two checkouts' own gifts are looked up, not a hold under the zero id)", () =>
       inTx(db, async () => {
         const fx = await seedTwoTenants(db);
         const before = await identityRows(db, fx.A.tenant);
@@ -397,9 +396,61 @@ describe.skipIf(!ADMIN_URL)(
         expect(await identityRows(db, fx.A.tenant)).toEqual(before);
         expect((await intakeRow(db, declined.donationId)).donor_id).toBeNull();
         expect((await intakeRow(db, abandoned.donationId)).donor_id).toBeNull();
+        expect(await giftOf(db, declined.donationId)).toBeUndefined();
+        expect(await giftOf(db, abandoned.donationId)).toBeUndefined();
+      }));
+
+    it("F1: who gave is not on donations: the giver's login, its address and whether it was confirmed sit on the intake's sealed contact row, which anon, authenticated and service_role cannot read", () =>
+      inTx(db, async () => {
+        const fx = await seedTwoTenants(db);
+        await role(db, null);
         expect(
-          await holdsOf(db, "00000000-0000-0000-0000-000000000000"),
+          (
+            await db.query(
+              `SELECT attname FROM pg_attribute
+                WHERE attrelid = 'public.donations'::regclass AND NOT attisdropped
+                  AND attname IN ('actor_user_id', 'actor_email', 'actor_email_confirmed')`,
+            )
+          ).rows,
         ).toEqual([]);
+        expect(
+          (
+            await db.query(
+              `SELECT r, c FROM unnest(ARRAY['anon', 'authenticated', 'service_role']) AS r,
+                      unnest(ARRAY['actor_user_id', 'actor_email', 'actor_email_confirmed']) AS c
+                WHERE has_column_privilege(r, 'public.donation_intake_contacts', c, 'SELECT')`,
+            )
+          ).rows,
+        ).toEqual([]);
+        const login = await person(db, fx.A, { confirmed: false });
+        const intake = await giftIntake(db, fx.A, {
+          actor: { user: login.user, email: login.email, confirmed: false },
+        });
+        await role(db, null);
+        expect(
+          (
+            await db.query(
+              `SELECT actor_user_id, actor_email, actor_email_confirmed
+                 FROM public.donation_intake_contacts WHERE donation_id = $1`,
+              [intake.donationId],
+            )
+          ).rows,
+        ).toEqual([
+          {
+            actor_user_id: login.user,
+            actor_email: login.email,
+            actor_email_confirmed: false,
+          },
+        ]);
+        const sealed = await attempt(
+          db,
+          "UPDATE public.donation_intake_contacts SET actor_email = 'other@example.test' WHERE donation_id = $1",
+          [intake.donationId],
+        );
+        expect([sealed.code, sealed.message]).toEqual([
+          "23514",
+          "donation_intake_contact_sealed",
+        ]);
       }));
   },
 );

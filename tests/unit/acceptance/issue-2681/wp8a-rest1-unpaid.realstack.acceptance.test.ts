@@ -1,4 +1,6 @@
 import { createHash, randomUUID } from "node:crypto";
+import { readdirSync, readFileSync } from "node:fs";
+import { join } from "node:path";
 
 import pg from "pg";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
@@ -6,6 +8,7 @@ import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import {
   ADMIN_URL,
   IN_MIGRATE_JOB,
+  MIGRATIONS,
   ageIntake,
   apply,
   attempt,
@@ -149,6 +152,44 @@ describe.skipIf(!ADMIN_URL)(
               status: "abandoned",
             }),
           ]);
+        }));
+
+      it("F4: the sweep leaves an intake alone while its create request is sending, waiting to retry after an unknown outcome, or parked, and says so (in_flight)", () =>
+        inTx(db, async () => {
+          const fx = await seedTwoTenants(db);
+          for (const target of ["sending", "retry_wait", "parked"] as const) {
+            const intake = await giftIntake(db, fx.A);
+            const op = (await enqueue(db, fx.A, intake.donationId)).rows[0]!
+              .id as string;
+            await claim(db, op);
+            if (target !== "sending")
+              await report(db, op, 1, {
+                result: "unknown",
+                retry_delay_seconds: 30,
+                error_code: "stripe_timeout",
+              });
+            if (target === "parked")
+              expect(
+                (
+                  await guardUpdate(
+                    db,
+                    fx.A.tenant,
+                    "UPDATE public.donation_saga_outbox SET status = 'parked' WHERE id = $1",
+                    [op],
+                  )
+                ).ok,
+              ).toBe(true);
+            await ageIntake(db, intake.donationId, 8);
+            expect(await sweep(intake.donationId)).toMatchObject({
+              outcome: "in_flight",
+              donation_id: intake.donationId,
+            });
+            expect(await intakeRow(db, intake.donationId)).toMatchObject({
+              status: "pending",
+              abandoned_by: null,
+            });
+            expect(await requestRow(db, op)).toMatchObject({ status: target });
+          }
         }));
 
       it("a payment after the automatic close still becomes one gift, with its giver, and its queued cancel is abandoned", () =>
@@ -545,16 +586,225 @@ describe.skipIf(!ADMIN_URL)(
             "provider_request_bad_move",
           ]);
         }));
+
+      it("F3: on a disconnected account the sweep closes no intake whose PaymentIntent would need a cancel, writes no request, and says so (binding_disconnected); one with no PaymentIntent still closes", () =>
+        inTx(db, async () => {
+          const fx = await seedTwoTenants(db);
+          const withPi = await giftIntake(db, fx.A);
+          await recordReference(db, withPi.donationId, paymentIntent());
+          const withoutPi = await giftIntake(db, fx.A);
+          await ageIntake(db, withPi.donationId, 8);
+          await ageIntake(db, withoutPi.donationId, 8);
+          expect(await disconnect(fx.A)).toMatchObject({
+            outcome: "applied",
+            status: "disconnected",
+          });
+          expect(await sweep(withPi.donationId)).toMatchObject({
+            outcome: "binding_disconnected",
+            donation_id: withPi.donationId,
+          });
+          expect(await requestsOf(withPi.donationId)).toEqual([]);
+          expect(await intakeRow(db, withPi.donationId)).toMatchObject({
+            status: "pending",
+            abandoned_by: null,
+          });
+          expect(await sweep(withoutPi.donationId)).toMatchObject({
+            outcome: "abandoned",
+            cancel_operation_id: null,
+          });
+        }));
     });
 
-    it("a staff-abandoned intake's gift and observation stay absent when its cancel is reported canceled; the intake stays abandoned", () =>
+    describe("the apply and the event cases", () => {
+      it("F10: a payment success for a parked create request is evidence for its case and stages no gift, also when the intake already records that PaymentIntent", () =>
+        inTx(db, async () => {
+          const fx = await seedTwoTenants(db);
+          const intake = await giftIntake(db, fx.A);
+          const op = (await enqueue(db, fx.A, intake.donationId)).rows[0]!
+            .id as string;
+          await claim(db, op);
+          await report(db, op, 1, {
+            result: "unknown",
+            retry_delay_seconds: 30,
+            error_code: "stripe_timeout",
+          });
+          expect(
+            (
+              await guardUpdate(
+                db,
+                fx.A.tenant,
+                "UPDATE public.donation_saga_outbox SET status = 'parked' WHERE id = $1",
+                [op],
+              )
+            ).ok,
+          ).toBe(true);
+          const pi = paymentIntent();
+          await recordReference(db, intake.donationId, pi);
+          const event = await storeEvent(db, fx.A, {
+            pi,
+            amount: intake.amount,
+            metadata: { asym_operation: op, asym_intake: intake.donationId },
+          });
+          expect(await work(db, event.id)).toMatchObject({
+            outcome: "case_evidence",
+            donation_id: intake.donationId,
+          });
+          expect(await giftOf(db, intake.donationId)).toBeUndefined();
+          expect(await intakeRow(db, intake.donationId)).toMatchObject({
+            status: "pending",
+            donor_id: null,
+          });
+          expect(await requestRow(db, op)).toMatchObject({ status: "parked" });
+        }));
+
+      it("F13: an event case is written by the guard alone: an update by any other role, its owner included, is refused 42501", () =>
+        inTx(db, async () => {
+          const fx = await seedTwoTenants(db);
+          const intake = await giftIntake(db, fx.A);
+          const pi = paymentIntent();
+          await recordReference(db, intake.donationId, pi);
+          expect(
+            (
+              await guardUpdate(
+                db,
+                fx.A.tenant,
+                "UPDATE public.donations SET status = 'abandoned', abandoned_by = 'staff' WHERE id = $1",
+                [intake.donationId],
+              )
+            ).ok,
+          ).toBe(true);
+          const event = await storeEvent(db, fx.A, {
+            pi,
+            amount: intake.amount,
+          });
+          await work(db, event.id);
+          const [opened] = await eventCases(fx.A.tenant);
+          await role(db, null);
+          const r = await attempt(
+            db,
+            "UPDATE public.payment_event_cases SET kind = kind WHERE id = $1",
+            [opened!.id],
+          );
+          expect([r.code, r.message]).toEqual([
+            "42501",
+            "payment_event_case_guard_only",
+          ]);
+        }));
+    });
+
+    describe("the migration", () => {
+      it("F8: M1's preflight refuses 55000, changing nothing, while 20261126190000's function is missing or a line-based donation exists", () =>
+        inTx(db, async () => {
+          const fx = await seedTwoTenants(db);
+          const name = readdirSync(MIGRATIONS).find((n) =>
+            /^20261127030000_.*\.sql$/.test(n),
+          )!;
+          const text = readFileSync(join(MIGRATIONS, name), "utf8");
+          const preflight = /\nDO \$\$\nBEGIN\n[\s\S]*?\nEND\n\$\$;\n/.exec(
+            text,
+          )?.[0];
+          expect(preflight).toBeDefined();
+          await role(db, null);
+          await db.query(
+            "ALTER FUNCTION private.refuse_sealed_truncate() RENAME TO refuse_sealed_truncate_moved",
+          );
+          const missing = await attempt(db, preflight!);
+          expect([missing.code, missing.message]).toEqual([
+            "55000",
+            "m1_preflight_sealed_truncate_missing",
+          ]);
+          await db.query(
+            "ALTER FUNCTION private.refuse_sealed_truncate_moved() RENAME TO refuse_sealed_truncate",
+          );
+          await giftIntake(db, fx.A);
+          await role(db, null);
+          const present = await attempt(db, preflight!);
+          expect([present.code, present.message]).toEqual([
+            "55000",
+            "m1_preflight_line_based_donation_exists",
+          ]);
+        }));
+
+      it("F8: M3 gives a request parked before it its reason (the unknown outcome it parked for) before it validates its checks, so a database holding one applies it cleanly", () =>
+        inTx(db, async () => {
+          const fx = await seedTwoTenants(db);
+          const intake = await giftIntake(db, fx.A);
+          const op = (await enqueue(db, fx.A, intake.donationId)).rows[0]!
+            .id as string;
+          await claim(db, op);
+          await report(db, op, 1, {
+            result: "unknown",
+            retry_delay_seconds: 30,
+            error_code: "stripe_timeout",
+          });
+          expect(
+            (
+              await guardUpdate(
+                db,
+                fx.A.tenant,
+                "UPDATE public.donation_saga_outbox SET status = 'parked' WHERE id = $1",
+                [op],
+              )
+            ).ok,
+          ).toBe(true);
+          const name = readdirSync(MIGRATIONS).find((n) =>
+            /^20261127030200_.*\.sql$/.test(n),
+          )!;
+          const text = readFileSync(join(MIGRATIONS, name), "utf8");
+          const check =
+            /ADD CONSTRAINT donation_saga_outbox_park_reason_check\s+CHECK \(([\s\S]*?)\n    \) NOT VALID/.exec(
+              text,
+            )![1]!;
+          const backfill =
+            /\nALTER TABLE public\.donation_saga_outbox DISABLE TRIGGER donation_saga_outbox_provider_rules;[\s\S]*?ENABLE TRIGGER donation_saga_outbox_provider_rules;\n/.exec(
+              text,
+            )?.[0] ?? "";
+          await role(db, null);
+          await db.query(
+            "ALTER TABLE public.donation_saga_outbox DROP CONSTRAINT donation_saga_outbox_park_reason_check",
+          );
+          await db.query("SET LOCAL session_replication_role = replica");
+          await db.query(
+            "UPDATE public.donation_saga_outbox SET park_reason = NULL WHERE id = $1",
+            [op],
+          );
+          await db.query("SET LOCAL session_replication_role = origin");
+          if (backfill) await db.query(backfill);
+          await db.query(
+            `ALTER TABLE public.donation_saga_outbox ADD CONSTRAINT donation_saga_outbox_park_reason_check CHECK (${check}) NOT VALID`,
+          );
+          const validated = await attempt(
+            db,
+            "ALTER TABLE public.donation_saga_outbox VALIDATE CONSTRAINT donation_saga_outbox_park_reason_check",
+          );
+          expect([validated.ok, validated.code ?? null]).toEqual([true, null]);
+          expect(await requestRow(db, op)).toMatchObject({
+            status: "parked",
+            park_reason: "outcome_unknown",
+          });
+        }));
+    });
+
+    it("a staff-abandoned intake's gift and observation stay absent when its cancel is reported canceled; the intake stays abandoned by staff (D-18, AL-2681 fix round F14: abandoned by staff, as the title says, not aged and swept)", () =>
       inTx(db, async () => {
         const fx = await seedTwoTenants(db);
         const intake = await giftIntake(db, fx.A);
         const pi = paymentIntent();
         await recordReference(db, intake.donationId, pi);
-        await ageIntake(db, intake.donationId, 8);
-        await sweep(intake.donationId);
+        expect(
+          (
+            await guardUpdate(
+              db,
+              fx.A.tenant,
+              "UPDATE public.donations SET status = 'abandoned', abandoned_by = 'staff' WHERE id = $1",
+              [intake.donationId],
+            )
+          ).ok,
+        ).toBe(true);
+        expect(await intakeRow(db, intake.donationId)).toMatchObject({
+          status: "abandoned",
+          abandoned_by: "staff",
+        });
         const canceled = await storeEvent(db, fx.A, {
           type: "payment_intent.canceled",
           pi,
@@ -566,8 +816,10 @@ describe.skipIf(!ADMIN_URL)(
         });
         expect(await intakeRow(db, intake.donationId)).toMatchObject({
           status: "abandoned",
+          abandoned_by: "staff",
         });
-        expect(await giftOf(db, intake.donationId)).toBeUndefined();
+        const rows = await moneyRows(db, fx.A.tenant);
+        expect([rows.gifts, rows.observations]).toEqual([[], []]);
       }));
   },
 );

@@ -512,7 +512,8 @@ jobs:
         run: |
           status="$(bun run supabase -- status -o json)"
           WP8A_REST_IT_SERVICE_KEY="$(jq -er '.SERVICE_ROLE_KEY | select(length > 0)' <<< "$status")"
-          export WP8A_REST_IT_SERVICE_KEY
+          WP8A_REST_IT_ANON_KEY="$(jq -er '.ANON_KEY | select(length > 0)' <<< "$status")"
+          export WP8A_REST_IT_SERVICE_KEY WP8A_REST_IT_ANON_KEY
           bunx vitest run --maxWorkers=1 tests/unit/acceptance/issue-2681/wp8a-rest1-reads.postgrest.acceptance.test.ts
       - name: Install Playwright Chromium
         id: chromium

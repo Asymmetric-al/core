@@ -1,8 +1,9 @@
-import { randomUUID } from "node:crypto";
+import { createHash, randomUUID } from "node:crypto";
 
 import {
   GUARD_TEST_GRANTS,
   attempt,
+  claimEvent,
   enterAs,
   grant,
   insertLines,
@@ -54,8 +55,8 @@ export async function giftIntake(
   await db.query(
     `INSERT INTO public.donations
        (id, tenant_id, legal_entity_id, payment_account_binding_id, provider_account_ref, livemode,
-        amount, currency, status, actor_user_id, actor_email, actor_email_confirmed, is_anonymous)
-     VALUES ($1, $2, $3, $4, $5, false, $6, 'usd', $7, $8, $9, $10, $11)`,
+        amount, currency, status, is_anonymous)
+     VALUES ($1, $2, $3, $4, $5, false, $6, 'usd', $7, $8)`,
     [
       donationId,
       side.tenant,
@@ -64,9 +65,6 @@ export async function giftIntake(
       side.account,
       amount,
       options.status ?? "pending",
-      options.actor?.user ?? null,
-      options.actor ? (options.actor.email ?? null) : null,
-      options.actor ? options.actor.confirmed : null,
       options.anonymous ?? false,
     ],
   );
@@ -80,21 +78,34 @@ export async function giftIntake(
           last: `Giver ${randomUUID().slice(0, 6)}`,
           ...options.contact,
         };
-  if (contact)
+  if (contact || options.actor) {
+    const values: unknown[] = [
+      side.tenant,
+      donationId,
+      side.entity,
+      contact?.email ?? null,
+      contact?.first ?? null,
+      contact?.last ?? null,
+      contact?.address ? JSON.stringify(contact.address) : null,
+    ];
+    if (options.actor)
+      values.push(
+        options.actor.user,
+        options.actor.email ?? null,
+        options.actor.confirmed,
+      );
     await db.query(
-      `INSERT INTO public.donation_intake_contacts
-         (tenant_id, donation_id, legal_entity_id, email, first_name, last_name, address)
-       VALUES ($1, $2, $3, $4, $5, $6, $7::jsonb)`,
-      [
-        side.tenant,
-        donationId,
-        side.entity,
-        contact.email ?? null,
-        contact.first ?? null,
-        contact.last ?? null,
-        contact.address ? JSON.stringify(contact.address) : null,
-      ],
+      options.actor
+        ? `INSERT INTO public.donation_intake_contacts
+             (tenant_id, donation_id, legal_entity_id, email, first_name, last_name, address,
+              actor_user_id, actor_email, actor_email_confirmed)
+           VALUES ($1, $2, $3, $4, $5, $6, $7::jsonb, $8, $9, $10)`
+        : `INSERT INTO public.donation_intake_contacts
+             (tenant_id, donation_id, legal_entity_id, email, first_name, last_name, address)
+           VALUES ($1, $2, $3, $4, $5, $6, $7::jsonb)`,
+      values,
     );
+  }
   await role(db, null);
   return { side, donationId, amount, lines, contact };
 }
@@ -376,6 +387,46 @@ export const outcomeOf = (a: Attempt) => {
   if (!a.ok) throw new Error(`refused: ${a.code} ${a.message}`);
   return a.rows[0]!.r as Outcome;
 };
+
+export async function accountClosedEvent(db: pg.Client, side: Side) {
+  const id = `evt_${randomUUID().replaceAll("-", "")}`;
+  const payload = {
+    id,
+    object: "v2.core.event",
+    type: "v2.core.account.closed",
+    created: new Date().toISOString(),
+    livemode: false,
+    related_object: {
+      id: side.account,
+      type: "v2.core.account",
+      url: `/v2/core/accounts/${side.account}`,
+    },
+  };
+  const raw = JSON.stringify(payload);
+  await role(db, null);
+  await db.query("SELECT set_config('app.current_tenant_id', '', true)");
+  await role(db, "service_role");
+  const eventId = (
+    await db.query(
+      `INSERT INTO public.stripe_connect_events
+         (tenant_id, stripe_event_id, event_type, livemode, provider_account_id, event_created_at, payload_sha256, raw_payload)
+       VALUES ($1, $2, 'v2.core.account.closed', false, $3, $4, $5, $6::jsonb) RETURNING id`,
+      [
+        side.tenant,
+        id,
+        side.account,
+        payload.created,
+        createHash("sha256").update(raw).digest("hex"),
+        raw,
+      ],
+    )
+  ).rows[0].id as string;
+  await role(db, null);
+  const claimed = await claimEvent(db, eventId);
+  if (claimed.outcome !== "claimed")
+    throw new Error(`account event not claimed: ${JSON.stringify(claimed)}`);
+  return eventId;
+}
 
 export async function ageIntake(
   db: pg.Client,

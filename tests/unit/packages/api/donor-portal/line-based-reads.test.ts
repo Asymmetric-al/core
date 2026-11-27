@@ -173,33 +173,167 @@ describe("AL-2681 WP8a part 2 rest, PR 1: what a person reads of a line-based gi
     });
   });
 
-  it("the lines read goes through public.line_based_gift_lines for the tenant and the named intakes only, and nothing is read for none", async () => {
-    const rpc = vi.fn().mockResolvedValue({
-      data: [
-        {
-          donation_id: "g1",
-          line_number: 1,
-          fund_id: "f1",
-          fund_name: "Building",
-          missionary_id: null,
-          worker_public_name: null,
-          is_fee_cover: false,
-          amount: "500",
+  function pagedRpc(pages: unknown[][]) {
+    const ranges: Array<[number, number]> = [];
+    const orders: string[] = [];
+    const rpc = vi.fn(() => {
+      const builder = {
+        order: (column: string) => {
+          orders.push(column);
+          return builder;
         },
-      ],
-      error: null,
+        range: (from: number, to: number) => {
+          ranges.push([from, to]);
+          return Promise.resolve({ data: pages.shift() ?? [], error: null });
+        },
+      };
+      return builder;
     });
+    return { rpc, ranges, orders };
+  }
+
+  const lineRow = (donation: string, number: number) => ({
+    donation_id: donation,
+    line_number: number,
+    fund_id: "f1",
+    fund_name: "Building",
+    missionary_id: null,
+    worker_public_name: null,
+    is_fee_cover: false,
+    amount: "500",
+  });
+
+  it("the lines read goes through public.line_based_gift_lines for the tenant and the named intakes only, in a fixed order, and nothing is read for none", async () => {
+    const { rpc, orders } = pagedRpc([[lineRow("g1", 1)]]);
     const lines = await loadLineBasedGiftLines({ rpc }, "t1", ["g1"]);
     expect(rpc).toHaveBeenCalledWith("line_based_gift_lines", {
       p_tenant_id: "t1",
       p_donation_ids: ["g1"],
     });
+    expect(orders).toEqual(["donation_id", "line_number"]);
     expect(lines.get("g1")).toEqual([expect.objectContaining({ amount: 500 })]);
     const none = vi.fn();
     expect((await loadLineBasedGiftLines({ rpc: none }, "t1", [])).size).toBe(
       0,
     );
     expect(none).not.toHaveBeenCalled();
+  });
+
+  it("F12: the lines read pages past the Data API's row cap, 500 lines a page, until a short page", async () => {
+    const first = Array.from({ length: 500 }, (_, i) =>
+      lineRow(`g${Math.floor(i / 5)}`, (i % 5) + 1),
+    );
+    const second = [lineRow("g100", 1), lineRow("g100", 2)];
+    const { rpc, ranges } = pagedRpc([first, second]);
+    const ids = Array.from({ length: 101 }, (_, i) => `g${i}`);
+    const lines = await loadLineBasedGiftLines({ rpc }, "t1", ids);
+    expect(ranges).toEqual([
+      [0, 499],
+      [500, 999],
+    ]);
+    expect([...lines.values()].flat()).toHaveLength(502);
+    expect(lines.get("g100")).toHaveLength(2);
+  });
+
+  it("F6: the portal's figures count settled gifts and the same ones everywhere: a paid line-based gift is in lifetime given, the gift count and this year's total; a failed gift counts nowhere; a line-based gift has no receipt link, receipt count or statement year until WP8b gives it a receipt", () => {
+    const fundLine = (donation: string, fund: string, amount: number) => [
+      {
+        donation_id: donation,
+        line_number: 1,
+        fund_id: fund,
+        fund_name: `Fund ${fund}`,
+        missionary_id: null,
+        worker_public_name: null,
+        is_fee_cover: false,
+        amount,
+      },
+    ];
+    const built = buildDonorPortalSnapshot({
+      profile,
+      donor: { ...donor, total_given: 2500, gift_count: 1 },
+      donations: [
+        row({
+          id: "declined",
+          intake_format: "line_based",
+          status: "failed",
+          amount: 7000,
+          lines: fundLine("declined", "f-declined", 7000),
+        }),
+        row({
+          id: "received",
+          intake_format: "line_based",
+          staged_gift: { status: "needs_review" },
+          amount: 10300,
+          lines: fundLine("received", "f-received", 10300),
+        }),
+        row({
+          id: "posted",
+          intake_format: "line_based",
+          staged_gift: { status: "posted" },
+          amount: 5000,
+          lines: fundLine("posted", "f-posted", 5000),
+        }),
+        row({
+          id: "legacy",
+          intake_format: "legacy_header",
+          amount: 2500,
+          gift_date: "2025-03-01T00:00:00Z",
+          fund: { id: "f-legacy", name: "Building" },
+        }),
+      ],
+      pledges: [],
+      feedPreferences: null,
+      now: new Date("2026-11-27T12:00:00Z"),
+    });
+    expect(built.summary).toMatchObject({
+      yearToDateCents: 15300,
+      lifetimeGivenCents: 17800,
+      giftCount: 3,
+      supportedDesignationCount: 3,
+      receiptCount: 1,
+      statementYears: [2025],
+      latestImpactLabel: "Fund f-received",
+    });
+    const byId = Object.fromEntries(built.donations.map((d) => [d.id, d]));
+    for (const id of ["declined", "received", "posted"])
+      expect(byId[id]).toMatchObject({ receiptUrl: null, statementYear: null });
+    expect(byId.legacy).toMatchObject({
+      receiptUrl: "/api/donor/receipts/legacy",
+      statementYear: 2025,
+    });
+  });
+
+  it("F6: with no stored totals, lifetime given and the gift count are the settled gifts' own; a failed or processing gift is in neither", () => {
+    const built = buildDonorPortalSnapshot({
+      profile,
+      donor,
+      donations: [
+        row({ id: "failed", intake_format: "legacy_header", status: "failed" }),
+        row({
+          id: "processing",
+          intake_format: "line_based",
+          status: "processing",
+          amount: 900,
+          lines: [],
+        }),
+        row({ id: "paid", intake_format: "legacy_header", amount: 2500 }),
+        row({
+          id: "received",
+          intake_format: "line_based",
+          staged_gift: { status: "needs_review" },
+          amount: 10300,
+          lines: [],
+        }),
+      ],
+      pledges: [],
+      feedPreferences: null,
+      now: new Date("2026-11-27T12:00:00Z"),
+    });
+    expect(built.summary).toMatchObject({
+      lifetimeGivenCents: 12800,
+      giftCount: 2,
+      receiptCount: 1,
+    });
   });
 });
 
