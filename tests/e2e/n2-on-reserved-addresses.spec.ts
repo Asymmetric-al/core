@@ -11,6 +11,7 @@ const REFUSED_PATHS = [
   "/invite/x",
   "/api/nope.png",
   "/web-studio/x.js",
+  "/api/checkout/nope",
 ];
 
 const YEAR_LONG = /immutable|max-age=31536000/;
@@ -46,6 +47,18 @@ test("the routes under reserved segments still answer as before (guard)", async 
   const callback = await landed?.request().redirectedFrom()?.response();
   expect(callback?.status()).toBe(307);
   expect(new URL(page.url()).pathname).toBe("/login");
+  const config = await page.evaluate(async () => {
+    const response = await fetch("/api/checkout/config", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: "{}",
+    });
+    return { status: response.status, body: await response.text() };
+  });
+  expect(config).toEqual({
+    status: 503,
+    body: '{"error":"giving_unavailable"}',
+  });
 });
 
 test("a miss under a page prefix still reaches the public catch-all and shows the not-found page", async ({

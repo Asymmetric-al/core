@@ -183,8 +183,27 @@ describe.each([
         await expectNotReservedMiss(path);
       }
     });
+
+    it("passes guest giving's /api/checkout/config to its route (guard)", async () => {
+      await expectCheckoutConfigPassed();
+    });
   },
 );
+
+async function expectCheckoutConfigPassed() {
+  const response = await donorModule.proxy(
+    donorRequest(HOME_A, "/api/checkout/config", {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+        origin: `http://${HOME_A}`,
+      },
+      body: "{}",
+    }),
+  );
+  expect(response.status).not.toBe(404);
+  expect(response.headers.get("x-middleware-next")).toBe("1");
+}
 
 describe("on: a reserved first segment no donor route serves answers 404 before the name lookup", () => {
   it.each([
@@ -226,5 +245,9 @@ describe("on: a reserved first segment no donor route serves answers 404 before 
     ]) {
       await expectNotReservedMiss(path);
     }
+  });
+
+  it("passes guest giving's /api/checkout/config to its route (guard)", async () => {
+    await expectCheckoutConfigPassed();
   });
 });
