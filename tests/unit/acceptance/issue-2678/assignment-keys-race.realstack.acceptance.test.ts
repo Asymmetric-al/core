@@ -1,7 +1,7 @@
 import { randomUUID } from "node:crypto";
 
 import pg from "pg";
-import { afterAll, beforeAll, describe, expect, it } from "vitest";
+import { afterAll, afterEach, beforeAll, describe, expect, it } from "vitest";
 
 import {
   delta,
@@ -165,14 +165,22 @@ describe.skipIf(!ADMIN_URL)(
       );
     });
 
+    async function releaseSessions() {
+      await admin.query(
+        "select pg_catalog.pg_cancel_backend(pid) from unnest($1::int[]) as pid where pid <> 0",
+        [[c1pid, c2pid]],
+      );
+      for (const client of [c1, c2]) {
+        await client.query("rollback").catch(() => undefined);
+        await client.query("reset lock_timeout").catch(() => undefined);
+      }
+    }
+
+    afterEach(() => releaseSessions());
+
     afterAll(async () => {
       const failures: string[] = [];
-      for (const client of [c1, c2])
-        try {
-          await client.query("rollback");
-        } catch (e) {
-          failures.push(String(e));
-        }
+      await releaseSessions().catch((e) => failures.push(String(e)));
       for (const [sql, params] of [
         ["delete from public.audit_logs where tenant_id = $1", [T]],
         ["delete from public.follows where tenant_id = $1", [T]],
@@ -367,6 +375,7 @@ describe.skipIf(!ADMIN_URL)(
         "update public.posts set ministry_assignment_id = $2 where id = $1",
         [post, second],
       );
+      await c1.query("set lock_timeout = '20s'");
       const repairing = repairOnDisposable(c1);
       const waited = await blockedOrSettled(admin, repairing, c1pid, c2pid);
       await c2.query("commit");

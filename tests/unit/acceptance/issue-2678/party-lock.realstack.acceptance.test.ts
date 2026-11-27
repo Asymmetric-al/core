@@ -41,6 +41,8 @@ async function blockedOrSettled(
   }
 }
 
+const opened = new Set<pg.Client & { pid: number }>();
+
 type World = {
   admin: pg.Client;
   tenant: string;
@@ -131,49 +133,67 @@ async function inWorld(run: (w: World) => Promise<void>) {
     };
     await run(w);
   } finally {
-    for (const table of [
-      "donor_merge_candidates",
-      "audit_logs",
-      "account_claim_requests",
-      "account_links",
-      "donation_saga_outbox",
-      "donations",
-      "missionaries",
-      "donors",
-      "parties",
-    ])
-      await admin.query(`delete from public.${table} where tenant_id = $1`, [
-        tenant,
+    try {
+      for (const c of opened) {
+        await admin
+          .query("select pg_catalog.pg_terminate_backend($1)", [c.pid])
+          .catch(() => undefined);
+        await c.end().catch(() => undefined);
+        opened.delete(c);
+      }
+      for (const table of [
+        "donor_merge_candidates",
+        "audit_logs",
+        "account_claim_requests",
+        "account_links",
+        "donation_saga_outbox",
+        "donations",
+        "missionaries",
+        "donors",
+        "parties",
+      ])
+        await admin.query(`delete from public.${table} where tenant_id = $1`, [
+          tenant,
+        ]);
+      await admin.query(
+        "delete from authz.memberships where tenant_id = $1 or user_id = any($2::uuid[])",
+        [tenant, users],
+      );
+      await admin.query(
+        "delete from public.legal_entities where tenant_id = $1",
+        [tenant],
+      );
+      await admin.query("delete from public.tenants where id = $1", [tenant]);
+      await admin.query("delete from auth.users where id = any($1::uuid[])", [
+        users,
       ]);
-    await admin.query(
-      "delete from authz.memberships where tenant_id = $1 or user_id = any($2::uuid[])",
-      [tenant, users],
-    );
-    await admin.query(
-      "delete from public.legal_entities where tenant_id = $1",
-      [tenant],
-    );
-    await admin.query("delete from public.tenants where id = $1", [tenant]);
-    await admin.query("delete from auth.users where id = any($1::uuid[])", [
-      users,
-    ]);
-    await admin.end();
+    } finally {
+      await admin.end();
+    }
   }
 }
 
 async function session(user?: string, tenant?: string) {
   const c = new pg.Client({ connectionString: ADMIN_URL });
   await c.connect();
-  const pid = await backendPid(c);
-  await c.query("begin");
-  if (user && tenant)
-    await c.query(
-      `set local role authenticated;
-       select set_config('request.jwt.claims', '${JSON.stringify({ sub: user, role: "authenticated" })}', true),
-              set_config('request.jwt.claim.sub', '', true),
-              set_config('request.headers', '${JSON.stringify({ "x-asym-tenant": tenant })}', true);`,
-    );
-  return Object.assign(c, { pid });
+  try {
+    const pid = await backendPid(c);
+    const open = Object.assign(c, { pid });
+    opened.add(open);
+    await c.query("begin");
+    await c.query("set local lock_timeout = '20s'");
+    if (user && tenant)
+      await c.query(
+        `set local role authenticated;
+         select set_config('request.jwt.claims', '${JSON.stringify({ sub: user, role: "authenticated" })}', true),
+                set_config('request.jwt.claim.sub', '', true),
+                set_config('request.headers', '${JSON.stringify({ "x-asym-tenant": tenant })}', true);`,
+      );
+    return open;
+  } catch (error) {
+    await c.end().catch(() => undefined);
+    throw error;
+  }
 }
 
 const gift = (
@@ -200,10 +220,11 @@ const redeem = (c: pg.Client, tenant: string, t: string) =>
     .query("select public.redeem_account_claim($1, $2) r", [tenant, t])
     .then((r) => r.rows[0].r as { status: string });
 
-async function finish(...clients: pg.Client[]) {
+async function finish(...clients: (pg.Client & { pid: number })[]) {
   for (const c of clients) {
     await c.query("rollback").catch(() => undefined);
     await c.end().catch(() => undefined);
+    opened.delete(c);
   }
 }
 
