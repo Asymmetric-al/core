@@ -468,6 +468,133 @@ describe.skipIf(!ADMIN_URL)(
         }));
     });
 
+    describe("the reconciliation reads each mapped account (record 1012, issue 2776)", () => {
+      async function reconcile(
+        accountRow: string,
+        snapshot: Record<string, unknown>,
+      ) {
+        await role(db, "service_role");
+        await db.query("SAVEPOINT rest2a_reconcile");
+        try {
+          const r = (
+            await db.query(
+              "SELECT public.reconcile_payment_account($1, $2::jsonb) AS r",
+              [accountRow, JSON.stringify(snapshot)],
+            )
+          ).rows[0].r as Outcome;
+          await db.query("RELEASE SAVEPOINT rest2a_reconcile");
+          return r;
+        } catch (e) {
+          await db.query("ROLLBACK TO SAVEPOINT rest2a_reconcile");
+          const err = e as { code?: string; message?: string };
+          return { refusal: `${err.code} ${err.message}` } as Outcome;
+        } finally {
+          await role(db, null);
+        }
+      }
+
+      it("a reading that agrees changes nothing; one that disagrees opens one drift task and never moves the binding", () =>
+        inTx(db, async () => {
+          const w = await world();
+          await role(db, null);
+          const accountRow = (
+            await db.query(
+              "SELECT id FROM public.payment_provider_accounts WHERE tenant_id = $1",
+              [w.A.tenant],
+            )
+          ).rows[0].id as string;
+          const reading = {
+            id: w.A.account,
+            livemode: false,
+            closed: false,
+            card_payments_status: "active",
+          };
+          expect(await reconcile(accountRow, reading)).toMatchObject({
+            outcome: "in_line",
+            binding_status: "active",
+          });
+          const closed = await reconcile(accountRow, {
+            ...reading,
+            closed: true,
+          });
+          expect(closed).toMatchObject({
+            outcome: "drift_flagged",
+            observed: "disconnected",
+            binding_status: "active",
+          });
+          expect(
+            await reconcile(accountRow, {
+              ...reading,
+              card_payments_status: "inactive",
+            }),
+          ).toMatchObject({
+            outcome: "already_flagged",
+            task_id: closed.task_id,
+          });
+          await role(db, null);
+          const binding = (
+            await db.query(
+              "SELECT status FROM public.payment_account_bindings WHERE id = $1",
+              [w.A.binding],
+            )
+          ).rows[0].status;
+          expect(binding).toBe("active");
+          const tasks = (
+            await db.query(
+              `SELECT t.id, array(SELECT l.record_type || ':' || l.record_id FROM public.mission_control_task_links AS l
+                                   WHERE l.task_id = t.id) AS links
+                 FROM public.mission_control_tasks AS t
+                WHERE t.tenant_id = $1 AND t.issue_type = 'payment_account_drift'`,
+              [w.A.tenant],
+            )
+          ).rows;
+          expect(tasks).toEqual([
+            {
+              id: closed.task_id,
+              links: [`payment_account_binding:${w.A.binding}`],
+            },
+          ]);
+        }));
+
+      it("a reading of another account or mode is refused; only service_role calls it", () =>
+        inTx(db, async () => {
+          const w = await world();
+          await role(db, null);
+          const accountRow = (
+            await db.query(
+              "SELECT id FROM public.payment_provider_accounts WHERE tenant_id = $1",
+              [w.A.tenant],
+            )
+          ).rows[0].id as string;
+          expect(
+            await reconcile(accountRow, {
+              id: w.B.account,
+              livemode: false,
+              closed: true,
+            }),
+          ).toEqual({
+            refusal: "22023 snapshot_mismatch",
+          });
+          expect(
+            await reconcile(accountRow, {
+              id: w.A.account,
+              livemode: true,
+              closed: true,
+            }),
+          ).toEqual({
+            refusal: "22023 snapshot_mismatch",
+          });
+          await role(db, null);
+          const rows = (
+            await db.query(
+              `SELECT r, has_function_privilege(r, 'public.reconcile_payment_account(uuid,jsonb)', 'EXECUTE') AS can
+                 FROM unnest(ARRAY['anon', 'authenticated', 'service_role']) AS r ORDER BY r`,
+            )
+          ).rows;
+          expect(rows.map((r) => r.can)).toEqual([false, false, true]);
+        }));
+    });
+
     describe("the due work the schedule reads (one function, nothing to do leaves at once)", () => {
       async function due() {
         await role(db, "service_role");
@@ -564,7 +691,7 @@ describe.skipIf(!ADMIN_URL)(
             {
               kind: "account_event",
               id: accountEvent,
-              detail: "v2.core.account.updated",
+              detail: `v2.core.account.updated|${w.A.account}`,
             },
             {
               kind: "operation",
