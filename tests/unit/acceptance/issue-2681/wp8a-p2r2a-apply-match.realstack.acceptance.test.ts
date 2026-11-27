@@ -411,7 +411,7 @@ describe.skipIf(!ADMIN_URL)(
         const adoptedObject = paymentIntent();
         await setRequest(
           adopted.operationId,
-          `status = 'adopted', lease_expires_at = NULL, outcome_unknown = false, parked_at = now(), provider_object_id = '${adoptedObject}'`,
+          `status = 'adopted', lease_expires_at = NULL, outcome_unknown = false, parked_at = now(), park_reason = 'outcome_unknown', provider_object_id = '${adoptedObject}'`,
         );
         await recordReference(db, adopted.intake.donationId, adoptedObject);
         await check(

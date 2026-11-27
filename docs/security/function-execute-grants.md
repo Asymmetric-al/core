@@ -457,3 +457,63 @@ only for an assignment holding `care.access`. `begin_donation_saga` and
 `atomic_create_donation_with_audit` are replaced with their grants
 (`service_role`) unchanged, and `authz.assignment_capabilities(uuid)` with
 its owner and grantee (`tenant_guard`) unchanged.
+
+## Functions added by AL-2681 (WP8a part 2 rest, pull request 1)
+
+| Function                                                                                                                                                                                     | Security | EXECUTE grantees (exact)                |
+| -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------- | --------------------------------------- |
+| `tenant_guard.set_large_gift_threshold(uuid, bigint, text)`                                                                                                                                  | DEFINER  | `tenant_guard` (owner), `authenticated` |
+| `tenant_guard.resolve_gift_hold(uuid, uuid, text)`                                                                                                                                           | DEFINER  | `tenant_guard` (owner), `authenticated` |
+| `public.set_large_gift_threshold(uuid, bigint, text)`, `public.resolve_gift_hold(uuid, uuid, text)`                                                                                          | INVOKER  | `postgres` (owner), `authenticated`     |
+| `tenant_guard.abandon_unpaid_intake(uuid, uuid)`                                                                                                                                             | DEFINER  | `tenant_guard` (owner), `service_role`  |
+| `public.abandon_unpaid_intake(uuid)`                                                                                                                                                         | INVOKER  | `postgres` (owner), `service_role`      |
+| `private.grant_linked_donor_membership(uuid, uuid, uuid)`                                                                                                                                    | DEFINER  | `postgres` (owner), `tenant_guard`      |
+| `private.insert_giver_donor(uuid, uuid, text, text, jsonb)`                                                                                                                                  | DEFINER  | `postgres` (owner), `tenant_guard`      |
+| `private.money_norm(text)`, `private.money_entered_name(text, text)`, `private.money_duplicate_donors(uuid, text, text, jsonb, uuid)`, `private.money_large_gift_hold(bigint, text, bigint)` | INVOKER  | `postgres` (owner), `tenant_guard`      |
+| `public.line_based_gift_lines(uuid, uuid[])`                                                                                                                                                 | DEFINER  | `postgres` (owner), `service_role`      |
+| `public.actor_gifts_without_donor(uuid, uuid)`                                                                                                                                               | DEFINER  | `postgres` (owner), `service_role`      |
+| `private.staged_gifts_hold_guard()` (trigger)                                                                                                                                                | DEFINER  | `postgres` (owner)                      |
+
+`public.actor_gifts_without_donor(uuid, uuid)` (fix round F2) is a
+`postgres`-owned STABLE definer with EXECUTE for `service_role` only: the
+ids of a login's counted line-based gifts that have no donor yet, for the
+donor portal. `public.admin_contributions_summary(uuid)` is replaced (F5)
+with its owner and grants unchanged and its search path emptied.
+
+Each revokes `PUBLIC`, `anon`, `authenticated` and `service_role` by name
+before granting (`20261127030100_wp8a2_rest_holds.sql`,
+`20261127030200_wp8a2_rest_unpaid_and_unmatched.sql`,
+`20261127030300_wp8a2_rest_apply_core.sql`,
+`20261127030400_wp8a2_rest_review_and_reads.sql`). The two human commands open
+with `tenant_guard.begin_human_command` and their capability
+(`contributions.manage_settings`, `contributions.apply_corrections`), so the
+request's `x-asym-tenant` must name the organization; the sweep's wrapper takes
+no tenant and reads it from the stored intake. The trigger function is a
+definer so that the hold it reads binds every writer of a staged gift, whatever
+that writer's grants. `tenant_guard.apply_account_event` and
+`tenant_guard.apply_payment_outcome` are replaced as their owner, with the same
+security and grantees. `private.replace_line_based_allocations` does not exist:
+the line-based review lives in the four-argument
+`public.replace_staged_gift_allocations`, whose owner, security and grantees do
+not change.
+
+## Functions added by AL-2675 (WP2c rest, pull request A)
+
+| Function                               | Security | EXECUTE grantees (exact)            |
+| -------------------------------------- | -------- | ----------------------------------- |
+| `platform.tenant_operators(uuid)`      | DEFINER  | `postgres` (owner), `authenticated` |
+| `public.tenant_operators(uuid)`        | INVOKER  | `postgres` (owner), `authenticated` |
+| `platform.eve_history(integer)`        | DEFINER  | `postgres` (owner), `authenticated` |
+| `public.platform_eve_history(integer)` | INVOKER  | `postgres` (owner), `authenticated` |
+
+Each revokes `PUBLIC`, `anon`, `authenticated` and `service_role` by name
+before granting (`20261127035000_wp2c_rest_operator_reads.sql`). The two
+platform commands begin with the shared operator check
+(`platform.require_operator()`, an operator at `aal2`) and write nothing:
+the launch-permission picker's list of an organization's operators, which
+also requires that organization to be the request's `x-asym-tenant` and
+active, and the caller to hold a live staff row there (the one
+`x-asym-assignment` names, when it names one), and the assistant runtime's
+audit rows recorded with no organization. `service_role` holds neither: the picker's
+route reads on the caller's token and the operator area on the browser's
+session.

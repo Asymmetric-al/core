@@ -298,7 +298,7 @@ describe.skipIf(!ADMIN_URL)(
       expect((await lineRows()).payment_observations).toBe(1);
     });
 
-    it("the five triggers are statement-level BEFORE TRUNCATE, in origin mode, owned with their tables by postgres, and are the only TRUNCATE triggers in public", async () => {
+    it("the five triggers are statement-level BEFORE TRUNCATE, in origin mode, owned with their tables by postgres, and are the only TRUNCATE triggers on the five tables (D-18, AL-2681 rest PR 1: three more sealed tables, donation_intake_contacts, staged_gift_holds and payment_event_cases, refuse TRUNCATE through their own rule functions, so this pin reads issue 2841's five)", async () => {
       expect(
         await rows(
           `SELECT c.relname AS table, t.tgname AS trigger, t.tgenabled::text AS enabled,
@@ -311,7 +311,9 @@ describe.skipIf(!ADMIN_URL)(
              JOIN pg_namespace n ON n.oid = c.relnamespace
              JOIN pg_proc p ON p.oid = t.tgfoid
             WHERE n.nspname = 'public' AND NOT t.tgisinternal AND (t.tgtype::int & 32) = 32
+              AND c.relname = ANY ($1::text[])
             ORDER BY 1`,
+          [[...SEALED]],
         ),
       ).toEqual(
         [...SEALED].sort().map((table) => ({
@@ -554,7 +556,7 @@ describe.skipIf(!ADMIN_URL)(
       }
       expect(
         await rows(
-          "SELECT count(*)::int AS n FROM pg_trigger WHERE tgname LIKE '%\\_no\\_truncate' AND tgrelid IN (SELECT oid FROM pg_class WHERE relnamespace = 'public'::regnamespace)",
+          "SELECT count(*)::int AS n FROM pg_trigger WHERE tgname LIKE '%\\_no\\_truncate' AND tgrelid IN (SELECT oid FROM pg_class WHERE relnamespace = 'public'::regnamespace AND relname IN ('staged_gifts', 'staged_gift_allocations', 'donations', 'donation_intake_lines', 'payment_observations'))",
         ),
       ).toEqual([{ n: 5 }]);
     });
@@ -582,7 +584,7 @@ describe.skipIf(!ADMIN_URL)(
         await db.query(downStatements());
         expect(
           await rows(
-            `SELECT (SELECT count(*)::int FROM pg_trigger WHERE tgname LIKE '%\\_no\\_truncate' AND tgrelid IN (SELECT oid FROM pg_class WHERE relnamespace = 'public'::regnamespace)) AS triggers,
+            `SELECT (SELECT count(*)::int FROM pg_trigger WHERE tgname LIKE '%\\_no\\_truncate' AND tgrelid IN (SELECT oid FROM pg_class WHERE relnamespace = 'public'::regnamespace AND relname IN ('staged_gifts', 'staged_gift_allocations', 'donations', 'donation_intake_lines', 'payment_observations'))) AS triggers,
                     to_regprocedure('private.refuse_sealed_truncate()') IS NULL AS function_gone,
                     has_table_privilege('service_role', 'public.donations', 'TRUNCATE') AS truncate,
                     has_schema_privilege('service_role', 'authz', 'CREATE') AS create_authz`,
@@ -603,7 +605,7 @@ describe.skipIf(!ADMIN_URL)(
 );
 
 describe.skipIf(!ADMIN_URL)(
-  "AL-2681 WP8a part 2, issue 2841, F0: the migration on a replay with the hosted defaults whose postgres also holds default privileges in another schema (as on the platform's storage) and for every schema",
+  "AL-2681 WP8a part 2, issue 2841, F0: the migration on a replay with the hosted defaults whose postgres also holds default privileges in another schema (as on the platform's storage) and for every schema (D-18, AL-2681 fix round F8: the replay ends before this migration, since 20261127030000 now refuses to run until it is applied)",
   () => {
     let replay: Replay;
     let db: pg.Client;
@@ -612,8 +614,8 @@ describe.skipIf(!ADMIN_URL)(
     let applied: string | null = "not run";
 
     beforeAll(async () => {
-      replay = await new Replay(ADMIN_URL, true).build((file) =>
-        MIGRATION.endsWith(`/${file}`),
+      replay = await new Replay(ADMIN_URL, true).build(
+        (file) => file >= MIGRATION.slice(MIGRATION.lastIndexOf("/") + 1),
       );
       db = new pg.Client({ connectionString: replay.url });
       await db.connect();

@@ -17,7 +17,6 @@ import {
   realstackStepProblems,
   stepTestPaths,
 } from "./realstack-step";
-
 import {
   loadWorkflowJobs,
   type WorkflowStep,
@@ -328,12 +327,14 @@ const REAL_DATABASE_FILES = [
     "issue-2675/membership-core.realstack",
     "issue-2675/membership-role-commands.realstack",
     "issue-2675/missionary-handler-authority.realstack",
+    "issue-2675/operator-reads.realstack",
     "issue-2675/organization-names.realstack",
     "issue-2675/platform-operator-script.realstack",
     "issue-2675/platform-operators.realstack",
     "issue-2675/post-comment-authors.realstack",
     "issue-2675/request-scope-headers.realstack",
     "issue-2675/request-tenant-order.realstack",
+    "issue-2675/revocation-next-request.realstack",
     "issue-2675/tenant-policy-migration.realstack",
     "issue-2675/web-studio-document-locks.realstack",
     "issue-2675/web-studio-selection.realstack",
@@ -400,6 +401,12 @@ const REAL_DATABASE_FILES = [
     "issue-2681/wp8a-p2r2a-schema.realstack",
     "issue-2681/wp8a-p2r2a-sessions.realstack",
     "issue-2681/wp8a-p2r2a-staging.realstack",
+    "issue-2681/wp8a-rest1-identity.realstack",
+    "issue-2681/wp8a-rest1-holds.realstack",
+    "issue-2681/wp8a-rest1-item-zero.realstack",
+    "issue-2681/wp8a-rest1-review.realstack",
+    "issue-2681/wp8a-rest1-sessions.realstack",
+    "issue-2681/wp8a-rest1-unpaid.realstack",
   ].map((f) => `${A}/${f}.acceptance.test.ts`),
   // #2714: the release job's database suites and Payload's CMS roles.
   "tests/unit/cms/cms-database-roles.realstack.test.ts",

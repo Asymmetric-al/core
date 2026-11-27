@@ -1,7 +1,8 @@
 # 0009. The provider-operation record's suites and the pins it moves
 
 **Status:** Recorded on 2026-11-25 with AL-2681 (WP8a part 2, slice R1a);
-decisions 6 to 11 added with slice R1b; decisions 12 to 20 with slice R2a.
+decisions 6 to 11 added with slice R1b; decisions 12 to 20 with slice R2a;
+decisions 21 to 29 with the rest's first pull request (the kernel).
 Source comments are banned since AL-2676
 ([#2751](https://github.com/Asymmetric-al/core/issues/2751)), so the reasons
 that record D-18 of the implementation record would have put in each frozen
@@ -195,6 +196,107 @@ writes a line-based intake, a provider request or a connected payment event.
     sets the request in replica mode with the intake's reference left NULL, a
     state no writer leaves, and stays only as the guard of the last branch.
 
+21. **The rest's seven suites** (`wp8a-rest1-identity`, `-holds`,
+    `-unpaid`, `-item-zero`, `-review`, `-sessions` and the PostgREST
+    `-reads`) follow decisions 1, 9 and 12: only
+    `TENANT_GUARD_IT_ADMIN_DATABASE_URL` (the reads suite: the stack's URL,
+    database and service key in `local-supabase`), failing never skipping,
+    R2a's harness (`wp8a-rest1-harness.ts` re-exports it), every test rolled
+    back but the two-session ones and 2837's isolation test, which commit two
+    tenants and remove them, and the logins they made, in their `finally`.
+    Each realstack suite also passes on Supabase's own image.
+22. **R1a's and R2a's harnesses gain the giver.** `GUARD_TEST_GRANTS` grants,
+    and `GUARD_TEST_REVOKES` takes back, `INSERT` on
+    `donation_intake_contacts` (2b's intake brings it); R2a's `lineIntake`
+    writes one contact row with an address of its own, because a paid intake
+    with no account to resolve and no email now refuses (`22023
+giver_email_missing`); `removeTwoTenants` also removes holds, event
+    cases, contacts, threshold rows, links, memberships, donors, workers and
+    Parties of the two tenants.
+23. **"Same" for names is JavaScript's `trim()` then `lower()`**, the trim set
+    written out (ECMAScript WhiteSpace and LineTerminator, the set
+    `payment_repair_cases`' reason check trims), inner spaces kept. `lower()`
+    follows the database collation (`en_US.utf8` in CI) and can differ from
+    JavaScript's `toLowerCase()` for a few letters (dotted capital I, final
+    sigma). `donors` has one `name`, so a giver's first and last name, each
+    normalized, are joined by one space and compared with it.
+24. **A non-`usd` threshold** cannot be reached through an intake (every
+    legal entity is `usd`, decision 18), so the rule is read on its helper,
+    `private.money_large_gift_hold`.
+25. **2837's comment is proven by mutants.** Each case replaces the core,
+    inside its rolled-back transaction, by `pg_get_functiondef` with one
+    filter line removed, and shows the answer is no longer
+    `unknown_operation`.
+26. **Promotion and posting are proven as the statements the live routes
+    issue** (the legacy approve's and the staff patch's `UPDATE` of
+    `staged_gifts`), as `service_role` with the hosted grants given in the
+    transaction and as the owner; the database refuses them, whatever writes.
+27. **READ COMMITTED only (issue 2837).** The core and the worker entry refuse any other level with `25001 read_committed_required`, the core as its first statement and the entry right after `tenant_guard.enter`, which reads no table, because the command-entry gate wants `enter` first; the second contradiction lookup relies on a fresh snapshot per statement. The isolation test commits: `BEGIN ISOLATION LEVEL ...` must open
+    its own transaction, so the fixture commits and is removed as decision 4
+    removes the races'.
+28. **Guard-owned functions are replaced as their owner.** On Supabase's
+    image `postgres` is no superuser and cannot `CREATE OR REPLACE` a
+    function `tenant_guard` owns, so `apply_account_event` and
+    `apply_payment_outcome` are replaced under `SET LOCAL ROLE tenant_guard`
+    with `CREATE` on its schema for that statement only, as WP5 part 2-r2b1
+    replaced `restrict_worker_publication`.
+29. **No common table expression in a guard function**: the
+    schema-qualification check (`issue-2250` criterion 14) reads a CTE's
+    name as an unqualified relation, so the sweep, the disconnect and the
+    core collect ids with `ARRAY(SELECT ...)` or lock with `PERFORM ... FOR
+NO KEY UPDATE` first.
+30. **Who gave sits on the intake's contact row (fix round F1).** The login,
+    its address at intake and whether Auth had confirmed it are columns of
+    `donation_intake_contacts`, not of `donations`: `authenticated` selects
+    `donations` whole (the browser's collection reads `select=*`, which a
+    column grant would refuse) and its row policy admits the attributed
+    donor, staff and the receiving missionary. No Data API role and not
+    `service_role` reads the contact row; the core reads it as the guard.
+31. **A person's portal (F2)** lists their own donor's gifts and, of the
+    gifts their login made, only those with no donor yet, whose ids
+    `public.actor_gifts_without_donor` answers (a `postgres`-owned definer
+    for `service_role`, ids only). A gift attributed or moved to another
+    donor leaves the maker's portal.
+32. **One order (F3).** The binding (the sweep `FOR SHARE`, the disconnect
+    by its update), then the intake's provider requests in id order, then
+    the intake. The core takes the requests before the intake whichever
+    way it found the intake. A request's state changes only by an update
+    that tests the state its locker read, and the disconnect locks the
+    requests it parks in the statement that tests their state. A cancel
+    for a disconnected binding is never written by the sweep: an intake
+    holding a PaymentIntent there is `binding_disconnected` until the
+    account returns.
+33. **The sweep closes no intake in flight (F4):** a create request
+    sending, waiting to retry or parked, or a request of the intake it did
+    not lock, is `in_flight`, and nothing changes.
+34. **Staff totals count what the lists count (F5).** The summary leaves out
+    a line-based intake that is pending or abandoned; every other reader of
+    `donations` totals settled gifts only or reads by donor, worker or id,
+    and an unpaid or abandoned intake has no donor, no worker on its header
+    and is never settled.
+35. **The portal's figures (F6)** count settled gifts (Paid or Received)
+    the same way everywhere: this year's total, the designations and the
+    latest impact from them; lifetime given and the gift count add the
+    settled line-based gifts to the donor's stored totals, which the apply
+    does not keep. A failed gift counts nowhere. A line-based gift has no
+    receipt link, receipt count or statement year until WP8b receipts it.
+36. **The review route admits the fee-cover line only as stored (F7)**:
+    it refuses a changed or missing one with 400 before it writes, as
+    `replace_staged_gift_allocations` refuses it, and passes only the
+    donor lines through the reference check.
+37. **A success for a parked create request is its case's evidence (F10)**,
+    also when the intake already records the PaymentIntent; it stages
+    nothing. **After a staff abandonment no event writes anything** but the
+    success's case (F14). **A committed correction reaches its receipt
+    (F11):** the correction reads its detail without holds, and a retry with
+    the same key makes a receipt the adjustment has none of. **The lines
+    read pages (F12)**, 500 lines a page in a fixed order, under the Data
+    API's 1,000-row cap. **Event cases are written by the guard alone, on
+    every operation (F13).**
+38. **The large-gift threshold compares the charged total, fee cover
+    included** (inventory 8.3, accepted 27 November 2026): no ruling fixes
+    the amount, and the charged total is the cautious reading.
+
 ## Pins moved (D-18), each with the reason in the edited title
 
 | Pin                                                                                                               | Moves because                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
@@ -217,3 +319,16 @@ writes a line-based intake, a provider request or a connected payment event.
 | `issue-2676/giving-targets.realstack…`, "all ten gift target keys"                                                | The two line keys join the list (twelve rows), and `array_length(c.conkey, 1), c.conname` breaks the tie between two keys of one source and target                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
 | `issue-2675/tenant-policy-migration.realstack…`, `OVERRIDES` (R2a)                                                | `staged_gifts` and `staged_gift_allocations` gain `intake_format`, `NOT NULL` with no default, as R1a's `donations` did; the fixture names `legacy_header` for both                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
 | `shared/realstack-step.test.ts`, `REAL_DATABASE_FILES` (R2a)                                                      | R2a's eight real-stack files (decision 12)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
+| `issue-2250/tenant-guard.realstack…`, `GUARD_REACH` (rest PR 1)                                                   | Six entries: `private.insert_giver_donor` (a postgres-owned definer that writes a new giver's donor with their email, so the guard itself still holds no email column of donors, WP5 rest fix round F1 rule 1, and Add Partner can never meet the email key) and five more: `private.money_norm`, `private.money_entered_name`, `private.money_duplicate_donors`, `private.money_large_gift_hold` (postgres-owned invokers the core decides who gave and the holds with) and `private.grant_linked_donor_membership` (a postgres-owned definer that refuses without the link)                                                                                                      |
+| `issue-2681/wp8a-p2r1a-intake.realstack…`, B7                                                                     | A changed organization is refused first by issue 2842's rule for every row (`donation_tenant_frozen`); every other sealed column still answers `donation_line_intake_sealed`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
+| `issue-2681/wp8a-p2r1a-record-checks.realstack…`, C9 (both)                                                       | The parking time's two matrix rows set the park reason with it, so they still reach `donation_saga_outbox_parked_at_check`; the form test lists the park reason's two checks, written in the same form (twelve)                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
+| `issue-2681/wp8a-p2r2a-apply-match.realstack…`, C9                                                                | Its adopted request, written in replica mode, carries the park reason the trigger now writes beside `parked_at`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
+| `issue-2681/wp8a-p2r2a-apply-order.realstack…`, C12 and C13                                                       | The first success names the giver: the gift carries its donor, `matched` and `awaiting_review`, and the audit row its giver, holds and abandoned cancels                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
+| `issue-2681/wp8a-p2r2a-live.realstack…`, F1                                                                       | Ruling Q-C: `beginGiftIntake` refuses a `gift:` key before the saga, so the route answers 400 and nothing is written                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
+| `issue-2681/wp8a-p2-service-role.realstack…`, three pins                                                          | Three more sealed tables refuse TRUNCATE through their own rule functions, so the pins read issue 2841's five                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
+| `issue-2672/staged-gift-allocations.realstack…`, the three-argument body                                          | W8-R14 updates it: on a line-based gift it hands the four-argument writer the status it locked; its legacy statements are 20260707220134's, byte for byte                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
+| `shared/realstack-step.test.ts`, `REAL_DATABASE_FILES` (rest PR 1)                                                | The six new real-stack files                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
+| `issue-2681/wp8a-p2-service-role.realstack…`, F0 (fix round)                                                      | The replay ends before `20261126190000`, since M1 now refuses to run until it is applied (F8); every assertion is unchanged                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
+| `issue-2406/profile-url.acceptance`, criterion 18 (fix round)                                                     | Its fake answers `public.actor_gifts_without_donor`, which the portal now calls (F2), with none                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
+| `packages/api/donor-portal/snapshot-gift-cap.test.ts` (fix round)                                                 | Its fake answers the same read, with none (F2)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
+| `apps/donor/history-receipt-links.test.ts` (fix round)                                                            | The Receipt control downloads the row's link and shows none without one, as a line-based gift has none until WP8b (F6)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |

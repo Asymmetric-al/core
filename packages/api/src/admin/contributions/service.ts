@@ -6,6 +6,7 @@ import {
 } from "./query";
 import { SETTLED_DONATION_STATUSES } from "../../reads/settled-donation-statuses";
 import { ApiHttpError } from "../../shared/http-errors";
+import { COUNTED_INTAKE_FILTER } from "../../shared/line-based-gifts";
 import {
   applyEffectiveContributionToDonation,
   loadSharedContributionRowInputs,
@@ -422,7 +423,8 @@ async function fetchFilteredDonationRows(
     .select(
       "id, tenant_id, donor_id, missionary_id, fund_id, amount, currency, status, donation_type, payment_method, is_recurring, recurring_interval, notes, stripe_payment_intent_id, gift_date, campaign_id, pledge_id, processed_at, completed_at, failed_at, error_code, error_message, stripe_charge_id, refunded_at, refund_amount, source, created_at, updated_at",
     )
-    .eq("tenant_id", tenantId);
+    .eq("tenant_id", tenantId)
+    .or(COUNTED_INTAKE_FILTER);
 
   query = applyBaseFilters(query, params, matchingDonorIds);
 

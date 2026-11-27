@@ -142,6 +142,12 @@ export async function lineIntake(
     ],
   );
   await insertLines(db, side, donationId, lines);
+  await db.query(
+    `INSERT INTO public.donation_intake_contacts
+       (tenant_id, donation_id, legal_entity_id, email, first_name, last_name)
+     VALUES ($1, $2, $3, $4, 'R2a', 'Giver')`,
+    [side.tenant, donationId, side.entity, `r2a-${donationId}@example.test`],
+  );
   await role(db, null);
   return { side, donationId, amount, lines };
 }
