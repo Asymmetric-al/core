@@ -1,5 +1,6 @@
 import { readFileSync } from "node:fs";
 
+import { assessEnvironmentMarker } from "../../../../scripts/lib/environment-marker.mjs";
 import { MIG } from "./harness";
 
 import type pg from "pg";
@@ -86,4 +87,22 @@ export function downSql(file: string) {
         : line;
     })
     .join("\n");
+}
+
+export async function repairOnDisposable(client: pg.Client) {
+  const present = await client.query(
+    "select to_regprocedure('platform.environment_kind()') is not null as present",
+  );
+  const kind = present.rows[0].present
+    ? ((await client.query("select platform.environment_kind() as kind"))
+        .rows[0].kind as string | null)
+    : null;
+  const verdict = assessEnvironmentMarker(kind);
+  if (!verdict.ok)
+    throw new Error(
+      `refusing to run the global key repair: the database ${verdict.reason}`,
+    );
+  return (
+    await client.query("select * from private.repair_ministry_assignment_ids()")
+  ).rows as Record<string, unknown>[];
 }
