@@ -405,6 +405,7 @@ const REAL_DATABASE_FILES = [
     "issue-2681/wp8a-rest1-review.realstack",
     "issue-2681/wp8a-rest1-sessions.realstack",
     "issue-2681/wp8a-rest1-unpaid.realstack",
+    "issue-2681/wp8a-rest2a-item-zero.realstack",
   ].map((f) => `${A}/${f}.acceptance.test.ts`),
   // #2714: the release job's database suites and Payload's CMS roles.
   "tests/unit/cms/cms-database-roles.realstack.test.ts",

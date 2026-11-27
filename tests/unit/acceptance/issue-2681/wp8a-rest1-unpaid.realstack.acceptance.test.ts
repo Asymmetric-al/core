@@ -1,4 +1,3 @@
-import { createHash, randomUUID } from "node:crypto";
 import { readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 
@@ -9,6 +8,7 @@ import {
   ADMIN_URL,
   IN_MIGRATE_JOB,
   MIGRATIONS,
+  accountClosedEvent,
   ageIntake,
   apply,
   attempt,
@@ -439,42 +439,7 @@ describe.skipIf(!ADMIN_URL)(
 
     describe("a disconnected account", () => {
       async function disconnect(side: Side) {
-        const id = `evt_${randomUUID().replaceAll("-", "")}`;
-        const payload = {
-          id,
-          object: "v2.core.event",
-          type: "v2.core.account.closed",
-          created: new Date().toISOString(),
-          livemode: false,
-          related_object: {
-            id: side.account,
-            type: "v2.core.account",
-            url: `/v2/core/accounts/${side.account}`,
-          },
-        };
-        const raw = JSON.stringify(payload);
-        await role(db, null);
-        await db.query("SELECT set_config('app.current_tenant_id', '', true)");
-        await role(db, "service_role");
-        const eventId = (
-          await db.query(
-            `INSERT INTO public.stripe_connect_events
-               (tenant_id, stripe_event_id, event_type, livemode, provider_account_id, event_created_at, payload_sha256, raw_payload)
-             VALUES ($1, $2, 'v2.core.account.closed', false, $3, $4, $5, $6::jsonb) RETURNING id`,
-            [
-              side.tenant,
-              id,
-              side.account,
-              payload.created,
-              createHash("sha256").update(raw).digest("hex"),
-              raw,
-            ],
-          )
-        ).rows[0].id as string;
-        await role(db, null);
-        expect(await claimEvent(db, eventId)).toMatchObject({
-          outcome: "claimed",
-        });
+        const eventId = await accountClosedEvent(db, side);
         await role(db, "service_role");
         const applied = (
           await db.query(
@@ -725,7 +690,7 @@ describe.skipIf(!ADMIN_URL)(
           ]);
         }));
 
-      it("F8: M3 gives a request parked before it its reason (the unknown outcome it parked for) before it validates its checks, so a database holding one applies it cleanly", () =>
+      it("F8: M3 gives a request parked before it its reason (the unknown outcome it parked for) before it validates its checks, so a database holding one applies it cleanly; its statements run in the file's order (D-18, AL-2681 issue 2857 item 12)", () =>
         inTx(db, async () => {
           const fx = await seedTwoTenants(db);
           const intake = await giftIntake(db, fx.A);
@@ -769,10 +734,10 @@ describe.skipIf(!ADMIN_URL)(
             [op],
           );
           await db.query("SET LOCAL session_replication_role = origin");
-          if (backfill) await db.query(backfill);
           await db.query(
             `ALTER TABLE public.donation_saga_outbox ADD CONSTRAINT donation_saga_outbox_park_reason_check CHECK (${check}) NOT VALID`,
           );
+          if (backfill) await db.query(backfill);
           const validated = await attempt(
             db,
             "ALTER TABLE public.donation_saga_outbox VALIDATE CONSTRAINT donation_saga_outbox_park_reason_check",

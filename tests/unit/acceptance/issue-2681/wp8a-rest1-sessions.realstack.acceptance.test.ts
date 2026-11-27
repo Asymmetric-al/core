@@ -93,18 +93,6 @@ describe.skipIf(!ADMIN_URL)(
       );
     }
 
-    async function waitsOnAnyone(waiter: number) {
-      for (let i = 0; i < 400; i += 1) {
-        const r = await db.query(
-          "SELECT cardinality(pg_blocking_pids($1)) > 0 AS blocked",
-          [waiter],
-        );
-        if (r.rows[0].blocked) return;
-        await new Promise((done) => setTimeout(done, 25));
-      }
-      throw new Error(`backend ${waiter} never waited`);
-    }
-
     async function settledOrWaiting(p: Promise<Settled>, waiter: number) {
       let done = false;
       void p.then(() => {
@@ -466,7 +454,7 @@ describe.skipIf(!ADMIN_URL)(
       ).rows as Record<string, unknown>[];
     }
 
-    it("F3: the sweep and an apply naming the intake's queued create request take the request before the intake, so neither waits on the other in a cycle (40P01 before)", () =>
+    it("F3: the sweep and an apply naming the intake's queued create request take the request before the intake, so neither waits on the other in a cycle (40P01 before); the sweep waits on the intake's holder and the apply on the sweep (D-18, AL-2681 issue 2857 item 12: who waits on whom is asserted)", () =>
       committed(async (fx) => {
         const { intake, event } = await commit(async () => {
           const i = await giftIntake(db, fx.A);
@@ -489,9 +477,9 @@ describe.skipIf(!ADMIN_URL)(
           [intake.donationId],
         );
         const swept = settle(sweepIn(sweeper, intake.donationId));
-        await waitsOnAnyone(pidOf(sweeper));
+        await waitsOn(pidOf(sweeper), pidOf(holder));
         const applied = settle(coreIn(applier, fx.A.tenant, event.id));
-        await waitsOnAnyone(pidOf(applier));
+        await waitsOn(pidOf(applier), pidOf(sweeper));
         await holder.query("ROLLBACK");
         const sweptResult = await swept;
         await finish(sweeper, sweptResult);
@@ -779,6 +767,51 @@ describe.skipIf(!ADMIN_URL)(
             relationship: "provider_request_parked_disconnected",
           },
         ]);
+      }));
+
+    it("issue 2857 item 15: the enqueue takes the intake's binding before the intake: while another session holds the binding, the waiting enqueue holds no lock on the intake", () =>
+      committed(async (fx) => {
+        const intake = await commit(() => giftIntake(db, fx.A));
+        const holder = await opened();
+        const enqueuer = await opened();
+        const prober = await opened();
+        await holder.query("BEGIN");
+        await holder.query(
+          "SELECT 1 FROM public.payment_account_bindings WHERE id = $1 FOR NO KEY UPDATE",
+          [fx.A.binding],
+        );
+        const enqueued = settle(
+          (async () => {
+            await enqueuer.query("BEGIN");
+            await enqueuer.query("SET LOCAL ROLE tenant_guard");
+            await enqueuer.query("SELECT tenant_guard.enter($1)", [
+              fx.A.tenant,
+            ]);
+            return (
+              await enqueuer.query(
+                "SELECT tenant_guard.money_enqueue_payment_request($1) AS r",
+                [intake.donationId],
+              )
+            ).rows[0].r as unknown;
+          })(),
+        );
+        await waitsOn(pidOf(enqueuer), pidOf(holder));
+        await prober.query("BEGIN");
+        const probe = await prober
+          .query(
+            "SELECT 1 FROM public.donations WHERE id = $1 FOR NO KEY UPDATE NOWAIT",
+            [intake.donationId],
+          )
+          .then(
+            () => "free",
+            (error: { code?: string }) => error.code,
+          );
+        await prober.query("ROLLBACK");
+        await holder.query("ROLLBACK");
+        const done = await enqueued;
+        await finish(enqueuer, done);
+        expect(probe).toBe("free");
+        expect("value" in done).toBe(true);
       }));
 
     it("F9: two first writes of the large-gift threshold at once: the second records the first's value as the one it replaced", () =>
