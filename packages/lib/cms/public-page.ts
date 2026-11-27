@@ -102,15 +102,23 @@ const reservedPublicPageSegments = new Set<string>([
   ...TRANSIENT_PUBLIC_PAGE_SEGMENTS,
 ]);
 
-export function isReservedPublicPageSlug(slug: string): boolean {
+function readPublicPageSlug(slug: string) {
   const [first = "", ...rest] = normalizePublicCmsPageSlug(
     slug.split("/"),
   ).split("/");
-  const segment = first.replace(/[A-Z]/g, (letter) => letter.toLowerCase());
-  return (
-    reservedPublicPageSegments.has(segment) ||
-    (segment === "give" && rest.length > 0)
-  );
+  return {
+    first: first.replace(/[A-Z]/g, (letter) => letter.toLowerCase()),
+    deeper: rest.length > 0,
+  };
+}
+
+export function publicPageFirstSegment(slug: string): string {
+  return readPublicPageSlug(slug).first;
+}
+
+export function isReservedPublicPageSlug(slug: string): boolean {
+  const { first, deeper } = readPublicPageSlug(slug);
+  return reservedPublicPageSegments.has(first) || (first === "give" && deeper);
 }
 
 const PUBLIC_CMS_REVALIDATE_SECONDS = 60;

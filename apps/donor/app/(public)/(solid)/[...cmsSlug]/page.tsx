@@ -11,8 +11,6 @@ import {
   resolvePublishedCmsPageRouteState,
 } from "@/lib/cms/client";
 
-export const instant = false;
-
 type PageProps = {
   params: Promise<{
     cmsSlug: string[];
