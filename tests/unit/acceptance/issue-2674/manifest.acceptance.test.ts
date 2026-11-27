@@ -177,7 +177,7 @@ describe("AL-2674 manifest: the committed file", () => {
     expect(m.surfaces).toEqual(gate.SURFACES);
   });
 
-  it("keeps every AL-491 census and supplement classification exactly (fidelity of the conversion) (D-18, AL-2678: profiles.user_id became NOT NULL under W5-R3, as missionaries.tenant_id did before)", () => {
+  it("keeps every AL-491 census and supplement classification exactly (fidelity of the conversion) (D-18, AL-2678: profiles.user_id became NOT NULL under W5-R3, as missionaries.tenant_id did before; D-18, AL-2681: and donations.tenant_id under W8-R16, behind its migration's count gate)", () => {
     const census = JSON.parse(H.read(`${H.FP}/census-v1.json`));
     const supplements = census.repository_supplements.map(
       (ref: { artifact: string }) =>
@@ -227,7 +227,8 @@ describe("AL-2674 manifest: the committed file", () => {
         type: c.type,
         nullable:
           (c.recordType === "missionaries" && c.name === "tenant_id") ||
-          (c.recordType === "profiles" && c.name === "user_id")
+          (c.recordType === "profiles" && c.name === "user_id") ||
+          (c.recordType === "donations" && c.name === "tenant_id")
             ? false
             : c.nullable,
         category: c.category,

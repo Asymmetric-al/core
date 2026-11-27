@@ -4,6 +4,7 @@ import {
   hasContextRoleClass,
   requireAuth,
 } from "@asym/auth/context";
+import { MAX_FUNCTION_IMAGE_BYTES } from "@asym/lib/image-utils";
 import { NextResponse } from "next/server";
 
 import {
@@ -13,7 +14,7 @@ import {
 } from "../shared/http-errors";
 
 /** Cap on the cropped upload the control sends, not the source photo (#2308 OQ1). */
-export const MAX_PROFILE_IMAGE_BYTES = 5 * 1024 * 1024;
+export const MAX_PROFILE_IMAGE_BYTES = MAX_FUNCTION_IMAGE_BYTES;
 /**
  * Multipart framing on top of the file: boundary lines, part headers (with the
  * client's filename) and the small `path`/`bucket` fields. A real crop form
@@ -27,7 +28,7 @@ export const MAX_UPLOAD_BODY_BYTES =
   MAX_PROFILE_IMAGE_BYTES + MULTIPART_OVERHEAD_ALLOWANCE_BYTES;
 const PROFILES_BUCKET = "profiles";
 const UPLOAD_FAILED = "Image upload failed.";
-const TOO_LARGE = "Image file must be 5 MB or smaller.";
+export const IMAGE_TOO_LARGE = "Image file must be 4 MB or smaller.";
 
 const EXTENSION_BY_TYPE = {
   "image/jpeg": "jpg",
@@ -120,7 +121,7 @@ export async function validateImageFile(
     throw new ApiHttpError(415, "Unsupported image type.");
   }
   if (value.size > MAX_PROFILE_IMAGE_BYTES) {
-    throw new ApiHttpError(413, TOO_LARGE);
+    throw new ApiHttpError(413, IMAGE_TOO_LARGE);
   }
   const head = new Uint8Array(await value.slice(0, 12).arrayBuffer());
   if (!matchesImageSignature(head, value.type)) {
@@ -137,7 +138,7 @@ function assertDeclaredLengthWithinCap(request: Request) {
     /^\d+$/.test(declared) &&
     Number(declared) > MAX_UPLOAD_BODY_BYTES
   ) {
-    throw new ApiHttpError(413, TOO_LARGE);
+    throw new ApiHttpError(413, IMAGE_TOO_LARGE);
   }
 }
 
@@ -159,7 +160,7 @@ async function readCappedBody(
       total += value.byteLength;
       if (total > MAX_UPLOAD_BODY_BYTES) {
         await reader.cancel().catch(() => undefined);
-        throw new ApiHttpError(413, TOO_LARGE);
+        throw new ApiHttpError(413, IMAGE_TOO_LARGE);
       }
       chunks.push(value);
     }

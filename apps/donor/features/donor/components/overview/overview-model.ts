@@ -7,6 +7,7 @@ import type {
 } from "@asym/database/hooks";
 
 import { makeDisplayDate } from "@/lib/dates";
+import { isSettledGift } from "@/lib/gift-status";
 
 /** Something the donor should fix, with how to fix it. */
 export type OverviewAlert = {
@@ -172,7 +173,7 @@ export function givenThisYear(
   // A partly refunded gift stays Paid; count what the donor still gave, and
   // leave out a gift refunded in full.
   const paid = inYear
-    .filter((gift) => gift.status === "Paid")
+    .filter((gift) => isSettledGift(gift.status))
     .map((gift) => Math.max(0, gift.amount - (gift.refundedAmount ?? 0)))
     .filter((amount) => amount > 0);
   return {
@@ -205,7 +206,7 @@ export function lastSupported(
   snapshot: DonorPortalSnapshot | undefined,
 ): DonorPortalGiftMissionary | null {
   const latest = [...(snapshot?.donations ?? [])]
-    .filter((gift) => gift.status === "Paid" && gift.missionary)
+    .filter((gift) => isSettledGift(gift.status) && gift.missionary)
     .sort((a, b) => b.date.localeCompare(a.date))[0];
   return latest?.missionary ?? null;
 }
@@ -228,7 +229,7 @@ export function supportedMissionaries(
   for (const gift of snapshot?.donations ?? []) {
     if (
       gift.missionary &&
-      gift.status === "Paid" &&
+      isSettledGift(gift.status) &&
       makeDisplayDate(gift.date).getFullYear() === year
     ) {
       seen.set(gift.missionary.id, gift.missionary);

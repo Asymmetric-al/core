@@ -6,6 +6,7 @@ import {
   donationSagaRecoveryScan,
 } from "./functions/donation-saga-recovery";
 import { inboundEmailProcessing } from "./functions/inbound-email-processing";
+import { moneySchedule } from "./functions/money-schedule";
 import {
   stripeEventProcessing,
   stripeEventRecoveryScan,
@@ -28,5 +29,6 @@ export const { GET, POST, PUT } = serve({
     stripeEventProcessing,
     stripeEventRecoveryScan,
     inboundEmailProcessing,
+    moneySchedule,
   ],
 });

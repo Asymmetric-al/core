@@ -206,7 +206,7 @@ describe("front runtime variables in @asym/env schema", () => {
     return import("../../../packages/env/src/schema");
   }
 
-  it("declares all seven server variables as optional and never NEXT_PUBLIC_", async () => {
+  it("declares the six server variables as optional and never NEXT_PUBLIC_, and no FRONT_NAMES (D-18, N3 PR 1: the front admits a dashboard by the verified-name lookup; FRONT_NAMES is gone)", async () => {
     const { readFileSync } = await import("node:fs");
     const path = await import("node:path");
     const source = readFileSync(
@@ -220,8 +220,8 @@ describe("front runtime variables in @asym/env schema", () => {
       "FRONT_STAMP_KEY_PREVIOUS",
       "FRONT_ADMIN_ORIGIN",
       "FRONT_MISSIONARY_ORIGIN",
-      "FRONT_NAMES",
     ];
+    expect(source).not.toContain("FRONT_NAMES");
     for (const name of expected) {
       expect(source, `server schema should declare ${name}`).toContain(
         `${name}:`,

@@ -21,6 +21,10 @@
       "destination": "/admin/api/webhooks/stripe-connect"
     },
     {
+      "source": "/api/webhooks/stripe-payment-events",
+      "destination": "/admin/api/webhooks/stripe-payment-events"
+    },
+    {
       "source": "/api/email/webhooks/resend",
       "destination": "/admin/api/email/webhooks/resend"
     },

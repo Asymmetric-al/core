@@ -609,7 +609,7 @@
       },
       "tenant_id": {
         "type": "uuid",
-        "nullable": true,
+        "nullable": false,
         "category": "internal",
         "mission_control": "ve-",
         "donor": "---",
@@ -946,6 +946,46 @@
       "is_anonymous": {
         "type": "boolean",
         "nullable": true,
+        "category": "financial",
+        "mission_control": "v--",
+        "donor": "v--",
+        "missionary": "v--",
+        "public": "---",
+        "export": "---"
+      },
+      "site_id": {
+        "type": "uuid",
+        "nullable": true,
+        "category": "public",
+        "mission_control": "v--",
+        "donor": "---",
+        "missionary": "---",
+        "public": "---",
+        "export": "---"
+      },
+      "entry_surface": {
+        "type": "text",
+        "nullable": true,
+        "category": "internal",
+        "mission_control": "v--",
+        "donor": "---",
+        "missionary": "---",
+        "public": "---",
+        "export": "---"
+      },
+      "source_code_id": {
+        "type": "uuid",
+        "nullable": true,
+        "category": "internal",
+        "mission_control": "v--",
+        "donor": "---",
+        "missionary": "---",
+        "public": "---",
+        "export": "---"
+      },
+      "unlisted_source_code": {
+        "type": "text",
+        "nullable": true,
         "category": "internal",
         "mission_control": "v--",
         "donor": "---",
@@ -956,10 +996,10 @@
       "abandoned_by": {
         "type": "text",
         "nullable": true,
-        "category": "internal",
+        "category": "financial",
         "mission_control": "v--",
-        "donor": "---",
-        "missionary": "---",
+        "donor": "v--",
+        "missionary": "v--",
         "public": "---",
         "export": "---"
       }
@@ -3227,6 +3267,16 @@
         "export": "---"
       },
       "state_synced_at": {
+        "type": "timestamp with time zone",
+        "nullable": true,
+        "category": "internal",
+        "mission_control": "v--",
+        "donor": "---",
+        "missionary": "---",
+        "public": "---",
+        "export": "---"
+      },
+      "reconciled_at": {
         "type": "timestamp with time zone",
         "nullable": true,
         "category": "internal",

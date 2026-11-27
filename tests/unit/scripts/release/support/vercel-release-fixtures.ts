@@ -81,7 +81,11 @@ const projectSettings = (app: string, autoAssignCustomDomains = false) => ({
 });
 
 /** A fake Vercel API: every app builds to READY; records what was asked. */
-export function fakeVercel({ autoAssign = false, finalState = "READY" } = {}) {
+export function fakeVercel({
+  autoAssign = false,
+  finalState = "READY",
+  promoteAnswers = {} as Record<string, number | "transport">,
+} = {}) {
   const calls: RecordedVercelCall[] = [];
   let counter = 0;
   const deployments = new Map<string, Record<string, unknown>>();
@@ -119,7 +123,17 @@ export function fakeVercel({ autoAssign = false, finalState = "READY" } = {}) {
         deployment.readyState = finalState;
         return deployment;
       }
-      if (pathname.includes("/promote/") || pathname.includes("/cancel")) {
+      const promoteId = /\/promote\/(dpl_\w+)\?/.exec(pathname)?.[1];
+      if (promoteId) {
+        if (!deployments.has(promoteId))
+          throw new Error("promotion was not staged by this run");
+        const answer = promoteAnswers[promoteId];
+        if (answer === "transport") throw new Error("private transport detail");
+        if (typeof answer === "number")
+          return new Response("private provider detail", { status: answer });
+        return {};
+      }
+      if (pathname.includes("/cancel")) {
         return {};
       }
       throw new Error(`unexpected ${method} ${pathname}`);
@@ -143,9 +157,12 @@ export const healthy = (overrides: Record<string, unknown> = {}) => ({
   status: 200,
   body: {
     status: "ok",
-    release: { commit: RELEASE_SHA },
+    release: { commit: RELEASE_SHA, serveUnderPaths: false },
     database: { supabaseProjectRef: PROJECT_REF, environment: "disposable" },
     migrations: {},
     ...overrides,
+    ...(overrides.release && typeof overrides.release === "object"
+      ? { release: { serveUnderPaths: false, ...overrides.release } }
+      : {}),
   },
 });

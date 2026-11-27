@@ -17,15 +17,16 @@ import {
 
 import {
   ADMIN_URL,
-  HOSTED_SERVICE_GRANTS,
-  IN_MIGRATE_JOB,
   attempt,
   auditOf,
   casesOf,
   enterAs,
   expireLease,
   grant,
+  GUARD_TEST_REVOKES,
   guardIntake,
+  HOSTED_SERVICE_GRANTS,
+  IN_MIGRATE_JOB,
   inTx,
   makeDue,
   refusal,
@@ -323,12 +324,7 @@ describe.skipIf(!ADMIN_URL)(
       try {
         const out = await fn();
         await role(db, null);
-        await db.query(
-          "REVOKE INSERT ON TABLE public.donations, public.donation_intake_lines FROM tenant_guard",
-        );
-        await db.query(
-          "REVOKE INSERT (max_attempts) ON TABLE public.donation_saga_outbox FROM tenant_guard",
-        );
+        for (const statement of GUARD_TEST_REVOKES) await db.query(statement);
         await db.query("COMMIT");
         return out;
       } catch (error) {

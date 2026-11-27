@@ -1,7 +1,9 @@
 import { randomUUID } from "node:crypto";
 import { readFileSync } from "node:fs";
+
 import pg from "pg";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
+
 import { ADMIN_URL, IN_MIGRATE_JOB } from "../issue-2675/harness";
 
 it.runIf(IN_MIGRATE_JOB && !ADMIN_URL)("migrate supplies its database", () =>
@@ -223,7 +225,7 @@ describe.skipIf(!ADMIN_URL)(`giving target integrity (${D18})`, () => {
           [missionary, tenant, entity],
         );
         await db.query(
-          `insert into public.donors(id,tenant_id) values ($1,$2)`,
+          `insert into public.donors(id,tenant_id,party_id) values ($1,$2,public.donor_party_for_insert($2,null,null,null))`,
           [donor, tenant],
         );
         await db.query(
@@ -348,7 +350,7 @@ describe.skipIf(!ADMIN_URL)(`giving target integrity (${D18})`, () => {
       await db.query("rollback");
     }
   });
-  it("donations.tenant_id has no default: a gift with no tenant is stored with none if it names nothing, and refused (23514) if it names a donor, fund or missionary", async () => {
+  it("donations.tenant_id has no default and is NOT NULL: a gift with no tenant is refused (23502); with the column nullable again it is stored with none if it names nothing, and refused (23514) if it names a donor, fund or missionary (D-18, AL-2681 PR 2a, W8-R16: the column is NOT NULL behind its count gate)", async () => {
     const { rows } = await db.query(
       "select column_default from information_schema.columns where table_schema='public' and table_name='donations' and column_name='tenant_id'",
     );
@@ -359,6 +361,16 @@ describe.skipIf(!ADMIN_URL)(`giving target integrity (${D18})`, () => {
     );
     await db.query("begin");
     try {
+      await db.query("savepoint not_null");
+      await expect(
+        db.query("insert into public.donations(id,amount) values ($1,100)", [
+          randomUUID(),
+        ]),
+      ).rejects.toMatchObject({ code: "23502" });
+      await db.query("rollback to savepoint not_null");
+      await db.query(
+        "alter table public.donations alter column tenant_id drop not null; alter table public.donations drop constraint donations_tenant_id_present",
+      );
       const gift = await db.query(
         "insert into public.donations(id,amount) values ($1,100) returning tenant_id",
         [randomUUID()],
@@ -372,10 +384,10 @@ describe.skipIf(!ADMIN_URL)(`giving target integrity (${D18})`, () => {
         "insert into public.legal_entities(id,tenant_id,name,country_code,currency,legal_name) values ($1,$2,'First','US','usd','First')",
         [entity, tenant],
       );
-      await db.query("insert into public.donors(id,tenant_id) values ($1,$2)", [
-        donor,
-        tenant,
-      ]);
+      await db.query(
+        "insert into public.donors(id,tenant_id,party_id) values ($1,$2,public.donor_party_for_insert($2,null,null,null))",
+        [donor, tenant],
+      );
       await db.query(
         "insert into public.funds(id,tenant_id,legal_entity_id,name) values ($1,$2,$3,'Target')",
         [fund, tenant, entity],

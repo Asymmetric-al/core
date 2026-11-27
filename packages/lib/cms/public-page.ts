@@ -65,6 +65,62 @@ export type PublicCmsReadCachePolicy = {
   tags: string[];
 };
 
+export const TRANSIENT_PUBLIC_PAGE_SEGMENTS = [
+  "about",
+  "donate",
+  "faq",
+  "financials",
+  "give",
+  "help",
+  "missionaries",
+  "ways-to-give",
+  "where-we-work",
+  "workers",
+] as const;
+
+const reservedPublicPageSegments = new Set<string>([
+  "_next",
+  "admin",
+  "api",
+  "auth",
+  "checkout",
+  "cookies",
+  "donor-dashboard",
+  "forgot-password",
+  "home",
+  "invite",
+  "lang",
+  "login",
+  "maplibre",
+  "missionary",
+  "no-access",
+  "privacy",
+  "register",
+  "sign",
+  "terms",
+  "web-studio",
+  ...TRANSIENT_PUBLIC_PAGE_SEGMENTS,
+]);
+
+function readPublicPageSlug(slug: string) {
+  const [first = "", ...rest] = normalizePublicCmsPageSlug(
+    slug.split("/"),
+  ).split("/");
+  return {
+    first: first.replace(/[A-Z]/g, (letter) => letter.toLowerCase()),
+    deeper: rest.length > 0,
+  };
+}
+
+export function publicPageFirstSegment(slug: string): string {
+  return readPublicPageSlug(slug).first;
+}
+
+export function isReservedPublicPageSlug(slug: string): boolean {
+  const { first, deeper } = readPublicPageSlug(slug);
+  return reservedPublicPageSegments.has(first) || (first === "give" && deeper);
+}
+
 const PUBLIC_CMS_REVALIDATE_SECONDS = 60;
 const SAFE_PUBLIC_CMS_HREF_PROTOCOLS = new Set([
   "http:",

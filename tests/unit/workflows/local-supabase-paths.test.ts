@@ -94,6 +94,9 @@ describe("the local Supabase workflow's path filter", () => {
   it.each([
     "tests/unit/acceptance/issue-2678/assignment-keys.postgrest.acceptance.test.ts",
     "tests/unit/acceptance/issue-2678/assignment-keys.realstack.acceptance.test.ts",
+    "tests/unit/acceptance/issue-2678/assignment-keys-race.realstack.acceptance.test.ts",
+    "tests/unit/acceptance/issue-2678/assignment-keys-migration.realstack.acceptance.test.ts",
+    "tests/unit/acceptance/issue-2678/assignment-keys.helpers.ts",
     "packages/api/src/admin/crm/**",
     "packages/database/types/crm-detail.ts",
     "packages/database/types/crm-grid.ts",
@@ -136,6 +139,18 @@ describe("the local Supabase workflow's path filter", () => {
     "packages/api/src/missionary-portal/**",
   ])(
     "starts the added partner's visibility proof when %s, the suite or the module it drives, changes (AL-2678 WP5 rest, fix round F7)",
+    (file) => {
+      expect(paths).toContain(file);
+    },
+  );
+
+  it.each([
+    "tests/unit/acceptance/issue-2678/worker-gift.postgrest.acceptance.test.ts",
+    "packages/api/src/donate/**",
+    "packages/api/src/donations/**",
+    "packages/graphql/**",
+  ])(
+    "starts the worker's stored-gift proof when %s, the suite or an entry point it drives, changes (AL-2678 WP5 rest 2a, fix round F1)",
     (file) => {
       expect(paths).toContain(file);
     },

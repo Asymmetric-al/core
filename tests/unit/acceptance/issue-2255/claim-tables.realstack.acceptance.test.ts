@@ -142,7 +142,7 @@ describe.skipIf(!ADMIN_URL)("#2255 claim tables on the real stack", () => {
       [U.staffA, U.staffA_off, U.staffB, U.r1, A, B],
     );
     await db.query(
-      "INSERT INTO public.donors (id, tenant_id) VALUES ($1, $2), ($3, $4)",
+      "INSERT INTO public.donors (id, tenant_id, party_id) VALUES ($1, $2, public.donor_party_for_insert($2, null, null, null)), ($3, $4, public.donor_party_for_insert($4, null, null, null)) -- D-18, AL-2678 WP5 rest 2a. each fixture donor names its Party through the Party writer, as every donor writer must before party_id becomes NOT NULL (r5b)",
       [DA, A, DB, B],
     );
     await db.query(

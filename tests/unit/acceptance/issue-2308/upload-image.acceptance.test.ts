@@ -232,20 +232,39 @@ describe("#2308 missionary avatar and cover uploads (A)", () => {
   ])("C8: matching %s bytes store with extension %s", async (type, ext) => {
     await stored(request({ file: image(type) }), "avatars", ext);
   });
-  it("C9: the 5 MB cap applies to the cropped upload: exactly 5 MB succeeds", async () => {
+  it.each(["missionary", "donor"])(
+    "accepts a 4 MB multipart file at the %s mount and refuses one byte more",
+    async (app) => {
+      const { POST } =
+        app === "missionary"
+          ? await import("../../../../apps/missionary/app/api/upload/image/route")
+          : await import("../../../../apps/donor/app/api/upload/image/route");
+      const atLimit = request({ file: image("image/webp", 4_000_000) });
+      expect((await atLimit.clone().arrayBuffer()).byteLength).toBeLessThan(
+        4_500_000,
+      );
+      expect((await POST(atLimit)).status).toBe(201);
+      const refused = await POST(
+        request({ file: image("image/webp", 4_000_001) }),
+      );
+      expect(refused.status).toBe(413);
+      expect(await refused.json()).toEqual({
+        error: "Image file must be 4 MB or smaller.",
+      });
+    },
+  );
+
+  it("C9: the 4 MB cap applies to the cropped upload: exactly 4 MB succeeds", async () => {
     const { MAX_PROFILE_IMAGE_BYTES } = await import(
       /* @vite-ignore */ handler
     );
     const file = image("image/webp", MAX_PROFILE_IMAGE_BYTES);
-    expect(file.size).toBe(5 * 1024 * 1024);
+    expect(file.size).toBe(4_000_000);
     await stored(request({ file }));
     expect(h.upload.mock.calls[0]![1].size).toBe(MAX_PROFILE_IMAGE_BYTES);
   });
-  it("C9: a cropped upload of 5 MB + 1 byte returns 413", async () => {
-    await rejected(
-      request({ file: image("image/webp", 5 * 1024 * 1024 + 1) }),
-      413,
-    );
+  it("C9: a cropped upload of 4 MB + 1 byte returns 413", async () => {
+    await rejected(request({ file: image("image/webp", 4_000_000 + 1) }), 413);
   });
   it("C10: storage rejection returns generic 502 { error }", async () => {
     h.upload.mockResolvedValue({
@@ -277,7 +296,7 @@ describe("#2308 missionary avatar and cover uploads (A)", () => {
 
 // Acceptance r1: valid multipart with a small image and excessive text padding
 // separates the whole-body budget from the existing per-file size contract.
-const BODY_CAP = 5 * 1024 * 1024 + 64 * 1024;
+const BODY_CAP = 4_000_000 + 64 * 1024;
 const CHUNK_BYTES = 16 * 1024;
 async function observedBody(declaredLength?: string) {
   const form = await request().formData();
@@ -317,7 +336,7 @@ async function observedBody(declaredLength?: string) {
 }
 
 describe("#2308 body-cap acceptance (A)", () => {
-  it("pins the body budget to 5 MiB plus 64 KiB of multipart overhead", async () => {
+  it("pins the body budget to 4 MB plus 64 KiB of multipart overhead", async () => {
     const limits = await import(/* @vite-ignore */ handler);
     expect(limits.MULTIPART_OVERHEAD_ALLOWANCE_BYTES).toBe(64 * 1024);
     expect(limits.MAX_UPLOAD_BODY_BYTES).toBe(BODY_CAP);
@@ -328,7 +347,7 @@ describe("#2308 body-cap acceptance (A)", () => {
     const response = await post(req);
     expect(response.status).toBe(413);
     expect(await response.json()).toEqual({
-      error: "Image file must be 5 MB or smaller.",
+      error: "Image file must be 4 MB or smaller.",
     });
     expect(observed.reads).toBe(0);
     expect(observed.bytes).toBe(0);

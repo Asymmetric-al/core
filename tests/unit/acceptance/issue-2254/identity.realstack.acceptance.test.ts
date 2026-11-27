@@ -80,8 +80,11 @@ const donor = (
   email: string | null,
   profile: string | null = null,
   id = "gen_random_uuid()",
+  beforeParties = false,
 ) =>
-  `INSERT INTO public.donors(id,tenant_id,profile_id,email) VALUES (${id},'${t}',${profile ? `'${profile}'` : "NULL"},${lit(email)});`;
+  beforeParties
+    ? `INSERT INTO public.donors(id,tenant_id,profile_id,email) VALUES (${id},'${t}',${profile ? `'${profile}'` : "NULL"},${lit(email)});`
+    : `/* D-18, AL-2678 WP5 rest 2a. each fixture donor names its Party through the Party writer, as every donor writer must before party_id becomes NOT NULL (r5b); beforeParties is the chain before Parties existed */ INSERT INTO public.donors(id,tenant_id,party_id,profile_id,email) VALUES (${id},'${t}',public.donor_party_for_insert('${t}',${profile ? `'${profile}'` : "NULL"},NULL,${lit(email)}),${profile ? `'${profile}'` : "NULL"},${lit(email)});`;
 const tx = (body: string, url = URL_) =>
   psql(url, `${SETUP}\n${body}\nROLLBACK;`);
 const q = (sql: string, url = URL_) => {
@@ -156,7 +159,7 @@ describe.skipIf(!local)("#2254 real stack (DATABASE_URL)", () => {
     ]);
     expect(
       tx(
-        `INSERT INTO public.donors(tenant_id,email,email_normalized) VALUES ('${TA}','a@x.com','a@x.com');`,
+        `INSERT INTO public.donors(tenant_id,party_id,email,email_normalized) VALUES ('${TA}',public.donor_party_for_insert('${TA}',NULL,NULL,'a@x.com'),'a@x.com','a@x.com');`,
       ).sqlstate,
     ).toBe("428C9");
     expect(
@@ -335,7 +338,7 @@ describe.skipIf(!local)(
           "22540000-0000-4000-8000-0000000000e2",
         ];
         q(
-          `${CLEAN}${SETUP.replace("BEGIN;", "")}\n${emails.map((e, i) => donor(TA, e, sameProfile ? P : null, `'${ids[i]}'`)).join("\n")}`,
+          `${CLEAN}${SETUP.replace("BEGIN;", "")}\n${emails.map((e, i) => donor(TA, e, sameProfile ? P : null, `'${ids[i]}'`, true)).join("\n")}`,
           url,
         );
         const before = { catalog: snapshot(url), rows: rows(url, TA) };

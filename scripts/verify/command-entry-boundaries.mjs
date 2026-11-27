@@ -17,7 +17,7 @@ const redeemAccountClaim =
 const startAccountClaimReason =
   "AL-2678 W5-R5, findings B2, B3 and B5, ruling on B4: a signed-in person with no membership in the tenant starts a donor account claim; the caller is the session's login, the request's x-asym-tenant must name the tenant (42501), the tenant must be active, a platform operator never matches, the confirmed non-deleted Auth email is the only match key, locks run tenant, the caller's memberships, then the Party without waiting (a Party another caller holds is recorded as claim_already_open), then the claim, nothing is linked or granted, and every outcome answers the same at once";
 const redeemAccountClaimReason =
-  "AL-2678 W5-R5, findings B2, B3 and B5: a signed-in person with no membership in the tenant redeems a mailed claim token; the request's x-asym-tenant must name the tenant (42501), the token's SHA-256 under the tenant, membership, Party and claim locks is the authority, it is single-use, expires, is bound to the requester and the donor's email at issue, a platform operator or a login without a confirmed address is refused, the link insert cannot raise a unique violation, and every failure answers the same";
+  "AL-2678 W5-R5, findings B2, B3 and B5, WP5 rest 2 item zero (b): a signed-in person with no membership in the tenant redeems a mailed claim token; the request's x-asym-tenant must name the tenant (42501), the token's SHA-256 under the tenant, the donor writer's lock on (tenant, caller), membership, Party and claim locks is the authority, it is single-use, expires, is bound to the requester and the donor's email at issue, a platform operator, a login without a confirmed address or a login already tied to another Party of the tenant is refused, the link insert cannot raise a unique violation, and every failure answers the same";
 export const reviewedPreMembership = Object.freeze({
   [acceptInvitationFunction]: Object.freeze({
     reason: acceptInvitationReason,
@@ -29,7 +29,7 @@ export const reviewedPreMembership = Object.freeze({
   }),
   [redeemAccountClaim]: Object.freeze({
     reason: redeemAccountClaimReason,
-    digest: "acc80384cc7e474a3053e7aac23f70d166c285396dd2633401efa4850dcc45c7",
+    digest: "2301f4352670a831c860d15f197bfef5faffcab71dc61af8395ac9e3d37c0bed",
   }),
 });
 export const preMembershipEntries = Object.freeze([
@@ -227,6 +227,10 @@ export function protectedEntry(command, frame, outerBlockHasHandler) {
     )?.[1];
   return capabilities.has(capability);
 }
+
+export const WORKER_WRAPPER_ANCHOR_LOOKUPS = Object.freeze([
+  "public.resolve_verified_host",
+]);
 
 export const WORKER_WRAPPER_TENANT_ARG_EXCEPTIONS = Object.freeze([
   "public.acquire_workflow_work_claim(p_tenant_id uuid, p_subject_type text, p_subject_id text, p_claimed_by text, p_ttl_seconds integer)",
@@ -433,7 +437,53 @@ function isPlainPredicate(text) {
   return depth === 0 && !ANCHOR_PREDICATE_FORBIDDEN.test(text);
 }
 
+function isLookupAnchorStatement(statement, variable, scope) {
+  const into = variable
+    ? `\\s+INTO\\s+(?:STRICT\\s+)?${escapeRegExp(variable)}`
+    : "";
+  const match = new RegExp(
+    `^SELECT\\s+(${IDENT})\\s*\\.\\s*(${IDENT})${into}\\s+FROM\\s+(${IDENT})\\s*\\.\\s*(${IDENT})\\s*\\(\\s*(${IDENT})\\s*\\)(?:\\s+(?:AS\\s+)?(${IDENT}))?(?:\\s+WHERE\\s+([\\s\\S]+?))?\\s*$`,
+    "i",
+  ).exec(statement.trim());
+  if (!match) return false;
+  const [
+    ,
+    qualifierRef,
+    columnRef,
+    schemaRef,
+    nameRef,
+    argRef,
+    aliasRef,
+    predicate,
+  ] = match;
+  const lookup = `${schemaRef.toLowerCase()}.${nameRef.toLowerCase()}`;
+  if (!WORKER_WRAPPER_ANCHOR_LOOKUPS.includes(lookup)) return false;
+  const alias = aliasRef?.toLowerCase();
+  if (alias && ANCHOR_ALIAS_KEYWORDS.has(alias)) return false;
+  const qualifier = qualifierRef.toLowerCase();
+  if (qualifier !== (alias ?? nameRef.toLowerCase())) return false;
+  const argument = argRef.toLowerCase();
+  if (!scope.namedParams.has(argument) || argument.includes("tenant"))
+    return false;
+  if (
+    scope.namedParams.has(qualifier) ||
+    scope.locals.has(qualifier) ||
+    qualifier === scope.functionName
+  )
+    return false;
+  const column = columnRef.toLowerCase();
+  if (
+    ["null", "true", "false"].includes(column) ||
+    scope.namedParams.has(column) ||
+    scope.locals.has(column) ||
+    column === scope.functionName
+  )
+    return false;
+  return predicate === undefined || isPlainPredicate(predicate);
+}
+
 function isAnchorStatement(statement, variable, scope) {
+  if (isLookupAnchorStatement(statement, variable, scope)) return true;
   const into = variable
     ? `\\s+INTO\\s+(?:STRICT\\s+)?${escapeRegExp(variable)}`
     : "";
@@ -538,6 +588,13 @@ function isVariableAnchorRead(variable, text, scope) {
       return true;
   }
   return false;
+}
+
+export function workerWrapperCallsLookup(body, stripComments, lookup) {
+  const name = escapeRegExp(lookup).replace("\\.", "\\s*\\.\\s*");
+  return new RegExp(`\\b${name}\\s*\\(`, "i").test(
+    normalizedBody(body, stripComments),
+  );
 }
 
 export function workerWrapperPassesTenantArg(
@@ -651,6 +708,11 @@ export function workerWrapperHasWrite(
     const schema = match[1]?.toLowerCase() ?? null;
     const name = match[2].toLowerCase();
     if (schema === "tenant_guard") continue;
+    if (
+      schema !== null &&
+      WORKER_WRAPPER_ANCHOR_LOOKUPS.includes(`${schema}.${name}`)
+    )
+      continue;
     if (schema === null && WRAPPER_NON_CALL_WORDS.has(name)) continue;
     if (
       ((schema === null && searchPath === '""') || schema === "pg_catalog") &&

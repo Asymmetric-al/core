@@ -3,6 +3,7 @@ import {
   getE2EAuthCookieNameForRequest,
   isE2EAuthBypassEnabled,
 } from "@asym/auth";
+import { markSharedOriginSessionChange } from "@asym/auth/clipboard-reset";
 import { requestOrigin } from "@asym/auth/request-headers";
 import { clearedWebStudioCookie } from "@asym/auth/web-studio";
 import { isServeUnderPathsEnabled } from "@asym/database/document-reload";
@@ -196,7 +197,7 @@ export async function POST(request: Request) {
       });
     }
     clearSharedWebStudioCookieWhenUnderPaths(response);
-    return response;
+    return markSharedOriginSessionChange(response);
   }
 
   const { supabase, pendingCookies, pendingHeaders } =
@@ -225,5 +226,5 @@ export async function POST(request: Request) {
     );
   });
   clearSharedWebStudioCookieWhenUnderPaths(response);
-  return response;
+  return markSharedOriginSessionChange(response);
 }

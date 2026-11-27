@@ -6,6 +6,7 @@ import {
   isE2EAuthBypassEnabled,
   isSupabaseDatasourceAllowedForE2EBypass,
 } from "@asym/auth";
+import { markSharedOriginSessionChange } from "@asym/auth/clipboard-reset";
 import { DEMO_PROFILE_ID } from "@asym/auth/constants";
 import { APP_ROLES, type AppRole } from "@asym/auth/roles";
 import { getSupabasePublicConfig } from "@asym/database/supabase/config";
@@ -322,7 +323,7 @@ export async function POST(request: Request) {
         );
       }
 
-      return response;
+      return markSharedOriginSessionChange(response);
     }
 
     const { emails, password, availability } = getDemoConfig();
@@ -382,7 +383,7 @@ export async function POST(request: Request) {
         normalizeCookieOptions(cookie.options),
       );
     });
-    return response;
+    return markSharedOriginSessionChange(response);
   } catch (error) {
     // The shared reader refuses a body that is not JSON (fix check G1).
     if (error instanceof ApiHttpError && error.status === 415)

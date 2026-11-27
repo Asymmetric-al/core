@@ -237,7 +237,7 @@ describe.skipIf(!ADMIN_URL)("missionary handler statement authority", () => {
           [row.missionary, row.tenant, profile],
         );
         await db.query(
-          "insert into public.donors (id,tenant_id,missionary_id) values ($1,$2,$3)",
+          "insert into public.donors (id,tenant_id,party_id,missionary_id) values ($1,$2,public.donor_party_for_insert($2,null,null,null),$3)",
           [row.donor, row.tenant, profile],
         );
         await db.query(
@@ -254,7 +254,7 @@ describe.skipIf(!ADMIN_URL)("missionary handler statement authority", () => {
         [donorHat, first.tenant, profile],
       );
       await db.query(
-        "insert into public.donors (id,tenant_id,missionary_id) values ($1,$2,$3)",
+        "insert into public.donors (id,tenant_id,party_id,missionary_id) values ($1,$2,public.donor_party_for_insert($2,null,null,null),$3)",
         [otherDonor, first.tenant, profile],
       );
       const thirdTenant = randomUUID();

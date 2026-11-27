@@ -447,6 +447,7 @@ export function buildDonorPortalSnapshot(input: {
   pledges: DonorPortalPledgeRow[];
   feedPreferences: DonorPortalFeedPreferencesRow | null;
   now?: Date;
+  lifetime?: { givenCents: number; giftCount: number };
 }): DonorPortalSnapshot {
   const now = input.now ?? new Date();
   const currentYear = now.getUTCFullYear();
@@ -599,11 +600,13 @@ export function buildDonorPortalSnapshot(input: {
     summary: {
       yearToDateCents,
       lifetimeGivenCents:
+        input.lifetime?.givenCents ??
         (input.donor.total_given ?? centsOf(settledLegacy)) +
-        centsOf(settledLineBased),
+          centsOf(settledLineBased),
       giftCount:
+        input.lifetime?.giftCount ??
         (input.donor.gift_count ?? settledLegacy.length) +
-        settledLineBased.length,
+          settledLineBased.length,
       activeRecurringGiftCount,
       supportedDesignationCount: supportedDesignations.size,
       receiptCount: settledLegacy.length,

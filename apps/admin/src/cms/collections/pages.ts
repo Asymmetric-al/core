@@ -1,3 +1,5 @@
+import { isReservedPublicPageSlug } from "@asym/lib/cms/public-page";
+
 import {
   createLegacyRichTextField,
   createPageLayoutField,
@@ -158,6 +160,15 @@ export const Pages: CollectionConfig = tenantScoped(
     rules: [
       refusePublishedStatus,
       refuseLiveWrite,
+      ({ merged }) =>
+        typeof merged.slug === "string" && isReservedPublicPageSlug(merged.slug)
+          ? [
+              {
+                path: "slug",
+                message: "This address is reserved. Choose another page slug.",
+              },
+            ]
+          : [],
       pageKeepsSiteRule,
       pageFamilyRule,
     ],

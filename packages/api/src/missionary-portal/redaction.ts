@@ -67,7 +67,7 @@ export interface RedactableDonorRelationship {
   displayName: string;
   email: string | null;
   phone: string | null;
-  preferredContact: string;
+  preferredContact: string | null;
   avatarUrl: string | null;
   location: string | null;
   tags: string[];

@@ -397,13 +397,12 @@ describe("on: exempt paths make no lookup and forward no name", () => {
     expect(state.lookups).toEqual([]);
   });
 
-  it("the front's rewrite carries no client copy", async () => {
+  it("the front's rewrite carries no client copy, after one lookup of the name for staff (D-18, N3 PR 1: the front admits a dashboard by the verified-name lookup; FRONT_NAMES is gone)", async () => {
     vi.stubEnv("CORE_APP_BASE_PATH", "");
     vi.stubEnv("FRONT_ADMIN_ORIGIN", ADMIN_INTERNAL);
     vi.stubEnv("FRONT_MISSIONARY_ORIGIN", MISSIONARY_INTERNAL);
     vi.stubEnv("FRONT_STAMP_KEY_ADMIN", adminKey);
     vi.stubEnv("FRONT_STAMP_KEY_MISSIONARY", missionaryKey);
-    vi.stubEnv("FRONT_NAMES", NAME_HOST);
     const response = await donorModule.proxy(
       new NextRequest(`${NAME_ORIGIN}/admin/donors`, {
         headers: { host: NAME_HOST, [NAME]: TB },
@@ -413,7 +412,7 @@ describe("on: exempt paths make no lookup and forward no name", () => {
       `${ADMIN_INTERNAL}/admin/donors`,
     );
     expect(forwarded(response, NAME)).toBeNull();
-    expect(state.lookups).toEqual([]);
+    expect(state.lookups).toEqual([NAME_HOST]);
   });
 });
 

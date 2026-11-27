@@ -690,7 +690,7 @@ describe.skipIf(!ADMIN_URL)(
       }
     });
 
-    it("the catalog gate passes it: the gate reads no default privileges, the relations of public only, and CREATE on the schemas the release fingerprint covers, failing only on the super-admin branches, bare staff reads and field_policies_read pin that 20261127040000, later in the chain than this replay, closes (D-18, AL-2675: the gate holds WP2c rest B's rules since then), and on the review's gate data, which 20261127070000 and 20261127070100, later in the chain, satisfy (AL-2680)", () => {
+    it("the catalog gate passes it: the gate reads no default privileges, the relations of public only, and CREATE on the schemas the release fingerprint covers, failing only on the super-admin branches, bare staff reads and field_policies_read pin that 20261127040000, later in the chain than this replay, closes (D-18, AL-2675: the gate holds WP2c rest B's rules since then), and on the allowlisted checkout config read, which a later file creates (D-18, AL-2681 PR 2a: 20261127050200 is after this replay's last file), and on the claim redemption's review, which 20261127060000, later in the chain than this replay, moves (D-18, AL-2678 WP5 rest 2 item zero (b)), and on the review's gate data, which 20261127070000 and 20261127070100, later in the chain, satisfy (AL-2680)", () => {
       const gate = runTenantRlsCatalogGate({ databaseUrl: replay.url });
       const wp2cFile = readdirSync("supabase/migrations").find((f) =>
         /^\d{14}_wp2c_rest_no_super_admin\.sql$/.test(f),
@@ -717,13 +717,23 @@ describe.skipIf(!ADMIN_URL)(
           policy !== undefined && alteredByWp2cB.has(`${f.table}|${policy}`)
         );
       };
+      const redeemReviewedLater = (f: { code: string; function?: string }) =>
+        f.function ===
+          "tenant_guard.redeem_account_claim(p_tenant_id uuid, p_token text)" &&
+        ["COMMAND_EXCEPTION_UNREVIEWED", "COMMAND_HUMAN_NO_PREAMBLE"].includes(
+          f.code,
+        );
       const later = (f: {
         code: string;
         table?: string;
-        function?: string;
         detail?: string;
+        function?: string;
       }) =>
+        redeemReviewedLater(f) ||
         reviewLater(f) ||
+        (f.code === "ANON_ALLOWLIST_STALE" &&
+          f.function ===
+            "public.checkout_giving_config(p_host text, p_targets jsonb)") ||
         ((f.code === "POLICY_SUPER_ADMIN_BRANCH" ||
           f.code === "TENANT_CONDITION_MISSING" ||
           f.code === "STAFF_READ_ON_BARE_STAFF_CHECK") &&
@@ -760,6 +770,7 @@ describe.skipIf(!ADMIN_URL)(
       ).toEqual(REVIEW_LATER);
       const remaining = gate.failures.filter((f) => !later(f));
       expect(remaining).toEqual([]);
+      expect(gate.failures.filter(redeemReviewedLater)).toHaveLength(2);
       expect(gate.ok).toBe(gate.failures.length === 0);
     });
   },

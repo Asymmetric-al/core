@@ -3,7 +3,7 @@ import {
   getDemoRoleForApp,
   safeNextParam,
 } from "@asym/auth/demo-login";
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 describe("auth/demo-login", () => {
   it("maps app id to demo role", () => {
@@ -38,4 +38,58 @@ describe("auth/demo-login", () => {
     expect(safeNextParam("/auth/callback")).toBeNull();
     expect(safeNextParam("/api/auth/demo-account")).toBeNull();
   });
+});
+
+describe("auth/demo-login: next stays a same-app path", () => {
+  afterEach(() => {
+    vi.unstubAllEnvs();
+  });
+
+  function onTheDonorApp() {
+    vi.stubEnv("CORE_SERVE_UNDER_PATHS", "1");
+    vi.stubEnv("CORE_APP_BASE_PATH", "");
+  }
+
+  it.each([
+    "/admin",
+    "/admin/donors",
+    "/admin/donors?tab=all#top",
+    "/Admin/donors",
+    "/missionary",
+    "/missionary/profile",
+    "/MISSIONARY/profile",
+  ])("on, the donor app refuses %s, which another app serves", (next) => {
+    onTheDonorApp();
+    expect(safeNextParam(next)).toBeNull();
+  });
+
+  it.each([
+    "/administration",
+    "/admins/x",
+    "/missionary-stories",
+    "/donor-dashboard/x",
+    "/workers/admin",
+  ])("on, the donor app keeps %s (guard)", (next) => {
+    onTheDonorApp();
+    expect(safeNextParam(next)).toBe(next);
+  });
+
+  it.each([undefined, "0"])(
+    "off (switch %s), the donor app keeps /admin/donors as today (guard)",
+    (value) => {
+      vi.stubEnv("CORE_SERVE_UNDER_PATHS", value);
+      vi.stubEnv("CORE_APP_BASE_PATH", "");
+      expect(safeNextParam("/admin/donors")).toBe("/admin/donors");
+    },
+  );
+
+  it.each(["/admin", "/missionary"])(
+    "on, the dashboard under %s keeps /missionary/x and /admin/x: its base path keeps them inside it (guard)",
+    (base) => {
+      vi.stubEnv("CORE_SERVE_UNDER_PATHS", "1");
+      vi.stubEnv("CORE_APP_BASE_PATH", base);
+      expect(safeNextParam("/missionary/x")).toBe("/missionary/x");
+      expect(safeNextParam("/admin/x")).toBe("/admin/x");
+    },
+  );
 });

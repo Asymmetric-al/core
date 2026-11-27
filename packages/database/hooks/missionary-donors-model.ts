@@ -68,7 +68,7 @@ export interface MissionaryDonorRow {
   phone: string;
   mobile?: string;
   work_phone?: string;
-  preferred_contact: "email" | "phone" | "text";
+  preferred_contact: "email" | "phone" | "text" | null;
   avatar_url?: string;
   location: string;
   address: MissionaryDonorAddress;
@@ -142,11 +142,11 @@ function normalizeDonorAddress(value: unknown): MissionaryDonorAddress {
 function normalizePreferredContact(
   value: string | null | undefined,
 ): MissionaryDonorRow["preferred_contact"] {
-  if (value === "phone" || value === "text") {
+  if (value === "email" || value === "phone" || value === "text") {
     return value;
   }
 
-  return "email";
+  return null;
 }
 
 function normalizeRecurringStatus(

@@ -286,8 +286,8 @@ describe.skipIf(!ADMIN_URL)(
         [SECOND_FUND, SECOND],
       );
       await db.query(
-        `insert into public.donors (id, tenant_id, name, email)
-         values ($1, $2, 'Second Donor', 'second-donor@example.test')`,
+        `insert into public.donors (id, tenant_id, party_id, name, email)
+         values ($1, $2, public.donor_party_for_insert($2, null, 'Second Donor', 'second-donor@example.test'), 'Second Donor', 'second-donor@example.test')`,
         [SECOND_DONOR, SECOND],
       );
       await db.query(

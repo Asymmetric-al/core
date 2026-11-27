@@ -477,6 +477,7 @@ its owner and grantee (`tenant_guard`) unchanged.
 | `private.money_norm(text)`, `private.money_entered_name(text, text)`, `private.money_duplicate_donors(uuid, text, text, jsonb, uuid)`, `private.money_large_gift_hold(bigint, text, bigint)` | INVOKER  | `postgres` (owner), `tenant_guard`      |
 | `public.line_based_gift_lines(uuid, uuid[])`                                                                                                                                                 | DEFINER  | `postgres` (owner), `service_role`      |
 | `public.actor_gifts_without_donor(uuid, uuid)`                                                                                                                                               | DEFINER  | `postgres` (owner), `service_role`      |
+| `public.donor_portal_lifetime(uuid, uuid, uuid[])`                                                                                                                                           | DEFINER  | `postgres` (owner), `service_role`      |
 | `private.staged_gifts_hold_guard()` (trigger)                                                                                                                                                | DEFINER  | `postgres` (owner)                      |
 
 `public.actor_gifts_without_donor(uuid, uuid)` (fix round F2) is a
@@ -484,6 +485,11 @@ its owner and grantee (`tenant_guard`) unchanged.
 ids of a login's counted line-based gifts that have no donor yet, for the
 donor portal. `public.admin_contributions_summary(uuid)` is replaced (F5)
 with its owner and grants unchanged and its search path emptied.
+`public.donor_portal_lifetime(uuid, uuid, uuid[])` (pull request 2a, issue
+2857 item 8, `20261127050000_wp8a2_rest2a_item_zero.sql`) is a
+`postgres`-owned STABLE definer with EXECUTE for `service_role` only: the
+sum and count of a person's settled gifts, by the portal list's ownership
+filters, so the lifetime figures do not depend on the 250 rows it shows.
 
 Each revokes `PUBLIC`, `anon`, `authenticated` and `service_role` by name
 before granting (`20261127030100_wp8a2_rest_holds.sql`,
@@ -522,6 +528,62 @@ active, and the caller to hold a live staff row there (the one
 audit rows recorded with no organization. `service_role` holds neither: the picker's
 route reads on the caller's token and the operator area on the browser's
 session.
+
+## Functions added by AL-2681 (WP8a part 2 rest, pull request 2a)
+
+| Function                                                                                                             | Security | EXECUTE grantees (exact)                    |
+| -------------------------------------------------------------------------------------------------------------------- | -------- | ------------------------------------------- |
+| `tenant_guard.begin_line_gift(uuid, text, text, text, jsonb, bigint, text, boolean, text, jsonb, jsonb, uuid)`       | DEFINER  | `tenant_guard` (owner), `service_role`      |
+| `public.begin_line_gift(text, text, text, jsonb, bigint, text, boolean, text, jsonb, jsonb, uuid)`                   | INVOKER  | `postgres` (owner), `service_role`          |
+| `tenant_guard.defer_payment_event(uuid, uuid, integer)`, `tenant_guard.reconcile_payment_account(uuid, uuid, jsonb)` | DEFINER  | `tenant_guard` (owner), `service_role`      |
+| `public.defer_payment_event(uuid, integer)`, `public.reconcile_payment_account(uuid, jsonb)`                         | INVOKER  | `postgres` (owner), `service_role`          |
+| `public.take_intake_rate_token(text)`                                                                                | DEFINER  | `postgres` (owner), `service_role`          |
+| `public.checkout_giving_config(text, jsonb)`                                                                         | DEFINER  | `postgres` (owner), `anon`, `authenticated` |
+| `public.money_due_work(integer)`                                                                                     | INVOKER  | `postgres` (owner), `service_role`          |
+| `private.donation_intake_requests_sealed()` (trigger)                                                                | INVOKER  | `postgres` (owner)                          |
+
+`public.begin_line_gift` reads its organization from the reviewed host lookup
+`public.resolve_verified_host` (ruling W8-R41) and takes no tenant;
+`public.defer_payment_event` and `public.reconcile_payment_account` read it from
+the stored event and the stored account. `public.checkout_giving_config` is the
+anonymous config read (W8-R18), listed in `anon-definer-allowlist.json`: one
+output, the connected account, or nothing. `public.take_intake_rate_token`
+counts an address's digest in a ten-minute window and trims ended windows in
+the same call. `public.money_due_work` is an invoker over tables
+`service_role` already reads, for the money schedule. `tenant_guard.claim_provider_event`
+is replaced as its owner with the same security and grantees; a deferred event
+answers terminal. Each file revokes `PUBLIC`, `anon`, `authenticated` and
+`service_role` by name before granting
+(`20261127050100_wp8a2_rest2a_intake_command.sql`,
+`20261127050200_wp8a2_rest2a_guest_reads.sql`,
+`20261127050300_wp8a2_rest2a_deferred_events.sql`).
+
+## Functions added by AL-2678 (WP5 rest, pull request 2a)
+
+| Function                                                 | Security | EXECUTE grantees (exact)           |
+| -------------------------------------------------------- | -------- | ---------------------------------- |
+| `private.login_party(uuid, uuid)`                        | DEFINER  | `postgres` (owner), `tenant_guard` |
+| `private.record_claim_merge_candidate(uuid, uuid, uuid)` | DEFINER  | `postgres` (owner), `tenant_guard` |
+
+Each revokes `PUBLIC`, `anon`, `authenticated` and `service_role` by name
+before granting (`20261127060000_wp5_rest2_party_lock.sql`). Both refuse a
+call outside the tenant the transaction entered (42501) and read nothing from
+`auth`. `private.login_party` answers the Party a login resolves to in the
+donor writer's order (account link, else sole worker row, else that login's
+donor); `private.record_claim_merge_candidate` writes one open
+`donor_merge_candidates` row for a claim refused because the login is tied to
+another Party, by an account link, a worker row or its own donor, and never
+merges. It records nothing when that other Party holds no donor or several,
+when its one donor is the claimed donor, or when the pair is already open in
+either direction; it reads under the advisory lock
+(`donor_merge_candidate`, organization and the pair), so two refusals of one
+pair at once record one. A claim refused for another reason (the token, the
+person, the e-mail, the donor's contact, or a claimed donor already linked)
+records nothing. `begin_donation_saga`,
+`atomic_create_donation_with_audit` and `tenant_guard.redeem_account_claim`
+are replaced, and `tenant_guard.add_partner` by
+`20261127060100_wp5_rest2_add_partner_digest.sql`, each with its owner,
+security and grantees unchanged.
 
 ## Functions added by AL-2680 (WP7 pull request 1)
 

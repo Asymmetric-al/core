@@ -303,6 +303,22 @@ describe("AL-2681 WP8a part 2 rest, PR 1: what a person reads of a line-based gi
     });
   });
 
+  it("issue 2857 item 8: lifetime given and the gift count come from the settled aggregate the service reads with the list's ownership filters, not from the newest 250 gifts", () => {
+    const built = buildDonorPortalSnapshot({
+      profile,
+      donor: { ...donor, total_given: 100, gift_count: 1 },
+      donations: [row({ id: "one", amount: 2500 })],
+      pledges: [],
+      feedPreferences: null,
+      now: new Date("2026-11-27T12:00:00Z"),
+      lifetime: { givenCents: 1_234_500, giftCount: 312 },
+    });
+    expect(built.summary).toMatchObject({
+      lifetimeGivenCents: 1_234_500,
+      giftCount: 312,
+    });
+  });
+
   it("F6: with no stored totals, lifetime given and the gift count are the settled gifts' own; a failed or processing gift is in neither", () => {
     const built = buildDonorPortalSnapshot({
       profile,

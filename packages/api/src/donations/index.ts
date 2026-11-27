@@ -192,6 +192,7 @@ export async function POST(request: NextRequest) {
       currency,
       missionaryId,
       fundId: null,
+      ownDonorId: begin.donorId,
     };
     const caller = { userId: ctx.userId, tenantId: ctx.tenantId };
     const readBack = () =>
@@ -223,6 +224,15 @@ export async function POST(request: NextRequest) {
         requested,
         caller,
       );
+      if (mismatched === null) {
+        console.error("[donations] Replayed gift ownership lookup failed", {
+          donationId: begin.donationId,
+        });
+        return NextResponse.json(
+          { donation: null, readBack: "failed" },
+          { status: 201 },
+        );
+      }
       if (mismatched.length > 0) {
         return keyReused(begin.donationId, ctx.profileId, mismatched);
       }
@@ -267,6 +277,21 @@ export async function POST(request: NextRequest) {
       requested,
       caller,
     );
+    if (mismatched === null) {
+      console.error("[donations] Gift ownership lookup failed", {
+        donationId: begin.donationId,
+      });
+      return NextResponse.json(
+        begin.replayed
+          ? { donation: null, readBack: "failed" }
+          : {
+              donation: null,
+              donationId: begin.donationId,
+              readBack: "failed",
+            },
+        { status: 201 },
+      );
+    }
     if (mismatched.length > 0) {
       return keyReused(begin.donationId, ctx.profileId, mismatched);
     }

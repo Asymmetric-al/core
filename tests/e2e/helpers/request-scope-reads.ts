@@ -252,8 +252,8 @@ export async function addFixtures(
       // Named to the missionary, so the partners list shows the name rather
       // than "Anonymous partner" (packages/api/src/missionary-portal/redaction.ts).
       await db.query(
-        `insert into public.donors (id, tenant_id, name, email, missionary_id, giving_preferences)
-         values ($1, $2, $3, $4, $5, '{"defaultAnonymousToRecipient": false}'::jsonb)`,
+        `insert into public.donors (id, tenant_id, party_id, name, email, missionary_id, giving_preferences)
+         values ($1, $2, public.donor_party_for_insert($2, null, $3, null), $3, $4, $5, '{"defaultAnonymousToRecipient": false}'::jsonb)`,
         [partner, tenant, name, `${partner}@example.test`, missionary.userId],
       );
     await db.query(
@@ -261,8 +261,8 @@ export async function addFixtures(
       [f.secondFund, SECOND, `Harbor wells ${tag}`],
     );
     await db.query(
-      `insert into public.donors (id, tenant_id, name, email, profile_id)
-       values ($1, $2, $3, $4, $5)`,
+      `insert into public.donors (id, tenant_id, party_id, name, email, profile_id)
+       values ($1, $2, public.donor_party_for_insert($2, $5, $3, null), $3, $4, $5)`,
       [f.secondDonor, SECOND, donor.name, donor.email, donor.userId],
     );
     await db.query(

@@ -92,6 +92,9 @@ on:
       # The assignment keys and the CRM's owner by key (AL-2678, WP5 part 2-r3).
       - tests/unit/acceptance/issue-2678/assignment-keys.postgrest.acceptance.test.ts
       - tests/unit/acceptance/issue-2678/assignment-keys.realstack.acceptance.test.ts
+      - tests/unit/acceptance/issue-2678/assignment-keys-race.realstack.acceptance.test.ts
+      - tests/unit/acceptance/issue-2678/assignment-keys-migration.realstack.acceptance.test.ts
+      - tests/unit/acceptance/issue-2678/assignment-keys.helpers.ts
       - packages/database/types/crm-detail.ts
       - packages/database/types/crm-grid.ts
       # The worker's record in Mission Control: its routes on real tokens, the
@@ -110,6 +113,10 @@ on:
       # A partner added by hand is named to its missionary alone (AL-2678,
       # WP5 rest, fix round F7).
       - tests/unit/acceptance/issue-2678/added-partner-visibility.postgrest.acceptance.test.ts
+      # A gift stored for a worker's login is answered as stored on all three
+      # entry points (AL-2678, WP5 rest 2a, fix round F1).
+      - tests/unit/acceptance/issue-2678/worker-gift.postgrest.acceptance.test.ts
+      - packages/api/src/donate/**
       - packages/api/src/feed-preferences/**
       - packages/api/src/reads/**
       - packages/lib/hooks/use-donor-record.ts
@@ -456,6 +463,16 @@ jobs:
           WP5_IDENTITY_IT_SERVICE_KEY="$(jq -er '.SERVICE_ROLE_KEY | select(length > 0)' <<< "$status")"
           export WP5_IDENTITY_IT_ANON_KEY WP5_IDENTITY_IT_SERVICE_KEY
           bunx vitest run --maxWorkers=1 tests/unit/acceptance/issue-2678/added-partner-visibility.postgrest.acceptance.test.ts
+      - name: Verify that a gift stored for a worker's login is answered as stored through PostgREST
+        shell: bash
+        env:
+          WP5_IDENTITY_IT_URL: http://127.0.0.1:54321
+          WP5_IDENTITY_IT_DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:54322/postgres
+        run: |
+          status="$(bun run supabase -- status -o json)"
+          WP5_IDENTITY_IT_SERVICE_KEY="$(jq -er '.SERVICE_ROLE_KEY | select(length > 0)' <<< "$status")"
+          export WP5_IDENTITY_IT_SERVICE_KEY
+          bunx vitest run --maxWorkers=1 tests/unit/acceptance/issue-2678/worker-gift.postgrest.acceptance.test.ts
       - name: Verify invitations, directory and role concurrency through PostgREST
         shell: bash
         env:

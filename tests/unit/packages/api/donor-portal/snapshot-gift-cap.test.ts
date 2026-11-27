@@ -8,7 +8,14 @@ type Row = Record<string, unknown>;
 function fakeAdmin(donations: Row[], pledges: Row[] = []) {
   const limits: number[] = [];
   const client = {
-    rpc: () => Promise.resolve({ data: [], error: null }),
+    rpc: (fn: string) =>
+      Promise.resolve({
+        data:
+          fn === "donor_portal_lifetime"
+            ? [{ given_cents: 0, gift_count: 0 }]
+            : [],
+        error: null,
+      }),
     from(table: string) {
       let limit: number | null = null;
       const answer = () => {

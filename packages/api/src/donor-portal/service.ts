@@ -1,3 +1,5 @@
+import { z } from "zod";
+
 import {
   buildDonorPortalSnapshot,
   isSettledDonationStatus,
@@ -248,15 +250,30 @@ export async function resolveDonorPortalContext(
   return { profile, donor: lookup.donor, loginId };
 }
 
+type PortalReads = {
+  rpc(
+    fn: "actor_gifts_without_donor",
+    args: { p_tenant_id: string; p_user_id: string },
+  ): PromiseLike<SupabaseResult<unknown>>;
+  rpc(
+    fn: "donor_portal_lifetime",
+    args: { p_tenant_id: string; p_donor_id: string; p_gift_ids: string[] },
+  ): PromiseLike<SupabaseResult<unknown>>;
+};
+
+function portalReads(supabaseAdmin: AdminSupabaseClient): PortalReads {
+  return supabaseAdmin as unknown as PortalReads;
+}
+
 async function actorGiftsWithoutDonor(
   supabaseAdmin: AdminSupabaseClient,
   tenantId: string,
   loginId: string,
 ): Promise<string[]> {
-  const { data, error } = (await supabaseAdmin.rpc(
-    "actor_gifts_without_donor" as never,
-    { p_tenant_id: tenantId, p_user_id: loginId } as never,
-  )) as SupabaseResult<unknown>;
+  const { data, error } = await portalReads(supabaseAdmin).rpc(
+    "actor_gifts_without_donor",
+    { p_tenant_id: tenantId, p_user_id: loginId },
+  );
   if (error) {
     throw new ApiHttpError(
       500,
@@ -266,6 +283,45 @@ async function actorGiftsWithoutDonor(
   return (Array.isArray(data) ? data : []).filter(
     (id): id is string => typeof id === "string",
   );
+}
+
+async function settledLifetime(
+  supabaseAdmin: AdminSupabaseClient,
+  tenantId: string,
+  donorId: string,
+  giftIds: string[],
+): Promise<SettledLifetime> {
+  const { data, error } = await portalReads(supabaseAdmin).rpc(
+    "donor_portal_lifetime",
+    { p_tenant_id: tenantId, p_donor_id: donorId, p_gift_ids: giftIds },
+  );
+  if (error) {
+    throw new ApiHttpError(
+      500,
+      error.message || "Unable to load donor giving totals",
+    );
+  }
+  return parseSettledLifetime(data);
+}
+
+const wholeCents = z
+  .union([z.number(), z.string().regex(/^\d+$/)])
+  .transform(Number)
+  .pipe(z.number().int().nonnegative());
+
+const settledLifetimeRows = z
+  .array(z.object({ given_cents: wholeCents, gift_count: wholeCents }))
+  .length(1);
+
+export type SettledLifetime = { givenCents: number; giftCount: number };
+
+export function parseSettledLifetime(data: unknown): SettledLifetime {
+  const parsed = settledLifetimeRows.safeParse(data);
+  if (!parsed.success) {
+    throw new ApiHttpError(500, "Unable to read donor giving totals");
+  }
+  const [row] = parsed.data;
+  return { givenCents: row!.given_cents, giftCount: row!.gift_count };
 }
 
 /**
@@ -290,6 +346,12 @@ export async function getDonorPortalSnapshot(input: {
     input.supabaseAdmin,
     input.tenantId,
     loginId,
+  );
+  const lifetime = await settledLifetime(
+    input.supabaseAdmin,
+    input.tenantId,
+    donor.id,
+    actorGifts,
   );
   const ownGifts =
     actorGifts.length > 0
@@ -359,6 +421,7 @@ export async function getDonorPortalSnapshot(input: {
       donations,
       pledges,
       feedPreferences: preferencesResult.data,
+      lifetime,
     }),
     donationsComplete,
     recurringGiftsComplete,

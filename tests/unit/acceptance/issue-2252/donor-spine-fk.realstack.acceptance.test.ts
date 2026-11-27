@@ -59,7 +59,7 @@ describe.skipIf(!ADMIN_URL)("#2252 donor spine composite FKs (R)", () => {
         [TA, TB],
       );
       await db.query(
-        `insert into public.donors (id, tenant_id, email) values ($1, $2, 'acc2252-a@example.test'), ($3, $4, 'acc2252-b@example.test')`,
+        `insert into public.donors (id, tenant_id, party_id, email) values ($1, $2, public.donor_party_for_insert($2, null, null, 'acc2252-a@example.test'), 'acc2252-a@example.test'), ($3, $4, public.donor_party_for_insert($4, null, null, 'acc2252-b@example.test'), 'acc2252-b@example.test') -- D-18, AL-2678 WP5 rest 2a. each fixture donor names its Party through the Party writer, as every donor writer must before party_id becomes NOT NULL (r5b)`,
         [DA, TA, DB, TB],
       );
       await db.query(
@@ -168,8 +168,13 @@ describe.skipIf(!ADMIN_URL)("#2252 donor spine composite FKs (R)", () => {
       ).toMatchObject({ code: "23503" });
     }));
 
-  it("C2: a NULL-tenant donation naming a donor is refused (23514); (NULL, NULL) still succeeds", () =>
+  it("C2: a NULL-tenant donation is refused by NOT NULL (23502); with the column nullable again, one naming a donor is refused by the CHECK (23514) and (NULL, NULL) succeeds (D-18, AL-2681 PR 2a, W8-R16: donations.tenant_id is NOT NULL behind its count gate; before, the CHECK alone answered)", () =>
     tx(async () => {
+      for (const donor of [DA, null])
+        expect(await insert(null, donor)).toMatchObject({ code: "23502" });
+      await db.query(
+        "alter table public.donations alter column tenant_id drop not null; alter table public.donations drop constraint donations_tenant_id_present",
+      );
       expect(await insert(null, DA)).toMatchObject({
         code: "23514",
         constraint: NEW_CHECK,
@@ -248,9 +253,12 @@ describe.skipIf(!ADMIN_URL)("#2252 donor spine composite FKs (R)", () => {
     }));
 
   for (const kind of ["cross", "null"] as const)
-    it(`C4: the forward body refuses a pre-existing ${kind}-tenant row with counts only and rewrites nothing`, () =>
+    it(`C4: the forward body refuses a pre-existing ${kind}-tenant row with counts only and rewrites nothing (D-18, AL-2681 PR 2a, W8-R16: the row is written with tenant_id nullable again, as before the NOT NULL rule)`, () =>
       tx(async () => {
         await db.query(body(ROLLBACK));
+        await db.query(
+          "alter table public.donations alter column tenant_id drop not null; alter table public.donations drop constraint donations_tenant_id_present",
+        );
         const cx = randomUUID();
         const [tenant, donor] = kind === "cross" ? [TA, DB] : [null, DA];
         await db.query(
@@ -322,7 +330,7 @@ describe.skipIf(!ADMIN_URL)("#2252 donor spine composite FKs (R)", () => {
       await db.query("rollback to savepoint m");
     }
   }
-  it("C5 mutations: drop / single-column / NOT VALID on each of the 7, and dropping the CHECK, each turn the evaluator red naming the FK", () =>
+  it("C5 mutations: drop / single-column / NOT VALID on each of the 7, and dropping the CHECK with tenant_id nullable, each turn the evaluator red naming the FK (D-18, AL-2681 PR 2a, W8-R16: a NOT NULL tenant is itself tenant-complete, so the CHECK mutant also makes the column nullable)", () =>
     tx(async () => {
       for (const [t, n] of SPINE) {
         const fk = (await rows()).find((r) => r.name === n);
@@ -340,7 +348,7 @@ describe.skipIf(!ADMIN_URL)("#2252 donor spine composite FKs (R)", () => {
         );
       }
       await mutant(
-        `alter table public.donations drop constraint ${NEW_CHECK}`,
+        `alter table public.donations drop constraint ${NEW_CHECK}; alter table public.donations alter column tenant_id drop not null; alter table public.donations drop constraint donations_tenant_id_present`,
         `${NEW_FK}: not tenant-complete`,
       );
     }));
