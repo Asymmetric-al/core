@@ -145,6 +145,18 @@ describe("the local Supabase workflow's path filter", () => {
   );
 
   it.each([
+    "tests/unit/acceptance/issue-2678/worker-gift.postgrest.acceptance.test.ts",
+    "packages/api/src/donate/**",
+    "packages/api/src/donations/**",
+    "packages/graphql/**",
+  ])(
+    "starts the worker's stored-gift proof when %s, the suite or an entry point it drives, changes (AL-2678 WP5 rest 2a, fix round F1)",
+    (file) => {
+      expect(paths).toContain(file);
+    },
+  );
+
+  it.each([
     "tests/unit/acceptance/issue-2678/crm-pages.postgrest.acceptance.test.ts",
     "packages/api/src/admin/crm/**",
   ])(

@@ -102,6 +102,88 @@ describe("a gift read back is the caller's when its donor is theirs by profile, 
     ).toBeNull();
   });
 
+  function tables(
+    rows: Record<string, { data: unknown; error?: { message: string } }>,
+  ) {
+    const calls: string[] = [];
+    const from = vi.fn((table: string) => {
+      calls.push(table);
+      const result = {
+        data: rows[table]?.data ?? null,
+        error: rows[table]?.error ?? null,
+      };
+      const chain: Record<string, unknown> = {};
+      for (const method of ["select", "eq", "limit"])
+        chain[method] = () => chain;
+      chain.maybeSingle = async () => result;
+      chain.then = (resolve: (value: unknown) => unknown) => resolve(result);
+      return chain;
+    });
+    return { supabase: { from } as never, calls };
+  }
+
+  it("accepts the donor of the Party of the caller's sole worker row when no account link names a donor, as the gift writer resolves it (WP5 rest 2a, fix round F1; red: profile)", async () => {
+    const { supabase, calls } = tables({
+      missionaries: { data: [{ party_id: "party-w" }] },
+      donors: { data: { party_id: "party-w" } },
+    });
+    expect(
+      await callerGiftMismatches(
+        supabase,
+        stored({ profile: null }, "donor-w"),
+        GIFT,
+        PERSON,
+      ),
+    ).toEqual([]);
+    expect(calls).toEqual(["account_links", "missionaries", "donors"]);
+  });
+
+  it("refuses a gift on another Party than the caller's sole worker row's, and any gift when the caller has several worker rows (WP5 rest 2a, fix round F1; guard)", async () => {
+    for (const rows of [
+      {
+        missionaries: { data: [{ party_id: "party-x" }] },
+        donors: { data: { party_id: "party-w" } },
+      },
+      {
+        missionaries: {
+          data: [{ party_id: "party-w" }, { party_id: "party-w2" }],
+        },
+        donors: { data: { party_id: "party-w" } },
+      },
+      {
+        missionaries: { data: [{ party_id: null }] },
+        donors: { data: { party_id: null } },
+      },
+      { missionaries: { data: [{ party_id: "party-w" }] } },
+    ])
+      expect(
+        await callerGiftMismatches(
+          tables(rows).supabase,
+          stored({ profile: null }, "donor-w"),
+          GIFT,
+          PERSON,
+        ),
+      ).toEqual(["profile"]);
+  });
+
+  it("answers null when the worker row or the gift's donor cannot be read (WP5 rest 2a, fix round F1; red: profile)", async () => {
+    for (const rows of [
+      { missionaries: { data: null, error: { message: "timeout" } } },
+      {
+        missionaries: { data: [{ party_id: "party-w" }] },
+        donors: { data: null, error: { message: "timeout" } },
+      },
+    ])
+      expect(
+        await callerGiftMismatches(
+          tables(rows).supabase,
+          stored({ profile: null }, "donor-w"),
+          GIFT,
+          PERSON,
+        ),
+      ).toBeNull();
+  });
+
   it("still reports the other fields when the donor is the caller's", async () => {
     expect(
       await callerGiftMismatches(

@@ -56,6 +56,54 @@ describe("beginGiftIntake", () => {
     });
   });
 
+  it("names the donor a fresh gift was stored for, as the saga returns it, and none on a replay (AL-2678 WP5 rest 2a, fix round F1; red: no donorId)", async () => {
+    const fresh = await beginGiftIntake({
+      ...BASE_INPUT,
+      rpc: mockRpc({
+        data: {
+          donation_id: "don-1",
+          outbox_id: "out-1",
+          replayed: false,
+          donor_id: "donor-1",
+        },
+        error: null,
+      }),
+    });
+    expect(fresh).toEqual({
+      ok: true,
+      donationId: "don-1",
+      outboxId: "out-1",
+      replayed: false,
+      donorId: "donor-1",
+    });
+    const replay = await beginGiftIntake({
+      ...BASE_INPUT,
+      rpc: mockRpc({
+        data: {
+          donation_id: "don-1",
+          outbox_id: "out-1",
+          replayed: true,
+          donor_id: "donor-1",
+        },
+        error: null,
+      }),
+    });
+    expect(replay.ok && replay.donorId).toBeUndefined();
+    const blank = await beginGiftIntake({
+      ...BASE_INPUT,
+      rpc: mockRpc({
+        data: {
+          donation_id: "don-1",
+          outbox_id: "out-1",
+          replayed: false,
+          donor_id: "",
+        },
+        error: null,
+      }),
+    });
+    expect(blank.ok && blank.donorId).toBeUndefined();
+  });
+
   it("trims then lowercases currency before the saga RPC", async () => {
     const rpc = mockRpc({
       data: {
