@@ -486,7 +486,6 @@ export async function readLiveCommit({
   }
 }
 
-/** Reads only the protected migration-health metadata from the project's own origin. */
 export async function readLiveRelease({
   app,
   request = fetch,
