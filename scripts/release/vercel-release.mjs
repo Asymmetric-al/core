@@ -463,6 +463,29 @@ export async function promoteDeployment({ call, app, deploymentId }) {
   );
 }
 
+/** Reads the commit an app's production domain serves, from /api/health. */
+export async function readLiveCommit({
+  app,
+  request = fetch,
+  pathPrefix = "",
+}) {
+  try {
+    const response = await request(
+      `https://${PRODUCTION_HOSTS[app]}${pathPrefix}/api/health`,
+      {
+        redirect: "error",
+        cache: "no-store",
+        signal: AbortSignal.timeout(15_000),
+      },
+    );
+    const body = await response.json();
+    const commit = body?.observability?.release?.commit;
+    return SHA.test(commit ?? "") ? commit : null;
+  } catch {
+    return null;
+  }
+}
+
 /** Reads only the protected migration-health metadata from the project's own origin. */
 export async function readLiveRelease({
   app,
@@ -745,21 +768,29 @@ export async function runCli(
     const pathPrefixes = productionPathPrefixes(Object.keys(APPS), env);
     const liveStates = {};
     const liveCommits = {};
+    const credentialed = Object.values(BYPASS_SECRETS).some((key) => env[key]);
     for (const app of Object.keys(APPS)) {
-      const live = await readLiveRelease({
-        app,
-        request,
-        pathPrefix: pathPrefixes[app],
-        bypassSecret: env[BYPASS_SECRETS[app]],
-      });
-      liveStates[app] = live;
-      liveCommits[app] = live?.commit;
+      const options = { app, request, pathPrefix: pathPrefixes[app] };
+      if (credentialed) {
+        const bypassSecret = env[BYPASS_SECRETS[app]];
+        const live = bypassSecret
+          ? await readLiveRelease({ ...options, bypassSecret })
+          : null;
+        liveStates[app] = live;
+        liveCommits[app] = live?.commit;
+      } else if (!serveUnderPaths && mode !== "all") {
+        liveCommits[app] = await readLiveCommit(options);
+      }
     }
-    const reconcile = Object.values(liveStates).some((live) =>
-      serveUnderPaths
-        ? live?.serveUnderPaths !== true || !live.commit
-        : live?.serveUnderPaths === true,
-    );
+    const reconcile = serveUnderPaths
+      ? Object.keys(APPS).some(
+          (app) =>
+            liveStates[app]?.serveUnderPaths !== true ||
+            !liveStates[app]?.commit,
+        )
+      : Object.values(liveStates).some(
+          (live) => live?.serveUnderPaths === true,
+        );
     const useDefaultGit = !listChangedFiles;
     const plan = selectReleaseApps({
       liveCommits,
@@ -776,9 +807,10 @@ export async function runCli(
       const reason = reconcile
         ? "reconcile the three apps to the release switch state"
         : item.reason;
-      log(
-        `${item.app}: ${item.build ? "build" : "skip"} - ${reason} [deploymentId=${live?.deploymentId ?? "unreported"} serveUnderPaths=${state}]`,
-      );
+      const detail = credentialed
+        ? ` [deploymentId=${live?.deploymentId ?? "unreported"} serveUnderPaths=${state}]`
+        : "";
+      log(`${item.app}: ${item.build ? "build" : "skip"} - ${reason}${detail}`);
     }
     output(env, {
       apps: plan
