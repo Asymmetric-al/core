@@ -7,6 +7,7 @@ import {
   GET as feed,
   POST as submit,
 } from "../../../../packages/api/src/posts/index";
+import { GET as readComments } from "../../../../packages/api/src/posts/comments";
 import { PATCH as edit } from "../../../../packages/api/src/posts/post";
 import { POST as withdrawOwn } from "../../../../packages/api/src/posts/withdraw";
 import { membershipsForRole } from "../../../fixtures/auth-memberships";
@@ -338,6 +339,158 @@ describe.skipIf(!required && ![url, database, anon, service].some(Boolean))(
         await revoke(true);
       }
       await follow(null);
+    });
+
+    it("R1 (round 3): the comments route gives an approved public update's comments, with the commenters' names, to a member of its organization, and the missing post (404) to a member of another organization under their own scope, a non-follower on a partners-only update, and a donor on a waiting and on a withheld update", async () => {
+      await follow("approved");
+      const nameBefore = (
+        await fx.db!.query(
+          "select display_name from public.profiles where user_id = $1",
+          [user.giver],
+        )
+      ).rows[0]?.display_name as string | null;
+      await fx.db!.query(
+        "update public.profiles set display_name = 'Gale Giver' where user_id = $1",
+        [user.giver],
+      );
+      try {
+        const create = async (
+          visibility: "public" | "partners",
+          approve: boolean,
+        ) => {
+          s.auth = member(user.missionary, ids.mMissionary!, "missionary");
+          const created = await submit(
+            call("missionary", "/api/posts", {
+              method: "POST",
+              body: JSON.stringify({
+                content: doc(`R1 ${visibility}`),
+                visibility,
+                status: "published",
+              }),
+            }),
+          );
+          const { post } = (await created.json()) as { post: { id: string } };
+          if (approve) {
+            s.auth = reviewer();
+            const approved = await review(
+              call("admin", `/api/admin/posts/${post.id}/review`, {
+                method: "POST",
+                body: JSON.stringify({
+                  decision: "approve",
+                  version: await versionOf(post.id),
+                }),
+              }),
+              { params: Promise.resolve({ postId: post.id }) },
+            );
+            expect(approved.status).toBe(200);
+          }
+          const comment = (
+            await fx.db!.query(
+              "insert into public.post_comments (tenant_id, post_id, user_id, content) values ($1, $2, $3, 'R1') returning id::text as id",
+              [TA, post.id, user.giver],
+            )
+          ).rows[0]!.id as string;
+          return { post: post.id, comment };
+        };
+        const read = async (
+          who: keyof typeof token,
+          auth: AuthContext,
+          post: string,
+        ) => {
+          s.auth = auth;
+          const response = await readComments(
+            call(who, `/api/posts/${post}/comments`),
+            { params: Promise.resolve({ postId: post }) },
+          );
+          return {
+            status: response.status,
+            body: (await response.json()) as {
+              error?: string;
+              comments?: { id: string; user: { first_name: string } }[];
+            },
+          };
+        };
+        const missing = { status: 404, body: { error: "Post not found" } };
+        const donor = member(user.donor, ids.mDonor!, "donor");
+        const giver = member(user.giver, ids.mGiver!, "donor");
+        const staffB = {
+          userId: user.staffB,
+          email: null,
+          tenantId: TB,
+          role: "staff",
+          memberships: membershipsForRole("staff", TB),
+          profileId: user.staffB,
+          isAuthenticated: true,
+          assignment: {
+            userId: user.staffB,
+            tenantId: TB,
+            membershipRole: "staff",
+            staffRole: "development",
+            isTenantAdmin: false,
+            revision: "1",
+            assignmentId: ids.mStaffB,
+          },
+          assignmentDenial: null,
+        } as AuthContext;
+
+        const approvedPublic = await create("public", true);
+        const approvedPartners = await create("partners", true);
+        const waiting = await create("public", false);
+
+        const byMember = await read("donor", donor, approvedPublic.post);
+        expect(byMember.status, JSON.stringify(byMember.body)).toBe(200);
+        expect(
+          byMember.body.comments?.map((c) => [c.id, c.user.first_name]),
+        ).toEqual([[approvedPublic.comment, "Gale Giver"]]);
+        expect(await read("staffB", staffB, approvedPublic.post)).toEqual(
+          missing,
+        );
+
+        expect(
+          (
+            await read("donor", donor, approvedPartners.post)
+          ).body.comments?.map((c) => c.id),
+        ).toEqual([approvedPartners.comment]);
+        expect(await read("giver", giver, approvedPartners.post)).toEqual(
+          missing,
+        );
+
+        expect(
+          (await read("admin", reviewer(), waiting.post)).body.comments?.map(
+            (c) => c.id,
+          ),
+        ).toEqual([waiting.comment]);
+        expect(await read("donor", donor, waiting.post)).toEqual(missing);
+
+        await fx.db!.query(
+          "update public.parties set do_not_publish = true where id = $1",
+          [ids.pMissionary],
+        );
+        try {
+          expect(
+            (
+              await fx.db!.query(
+                "select worker_withheld from public.posts where id = $1",
+                [approvedPublic.post],
+              )
+            ).rows,
+          ).toEqual([{ worker_withheld: true }]);
+          expect(await read("donor", donor, approvedPublic.post)).toEqual(
+            missing,
+          );
+        } finally {
+          await fx.db!.query(
+            "update public.parties set do_not_publish = false where id = $1",
+            [ids.pMissionary],
+          );
+        }
+      } finally {
+        await fx.db!.query(
+          "update public.profiles set display_name = $2 where user_id = $1",
+          [user.giver, nameBefore],
+        );
+        await follow(null);
+      }
     });
 
     it("C1: an edit goes through the lane on the missionary's own token: refused while their assignment is revoked, writing nothing, and once it is live again it lands with an audit row naming the assignment", async () => {

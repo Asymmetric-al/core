@@ -878,7 +878,7 @@ describe.skipIf(!required && ![url, database, anon, service].some(Boolean))(
       expect(await reveals(id.pU!)).toEqual([]);
     });
 
-    it("T4 a restriction through the route holds at once on every surface r1, r2a and r2s cover: the donor portal, the feed, comments, GET /api/donations, GraphQL, a stored receipt rendered again, and the colleague's Partners; none shows the legal identity, the profile name or the Party name (AL-2680: the feed and the comments leave the restricted worker's update out altogether, and its fix round T6 first shows both there)", async () => {
+    it("T4 a restriction through the route holds at once on every surface r1, r2a and r2s cover: the donor portal, the feed, comments, GET /api/donations, GraphQL, a stored receipt rendered again, and the colleague's Partners; none shows the legal identity, the profile name or the Party name (AL-2680: the feed leaves the restricted worker's update out altogether and the comments route answers it as a missing post (round 3, R1), and its fix round T6 first shows both there)", async () => {
       const forbidden = ["Profile Rowan", "Party Rowan", "Donor Rowan"];
       as("D");
       const feedBefore = (await (
@@ -941,8 +941,8 @@ describe.skipIf(!required && ![url, database, anon, service].some(Boolean))(
           user: { first_name: string; avatar_url: string | null };
         }[];
       };
-      expect(comments.status, JSON.stringify(commentsBody)).toBe(200);
-      expect(commentsBody.comments ?? []).toEqual([]);
+      expect(comments.status, JSON.stringify(commentsBody)).toBe(404);
+      expect(commentsBody).toEqual({ error: "Post not found" });
       absent(commentsBody, forbidden);
 
       const donations = await getDonations(
