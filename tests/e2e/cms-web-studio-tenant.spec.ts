@@ -2108,8 +2108,12 @@ test("@cms no control offers publishing until WP7: the edit view and the bulk ba
       .first()
       .check();
     const bar = page.getByRole("group", { name: /selected/ });
-    await expect(bar.getByRole("button", { name: /^Edit/ })).toBeVisible();
     await expect(bar.getByRole("button", { name: /publish/i })).toHaveCount(0);
+    await bar.getByRole("button", { name: /^Edit/ }).click();
+    await expect(
+      page.getByRole("button", { name: /^Save Draft$/i }).last(),
+    ).toBeVisible();
+    await expect(page.getByRole("button", { name: /publish/i })).toHaveCount(0);
   } finally {
     await cleanUp(page, "pages", id);
   }
@@ -2236,5 +2240,72 @@ test("@cms Payload's copy-and-paste store is empty after a change of organizatio
   } finally {
     await signIn(page);
     await cleanUp(page, "pages", pasteTarget);
+  }
+  await switchOrganization(page, base, SECOND);
+  expect(
+    (
+      await page.request.get(
+        `${base}/web-studio/api/pages/${pasteTarget}?draft=true`,
+      )
+    ).status(),
+  ).toBe(404);
+});
+
+async function storedIn(tab: Page) {
+  return tab.evaluate((key) => localStorage.getItem(key), CLIPBOARD);
+}
+
+const signInPage = (url: URL) => url.pathname === "/login";
+
+test("@cms what one person copied is gone at a sign-out in Mission Control that never reaches the sign-in page, and when the next person arrives through the sign-in callback or the reset path and opens a page (WP6 rest, pull request 2, fix round F1)", async ({
+  page,
+}) => {
+  const copyInDemo = async () => {
+    await signIn(page);
+    await enter(page, DEMO);
+    await page.goto(
+      `${base}/web-studio/collections/pages/${await draftPreviewPage(page)}`,
+    );
+    await openLayoutClipboard(page);
+    await page.getByRole("menuitem", { name: "Copy Field" }).click();
+    await expect.poll(() => clipboardOf(page)).not.toBeNull();
+  };
+
+  await copyInDemo();
+  const watcher = await page.context().newPage();
+  try {
+    await watcher.goto(`${base}/icon.svg`);
+    expect(await storedIn(watcher)).not.toBeNull();
+    await page.goto(`${base}/${DEMO}`);
+    await page.route(signInPage, (route) => route.abort());
+    await page.getByRole("button", { name: "Open profile menu" }).click();
+    await page.getByRole("menuitem", { name: "Sign out" }).click();
+    await expect.poll(() => storedIn(watcher)).toBeNull();
+  } finally {
+    await page.unroute(signInPage);
+    await watcher.close();
+  }
+
+  for (const arrival of ["/auth/callback", "/forgot-password/callback"]) {
+    await copyInDemo();
+    await page.context().clearCookies();
+    const answer = await page.request.get(
+      `${base}${arrival}?code=e2e-not-a-code`,
+      { maxRedirects: 0, headers: NO_IDLE_CONNECTION },
+    );
+    expect(answer.status()).toBe(307);
+    const leftByArrival = await page.context().cookies(base);
+    await signInAs(page, "admin", "demoAdmin", base);
+    await page.context().addCookies(leftByArrival);
+    await page.goto(`${base}/web-studio/collections/pages`);
+    await page.goto(
+      `${base}/web-studio/collections/pages/${await draftPreviewPage(page)}`,
+    );
+    await openLayoutClipboard(page);
+    await expect(
+      page.getByRole("menuitem", { name: "Paste Field" }),
+    ).toBeDisabled();
+    expect(await clipboardOf(page)).toBeNull();
+    await page.keyboard.press("Escape");
   }
 });

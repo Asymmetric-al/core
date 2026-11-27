@@ -222,6 +222,18 @@ describe("#2839 item 1 (WP6 rest, pull request 2): what the gate missed", () => 
     },
   );
 
+  it.each(["run", "runByID", "cancel", "cancelByID"])(
+    "refuses a computed key in payload.jobs.%s's options, a job method that takes overrideAccess (fix round F7)",
+    (method) => {
+      expect(
+        rules(
+          "apps/admin/src/cms/planted.ts",
+          `await payload.jobs.${method}({ queue: 'default', [key]: true });\n`,
+        ),
+      ).toEqual(["override-access-computed-key"]);
+    },
+  );
+
   it("refuses a computed key in payload.jobs.queue's options", () => {
     expect(
       rules(

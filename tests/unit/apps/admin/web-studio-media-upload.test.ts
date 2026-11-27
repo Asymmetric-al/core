@@ -243,6 +243,131 @@ describe("the media library's delete (WP6 rest, pull request 2, invariant 4)", (
   });
 });
 
+describe("every stage of an upload or a delete ends in an outcome, even when its request fails or its answer cannot be read (fix round F4)", () => {
+  const offline = () => Promise.reject(new TypeError("Failed to fetch"));
+  const unreadable = (status: number) =>
+    new Response("<html>gateway</html>", {
+      status,
+      headers: { "content-type": "text/html" },
+    });
+  const started = () =>
+    json(201, { assetId: ASSET, signedUrl: SIGNED, token: "tok" });
+
+  it.each([
+    [
+      "start's request fails",
+      () => own.fetch.mockImplementation(offline),
+      { stage: "start" },
+    ],
+    [
+      "start's answer cannot be read",
+      () => own.fetch.mockResolvedValueOnce(unreadable(201)),
+      { stage: "start" },
+    ],
+    [
+      "the signed upload's request fails",
+      () => {
+        happyPath();
+        documentFetch.mockImplementationOnce(offline);
+      },
+      { stage: "upload", assetId: ASSET },
+    ],
+    [
+      "finalize's request fails",
+      () => {
+        happyPath();
+        own.fetch.mockImplementation(async (path: string) =>
+          path === "/api/cms/media/start" ? started() : offline(),
+        );
+      },
+      { stage: "finalize", assetId: ASSET },
+    ],
+    [
+      "registration's request fails",
+      () => {
+        happyPath();
+        documentFetch.mockImplementation(async (input) =>
+          String(input) === SIGNED
+            ? new Response(null, { status: 200 })
+            : offline(),
+        );
+      },
+      { stage: "register", assetId: ASSET },
+    ],
+    [
+      "registration's answer cannot be read",
+      () => {
+        happyPath();
+        documentFetch.mockImplementation(async (input) =>
+          String(input) === SIGNED
+            ? new Response(null, { status: 200 })
+            : unreadable(200),
+        );
+      },
+      { stage: "register", assetId: ASSET },
+    ],
+  ])("an upload whose %s fails at that stage", async (_label, arrange, at) => {
+    arrange();
+    await expect(uploadMediaFile(photo(), details)).resolves.toMatchObject({
+      ok: false,
+      ...at,
+      message: expect.stringMatching(/\S/),
+    });
+  });
+
+  it("keeps the asset through a registration retry whose request fails, so the next retry still only registers", async () => {
+    documentFetch.mockImplementationOnce(offline);
+    await expect(registerUploadedMedia(ASSET, details)).resolves.toMatchObject({
+      ok: false,
+      stage: "register",
+      assetId: ASSET,
+    });
+    expect(own.fetch).not.toHaveBeenCalled();
+  });
+
+  it("a delete whose file request fails removes nothing and says so", async () => {
+    own.fetch.mockImplementationOnce(offline);
+    await expect(deleteMediaFile(ASSET)).resolves.toMatchObject({
+      ok: false,
+      message: expect.stringMatching(/\S/),
+    });
+    expect(documentFetch).not.toHaveBeenCalled();
+  });
+
+  it("a delete whose record removal fails says so", async () => {
+    own.fetch.mockResolvedValueOnce(json(200, { assetId: ASSET }));
+    documentFetch.mockImplementationOnce(offline);
+    await expect(deleteMediaFile(ASSET)).resolves.toMatchObject({
+      ok: false,
+      message: expect.stringMatching(/\S/),
+    });
+  });
+});
+
+describe("nothing the registration will refuse is uploaded first (fix round F8)", () => {
+  it.each([
+    ["alt text", { ...details, alt: "a".repeat(501) }],
+    ["a credit", { ...details, credit: "c".repeat(501) }],
+    ["a folder", { ...details, folder: "f".repeat(501) }],
+    ["blank alt text", { ...details, alt: "   " }],
+  ])("refuses %s over the limit before any call", async (_label, given) => {
+    happyPath();
+    expect(await uploadMediaFile(photo(), given)).toMatchObject({
+      ok: false,
+      stage: "start",
+    });
+    expect(own.fetch).not.toHaveBeenCalled();
+    expect(documentFetch).not.toHaveBeenCalled();
+  });
+
+  it("accepts 500 characters after trimming, as the registration does", async () => {
+    happyPath();
+    await expect(
+      uploadMediaFile(photo(), { ...details, alt: ` ${"a".repeat(500)} ` }),
+    ).resolves.toEqual({ ok: true, id: ASSET });
+  });
+});
+
 describe("media addresses for thumbnails (invariant 5)", () => {
   it("are the signed-in media route's bounded variants, never a storage address", () => {
     expect(mediaAddress(ASSET.toUpperCase(), "w320")).toBe(

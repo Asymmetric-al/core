@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import { serializePublishedPageLike } from "../../../apps/admin/src/cms/preview/serialize-published-page";
 
@@ -209,5 +209,22 @@ describe("preview media addresses (WP6 rest, pull request 2, invariant 5): a dra
       thumbnailURL: null,
       cardURL: null,
     });
+  });
+
+  it("carries the admin app's base path when the apps are served under paths, since the unoptimized image adds none (fix round F3)", () => {
+    vi.stubEnv("CORE_SERVE_UNDER_PATHS", "1");
+    vi.stubEnv("CORE_APP_BASE_PATH", "/admin");
+    try {
+      const [block] = serializePublishedPageLike(
+        page({ id: MEDIA_ID, alt: "Jane in field" }),
+      ).layout as Array<{ media: Record<string, unknown> }>;
+      expect(block!.media).toMatchObject({
+        url: `/admin/api/media/${MEDIA_ID}`,
+        thumbnailURL: `/admin/api/media/${MEDIA_ID}?variant=w320`,
+        cardURL: `/admin/api/media/${MEDIA_ID}`,
+      });
+    } finally {
+      vi.unstubAllEnvs();
+    }
   });
 });

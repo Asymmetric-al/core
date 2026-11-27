@@ -30,6 +30,25 @@ describe("cms:qualify's pooling check (plan 6.7 and 9.3; WP6 rest, pull request 
     ).toBe("skipped");
   });
 
+  it.each([
+    ["localhost", "127.0.0.1"],
+    ["127.0.0.1", "localhost"],
+    ["[::1]", "localhost"],
+    ["LOCALHOST", "127.0.0.1"],
+  ])(
+    "is SKIPPED, the pooler not tested, when the pooler address names the direct server under another loopback name (%s for %s; fix round F11)",
+    (poolerHost, directHost) => {
+      const plan = poolingPlan({
+        poolerUrl: `postgresql://cms_runtime.ref:pw@${poolerHost}:25760/postgres`,
+        directUrl: `postgresql://cms_runtime:pw@${directHost}:25760/qualify_x`,
+      });
+      expect(plan).toEqual({
+        kind: "skipped",
+        reason: expect.stringMatching(/pooler was not tested/),
+      });
+    },
+  );
+
   it("runs on a pooler address that differs from the direct server", () => {
     expect(
       poolingPlan({

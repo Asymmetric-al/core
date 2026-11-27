@@ -1,5 +1,12 @@
 import { beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 
+import {
+  markWebStudioRefusal,
+  readWebStudioRefusal,
+  WEB_STUDIO_REFUSAL_HEADER,
+  webStudioRefusalAfterError,
+} from "../../../apps/admin/src/cms/auth/web-studio-refusal";
+
 const USER = "00000000-0000-4000-8000-0000000000a1";
 const TENANT_A = "00000000-0000-0000-0000-000000000001";
 const TENANT_B = "00000000-0000-0000-0000-000000000002";
@@ -196,23 +203,21 @@ describe("the media library's registration and removal under /web-studio/api (WP
 
   it("refuses a person without web_studio.edit, a missing session, a bad body and a failed read, writing nothing", async () => {
     store.rows = [{ id: ASSET, tenant_id: TENANT_A, status: "ready" }];
-    expect(
-      (
-        await call(
-          register,
+    await expect(
+      register(
+        makeReq(
           { assetId: ASSET, alt: "Alt" },
           { user: { ...editor, staffRole: "viewer" } },
-        )
-      ).status,
-    ).toBe(403);
-    expect(
-      (await call(register, { assetId: ASSET, alt: "Alt" }, { user: null }))
-        .status,
-    ).toBe(403);
+        ),
+      ),
+    ).rejects.toMatchObject({ name: "Forbidden" });
+    await expect(
+      register(makeReq({ assetId: ASSET, alt: "Alt" }, { user: null })),
+    ).rejects.toMatchObject({ name: "Forbidden" });
     store.session = false;
-    expect((await call(register, { assetId: ASSET, alt: "Alt" })).status).toBe(
-      403,
-    );
+    const ended = makeReq({ assetId: ASSET, alt: "Alt" });
+    await expect(register(ended)).rejects.toMatchObject({ name: "Forbidden" });
+    expect(readWebStudioRefusal(ended)).toBe("no_session");
     store.session = true;
     expect(
       (await call(register, { assetId: "not-an-id", alt: "Alt" })).status,
@@ -293,14 +298,47 @@ describe("the media library's registration and removal under /web-studio/api (WP
   });
 
   it("refuses removal without web_studio.edit, without a session and when the read fails", async () => {
-    expect(
-      (await call(remove, { assetId: ASSET }, { user: null })).status,
-    ).toBe(403);
+    await expect(
+      remove(makeReq({ assetId: ASSET }, { user: null })),
+    ).rejects.toMatchObject({ name: "Forbidden" });
     store.session = false;
-    expect((await call(remove, { assetId: ASSET })).status).toBe(403);
+    const ended = makeReq({ assetId: ASSET });
+    await expect(remove(ended)).rejects.toMatchObject({ name: "Forbidden" });
+    expect(readWebStudioRefusal(ended)).toBe("no_session");
     store.session = true;
     store.readError = { message: "timeout" };
     expect((await call(remove, { assetId: ASSET })).status).toBe(503);
     expect(store.remove).not.toHaveBeenCalled();
   });
+
+  it.each([
+    ["scope_mismatch", 409],
+    ["no_session", 401],
+    ["no_selection", 403],
+  ] as const)(
+    "turns the strategy's %s into the status and header every Web Studio refusal carries, so the reload or sign-in dialog opens (fix round F5)",
+    async (refusal, status) => {
+      for (const handler of [register, remove]) {
+        const req = makeReq({ assetId: ASSET, alt: "Alt" }, { user: null });
+        markWebStudioRefusal(req, refusal);
+        const error = await handler(req).then(
+          () => null,
+          (thrown: unknown) => thrown,
+        );
+        expect(error).toMatchObject({ name: "Forbidden" });
+        const answer = await webStudioRefusalAfterError({
+          error,
+          req,
+        } as never);
+        expect(answer).toMatchObject({ status });
+        expect(
+          (req as { responseHeaders?: Headers }).responseHeaders?.get(
+            WEB_STUDIO_REFUSAL_HEADER,
+          ),
+        ).toBe(refusal);
+      }
+      expect(store.register).not.toHaveBeenCalled();
+      expect(store.remove).not.toHaveBeenCalled();
+    },
+  );
 });

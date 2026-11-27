@@ -1596,6 +1596,39 @@ describe.skipIf(!ADMIN_URL)(
       });
     });
 
+    describe("WP6 rest, pull request 2, fix round F5: the media library's register and remove refuse as every Web Studio call does", () => {
+      it.each([
+        ["register", { alt: "Refused" }],
+        ["remove", {}],
+      ])(
+        "%s: a page opened for another organization answers 409 scope_mismatch, an ended session 401 no_session, and nothing is written",
+        async (action, extra) => {
+          const assetId = randomUUID();
+          const path = `/web-studio/api/web-studio/media/${action}`;
+          const stale = await s.restAs(
+            editorA,
+            "POST",
+            path,
+            { assetId, ...extra },
+            { tenantHeader: B },
+          );
+          expect([stale.status, stale.refusal]).toEqual([
+            409,
+            "scope_mismatch",
+          ]);
+          const ended = await s.restAs(
+            editorA,
+            "POST",
+            path,
+            { assetId, ...extra },
+            { signedIn: false },
+          );
+          expect([ended.status, ended.refusal]).toEqual([401, "no_session"]);
+          expect(await row("media", assetId)).toBeUndefined();
+        },
+      );
+    });
+
     describe("WP6 rest, pull request 2: a restore over another person's lock is refused (invariant 7; #2809 F4)", () => {
       let page: Doc;
       let version: string;

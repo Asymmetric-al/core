@@ -1,6 +1,9 @@
 /** @vitest-environment jsdom */
 
-import { signOutClientSession } from "@asym/auth/client-session";
+import {
+  registerClientSessionCleanup,
+  signOutClientSession,
+} from "@asym/auth/client-session";
 import {
   act,
   cleanup,
@@ -343,6 +346,34 @@ describe("provider-owned retained drafts", () => {
     expect(screen.getByLabelText("Draft")).toHaveProperty("value", "New owner");
     expect(browserCleanup).not.toHaveBeenCalled();
     expect(redirect).not.toHaveBeenCalled();
+  });
+  it("lets a cleanup that owns nothing run without overruling an owner that changed during sign-out (WP6 rest, pull request 2, fix round F1)", async () => {
+    const ownsNothing = vi.fn();
+    const unregister = registerClientSessionCleanup(() => ownsNothing);
+    try {
+      const view = render(<View />);
+      let resolveSignOut!: (result: { ok: true }) => void;
+      const redirect = vi.fn();
+      const pending = signOutClientSession({
+        signOutOnServer: () =>
+          new Promise((resolve) => {
+            resolveSignOut = resolve;
+          }),
+        createClient: () =>
+          ({ auth: { signOut: async () => ({ error: null }) } }) as never,
+        redirect,
+        logger: { warn: vi.fn() },
+      });
+      view.rerender(<View user={{ ...owner, userId: "new-user" }} />);
+      await act(async () => {
+        resolveSignOut({ ok: true });
+        await pending;
+      });
+      expect(ownsNothing).toHaveBeenCalledOnce();
+      expect(redirect).not.toHaveBeenCalled();
+    } finally {
+      unregister();
+    }
   });
   it("keeps failed server logout drafts and survives StrictMode", async () => {
     render(

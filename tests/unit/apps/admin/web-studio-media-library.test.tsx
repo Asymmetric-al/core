@@ -180,6 +180,141 @@ describe("the media library's delete control (WP6 rest, pull request 2)", () => 
   });
 });
 
+describe("the media library's dialogs are never left busy, and keep a stored file's retry (fix round F4)", () => {
+  it("ends an upload whose request throws: the failure shows, Upload works again and the dialog closes", async () => {
+    adapter.upload.mockRejectedValueOnce(new TypeError("Failed to fetch"));
+    openUpload();
+    fill();
+    fireEvent.click(await screen.findByRole("button", { name: "Upload" }));
+    expect(await screen.findByRole("alert")).toBeTruthy();
+    expect(
+      screen.getByRole("button", { name: "Upload" }).hasAttribute("disabled"),
+    ).toBe(false);
+    fireEvent.click(screen.getByRole("button", { name: "Cancel" }));
+    await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull());
+  });
+
+  it("keeps Try again when the registration retry throws", async () => {
+    adapter.upload.mockResolvedValueOnce({
+      ok: false,
+      stage: "register",
+      assetId: ASSET,
+      message: "Something went wrong.",
+    });
+    adapter.register.mockRejectedValueOnce(new TypeError("Failed to fetch"));
+    openUpload();
+    fill();
+    fireEvent.click(await screen.findByRole("button", { name: "Upload" }));
+    fireEvent.click(await screen.findByRole("button", { name: "Try again" }));
+    await waitFor(() =>
+      expect(
+        screen
+          .getByRole("button", { name: "Try again" })
+          .hasAttribute("disabled"),
+      ).toBe(false),
+    );
+    expect(adapter.upload).toHaveBeenCalledTimes(1);
+  });
+
+  it("ends a delete whose request throws: the failure shows and Delete and Cancel work again", async () => {
+    adapter.remove.mockRejectedValueOnce(new TypeError("Failed to fetch"));
+    render(
+      <MediaDeleteButton id={ASSET} label="A new well" onDeleted={vi.fn()} />,
+    );
+    fireEvent.click(screen.getByRole("button", { name: "Delete image" }));
+    fireEvent.click(await screen.findByRole("button", { name: "Delete" }));
+    expect(await screen.findByRole("alert")).toBeTruthy();
+    expect(
+      screen.getByRole("button", { name: "Delete" }).hasAttribute("disabled"),
+    ).toBe(false);
+    fireEvent.click(screen.getByRole("button", { name: "Cancel" }));
+    await waitFor(() => expect(screen.queryByRole("alertdialog")).toBeNull());
+  });
+});
+
+describe("the media library's dialogs open from the shared triggers and close with Cancel (fix round F6)", () => {
+  it("returns focus to Upload image when the dialog closes, and its Cancel closes it", async () => {
+    openUpload();
+    fireEvent.click(await screen.findByRole("button", { name: "Cancel" }));
+    await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull());
+    await waitFor(() =>
+      expect(document.activeElement).toBe(
+        screen.getByRole("button", { name: "Upload image" }),
+      ),
+    );
+  });
+
+  it("disables Cancel while an upload is running", async () => {
+    adapter.upload.mockReturnValueOnce(new Promise(() => {}));
+    openUpload();
+    fill();
+    fireEvent.click(await screen.findByRole("button", { name: "Upload" }));
+    await screen.findByRole("button", { name: "Uploading…" });
+    expect(
+      screen.getByRole("button", { name: "Cancel" }).hasAttribute("disabled"),
+    ).toBe(true);
+  });
+
+  it("returns focus to Delete image when the confirmation closes", async () => {
+    render(
+      <MediaDeleteButton id={ASSET} label="A new well" onDeleted={vi.fn()} />,
+    );
+    fireEvent.click(screen.getByRole("button", { name: "Delete image" }));
+    fireEvent.click(await screen.findByRole("button", { name: "Cancel" }));
+    await waitFor(() => expect(screen.queryByRole("alertdialog")).toBeNull());
+    await waitFor(() =>
+      expect(document.activeElement).toBe(
+        screen.getByRole("button", { name: "Delete image" }),
+      ),
+    );
+  });
+});
+
+describe("the upload form checks what the registration checks, and leads to the first field to fix (fix rounds F8 and F9)", () => {
+  it.each([
+    ["Alt text", "Alt text"],
+    ["Credit", "Credit"],
+    ["Folder", "Folder"],
+  ])(
+    "refuses %s over 500 characters before anything is sent, and focuses it",
+    async (label) => {
+      openUpload();
+      fill();
+      fireEvent.change(screen.getByLabelText(label), {
+        target: { value: "x".repeat(501) },
+      });
+      fireEvent.click(await screen.findByRole("button", { name: "Upload" }));
+      const field = screen.getByLabelText(label);
+      await waitFor(() => expect(document.activeElement).toBe(field));
+      expect(field.getAttribute("aria-invalid")).toBe("true");
+      expect(screen.getByText(/at most 500 characters/)).toBeTruthy();
+      expect(adapter.upload).not.toHaveBeenCalled();
+    },
+  );
+
+  it("focuses the file field first when the file and the alt text are both missing", async () => {
+    openUpload();
+    const upload = await screen.findByRole("button", { name: "Upload" });
+    await waitFor(() =>
+      expect(document.activeElement).toBe(screen.getByLabelText("Image file")),
+    );
+    upload.focus();
+    fireEvent.click(upload);
+    await waitFor(() =>
+      expect(document.activeElement).toBe(screen.getByLabelText("Image file")),
+    );
+  });
+
+  it("focuses the alt text when only it is missing", async () => {
+    openUpload();
+    fill({ alt: "  " });
+    fireEvent.click(await screen.findByRole("button", { name: "Upload" }));
+    await waitFor(() =>
+      expect(document.activeElement).toBe(screen.getByLabelText("Alt text")),
+    );
+  });
+});
+
 describe("the media library's thumbnails (invariant 5)", () => {
   it("come from the signed-in media route's smallest variant", () => {
     expect(mediaThumbnail({ id: ASSET.toUpperCase(), alt: "x" })).toBe(
