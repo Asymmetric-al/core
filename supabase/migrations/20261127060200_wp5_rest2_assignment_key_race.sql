@@ -1,31 +1,16 @@
--- AL-2678 (WP5 rest, pull request 2a; issue 2834 items 1 to 3; brief
--- stage5/wp5-rest.md, pull request 2, invariant 1 and section 5). Closes the
--- race in which an assignment key outlives the worker row it named, before
--- any reader that decides access or ownership reads the key, and two smaller
--- defects of 20261126140000.
+-- AL-2678 (WP5 rest, pull request 2a; issue 2834 items 1 to 3; fix round F3
+-- of pull request 2859; brief stage5/wp5-rest.md, pull request 2, invariant
+-- 1 and section 5). Whichever of a child's write and a worker row's write
+-- commits last, no child row is left with a key that is not the sole worker
+-- row of its organization and login, and none without a key while one
+-- exists; closed before any reader that decides access or ownership reads
+-- the key. Also two smaller defects of 20261126140000.
 --
 -- 1. private.derive_ministry_assignment_id(), the BEFORE ROW trigger
 --    function of donors, posts, follows, follower_requests and
 --    missionary_tasks: its text from 20261126140000 with one statement
---    added. Before it reads the sole worker row of (tenant, profile), it
---    takes FOR SHARE, in id order, on the worker rows of that tenant and
---    profile, held to the writer's COMMIT. So a re-link of a worker row
---    (an UPDATE of its tenant, profile or id, which is what
---    private.rederive_ministry_assignment_children re-derives after) and a
---    child written for its old login serialize: a re-link that came first
---    makes the child's write wait and then derive from the committed row;
---    a child that came first makes the re-link wait, and the re-link's
---    re-derivation then sees the child. A child no longer keeps a key whose
---    worker row names another login (issue 2834 item 1; the rebase ruling's
---    Q1 interleaving). What it waits on: a worker row's UPDATE or DELETE
---    in flight, for that transaction's length. What waits on it: an UPDATE
---    of the worker row while the child's transaction is open; no live
---    writer writes a child and then its worker row in one transaction, so
---    two writers of one login cannot wait on each other through it. A
---    child re-parented to a login while that login's worker row is
---    re-linked can meet the re-link in a cycle; PostgreSQL then aborts one
---    (40P01), which propagates as before. The six errors it turned into a
---    NULL key still do; lock waits (55P03) and cancels propagate.
+--    added. Before it reads the sole worker row it takes the lock below for
+--    the row's (tenant_id, missionary_id).
 -- 2. public.missionary_task_write: its text from 20261126140000 with the
 --    patch's ministry_assignment_id removed before both of its conversions
 --    (jsonb_populate_record), so a malformed value in a patch is ignored as
@@ -37,33 +22,72 @@
 --    old key it reports is the key its UPDATE replaced, even when another
 --    session changed the key and committed while the repair waited (issue
 --    2834 item 3). Owner, grants and answers are unchanged.
+-- 4. private.rederive_ministry_assignment_children(), the AFTER ROW trigger
+--    function of public.missionaries (an INSERT with a login; an UPDATE of
+--    its id, tenant or login; a DELETE): its text from 20261126140000 with
+--    one loop added. Before it re-derives it takes the lock below for the
+--    row's old and new (tenant_id, profile_id), the distinct non-null ones,
+--    in ascending order of the lock's second key.
 --
--- Locks at migration time: object locks on the three replaced functions
+-- The lock: the transaction-level advisory lock ('ministry_assignment_key',
+-- organization:login), pg_advisory_xact_lock(hashtext(
+-- 'ministry_assignment_key'), hashtext(tenant_id::text || ':' ||
+-- profile_id::text)), held to COMMIT. So a child written for a login and a
+-- worker row of that login inserted, re-linked or deleted serialize. A
+-- child that came first makes the worker write wait; its re-derivation
+-- then reads under a snapshot taken after the child committed and corrects
+-- the child: no key when the login now has two workers or none, the sole
+-- worker's when it has one. A worker write that came first makes the child
+-- wait, and the child derives from the committed worker rows. This holds
+-- under READ COMMITTED, the isolation every writer of these tables uses.
+--
+-- Lock order. A worker write holds its row's lock, then the advisory locks
+-- in the order above. A child write takes the advisory lock and no lock on
+-- a worker row (the FOR SHARE that this file's first cut took on the
+-- worker rows is gone), so the two never wait on each other in a cycle. A
+-- transaction that writes children of two logins and a worker row of each,
+-- in the opposite order of another, can still meet it in one; PostgreSQL
+-- then aborts one (40P01). Lock waits (55P03) and cancels propagate; the
+-- six errors the derivation turned into a NULL key still do.
+--
+-- Locks at migration time: object locks on the four replaced functions
 -- only; no table lock. lock_timeout stops a run rather than queue it.
 --
 -- What the running build does: its writers of the five tables and of
--- public.missionaries keep their statements and answers; a child write may
--- wait for an in-flight UPDATE of its worker row and the other way round,
--- for the length of the shorter transaction.
+-- public.missionaries keep their statements and answers; a child write for
+-- a login may wait for an in-flight write of a worker row of that login,
+-- and the other way round, for the length of the first transaction.
 --
--- Recovery. Every statement is CREATE OR REPLACE and runs again unchanged;
--- a second run commits the same text. This file has committed when this
--- read-only check is true (false before, never an error):
---   SELECT pg_catalog.position('FOR SHARE' IN pg_catalog.pg_get_functiondef(
---     'private.derive_ministry_assignment_id()'::regprocedure)) > 0
+-- Recovery. Every statement is CREATE OR REPLACE or COMMENT and runs again
+-- unchanged; a second run commits the same text. This file has committed
+-- when this read-only check returns true (false before it, never an error):
+-- Check begins
+--   SELECT pg_catalog.strpos(pg_catalog.pg_get_functiondef('private.rederive_ministry_assignment_children()'::pg_catalog.regprocedure), 'ministry_assignment_key') > 0 AS committed;
+-- Check ends
 -- Then follow docs/ops/release-job.md, "If the migration committed but its
 -- ledger row is missing", with this check and this file's version,
 -- 20261127060200.
 --
--- Down (one transaction): re-run, verbatim, the CREATE FUNCTION texts of
--- private.derive_ministry_assignment_id() and
--- private.repair_ministry_assignment_ids() from 20261126140000 as CREATE OR
--- REPLACE, and its CREATE OR REPLACE of public.missionary_task_write.
+-- Down (one transaction): the four functions' texts and the three comments
+-- of 20261126140000; the task writer's comment is not changed by this file.
+-- Down begins
+--   BEGIN;
+--   SET LOCAL lock_timeout = '5s';
+--   CREATE OR REPLACE FUNCTION private.derive_ministry_assignment_id()
+--   \lines 353-374 of 20261126140000_wp5_2r3_assignment_keys.sql
+--   CREATE OR REPLACE FUNCTION private.rederive_ministry_assignment_children()
+--   \lines 383-441 of 20261126140000_wp5_2r3_assignment_keys.sql
+--   CREATE OR REPLACE FUNCTION private.repair_ministry_assignment_ids()
+--   \lines 454-552 of 20261126140000_wp5_2r3_assignment_keys.sql
+--   \lines 220-314 of 20261126140000_wp5_2r3_assignment_keys.sql
+--   COMMIT;
+--   SELECT pg_notify('pgrst', 'reload schema');
+-- Down ends
 
 BEGIN;
 SET LOCAL lock_timeout = '5s';
 
--- 1. The derivation, serialized with a re-link of its worker row.
+-- 1. The derivation takes the lock for its organization and login.
 CREATE OR REPLACE FUNCTION private.derive_ministry_assignment_id()
 RETURNS trigger
 LANGUAGE plpgsql
@@ -75,13 +99,11 @@ BEGIN
     NEW.ministry_assignment_id := NULL;
     RETURN NEW;
   END IF;
+  PERFORM pg_catalog.pg_advisory_xact_lock(
+    pg_catalog.hashtext('ministry_assignment_key'),
+    pg_catalog.hashtext(NEW.tenant_id::text || ':' || NEW.missionary_id::text)
+  );
   BEGIN
-    PERFORM 1
-       FROM public.missionaries AS m
-      WHERE m.tenant_id = NEW.tenant_id
-        AND m.profile_id = NEW.missionary_id
-      ORDER BY m.id
-        FOR SHARE;
     NEW.ministry_assignment_id := private.assignment_for_profile(NEW.tenant_id, NEW.missionary_id);
   EXCEPTION
     WHEN insufficient_privilege OR undefined_function OR undefined_table
@@ -92,7 +114,7 @@ BEGIN
 END;
 $$;
 COMMENT ON FUNCTION private.derive_ministry_assignment_id() IS
-  'BEFORE ROW trigger of the five activity tables: takes FOR SHARE on the worker rows of (tenant_id, missionary_id), so a re-link of one waits for the write or the write for the re-link, then sets ministry_assignment_id to private.assignment_for_profile(tenant_id, missionary_id), NULL when either is NULL or the lookup is missing or not permitted; never raises for a supplied value (AL-2678, Q-r3-4; issue 2834 item 1).';
+  'BEFORE ROW trigger of the five activity tables: takes the advisory lock (ministry_assignment_key, tenant_id:missionary_id), which a write of a worker row of that login also takes, then sets ministry_assignment_id to private.assignment_for_profile(tenant_id, missionary_id), NULL when either is NULL or the lookup is missing or not permitted; never raises for a supplied value (AL-2678, Q-r3-4; issue 2834 item 1; fix round F3 of pull request 2859).';
 
 -- 2. The task writer ignores the key in a patch.
 CREATE OR REPLACE FUNCTION public.missionary_task_write(
@@ -297,6 +319,79 @@ END;
 $$;
 COMMENT ON FUNCTION private.repair_ministry_assignment_ids() IS
   'Sets every ministry_assignment_id that differs from private.assignment_for_profile(tenant_id, missionary_id) to it and returns one row per key that changed, with the key it replaced (read under FOR UPDATE) and the key the row holds after the update and its triggers. Owner only; refuses a caller without superuser or BYPASSRLS (AL-2678, Q1 condition 2; issue 2834 item 3).';
+
+-- 4. The worker rows' re-derivation takes the lock for their old and new
+-- organization and login.
+CREATE OR REPLACE FUNCTION private.rederive_ministry_assignment_children()
+RETURNS trigger
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = ''
+AS $$
+DECLARE
+  v_old_tenant uuid;
+  v_old_profile uuid;
+  v_old_id uuid;
+  v_new_tenant uuid;
+  v_new_profile uuid;
+  v_new_id uuid;
+  v_key integer;
+BEGIN
+  IF TG_OP IN ('UPDATE', 'DELETE') THEN
+    v_old_tenant := OLD.tenant_id;
+    v_old_profile := OLD.profile_id;
+    v_old_id := OLD.id;
+  END IF;
+  IF TG_OP IN ('INSERT', 'UPDATE') THEN
+    v_new_tenant := NEW.tenant_id;
+    v_new_profile := NEW.profile_id;
+    v_new_id := NEW.id;
+  END IF;
+
+  FOR v_key IN
+    SELECT DISTINCT pg_catalog.hashtext(k.tenant_id::text || ':' || k.profile_id::text)
+      FROM (VALUES (v_old_tenant, v_old_profile), (v_new_tenant, v_new_profile)) AS k (tenant_id, profile_id)
+     WHERE k.tenant_id IS NOT NULL AND k.profile_id IS NOT NULL
+     ORDER BY 1
+  LOOP
+    PERFORM pg_catalog.pg_advisory_xact_lock(pg_catalog.hashtext('ministry_assignment_key'), v_key);
+  END LOOP;
+
+  UPDATE public.donors AS c
+     SET ministry_assignment_id = private.assignment_for_profile(c.tenant_id, c.missionary_id)
+   WHERE ((c.tenant_id = v_old_tenant AND (c.missionary_id = v_old_profile OR c.ministry_assignment_id = v_old_id))
+       OR (c.tenant_id = v_new_tenant AND (c.missionary_id = v_new_profile OR c.ministry_assignment_id = v_new_id)))
+     AND c.ministry_assignment_id IS DISTINCT FROM private.assignment_for_profile(c.tenant_id, c.missionary_id);
+
+  UPDATE public.posts AS c
+     SET ministry_assignment_id = private.assignment_for_profile(c.tenant_id, c.missionary_id)
+   WHERE ((c.tenant_id = v_old_tenant AND (c.missionary_id = v_old_profile OR c.ministry_assignment_id = v_old_id))
+       OR (c.tenant_id = v_new_tenant AND (c.missionary_id = v_new_profile OR c.ministry_assignment_id = v_new_id)))
+     AND c.ministry_assignment_id IS DISTINCT FROM private.assignment_for_profile(c.tenant_id, c.missionary_id);
+
+  UPDATE public.follows AS c
+     SET ministry_assignment_id = private.assignment_for_profile(c.tenant_id, c.missionary_id)
+   WHERE ((c.tenant_id = v_old_tenant AND (c.missionary_id = v_old_profile OR c.ministry_assignment_id = v_old_id))
+       OR (c.tenant_id = v_new_tenant AND (c.missionary_id = v_new_profile OR c.ministry_assignment_id = v_new_id)))
+     AND c.ministry_assignment_id IS DISTINCT FROM private.assignment_for_profile(c.tenant_id, c.missionary_id);
+
+  UPDATE public.follower_requests AS c
+     SET ministry_assignment_id = private.assignment_for_profile(c.tenant_id, c.missionary_id)
+   WHERE ((c.tenant_id = v_old_tenant AND (c.missionary_id = v_old_profile OR c.ministry_assignment_id = v_old_id))
+       OR (c.tenant_id = v_new_tenant AND (c.missionary_id = v_new_profile OR c.ministry_assignment_id = v_new_id)))
+     AND c.ministry_assignment_id IS DISTINCT FROM private.assignment_for_profile(c.tenant_id, c.missionary_id);
+
+  UPDATE public.missionary_tasks AS c
+     SET ministry_assignment_id = private.assignment_for_profile(c.tenant_id, c.missionary_id)
+   WHERE ((c.tenant_id = v_old_tenant AND (c.missionary_id = v_old_profile OR c.ministry_assignment_id = v_old_id))
+       OR (c.tenant_id = v_new_tenant AND (c.missionary_id = v_new_profile OR c.ministry_assignment_id = v_new_id)))
+     AND c.ministry_assignment_id IS DISTINCT FROM private.assignment_for_profile(c.tenant_id, c.missionary_id);
+
+  RETURN NULL;
+END;
+$$;
+COMMENT ON FUNCTION private.rederive_ministry_assignment_children() IS
+  'AFTER ROW trigger of public.missionaries: takes the advisory lock (ministry_assignment_key, tenant:profile) for the row''s old and new tenant and profile, in ascending order of the key, which a write of their children also takes, then re-derives ministry_assignment_id on the children of the row''s old and new (tenant, profile) and of its old and new id in that tenant, where it differs (AL-2678; fix round F3 of pull request 2859).';
 
 COMMIT;
 
