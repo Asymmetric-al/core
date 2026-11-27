@@ -254,6 +254,29 @@ describe("buildMissionaryDonorRows", () => {
     });
   });
 
+  it("reads no preferred channel as none, and a stored one as itself (AL-2678 WP5 rest 2a, fix round F2; red: email)", () => {
+    const rows = buildMissionaryDonorRows({
+      missionaryId: MISSIONARY_PROFILE_ID,
+      donors: [
+        makeDonor({ id: "d-none", preferred_contact: null }),
+        makeDonor({ id: "d-text", preferred_contact: "text" }),
+        makeDonor({ id: "d-email", preferred_contact: "email" }),
+        makeDonor({ id: "d-odd", preferred_contact: "fax" }),
+      ],
+      activities: [],
+      pledges: [],
+    });
+
+    expect(
+      Object.fromEntries(rows.map((row) => [row.id, row.preferred_contact])),
+    ).toEqual({
+      "d-none": null,
+      "d-text": "text",
+      "d-email": "email",
+      "d-odd": null,
+    });
+  });
+
   it("normalizes lowercase failed activity status for the UI", () => {
     const donor = makeDonor({ missionary_id: MISSIONARY_PROFILE_ID });
     const activity = makeActivity({

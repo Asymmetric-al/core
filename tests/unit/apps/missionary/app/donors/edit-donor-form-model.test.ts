@@ -6,13 +6,13 @@ import {
 } from "../../../../../../apps/missionary/app/donors/edit-donor-form-model";
 
 describe("apps/missionary/app/donors/edit-donor-form-model", () => {
-  it("creates empty defaults when no donor is selected, with no e-mail (fix round F17 case 4: the edit has no e-mail field)", () => {
+  it("creates empty defaults when no donor is selected, with no e-mail and no preferred channel (fix round F17 case 4: the edit has no e-mail field; fix round F2 of 2859: no preference)", () => {
     expect(createInitialEditDonorFormValues()).toEqual({
       name: "",
       phone: "",
       mobile: "",
       work_phone: "",
-      preferred_contact: "email",
+      preferred_contact: null,
       type: "Individual",
       status: "Active",
       frequency: "Monthly",
@@ -81,5 +81,21 @@ describe("apps/missionary/app/donors/edit-donor-form-model", () => {
         createInitialEditDonorFormValues({ name: "Hand Added" }),
       ).success,
     ).toBe(true);
+  });
+
+  it("keeps a partner's missing preferred channel missing, and saves none when the edit does not touch it (fix round F2 of 2859; red: email)", () => {
+    const values = createInitialEditDonorFormValues({
+      name: "No Phone",
+      preferred_contact: null,
+    });
+    expect(values.preferred_contact).toBeNull();
+    const parsed = editDonorSchema.safeParse({ ...values, notes: "Met" });
+    expect(parsed.success && parsed.data.preferred_contact).toBeNull();
+    expect(
+      createInitialEditDonorFormValues({
+        name: "Phone",
+        preferred_contact: "phone",
+      }).preferred_contact,
+    ).toBe("phone");
   });
 });
