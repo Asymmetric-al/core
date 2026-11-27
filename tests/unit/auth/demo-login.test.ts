@@ -58,6 +58,9 @@ describe("auth/demo-login: next stays a same-app path", () => {
     "/missionary",
     "/missionary/profile",
     "/MISSIONARY/profile",
+    "/%61dmin/donors",
+    "/admin%2fdonors",
+    "/%6Dissionary/profile",
   ])("on, the donor app refuses %s, which another app serves", (next) => {
     onTheDonorApp();
     expect(safeNextParam(next)).toBeNull();
@@ -80,6 +83,8 @@ describe("auth/demo-login: next stays a same-app path", () => {
       vi.stubEnv("CORE_SERVE_UNDER_PATHS", value);
       vi.stubEnv("CORE_APP_BASE_PATH", "");
       expect(safeNextParam("/admin/donors")).toBe("/admin/donors");
+      expect(safeNextParam("/%61dmin/donors")).toBe("/%61dmin/donors");
+      expect(safeNextParam("/admin%2fdonors")).toBe("/admin%2fdonors");
     },
   );
 
