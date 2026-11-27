@@ -86,7 +86,7 @@ describe.skipIf(!ADMIN_URL)(
 
     async function unclaimedDonor(donor: Key, user: Key, tenant: Key = "TA") {
       await db.query(
-        "insert into public.donors (id, tenant_id, name, email) values ($1, $2, 'Claimable', $3)",
+        "insert into public.donors (id, tenant_id, party_id, name, email) values ($1, $2, public.donor_party_for_insert($2, null, 'Claimable', $3), 'Claimable', $3)",
         [id[donor], id[tenant], email(user)],
       );
     }
@@ -124,7 +124,7 @@ describe.skipIf(!ADMIN_URL)(
         [[id.UCL, id.UOT, id.UUN, id.ULK]],
       );
       await db.query(
-        `insert into public.donors (id, tenant_id, name, email) values ($1, $3, 'Claimable', $4), ($2, $3, 'Unconfirmed', $5)`,
+        `insert into public.donors (id, tenant_id, party_id, name, email) values ($1, $3, public.donor_party_for_insert($3, null, 'Claimable', $4), 'Claimable', $4), ($2, $3, public.donor_party_for_insert($3, null, 'Unconfirmed', $5), 'Unconfirmed', $5)`,
         [id.dCL, id.dUN, id.TA, email("UCL").toUpperCase(), email("UUN")],
       );
       await db.query("update public.donors set email = $2 where id = $1", [
@@ -847,7 +847,7 @@ describe.skipIf(!ADMIN_URL)(
         const user = await newUser(admin, mail);
         const donor = randomUUID();
         await admin.query(
-          "insert into public.donors (id, tenant_id, name, email) values ($1, $2, 'Race', $3)",
+          "insert into public.donors (id, tenant_id, party_id, name, email) values ($1, $2, public.donor_party_for_insert($2, null, 'Race', $3), 'Race', $3)",
           [donor, tenant, mail],
         );
         const t = await claimFor(admin, tenant, user, donor, mail);
@@ -880,7 +880,7 @@ describe.skipIf(!ADMIN_URL)(
         );
         const donor = randomUUID();
         await admin.query(
-          "insert into public.donors (id, tenant_id, name, email) values ($1, $2, 'Race', $3)",
+          "insert into public.donors (id, tenant_id, party_id, name, email) values ($1, $2, public.donor_party_for_insert($2, null, 'Race', $3), 'Race', $3)",
           [donor, tenant, mail],
         );
         const t1 = await claimFor(admin, tenant, one, donor, mail);
@@ -914,7 +914,7 @@ describe.skipIf(!ADMIN_URL)(
         const donors = [randomUUID(), randomUUID()];
         for (const i of [0, 1])
           await admin.query(
-            "insert into public.donors (id, tenant_id, name, email) values ($1, $2, 'Race', $3)",
+            "insert into public.donors (id, tenant_id, party_id, name, email) values ($1, $2, public.donor_party_for_insert($2, null, 'Race', $3), 'Race', $3)",
             [donors[i], tenant, mails[i]],
           );
         const t1 = await claimFor(admin, tenant, user, donors[0]!, mails[0]!);
@@ -963,7 +963,7 @@ describe.skipIf(!ADMIN_URL)(
           user,
         ]);
         await admin.query(
-          "insert into public.donors (id, tenant_id, name, email) values ($1, $2, 'Start race', $3)",
+          "insert into public.donors (id, tenant_id, party_id, name, email) values ($1, $2, public.donor_party_for_insert($2, null, 'Start race', $3), 'Start race', $3)",
           [donor, tenant, mail],
         );
         const party = (

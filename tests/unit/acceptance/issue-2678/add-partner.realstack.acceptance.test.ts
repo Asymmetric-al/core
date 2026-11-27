@@ -341,7 +341,7 @@ describe.skipIf(!ADMIN_URL)(
           existing.push(
             (
               await db.query(
-                "insert into public.donors (tenant_id, name, phone, email, missionary_id, giving_preferences) values ($1, 'Partner Pat', '+1 555 0100', $2, $3, $4::jsonb) returning id",
+                "insert into public.donors (tenant_id, party_id, name, phone, email, missionary_id, giving_preferences) values ($1, public.donor_party_for_insert($1, null, 'Partner Pat', $2), 'Partner Pat', '+1 555 0100', $2, $3, $4::jsonb) returning id",
                 [id.TA, email, missionary, preferences],
               )
             ).rows[0].id,
@@ -617,7 +617,7 @@ describe.skipIf(!ADMIN_URL)(
         );
         const other = (
           await db.query(
-            "insert into public.donors (tenant_id, name, phone) values ($1, 'Staff made', '+1 555 0103') returning id",
+            "insert into public.donors (tenant_id, party_id, name, phone) values ($1, public.donor_party_for_insert($1, null, 'Staff made', null), 'Staff made', '+1 555 0103') returning id",
             [id.TA],
           )
         ).rows[0].id as string;

@@ -41,7 +41,7 @@ describe.skipIf(!ADMIN_URL)(
       await db.query("INSERT INTO auth.users (id) VALUES ($1)", [user]);
       return (
         await db.query(
-          "INSERT INTO public.donors (tenant_id, profile_id) VALUES ($1, $2) RETURNING id",
+          "INSERT INTO public.donors (tenant_id, party_id, profile_id) VALUES ($1, public.donor_party_for_insert($1, $2, null, null), $2) RETURNING id",
           [side.tenant, user],
         )
       ).rows[0].id as string;

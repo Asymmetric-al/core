@@ -59,7 +59,7 @@ describe.skipIf(!ADMIN_URL)("#2252 donor spine composite FKs (R)", () => {
         [TA, TB],
       );
       await db.query(
-        `insert into public.donors (id, tenant_id, email) values ($1, $2, 'acc2252-a@example.test'), ($3, $4, 'acc2252-b@example.test')`,
+        `insert into public.donors (id, tenant_id, party_id, email) values ($1, $2, public.donor_party_for_insert($2, null, null, 'acc2252-a@example.test'), 'acc2252-a@example.test'), ($3, $4, public.donor_party_for_insert($4, null, null, 'acc2252-b@example.test'), 'acc2252-b@example.test') -- D-18, AL-2678 WP5 rest 2a. each fixture donor names its Party through the Party writer, as every donor writer must before party_id becomes NOT NULL (r5b)`,
         [DA, TA, DB, TB],
       );
       await db.query(

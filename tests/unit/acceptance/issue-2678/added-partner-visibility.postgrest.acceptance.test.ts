@@ -355,7 +355,7 @@ describe.skipIf(!required && ![url, database, anon, service].some(Boolean))(
       expect(added.donorId).not.toBe("");
       const held = `wp5rest-held-${TA}@example.test`;
       await db.query(
-        "insert into public.donors (tenant_id, name, email) values ($1, 'Held address', $2)",
+        "insert into public.donors (tenant_id, party_id, name, email) values ($1, public.donor_party_for_insert($1, null, 'Held address', $2), 'Held address', $2)",
         [TA, held],
       );
       const before = await rowOf(added.donorId);

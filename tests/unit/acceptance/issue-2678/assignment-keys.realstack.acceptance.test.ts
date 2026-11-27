@@ -80,7 +80,7 @@ describe.skipIf(!ADMIN_URL)(
 
     const INSERT: Record<Table, string> = {
       donors:
-        "insert into public.donors (id, tenant_id, missionary_id, name) values ($1, $2, $3, 'acc2678r3')",
+        "insert into public.donors (id, tenant_id, party_id, missionary_id, name) values ($1, $2, case when $2::uuid is null then null else public.donor_party_for_insert($2::uuid, null, 'acc2678r3', null) end, $3, 'acc2678r3')",
       posts:
         "insert into public.posts (id, tenant_id, missionary_id, content) values ($1, $2, $3, 'acc2678r3')",
       follows:
@@ -180,7 +180,7 @@ describe.skipIf(!ADMIN_URL)(
 
     const INSERT_WITH_KEY: Record<Table, string> = {
       donors:
-        "insert into public.donors (id, tenant_id, missionary_id, ministry_assignment_id, name) values ($1, $2, $3, $4, 'acc2678r3')",
+        "insert into public.donors (id, tenant_id, party_id, missionary_id, ministry_assignment_id, name) values ($1, $2, case when $2::uuid is null then null else public.donor_party_for_insert($2::uuid, null, 'acc2678r3', null) end, $3, $4, 'acc2678r3')",
       posts:
         "insert into public.posts (id, tenant_id, missionary_id, ministry_assignment_id, content) values ($1, $2, $3, $4, 'acc2678r3')",
       follows:

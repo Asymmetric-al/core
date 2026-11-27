@@ -113,7 +113,7 @@ describe.skipIf(!configured)(
             [org.missionary, org.tenant, person],
           );
           await db.query(
-            "insert into public.donors(id,tenant_id,missionary_id,name,giving_preferences) values($1,$2,$3,$4,$5)",
+            "insert into public.donors(id,tenant_id,party_id,missionary_id,name,giving_preferences) values($1,$2,public.donor_party_for_insert($2,null,$4,null),$3,$4,$5)",
             [
               org.donor,
               org.tenant,
