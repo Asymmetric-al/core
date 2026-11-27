@@ -7,6 +7,7 @@ import {
   isCloudinaryEnabled,
 } from "@asym/lib/cloudinary-client";
 import {
+  MAX_FUNCTION_IMAGE_BYTES,
   validateImageFile,
   loadImageAsDataUrl,
   validateImageLoads,
@@ -300,7 +301,7 @@ export function ImageUpload({
       setSelectedImage(previewUrl);
       setIsCropperOpen(true);
 
-      if (file.size > 5 * 1024 * 1024) {
+      if (file.size > MAX_FUNCTION_IMAGE_BYTES) {
         toast.info(
           `Large file (${formatFileSize(file.size)}) will be optimized on upload`,
         );
