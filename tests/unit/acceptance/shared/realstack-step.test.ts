@@ -407,10 +407,13 @@ const REAL_DATABASE_FILES = [
     "issue-2681/wp8a-rest1-review.realstack",
     "issue-2681/wp8a-rest1-sessions.realstack",
     "issue-2681/wp8a-rest1-unpaid.realstack",
+    "issue-2681/wp8a-rest2a-admission.realstack",
     "issue-2681/wp8a-rest2a-guest.realstack",
     "issue-2681/wp8a-rest2a-intake.realstack",
     "issue-2681/wp8a-rest2a-integrated.realstack",
     "issue-2681/wp8a-rest2a-item-zero.realstack",
+    "issue-2681/wp8a-rest2a-schedule.realstack",
+    "issue-2681/wp8a-rest2a-sessions.realstack",
     "issue-2681/wp8a-rest2a-tenant-gate.realstack",
   ].map((f) => `${A}/${f}.acceptance.test.ts`),
   // #2714: the release job's database suites and Payload's CMS roles.

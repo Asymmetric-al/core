@@ -7,7 +7,6 @@ import {
   ADMIN_URL,
   IN_MIGRATE_JOB,
   admitHosts,
-  ageIntake,
   begin,
   begun,
   claim,
@@ -15,7 +14,6 @@ import {
   configFor,
   digest,
   dualHost,
-  expireLease,
   feeFund,
   inTx,
   missionary,
@@ -26,6 +24,7 @@ import {
   readyOnlyHost,
   report,
   role,
+  secondEntityBinding,
   seedTwoTenants,
   storeEvent,
   work,
@@ -532,6 +531,75 @@ describe.skipIf(!ADMIN_URL)(
         expect(after).toEqual(before);
       }));
 
+    it("T1: an event on the organization's second account, or in live mode on its first, naming the first entity's payment, request and intake is unmatched, and the intake stays as it was", () =>
+      inTx(db, async () => {
+        const w = await world();
+        const second = await secondEntityBinding(db, w.A);
+        const r = begun(
+          await begin(db, {
+            host: w.hostsA.site,
+            lines: [{ fund: w.A.fund, amount: 3000 }],
+          }),
+        );
+        const pi = paymentIntent();
+        const claimed = await claim(db, r.operation_id);
+        await report(db, r.operation_id, claimed.attempt as number, {
+          result: "succeeded",
+          provider_object_id: pi,
+        });
+        const metadata = {
+          asym_operation: r.operation_id,
+          asym_intake: r.donation_id,
+        };
+        const moneyOnly = async () => {
+          const { tasks: _tasks, ...money } = await moneyRows(db, w.A.tenant);
+          return digest(money);
+        };
+        const before = await moneyOnly();
+        const onSecond = await storeEvent(
+          db,
+          { ...w.A, account: second.account },
+          { pi, amount: 3000, metadata },
+        );
+        expect(await work(db, onSecond.id)).toMatchObject({
+          outcome: "unmatched",
+        });
+        await role(db, null);
+        const live = randomUUID();
+        await db.query(
+          `INSERT INTO public.payment_onboarding_intents
+             (id, tenant_id, legal_entity_id, livemode, version, status, reason, created_by, assignment_id,
+              provider_account_id, confirmed_at, confirmed_by_event)
+           VALUES ($1, $2, $3, true, 1, 'confirmed', 'Live twin', gen_random_uuid(), gen_random_uuid(), $4, now(), 'evt_rest2a_live')`,
+          [live, w.A.tenant, w.A.entity, w.A.account],
+        );
+        await db.query(
+          `INSERT INTO public.payment_provider_accounts
+             (tenant_id, legal_entity_id, provider_account_id, livemode, onboarding_intent_id, confirmed_at)
+           VALUES ($1, $2, $3, true, $4, now())`,
+          [w.A.tenant, w.A.entity, w.A.account, live],
+        );
+        const inLive = await storeEvent(db, w.A, {
+          pi,
+          amount: 3000,
+          metadata,
+          livemode: true,
+        });
+        expect(await work(db, inLive.id)).toMatchObject({
+          outcome: "unmatched",
+        });
+        expect(await moneyOnly()).toBe(before);
+        await role(db, null);
+        expect(
+          (
+            await db.query(
+              "SELECT status, stripe_payment_intent_id FROM public.donations WHERE id = $1",
+              [r.donation_id],
+            )
+          ).rows[0],
+        ).toEqual({ status: "pending", stripe_payment_intent_id: pi });
+      }));
+
     describe("connected refunds and disputes are deferred to WP8c (ruling 2)", () => {
       it("a refund and a dispute of one paid gift are stored deferred, with one task for the gift and no money row changed", () =>
         inTx(db, async () => {
@@ -666,279 +734,80 @@ describe.skipIf(!ADMIN_URL)(
             refusal: "55000 event_not_claimed",
           });
         }));
-    });
 
-    describe("the reconciliation reads each mapped account (record 1012, issue 2776)", () => {
-      async function reconcile(
-        accountRow: string,
-        snapshot: Record<string, unknown>,
-      ) {
-        await role(db, "service_role");
-        await db.query("SAVEPOINT rest2a_reconcile");
-        try {
-          const r = (
-            await db.query(
-              "SELECT public.reconcile_payment_account($1, $2::jsonb) AS r",
-              [accountRow, JSON.stringify(snapshot)],
-            )
-          ).rows[0].r as Outcome;
-          await db.query("RELEASE SAVEPOINT rest2a_reconcile");
-          return r;
-        } catch (e) {
-          await db.query("ROLLBACK TO SAVEPOINT rest2a_reconcile");
-          const err = e as { code?: string; message?: string };
-          return { refusal: `${err.code} ${err.message}` } as Outcome;
-        } finally {
-          await role(db, null);
-        }
-      }
-
-      it("a reading that agrees changes nothing; one that disagrees opens one drift task and never moves the binding", () =>
+      it("F2: a worker whose event lease ran out, or whose account's lease names another event, is refused 55000 lease_lost and writes nothing", () =>
         inTx(db, async () => {
           const w = await world();
-          await role(db, null);
-          const accountRow = (
-            await db.query(
-              "SELECT id FROM public.payment_provider_accounts WHERE tenant_id = $1",
-              [w.A.tenant],
-            )
-          ).rows[0].id as string;
-          const reading = {
-            id: w.A.account,
-            livemode: false,
-            closed: false,
-            card_payments_status: "active",
+          const gift = await paidGift(w);
+          const refund = await storeEvent(db, w.A, {
+            type: "charge.refunded",
+            payload: (e) => ({
+              ...e,
+              data: {
+                object: {
+                  id: `ch_${randomUUID().replaceAll("-", "").slice(0, 20)}`,
+                  object: "charge",
+                  amount: 4000,
+                  amount_refunded: 4000,
+                  currency: "usd",
+                  payment_intent: gift.pi,
+                  livemode: false,
+                },
+              },
+            }),
+          });
+          const other = await storeEvent(db, w.A, { pi: paymentIntent() });
+          const claimed = await claimEvent(db, refund.id);
+          const asOwner = async (sql: string, params: unknown[]) => {
+            await role(db, null);
+            await db.query("SAVEPOINT rest2a_lease");
+            await db.query("SET LOCAL session_replication_role = replica");
+            await db.query(sql, params);
+            await db.query("SET LOCAL session_replication_role = origin");
+            await db.query("RELEASE SAVEPOINT rest2a_lease");
           };
-          expect(await reconcile(accountRow, reading)).toMatchObject({
-            outcome: "in_line",
-            binding_status: "active",
-          });
-          const closed = await reconcile(accountRow, {
-            ...reading,
-            closed: true,
-          });
-          expect(closed).toMatchObject({
-            outcome: "drift_flagged",
-            observed: "disconnected",
-            binding_status: "active",
-          });
-          expect(
-            await reconcile(accountRow, {
-              ...reading,
-              card_payments_status: "inactive",
-            }),
-          ).toMatchObject({
-            outcome: "already_flagged",
-            task_id: closed.task_id,
-          });
-          await role(db, null);
-          const binding = (
-            await db.query(
-              "SELECT status FROM public.payment_account_bindings WHERE id = $1",
-              [w.A.binding],
-            )
-          ).rows[0].status;
-          expect(binding).toBe("active");
-          const tasks = (
-            await db.query(
-              `SELECT t.id, array(SELECT l.record_type || ':' || l.record_id FROM public.mission_control_task_links AS l
-                                   WHERE l.task_id = t.id) AS links
-                 FROM public.mission_control_tasks AS t
-                WHERE t.tenant_id = $1 AND t.issue_type = 'payment_account_drift'`,
-              [w.A.tenant],
-            )
-          ).rows;
-          expect(tasks).toEqual([
-            {
-              id: closed.task_id,
-              links: [`payment_account_binding:${w.A.binding}`],
-            },
-          ]);
-        }));
-
-      it("a reading of another account or mode is refused; only service_role calls it", () =>
-        inTx(db, async () => {
-          const w = await world();
-          await role(db, null);
-          const accountRow = (
-            await db.query(
-              "SELECT id FROM public.payment_provider_accounts WHERE tenant_id = $1",
-              [w.A.tenant],
-            )
-          ).rows[0].id as string;
-          expect(
-            await reconcile(accountRow, {
-              id: w.B.account,
-              livemode: false,
-              closed: true,
-            }),
-          ).toEqual({
-            refusal: "22023 snapshot_mismatch",
-          });
-          expect(
-            await reconcile(accountRow, {
-              id: w.A.account,
-              livemode: true,
-              closed: true,
-            }),
-          ).toEqual({
-            refusal: "22023 snapshot_mismatch",
-          });
-          await role(db, null);
-          const rows = (
-            await db.query(
-              `SELECT r, has_function_privilege(r, 'public.reconcile_payment_account(uuid,jsonb)', 'EXECUTE') AS can
-                 FROM unnest(ARRAY['anon', 'authenticated', 'service_role']) AS r ORDER BY r`,
-            )
-          ).rows;
-          expect(rows.map((r) => r.can)).toEqual([false, false, true]);
-        }));
-    });
-
-    describe("the due work the schedule reads (one function, nothing to do leaves at once)", () => {
-      async function due() {
-        await role(db, "service_role");
-        const rows = (
-          await db.query(
-            "SELECT kind, id, detail FROM public.money_due_work(50) ORDER BY kind, id",
-          )
-        ).rows as Array<{ kind: string; id: string; detail: string | null }>;
-        await role(db, null);
-        return rows;
-      }
-
-      async function backdate(table: string, column: string, id: string) {
-        await role(db, null);
-        await db.query("SAVEPOINT rest2a_backdate");
-        await db.query("SET LOCAL session_replication_role = replica");
-        await db.query(
-          `UPDATE public.${table} SET ${column} = clock_timestamp() - interval '3 minutes' WHERE id = $1`,
-          [id],
-        );
-        await db.query("SET LOCAL session_replication_role = origin");
-        await db.query("RELEASE SAVEPOINT rest2a_backdate");
-      }
-
-      async function storeAccountEvent(side: {
-        tenant: string;
-        account: string;
-      }) {
-        await role(db, null);
-        return (
-          await db.query(
-            `INSERT INTO public.stripe_connect_events
-               (tenant_id, stripe_event_id, event_type, livemode, provider_account_id, event_created_at, payload_sha256, raw_payload)
-             VALUES ($1, $2, 'v2.core.account.updated', false, $3, now(), repeat('a', 64), '{}'::jsonb)
-             RETURNING id`,
-            [
-              side.tenant,
-              `evt_${randomUUID().replaceAll("-", "")}`,
-              side.account,
-            ],
-          )
-        ).rows[0].id as string;
-      }
-
-      it("names a request due again, a request whose lease ran out, an intake unpaid for seven days, events no one finished and each mapped account; nothing the route is still doing", () =>
-        inTx(db, async () => {
-          const w = await world();
-          const gift = async (amount: number) =>
-            begun(
-              await begin(db, {
-                host: w.hostsA.site,
-                lines: [{ fund: w.A.fund, amount }],
-              }),
-            );
-          const fresh = await gift(1000);
-          const queued = await gift(1100);
-          await backdate(
-            "donation_saga_outbox",
-            "next_attempt_at",
-            queued.operation_id,
+          const state = async () =>
+            (
+              await db.query(
+                `SELECT e.processing_status,
+                        (SELECT count(*)::int FROM public.mission_control_tasks AS t
+                          WHERE t.tenant_id = e.tenant_id AND t.issue_type = 'payment_event_deferred') AS tasks
+                   FROM public.stripe_connect_events AS e WHERE e.id = $1`,
+                [refund.id],
+              )
+            ).rows[0];
+          await asOwner(
+            "UPDATE public.stripe_connect_events SET lease_expires_at = clock_timestamp() - interval '1 second' WHERE id = $1",
+            [refund.id],
           );
-          const leased = await gift(1200);
-          await claim(db, leased.operation_id);
-          await expireLease(db, leased.operation_id);
-          const old = await gift(1300);
-          await ageIntake(db, old.donation_id, 8);
-          const justStored = await storeEvent(db, w.A, { pi: paymentIntent() });
-          const stale = await storeEvent(db, w.A, { pi: paymentIntent() });
-          await backdate("stripe_connect_events", "received_at", stale.id);
-          const accountEvent = await storeAccountEvent(w.A);
-          await backdate("stripe_connect_events", "received_at", accountEvent);
+          expect(await defer(refund.id, claimed.attempt as number)).toEqual({
+            ok: false,
+            refusal: "55000 lease_lost",
+          });
           await role(db, null);
-          const mapped = (
-            await db.query(
-              "SELECT id FROM public.payment_provider_accounts WHERE tenant_id = $1",
-              [w.A.tenant],
-            )
-          ).rows[0].id as string;
-          const watched = [
-            fresh.operation_id,
-            queued.operation_id,
-            leased.operation_id,
-            old.operation_id,
-            old.donation_id,
-            fresh.donation_id,
-            justStored.id,
-            stale.id,
-            accountEvent,
-            mapped,
-          ];
-          const mine = (await due()).filter((r) => watched.includes(r.id));
-          const expected = [
-            { kind: "account", id: mapped, detail: w.A.account },
-            {
-              kind: "account_event",
-              id: accountEvent,
-              detail: `v2.core.account.updated|${w.A.account}`,
-            },
-            {
-              kind: "operation",
-              id: queued.operation_id,
-              detail: "create_payment",
-            },
-            {
-              kind: "operation",
-              id: leased.operation_id,
-              detail: "create_payment",
-            },
-            {
-              kind: "payment_event",
-              id: stale.id,
-              detail: "payment_intent.succeeded",
-            },
-            { kind: "unpaid", id: old.donation_id, detail: null },
-          ];
-          const order = (r: { kind: string; id: string }) =>
-            `${r.kind}/${r.id}`;
-          expect(mine.sort((a, b) => order(a).localeCompare(order(b)))).toEqual(
-            expected.sort((a, b) => order(a).localeCompare(order(b))),
+          expect(await state()).toEqual({
+            processing_status: "processing",
+            tasks: 0,
+          });
+          await asOwner(
+            "UPDATE public.stripe_connect_events SET lease_expires_at = clock_timestamp() + interval '5 minutes' WHERE id = $1",
+            [refund.id],
           );
+          await asOwner(
+            `UPDATE public.payment_provider_accounts
+                SET sync_lease_event_id = $3, sync_lease_expires_at = clock_timestamp() + interval '5 minutes'
+              WHERE tenant_id = $1 AND provider_account_id = $2 AND livemode = false`,
+            [w.A.tenant, w.A.account, other.id],
+          );
+          expect(await defer(refund.id, claimed.attempt as number)).toEqual({
+            ok: false,
+            refusal: "55000 lease_lost",
+          });
           await role(db, null);
-          await db.query(
-            "UPDATE public.stripe_connect_events SET processing_status = 'failed', next_attempt_at = now() + interval '1 hour', failed_at = now(), process_attempts = 1 WHERE id = $1",
-            [stale.id],
-          );
-          await db.query(
-            "UPDATE public.payment_account_bindings SET status = 'disconnected', disconnected_at = now() WHERE id = $1",
-            [w.A.binding],
-          );
-          const after = (await due()).map((r) => r.id);
-          expect(after).not.toContain(stale.id);
-          expect(after).not.toContain(mapped);
-        }));
-
-      it("only service_role reads it", () =>
-        inTx(db, async () => {
-          await role(db, null);
-          const rows = (
-            await db.query(
-              `SELECT r, has_function_privilege(r, 'public.money_due_work(integer)', 'EXECUTE') AS can
-                 FROM unnest(ARRAY['anon', 'authenticated', 'service_role']) AS r ORDER BY r`,
-            )
-          ).rows;
-          expect(rows.map((r) => r.can)).toEqual([false, false, true]);
+          expect(await state()).toEqual({
+            processing_status: "processing",
+            tasks: 0,
+          });
         }));
     });
   },

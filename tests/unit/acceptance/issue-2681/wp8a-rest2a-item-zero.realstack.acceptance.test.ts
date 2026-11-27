@@ -301,11 +301,12 @@ describe.skipIf(!ADMIN_URL)(
         }[];
         expect(flags).toHaveLength(4);
         for (const flag of flags)
-          expect([flag.field_key, flag.surface, flag.visible]).toEqual([
+          expect([
             flag.field_key,
             flag.surface,
+            flag.visible,
             flag.granted,
-          ]);
+          ]).toEqual([flag.field_key, flag.surface, true, true]);
         expect(
           (
             await db.query(

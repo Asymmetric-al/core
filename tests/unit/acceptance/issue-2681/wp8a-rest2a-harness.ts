@@ -2,8 +2,10 @@ import { randomUUID } from "node:crypto";
 
 import {
   attempt,
+  feeFund,
   removeTwoTenants,
   role,
+  seedTwoTenants,
   uniqueEmail,
   type Attempt,
   type Fixture,
@@ -66,6 +68,62 @@ export const verifiedActor = (email = uniqueEmail("signed")) => ({
   email_confirmed: true,
 });
 
+export async function rest2aWorld(db: pg.Client) {
+  const fx = await seedTwoTenants(db);
+  const hostsA = await admitHosts(db, fx.A);
+  const hostsB = await admitHosts(db, fx.B);
+  const feeA = await feeFund(db, fx.A);
+  await feeFund(db, fx.B);
+  return { fx, A: fx.A, B: fx.B, hostsA, hostsB, feeA };
+}
+
+export async function intakeOf(db: pg.Client, donationId: string) {
+  await role(db, null);
+  return (
+    await db.query(
+      `SELECT intake_format, status, amount::int, currency, donor_id, site_id, entry_surface,
+              source_code_id, unlisted_source_code, is_anonymous, payment_method,
+              payment_account_binding_id, provider_account_ref, livemode, legal_entity_id
+         FROM public.donations WHERE id = $1`,
+      [donationId],
+    )
+  ).rows[0] as Record<string, unknown>;
+}
+
+export async function intakeLinesOf(db: pg.Client, donationId: string) {
+  await role(db, null);
+  return (
+    await db.query(
+      `SELECT line_number, fund_id, missionary_id, is_fee_cover, amount::int
+         FROM public.donation_intake_lines WHERE donation_id = $1 ORDER BY line_number`,
+      [donationId],
+    )
+  ).rows as Record<string, unknown>[];
+}
+
+export async function intakeContactOf(db: pg.Client, donationId: string) {
+  await role(db, null);
+  return (
+    await db.query(
+      `SELECT email, first_name, last_name, actor_user_id, actor_email, actor_email_confirmed
+         FROM public.donation_intake_contacts WHERE donation_id = $1`,
+      [donationId],
+    )
+  ).rows[0] as Record<string, unknown>;
+}
+
+export async function intakeRequestsOf(db: pg.Client, donationId: string) {
+  await role(db, null);
+  return (
+    await db.query(
+      `SELECT id, kind, request_kind, status, amount::int, donor_id, missionary_id, fund_id,
+              provider_account_ref, livemode, request_params, idempotency_key
+         FROM public.donation_saga_outbox WHERE donation_id = $1`,
+      [donationId],
+    )
+  ).rows as Record<string, unknown>[];
+}
+
 export async function readyOnlyHost(db: pg.Client, side: Side) {
   await role(db, null);
   const siteId = (
@@ -115,11 +173,11 @@ export function beginArgs(r: GiftRequest) {
     r.surface ?? "website",
     r.key ?? randomUUID(),
     JSON.stringify(
-      r.lines.map((l) =>
-        l.missionary
-          ? { missionary_id: l.missionary, amount: l.amount }
-          : { fund_id: l.fund, amount: l.amount },
-      ),
+      r.lines.map((l) => ({
+        ...(l.fund === undefined ? {} : { fund_id: l.fund }),
+        ...(l.missionary === undefined ? {} : { missionary_id: l.missionary }),
+        amount: l.amount,
+      })),
     ),
     r.fee ?? 0,
     r.method === undefined ? "card" : r.method,
@@ -184,11 +242,12 @@ export async function configFor(
         [
           host,
           JSON.stringify(
-            targets.map((t) =>
-              t.missionary
-                ? { missionary_id: t.missionary }
-                : { fund_id: t.fund },
-            ),
+            targets.map((t) => ({
+              ...(t.fund === undefined ? {} : { fund_id: t.fund }),
+              ...(t.missionary === undefined
+                ? {}
+                : { missionary_id: t.missionary }),
+            })),
           ),
         ],
       )

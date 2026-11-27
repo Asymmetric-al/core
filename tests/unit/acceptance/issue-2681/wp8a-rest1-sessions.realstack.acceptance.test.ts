@@ -799,11 +799,12 @@ describe.skipIf(!ADMIN_URL)(
         await prober.query("BEGIN");
         const probe = await prober
           .query(
-            "SELECT 1 FROM public.donations WHERE id = $1 FOR NO KEY UPDATE NOWAIT",
+            "SELECT id FROM public.donations WHERE id = $1 FOR UPDATE NOWAIT",
             [intake.donationId],
           )
           .then(
-            () => "free",
+            (res) =>
+              res.rows[0]?.id === intake.donationId ? "free" : "no row",
             (error: { code?: string }) => error.code,
           );
         await prober.query("ROLLBACK");

@@ -31,7 +31,12 @@ import {
   type GiftRequest,
   type Side,
 } from "./wp8a-rest2a-harness";
-import { runProviderOperation } from "../../../../packages/api/src/donate/provider-operations/run";
+import {
+  runProviderOperation,
+  type ProviderOperationRpc,
+  type ProviderOperationRpcArgs,
+  type ProviderOperationRpcName,
+} from "../../../../packages/api/src/donate/provider-operations/run";
 import { createStripePaymentAdapter } from "../../../../packages/api/src/donate/provider-operations/stripe-adapter";
 import {
   createStripeProviderFake,
@@ -45,22 +50,9 @@ function autocommitWorker(
   operationId: string,
   fake: StripeProviderFake,
 ) {
-  const rpc = async (fn: string, args: Record<string, unknown>) => {
+  const call = async (sql: string, params: unknown[]) => {
     try {
-      const res =
-        fn === "claim_provider_operation"
-          ? await client.query(
-              "SELECT public.claim_provider_operation($1::uuid, $2::integer) AS r",
-              [args.p_operation_id, args.p_lease_seconds],
-            )
-          : await client.query(
-              "SELECT public.record_provider_operation_result($1::uuid, $2::integer, $3::jsonb) AS r",
-              [
-                args.p_operation_id,
-                args.p_attempt,
-                JSON.stringify(args.p_result),
-              ],
-            );
+      const res = await client.query(sql, params);
       return { data: res.rows[0].r as unknown, error: null };
     } catch (e) {
       const err = e as { code?: string; message?: string };
@@ -70,8 +62,29 @@ function autocommitWorker(
       };
     }
   };
+  const rpc: ProviderOperationRpc = (
+    fn: ProviderOperationRpcName,
+    args:
+      | ProviderOperationRpcArgs["claim_provider_operation"]
+      | ProviderOperationRpcArgs["record_provider_operation_result"],
+  ) =>
+    fn === "claim_provider_operation" && "p_lease_seconds" in args
+      ? call(
+          "SELECT public.claim_provider_operation($1::uuid, $2::integer) AS r",
+          [args.p_operation_id, args.p_lease_seconds],
+        )
+      : fn === "record_provider_operation_result" && "p_result" in args
+        ? call(
+            "SELECT public.record_provider_operation_result($1::uuid, $2::integer, $3::jsonb) AS r",
+            [
+              args.p_operation_id,
+              args.p_attempt,
+              JSON.stringify(args.p_result),
+            ],
+          )
+        : Promise.reject(new Error(`unexpected RPC ${fn}`));
   return runProviderOperation({
-    rpc: rpc as never,
+    rpc,
     adapter: createStripePaymentAdapter({
       secretKey: "sk_test_provider_fake",
       transport: fake.transport,
@@ -224,9 +237,22 @@ describe.skipIf(!ADMIN_URL)(
         });
         const firstClaim = await claimEvent(db, event.id);
         expect(firstClaim.outcome).toBe("claimed");
+        const stagedCount = async () => {
+          await role(db, null);
+          return (
+            await db.query(
+              "SELECT count(*)::int AS n FROM public.staged_gifts WHERE donation_id = $1",
+              [first.donation_id],
+            )
+          ).rows[0].n as number;
+        };
         await db.query("SAVEPOINT gate_apply");
-        await apply(db, event.id, firstClaim.attempt as number);
+        expect(
+          await apply(db, event.id, firstClaim.attempt as number),
+        ).toMatchObject({ outcome: "applied" });
+        expect(await stagedCount()).toBe(1);
         await db.query("ROLLBACK TO SAVEPOINT gate_apply");
+        expect(await stagedCount()).toBe(0);
         await expireEventLease(event.id);
         expect((await work(db, event.id)).outcome).toBe("applied");
 
@@ -305,10 +331,16 @@ describe.skipIf(!ADMIN_URL)(
       it("two workers on one request: one claims and sends, the other sends nothing; two sessions claiming one event: one claims", async () => {
         const s1 = new pg.Client({ connectionString: ADMIN_URL });
         const s2 = new pg.Client({ connectionString: ADMIN_URL });
-        await s1.connect();
-        await s2.connect();
+        const opened: pg.Client[] = [];
         let fx: Fixture | undefined;
+        let fake: StripeProviderFake | undefined;
+        let firstWorker: Promise<unknown> | undefined;
         try {
+          await s1.connect();
+          opened.push(s1);
+          await s2.connect();
+          opened.push(s2);
+          for (const s of opened) await s.query("SET ROLE service_role");
           fx = await seedTwoTenants(db);
           const hosts = await admitHosts(db, fx.A);
           await db.query("BEGIN");
@@ -321,14 +353,25 @@ describe.skipIf(!ADMIN_URL)(
             }),
           );
           await db.query("COMMIT");
-          const fake = createStripeProviderFake();
+          fake = createStripeProviderFake();
           fake.script(hold());
-          const firstWorker = autocommitWorker(s1, r.operation_id, fake);
-          await fake.held(1);
+          const running = autocommitWorker(s1, r.operation_id, fake);
+          firstWorker = running;
+          expect(
+            await Promise.race([
+              fake.held(1).then(() => "held"),
+              running.then(() => "returned before sending"),
+            ]),
+          ).toBe("held");
           const secondWorker = await autocommitWorker(s2, r.operation_id, fake);
           expect(secondWorker.sent).toBe(false);
+          expect(secondWorker.claim.error).toBeNull();
+          expect(secondWorker.claim.data).not.toMatchObject({
+            outcome: "claimed",
+          });
           fake.release();
-          expect((await firstWorker).answer).toMatchObject({
+          const done = await running;
+          expect("answer" in done && done.answer).toMatchObject({
             result: "succeeded",
           });
           expect(fake.objects()).toHaveLength(1);
@@ -373,8 +416,10 @@ describe.skipIf(!ADMIN_URL)(
             ).rows[0].n,
           ).toBe(1);
         } finally {
-          await s1.end();
-          await s2.end();
+          fake?.release();
+          await firstWorker?.catch(() => undefined);
+          for (const s of opened) await s.end().catch(() => undefined);
+          await db.query("ROLLBACK").catch(() => undefined);
           if (fx) await removeRest2aTenants(db, fx);
         }
       });
