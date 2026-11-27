@@ -47,6 +47,7 @@ import { GIFT_TYPE_LABELS, type Transaction } from "./types";
 import type { MonthlyGivingPoint } from "./monthly-giving-chart";
 
 import { makeDisplayDate } from "@/lib/dates";
+import { isSettledGift } from "@/lib/gift-status";
 
 // Recharts loads only when the summary chart is on screen.
 const MonthlyGivingChart = dynamic(() => import("./monthly-giving-chart"), {
@@ -140,7 +141,7 @@ export function monthlyGivingSeries(
 ): MonthlyGivingPoint[] {
   const totalsCents = Array.from({ length: 12 }, () => 0);
   for (const transaction of transactions) {
-    if (transaction.status !== "Paid") continue;
+    if (!isSettledGift(transaction.status)) continue;
     const date = makeDisplayDate(transaction.date);
     if (Number.isNaN(date.getTime())) continue;
     if (date.getFullYear().toString() !== year) continue;
@@ -170,7 +171,7 @@ export function yearSummary(
   year: string,
   currentYear: string,
 ): string {
-  const paid = transactions.filter((t) => t.status === "Paid");
+  const paid = transactions.filter((t) => isSettledGift(t.status));
   const isCurrent = year === currentYear;
   if (paid.length === 0) {
     return isCurrent
@@ -278,7 +279,7 @@ function YearSummaryCard({
   transactions: Transaction[];
 }) {
   const paidTotal = transactions
-    .filter((t) => t.status === "Paid")
+    .filter((t) => isSettledGift(t.status))
     .reduce((sum, t) => sum + t.amount, 0);
   const note = unsettledNote(transactions);
   const hasPaid = paidTotal > 0;

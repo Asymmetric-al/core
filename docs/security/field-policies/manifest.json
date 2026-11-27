@@ -948,8 +948,8 @@
         "nullable": true,
         "category": "internal",
         "mission_control": "v--",
-        "donor": "---",
-        "missionary": "---",
+        "donor": "v--",
+        "missionary": "v--",
         "public": "---",
         "export": "---"
       },
@@ -958,8 +958,8 @@
         "nullable": true,
         "category": "internal",
         "mission_control": "v--",
-        "donor": "---",
-        "missionary": "---",
+        "donor": "v--",
+        "missionary": "v--",
         "public": "---",
         "export": "---"
       }

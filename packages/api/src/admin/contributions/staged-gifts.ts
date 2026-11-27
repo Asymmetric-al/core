@@ -195,13 +195,20 @@ async function loadFeeCoverLine(input: {
   if (stored.error) {
     throw new Error(stored.error.message);
   }
-  const rows = (stored.data ?? []) as {
-    fund_id: string | null;
-    amount: number;
-  }[];
-  const fundIds = Array.from(
-    new Set(rows.flatMap((row) => (row.fund_id ? [row.fund_id] : []))),
+  const rows = (Array.isArray(stored.data) ? stored.data : []).flatMap(
+    (row: unknown) => {
+      const value = row as { fund_id?: unknown; amount?: unknown } | null;
+      return value && typeof value.fund_id === "string"
+        ? [
+            {
+              fundId: value.fund_id.toLowerCase(),
+              amount: Number(value.amount),
+            },
+          ]
+        : [];
+    },
   );
+  const fundIds = Array.from(new Set(rows.map((row) => row.fundId)));
   if (fundIds.length === 0) {
     return null;
   }
@@ -215,12 +222,12 @@ async function loadFeeCoverLine(input: {
     throw new Error(fees.error.message);
   }
   const feeFundIds = new Set(
-    ((fees.data ?? []) as { id: string }[]).map((fund) => fund.id),
+    (Array.isArray(fees.data) ? fees.data : []).flatMap((fund: unknown) => {
+      const id = (fund as { id?: unknown } | null)?.id;
+      return typeof id === "string" ? [id.toLowerCase()] : [];
+    }),
   );
-  const line = rows.find((row) => row.fund_id && feeFundIds.has(row.fund_id));
-  return line?.fund_id
-    ? { fundId: line.fund_id, amount: Number(line.amount) }
-    : null;
+  return rows.find((row) => feeFundIds.has(row.fundId)) ?? null;
 }
 
 function withoutKeptFeeCoverLine(
@@ -228,7 +235,7 @@ function withoutKeptFeeCoverLine(
   feeLine: FeeCoverLine,
 ) {
   const fee = allocations.filter(
-    (allocation) => allocation.fundId === feeLine.fundId,
+    (allocation) => allocation.fundId?.toLowerCase() === feeLine.fundId,
   );
   if (
     fee.length !== 1 ||

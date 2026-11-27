@@ -978,6 +978,56 @@ export async function loadReceiptDeliveryContext(input: {
   };
 }
 
+type ReceiptSnapshotRef = { id: string; createdAt: string | null };
+
+const RECEIPT_SEND_IN_FLIGHT_MS = 5 * 60 * 1000;
+
+async function findReceiptSnapshot(input: {
+  supabaseAdmin: SupabaseAdmin;
+  tenantId: string;
+  adjustmentId: string;
+  kind: "email" | "pdf";
+}): Promise<ReceiptSnapshotRef | null> {
+  const { data, error } = await input.supabaseAdmin
+    .from("contribution_receipt_snapshots")
+    .select("id, created_at")
+    .eq("tenant_id", input.tenantId)
+    .eq("adjustment_id", input.adjustmentId)
+    .eq("kind", input.kind)
+    .limit(1);
+  if (error) {
+    throw new Error(error.message);
+  }
+  const row = (Array.isArray(data) ? data[0] : null) as
+    Record<string, unknown> | null | undefined;
+  return row && typeof row.id === "string"
+    ? {
+        id: row.id,
+        createdAt: typeof row.created_at === "string" ? row.created_at : null,
+      }
+    : null;
+}
+
+async function lastReceiptSend(input: {
+  supabaseAdmin: SupabaseAdmin;
+  tenantId: string;
+  snapshotId: string;
+}): Promise<string | null> {
+  const { data, error } = await input.supabaseAdmin
+    .from("email_send_logs")
+    .select("status, requested_at")
+    .eq("tenant_id", input.tenantId)
+    .eq("metadata->>receiptSnapshotId", input.snapshotId)
+    .order("requested_at", { ascending: false })
+    .limit(1);
+  if (error) {
+    throw new Error(error.message);
+  }
+  const row = (Array.isArray(data) ? data[0] : null) as
+    Record<string, unknown> | null | undefined;
+  return row && typeof row.status === "string" ? row.status : null;
+}
+
 async function insertReceiptSnapshot(input: {
   supabaseAdmin: SupabaseAdmin;
   tenantId: string;
@@ -985,7 +1035,7 @@ async function insertReceiptSnapshot(input: {
   adjustmentId: string | null;
   kind: "email" | "pdf";
   content: ReceiptSnapshotContentV1;
-}): Promise<string | null> {
+}): Promise<{ snapshot: ReceiptSnapshotRef | null; existing: boolean }> {
   const { data, error } = await input.supabaseAdmin
     .from("contribution_receipt_snapshots")
     .insert({
@@ -998,12 +1048,101 @@ async function insertReceiptSnapshot(input: {
     .select("id")
     .single();
 
+  if (error?.code === "23505" && input.adjustmentId) {
+    const existing = await findReceiptSnapshot({
+      supabaseAdmin: input.supabaseAdmin,
+      tenantId: input.tenantId,
+      adjustmentId: input.adjustmentId,
+      kind: input.kind,
+    });
+    if (!existing) {
+      throw new Error(error.message);
+    }
+    return { snapshot: existing, existing: true };
+  }
   if (error) {
     throw new Error(error.message);
   }
 
   const id = (data as Record<string, unknown> | null)?.id;
-  return typeof id === "string" ? id : null;
+  return {
+    snapshot: typeof id === "string" ? { id, createdAt: null } : null,
+    existing: false,
+  };
+}
+
+function emailReceiptOutcome(
+  base: Pick<
+    ReceiptDeliveryOutcome,
+    "affectedFields" | "requested" | "confirmed"
+  >,
+  status: string,
+  snapshotId: string,
+): ReceiptDeliveryOutcome {
+  if (status === "suppressed") {
+    return {
+      ...base,
+      status: "blocked",
+      reason:
+        "The donor has opted out of contact or the recipient address is on the suppression list, so the updated receipt email was not sent.",
+      snapshotId,
+    };
+  }
+  if (status === "failed") {
+    return {
+      ...base,
+      status: "failed",
+      reason:
+        "The updated receipt email could not be sent. Check email send logs for provider details.",
+      snapshotId,
+    };
+  }
+  return { ...base, status: "emailed", reason: null, snapshotId };
+}
+
+async function sendExistingEmailReceipt(input: {
+  supabaseAdmin: SupabaseAdmin;
+  tenantId: string;
+  stagedGiftId: string;
+  snapshot: ReceiptSnapshotRef;
+  content: ReceiptSnapshotContentV1;
+  base: Pick<
+    ReceiptDeliveryOutcome,
+    "affectedFields" | "requested" | "confirmed"
+  >;
+}): Promise<ReceiptDeliveryOutcome> {
+  const last = await lastReceiptSend({
+    supabaseAdmin: input.supabaseAdmin,
+    tenantId: input.tenantId,
+    snapshotId: input.snapshot.id,
+  });
+  if (last === "sent") {
+    return emailReceiptOutcome(input.base, "sent", input.snapshot.id);
+  }
+  const createdAt = input.snapshot.createdAt
+    ? Date.parse(input.snapshot.createdAt)
+    : Number.NaN;
+  const inFlight =
+    last === null &&
+    (Number.isNaN(createdAt) ||
+      Date.now() - createdAt < RECEIPT_SEND_IN_FLIGHT_MS);
+  if (inFlight) {
+    return {
+      ...input.base,
+      status: "pending",
+      reason:
+        "The updated receipt email for this correction is being sent; reload to see whether it went out.",
+      snapshotId: input.snapshot.id,
+    };
+  }
+  const receipt = await sendUpdatedReceiptSnapshotEmail({
+    supabaseAdmin: input.supabaseAdmin,
+    tenantId: input.tenantId,
+    stagedGiftId: input.stagedGiftId,
+    snapshotId: input.snapshot.id,
+    content: input.content,
+  });
+  return emailReceiptOutcome(input.base, receipt.status, input.snapshot.id);
 }
 
 async function runReceiptDelivery(input: {
@@ -1033,7 +1172,7 @@ async function runReceiptDelivery(input: {
   }
 
   if (input.selection.choice === "pdf") {
-    const snapshotId = await insertReceiptSnapshot({
+    const inserted = await insertReceiptSnapshot({
       supabaseAdmin: input.supabaseAdmin,
       tenantId: input.tenantId,
       contributionId: input.contributionId,
@@ -1041,7 +1180,12 @@ async function runReceiptDelivery(input: {
       kind: "pdf",
       content: input.snapshotContent,
     });
-    return { ...base, status: "pdf_generated", reason: null, snapshotId };
+    return {
+      ...base,
+      status: "pdf_generated",
+      reason: null,
+      snapshotId: inserted.snapshot?.id ?? null,
+    };
   }
 
   if (!input.stagedGiftId) {
@@ -1054,7 +1198,7 @@ async function runReceiptDelivery(input: {
     };
   }
 
-  const snapshotId = await insertReceiptSnapshot({
+  const inserted = await insertReceiptSnapshot({
     supabaseAdmin: input.supabaseAdmin,
     tenantId: input.tenantId,
     contributionId: input.contributionId,
@@ -1063,42 +1207,125 @@ async function runReceiptDelivery(input: {
     content: input.snapshotContent,
   });
 
-  if (!snapshotId) {
+  if (!inserted.snapshot) {
     throw new Error("Updated receipt email snapshot was not created.");
+  }
+
+  if (inserted.existing) {
+    return sendExistingEmailReceipt({
+      supabaseAdmin: input.supabaseAdmin,
+      tenantId: input.tenantId,
+      stagedGiftId: input.stagedGiftId,
+      snapshot: inserted.snapshot,
+      content: input.snapshotContent,
+      base,
+    });
   }
 
   const receipt = await sendUpdatedReceiptSnapshotEmail({
     supabaseAdmin: input.supabaseAdmin,
     tenantId: input.tenantId,
     stagedGiftId: input.stagedGiftId,
-    snapshotId,
+    snapshotId: inserted.snapshot.id,
     content: input.snapshotContent,
   });
 
-  if (receipt.status === "suppressed") {
-    // The consent gate blocked the send (do_not_contact, or a bounced/
-    // complained/suppressed address). No email went out; surface it as
-    // blocked with a clear reason while preserving the snapshot allocated for
-    // the attempted updated receipt action.
-    return {
-      ...base,
-      status: "blocked",
-      reason:
-        "The donor has opted out of contact or the recipient address is on the suppression list, so the updated receipt email was not sent.",
-      snapshotId,
-    };
-  }
-  if (receipt.status === "failed") {
-    return {
-      ...base,
-      status: "failed",
-      reason:
-        "The updated receipt email could not be sent. Check email send logs for provider details.",
-      snapshotId,
-    };
-  }
+  return emailReceiptOutcome(base, receipt.status, inserted.snapshot.id);
+}
 
-  return { ...base, status: "emailed", reason: null, snapshotId };
+async function findCorrectionByKey(input: {
+  supabaseAdmin: SupabaseAdmin;
+  tenantId: string;
+  idempotencyKey: string;
+}): Promise<{ id: string; donationId: string } | null> {
+  const { data, error } = await input.supabaseAdmin
+    .from("contribution_adjustments")
+    .select("id, donation_id")
+    .eq("tenant_id", input.tenantId)
+    .eq("idempotency_key", input.idempotencyKey)
+    .maybeSingle();
+  if (error) {
+    throw new Error(error.message);
+  }
+  const row = data as Record<string, unknown> | null;
+  return row && typeof row.id === "string"
+    ? { id: row.id, donationId: String(row.donation_id ?? "") }
+    : null;
+}
+
+function refuseKeyOfAnotherGift(): never {
+  throw new ApiHttpError(
+    409,
+    "This request key was already used for another gift. Start the correction again from this gift.",
+  );
+}
+
+async function replayReceipt(input: {
+  supabaseAdmin: SupabaseAdmin;
+  tenantId: string;
+  contributionId: string;
+  adjustmentId: string;
+  detail: ContributionDetail;
+  stagedGiftId: string | null;
+  selection: ReceiptDeliverySelection;
+  affectedFields: string[];
+  requested: ReceiptDeliverySelection | null;
+  snapshotContent: ReceiptSnapshotContentV1;
+}): Promise<ReceiptDeliveryOutcome> {
+  const base = {
+    affectedFields: input.affectedFields,
+    requested: input.requested,
+    confirmed: input.selection,
+  };
+  const own = input.detail.adjustments.find(
+    (adjustment) => adjustment.id === input.adjustmentId,
+  );
+  const ownAt = own ? Date.parse(own.createdAt) : Number.NaN;
+  const superseded = input.detail.adjustments.some(
+    (adjustment) =>
+      adjustment.id !== input.adjustmentId &&
+      adjustment.status === "applied" &&
+      !Number.isNaN(ownAt) &&
+      Date.parse(adjustment.createdAt) > ownAt,
+  );
+  if (superseded) {
+    return {
+      ...base,
+      status: "superseded",
+      reason:
+        "A later correction changed this gift, so this correction's receipt was not sent; the later correction's receipt carries the gift as it stands.",
+      snapshotId: null,
+    };
+  }
+  if (input.selection.choice === "defer") {
+    return runReceiptDelivery({ ...input, adjustmentId: input.adjustmentId });
+  }
+  const kind = input.selection.choice === "pdf" ? "pdf" : "email";
+  const existing = await findReceiptSnapshot({
+    supabaseAdmin: input.supabaseAdmin,
+    tenantId: input.tenantId,
+    adjustmentId: input.adjustmentId,
+    kind,
+  });
+  if (!existing || (kind === "email" && !input.stagedGiftId)) {
+    return runReceiptDelivery({ ...input, adjustmentId: input.adjustmentId });
+  }
+  if (kind === "pdf") {
+    return {
+      ...base,
+      status: "pdf_generated",
+      reason: null,
+      snapshotId: existing.id,
+    };
+  }
+  return sendExistingEmailReceipt({
+    supabaseAdmin: input.supabaseAdmin,
+    tenantId: input.tenantId,
+    stagedGiftId: input.stagedGiftId!,
+    snapshot: existing,
+    content: input.snapshotContent,
+    base,
+  });
 }
 
 export async function applyContributionCorrection(input: {
@@ -1120,9 +1347,23 @@ export async function applyContributionCorrection(input: {
     contributionId: input.contributionId,
     withHolds: false,
   };
+  const keyed = input.idempotencyKey
+    ? await findCorrectionByKey({
+        supabaseAdmin: input.supabaseAdmin,
+        tenantId: input.tenantId,
+        idempotencyKey: input.idempotencyKey,
+      })
+    : null;
+  if (keyed && keyed.donationId !== input.contributionId) {
+    refuseKeyOfAnotherGift();
+  }
   const before = await loadContributionOperationDetail(detailInput);
 
-  if (input.expectedRevision && input.expectedRevision !== before.revision) {
+  if (
+    !keyed &&
+    input.expectedRevision &&
+    input.expectedRevision !== before.revision
+  ) {
     throw new ApiHttpError(
       409,
       "This gift changed since you loaded it. Reload the latest detail, review the changes, and submit the correction again.",
@@ -1187,6 +1428,38 @@ export async function applyContributionCorrection(input: {
         })
       : new Map<string, string | null>();
 
+  const replay = async (adjustmentId: string) => ({
+    before: summarizeEffectiveDetail(before),
+    after: summarizeEffectiveDetail(before),
+    status: "applied" as const,
+    adjustmentId,
+    idempotentReplay: true,
+    receiptOutcome:
+      receiptAffected && deliverySelection
+        ? await replayReceipt({
+            supabaseAdmin: input.supabaseAdmin,
+            tenantId: input.tenantId,
+            contributionId: input.contributionId,
+            adjustmentId,
+            detail: before,
+            stagedGiftId: before.stagedGift?.id ?? null,
+            selection: deliverySelection,
+            affectedFields,
+            requested: requestedDelivery ?? deliverySelection,
+            snapshotContent: buildReceiptSnapshotContent({
+              detail: before,
+              workerPublicNames,
+              affectedFields,
+              adjustmentId,
+            }),
+          })
+        : null,
+  });
+
+  if (keyed) {
+    return replay(keyed.id);
+  }
+
   const insertResult = await input.supabaseAdmin
     .from("contribution_adjustments")
     .insert({
@@ -1211,66 +1484,20 @@ export async function applyContributionCorrection(input: {
       throw new Error(insertResult.error.message);
     }
 
-    const existingResult = await input.supabaseAdmin
-      .from("contribution_adjustments")
-      .select("id")
-      .eq("tenant_id", input.tenantId)
-      .eq("idempotency_key", input.idempotencyKey!)
-      .maybeSingle();
-
-    if (existingResult.error || !existingResult.data) {
+    const raced = await findCorrectionByKey({
+      supabaseAdmin: input.supabaseAdmin,
+      tenantId: input.tenantId,
+      idempotencyKey: input.idempotencyKey!,
+    });
+    if (!raced) {
       throw new Error(
-        existingResult.error?.message ??
-          "Adjustment already exists but could not be loaded for replay.",
+        "Adjustment already exists but could not be loaded for replay.",
       );
     }
-
-    const existingId = String(
-      (existingResult.data as Record<string, unknown>).id ?? "",
-    );
-    let resumedOutcome: ReceiptDeliveryOutcome | null = null;
-    if (
-      receiptAffected &&
-      deliverySelection &&
-      deliverySelection.choice !== "defer"
-    ) {
-      const delivered = await input.supabaseAdmin
-        .from("contribution_receipt_snapshots")
-        .select("id")
-        .eq("tenant_id", input.tenantId)
-        .eq("adjustment_id", existingId)
-        .limit(1);
-      if (delivered.error) {
-        throw new Error(delivered.error.message);
-      }
-      if ((delivered.data ?? []).length === 0) {
-        resumedOutcome = await runReceiptDelivery({
-          supabaseAdmin: input.supabaseAdmin,
-          tenantId: input.tenantId,
-          contributionId: input.contributionId,
-          adjustmentId: existingId,
-          stagedGiftId: before.stagedGift?.id ?? null,
-          selection: deliverySelection,
-          affectedFields,
-          requested: requestedDelivery ?? deliverySelection,
-          snapshotContent: buildReceiptSnapshotContent({
-            detail: before,
-            workerPublicNames,
-            affectedFields,
-            adjustmentId: existingId,
-          }),
-        });
-      }
+    if (raced.donationId !== input.contributionId) {
+      refuseKeyOfAnotherGift();
     }
-
-    return {
-      before: summarizeEffectiveDetail(before),
-      after: summarizeEffectiveDetail(before),
-      status: "applied" as const,
-      adjustmentId: existingId,
-      idempotentReplay: true,
-      receiptOutcome: resumedOutcome,
-    };
+    return replay(raced.id);
   }
 
   const adjustmentId = String(

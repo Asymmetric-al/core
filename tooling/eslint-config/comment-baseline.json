@@ -552,7 +552,7 @@
   "packages/api/src/admin/contribution-operations/detail-read-model.ts": 30,
   "packages/api/src/admin/contribution-operations/inline-actions.ts": 6,
   "packages/api/src/admin/contribution-operations/notifications/send.ts": 5,
-  "packages/api/src/admin/contribution-operations/operations.ts": 17,
+  "packages/api/src/admin/contribution-operations/operations.ts": 13,
   "packages/api/src/admin/contribution-operations/permissions.ts": 3,
   "packages/api/src/admin/contribution-operations/provider-dashboard.ts": 4,
   "packages/api/src/admin/contribution-operations/receipt-delivery.ts": 15,
