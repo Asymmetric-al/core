@@ -468,6 +468,13 @@ function isVariableAnchorRead(variable, text, scope) {
   return false;
 }
 
+export function workerWrapperCallsLookup(body, stripComments, lookup) {
+  const name = escapeRegExp(lookup).replace("\\.", "\\s*\\.\\s*");
+  return new RegExp(`\\b${name}\\s*\\(`, "i").test(
+    normalizedBody(body, stripComments),
+  );
+}
+
 export function workerWrapperPassesTenantArg(
   signature,
   body,

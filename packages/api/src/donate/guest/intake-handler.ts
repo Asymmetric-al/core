@@ -51,7 +51,7 @@ const lineSchema = z
 const bodySchema = z.object({
   key: z.string().min(1).max(200),
   surface: z.enum(["website", "donor_account"]).default("website"),
-  asGuest: z.boolean().default(false),
+  mode: z.enum(["guest", "signed_in"]).default("guest"),
   lines: z.array(lineSchema).min(1).max(99),
   coverFees: z.boolean(),
   paymentMethod: z.literal("card"),
@@ -76,6 +76,7 @@ const intakeSchema = z.object({
     .string()
     .regex(/^pi_[A-Za-z0-9]+$/)
     .nullable(),
+  payable: z.boolean(),
 });
 
 const INPUT_REFUSALS = new Set([
@@ -89,6 +90,8 @@ const INPUT_REFUSALS = new Set([
   "actor_not_admitted",
   "actor_required",
   "client_key_invalid",
+  "amount_out_of_range",
+  "fee_cover_out_of_range",
 ]);
 
 const json = (status: number, body: unknown) => Response.json(body, { status });
@@ -113,6 +116,39 @@ function refusal(error: GuestRpcError): Response {
   return notStarted();
 }
 
+async function settled<T>(work: () => Promise<T>): Promise<T | null> {
+  try {
+    return await work();
+  } catch {
+    return null;
+  }
+}
+
+async function signedInActor(
+  deps: GuestIntakeDeps,
+  request: Request,
+  host: string,
+  surface: "website" | "donor_account",
+): Promise<GuestActor | Response> {
+  let home: boolean;
+  try {
+    home = await deps.isHomeHost(host);
+  } catch {
+    return notStarted();
+  }
+  if (!home)
+    return surface === "donor_account"
+      ? unavailable()
+      : json(401, { error: "sign_in_required" });
+  let actor: GuestActor | null;
+  try {
+    actor = (await deps.resolveActor?.(request)) ?? null;
+  } catch {
+    return notStarted();
+  }
+  return actor ?? json(401, { error: "sign_in_required" });
+}
+
 async function call(
   rpc: GuestIntakeRpc,
   fn: "take_intake_rate_token" | "begin_line_gift",
@@ -129,11 +165,13 @@ export function createGuestIntakeHandler(deps: GuestIntakeDeps) {
   const verify = deps.verifyChallenge ?? verifyGuestChallenge;
 
   return async function POST(request: Request): Promise<Response> {
-    if (!deps.enabled()) return unavailable();
-    const secret = deps.challengeSecret()?.trim();
-    if (!secret) return unavailable();
-    const rpc = deps.rpc();
-    if (!rpc) return unavailable();
+    const ready = await settled(async () => ({
+      enabled: deps.enabled(),
+      secret: deps.challengeSecret()?.trim(),
+      rpc: deps.rpc(),
+    }));
+    if (!ready?.enabled || !ready.secret || !ready.rpc) return unavailable();
+    const { secret, rpc } = ready;
     const host = request.headers.get("host")?.trim();
     if (!host) return unavailable();
     const address = clientAddress(request);
@@ -149,32 +187,25 @@ export function createGuestIntakeHandler(deps: GuestIntakeDeps) {
     if (!parsed.success) return invalid();
     const body = parsed.data;
 
-    if (body.asGuest && body.surface === "donor_account") return invalid();
+    if (body.mode === "guest" && body.surface === "donor_account")
+      return invalid();
 
     if (!body.challengeToken?.trim())
       return json(400, { error: "challenge_required" });
-    const verdict = await verify({
-      token: body.challengeToken,
-      remoteIp: address,
-      secret,
-    });
+    const verdict = (await settled(() =>
+      verify({ token: body.challengeToken, remoteIp: address, secret }),
+    )) ?? { ok: false as const, reason: "unavailable" as const };
     if (!verdict.ok)
       return verdict.reason === "unavailable"
         ? notStarted()
         : json(400, { error: "challenge_failed" });
 
     let actor: GuestActor | null = null;
-    if (!body.asGuest) {
-      try {
-        if (await deps.isHomeHost(host))
-          actor = (await deps.resolveActor?.(request)) ?? null;
-        else if (body.surface === "donor_account") return unavailable();
-      } catch {
-        return notStarted();
-      }
+    if (body.mode === "signed_in") {
+      const found = await signedInActor(deps, request, host, body.surface);
+      if (found instanceof Response) return found;
+      actor = found;
     }
-    if (body.surface === "donor_account" && !actor)
-      return json(401, { error: "sign_in_required" });
 
     const token = await call(rpc, "take_intake_rate_token", {
       p_address: address,
@@ -219,17 +250,21 @@ export function createGuestIntakeHandler(deps: GuestIntakeDeps) {
     if (begun.error) return refusal(begun.error);
     const intake = intakeSchema.safeParse(begun.data);
     if (!intake.success) return notStarted();
+    if (!intake.data.payable) return json(409, { error: "gift_closed" });
 
     let paymentIntentId = intake.data.payment_intent;
     if (!paymentIntentId) {
-      const sent = await deps.sendFirst(intake.data.operation_id);
+      const sent = await settled(() =>
+        deps.sendFirst(intake.data.operation_id),
+      );
       paymentIntentId = sent?.paymentIntentId ?? null;
     }
     if (!paymentIntentId) return notStarted();
-    const clientSecret = await deps.clientSecret({
-      account: intake.data.provider_account,
-      paymentIntentId,
-    });
+    const account = intake.data.provider_account;
+    const intentId = paymentIntentId;
+    const clientSecret = await settled(() =>
+      deps.clientSecret({ account, paymentIntentId: intentId }),
+    );
     if (!clientSecret) return notStarted();
 
     return json(200, {

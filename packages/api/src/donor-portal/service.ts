@@ -1,3 +1,5 @@
+import { z } from "zod";
+
 import {
   buildDonorPortalSnapshot,
   isSettledDonationStatus,
@@ -288,7 +290,7 @@ async function settledLifetime(
   tenantId: string,
   donorId: string,
   giftIds: string[],
-): Promise<{ givenCents: number; giftCount: number }> {
+): Promise<SettledLifetime> {
   const { data, error } = await portalReads(supabaseAdmin).rpc(
     "donor_portal_lifetime",
     { p_tenant_id: tenantId, p_donor_id: donorId, p_gift_ids: giftIds },
@@ -299,12 +301,27 @@ async function settledLifetime(
       error.message || "Unable to load donor giving totals",
     );
   }
-  const row = (Array.isArray(data) ? data[0] : data) as
-    { given_cents?: unknown; gift_count?: unknown } | null | undefined;
-  return {
-    givenCents: Number(row?.given_cents ?? 0),
-    giftCount: Number(row?.gift_count ?? 0),
-  };
+  return parseSettledLifetime(data);
+}
+
+const wholeCents = z
+  .union([z.number(), z.string().regex(/^\d+$/)])
+  .transform(Number)
+  .pipe(z.number().int().nonnegative());
+
+const settledLifetimeRows = z
+  .array(z.object({ given_cents: wholeCents, gift_count: wholeCents }))
+  .length(1);
+
+export type SettledLifetime = { givenCents: number; giftCount: number };
+
+export function parseSettledLifetime(data: unknown): SettledLifetime {
+  const parsed = settledLifetimeRows.safeParse(data);
+  if (!parsed.success) {
+    throw new ApiHttpError(500, "Unable to read donor giving totals");
+  }
+  const [row] = parsed.data;
+  return { givenCents: row!.given_cents, giftCount: row!.gift_count };
 }
 
 /**

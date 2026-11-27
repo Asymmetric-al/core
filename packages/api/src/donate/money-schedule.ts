@@ -34,8 +34,10 @@ export type MoneyScheduleDeps = {
   rpc: MoneyScheduleRpc;
   paymentAdapter: () => PaymentProviderAdapter;
   accountReader: () => AccountReader;
+  runOperation?: typeof runProviderOperation;
   limit?: number;
   budgetMs?: number;
+  readerDeadlineMs?: number;
   clock?: () => number;
 };
 
@@ -53,6 +55,7 @@ type Due = { kind: string; id: string; detail: string | null };
 const CLOSED_ACCOUNT_EVENT = "v2.core.account.closed";
 const DEFAULT_LIMIT = 25;
 const DEFAULT_BUDGET_MS = 45_000;
+export const ACCOUNT_READ_DEADLINE_MS = 10_000;
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === "object" && value !== null;
@@ -85,7 +88,10 @@ export async function runMoneySchedule(
   const clock = deps.clock ?? (() => performance.now());
   const started = clock();
   const budget = deps.budgetMs ?? DEFAULT_BUDGET_MS;
-  const withinBudget = () => clock() - started < budget;
+  const withinBudget = (reserveMs = 0) =>
+    clock() - started + reserveMs < budget;
+  const readerReserve = deps.readerDeadlineMs ?? ACCOUNT_READ_DEADLINE_MS;
+  const runOperation = deps.runOperation ?? runProviderOperation;
 
   let due: Due[] | null = null;
   let readError: string | undefined;
@@ -119,6 +125,7 @@ export async function runMoneySchedule(
     kinds: string[],
     each: (row: Due) => Promise<boolean>,
     prepare?: () => void,
+    reserveFor: (row: Due) => number = () => 0,
   ): Promise<PartResult> {
     const mine = rows.filter((row) => kinds.includes(row.kind));
     const result: PartResult = {
@@ -141,7 +148,7 @@ export async function runMoneySchedule(
     }
     result.status = "done";
     for (const row of mine) {
-      if (!withinBudget()) {
+      if (!withinBudget(reserveFor(row))) {
         result.deferred += 1;
         continue;
       }
@@ -191,12 +198,13 @@ export async function runMoneySchedule(
       "worker",
       ["operation"],
       async (row) => {
-        await runProviderOperation({
+        const run = await runOperation({
           rpc: deps.rpc as unknown as ProviderOperationRpc,
           adapter: adapter!,
           operationId: row.id,
         });
-        return true;
+        if (run.claim.error) return false;
+        return !("report" in run && run.report.error);
       },
       () => {
         adapter = deps.paymentAdapter();
@@ -214,45 +222,67 @@ export async function runMoneySchedule(
   );
 
   parts.push(
-    await part("events", ["payment_event", "account_event"], async (row) => {
-      if (row.kind === "payment_event")
-        return settleEvent(row, (attempt) =>
-          deps.rpc(
-            isDeferredEventType(row.detail ?? "")
-              ? "defer_payment_event"
-              : "apply_payment_outcome",
-            { p_event_id: row.id, p_attempt: attempt },
-          ),
-        );
-      const [type = "", account = ""] = (row.detail ?? "").split("|");
-      return settleEvent(row, async (attempt) => {
-        let snapshot: unknown = null;
-        try {
-          snapshot = await accountReader().retrieve(account);
-        } catch (error) {
-          if (type !== CLOSED_ACCOUNT_EVENT)
-            return {
-              error: { code: "account_fetch_failed", message: message(error) },
-            };
-        }
-        return deps.rpc("apply_account_event", {
-          p_event_id: row.id,
-          p_attempt: attempt,
-          p_snapshot: snapshot,
+    await part(
+      "events",
+      ["payment_event", "account_event"],
+      async (row) => {
+        if (row.kind === "payment_event")
+          return settleEvent(row, (attempt) =>
+            deps.rpc(
+              isDeferredEventType(row.detail ?? "")
+                ? "defer_payment_event"
+                : "apply_payment_outcome",
+              { p_event_id: row.id, p_attempt: attempt },
+            ),
+          );
+        const [type = "", account = ""] = (row.detail ?? "").split("|");
+        return settleEvent(row, async (attempt) => {
+          let snapshot: unknown = null;
+          try {
+            snapshot = await accountReader().retrieve(account);
+          } catch (error) {
+            if (type !== CLOSED_ACCOUNT_EVENT)
+              return {
+                error: {
+                  code: "account_fetch_failed",
+                  message: message(error),
+                },
+              };
+          }
+          return deps.rpc("apply_account_event", {
+            p_event_id: row.id,
+            p_attempt: attempt,
+            p_snapshot: snapshot,
+          });
         });
-      });
-    }),
+      },
+      undefined,
+      (row) => (row.kind === "account_event" ? readerReserve : 0),
+    ),
   );
 
   parts.push(
-    await part("reconciliation", ["account"], async (row) => {
-      const snapshot = await accountReader().retrieve(row.detail ?? "");
-      const res = await deps.rpc("reconcile_payment_account", {
-        p_account_id: row.id,
-        p_snapshot: snapshot,
-      });
-      return !res.error;
-    }),
+    await part(
+      "reconciliation",
+      ["account"],
+      async (row) => {
+        let snapshot: unknown;
+        let readFailed = false;
+        try {
+          snapshot = await accountReader().retrieve(row.detail ?? "");
+        } catch {
+          readFailed = true;
+          snapshot = { id: row.detail, livemode: false, read_failed: true };
+        }
+        const res = await deps.rpc("reconcile_payment_account", {
+          p_account_id: row.id,
+          p_snapshot: snapshot,
+        });
+        return !res.error && !readFailed;
+      },
+      undefined,
+      () => readerReserve,
+    ),
   );
 
   return { parts };

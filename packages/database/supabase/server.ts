@@ -1,4 +1,5 @@
 import { createServerClient } from "@supabase/ssr";
+import { createClient as createSessionlessClient } from "@supabase/supabase-js";
 import { cookies } from "next/headers";
 
 import {
@@ -61,5 +62,13 @@ export async function createClient(scope: RequestScope | null) {
       },
     },
     global: { headers: requestScopeHeaders(scope) },
+  });
+}
+
+export function createAnonymousClient() {
+  const { url, key } = getSupabasePublicConfig();
+  if (!url || !key) return null;
+  return createSessionlessClient(url, key, {
+    auth: { autoRefreshToken: false, persistSession: false },
   });
 }

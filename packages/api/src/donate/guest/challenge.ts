@@ -52,8 +52,13 @@ export async function verifyGuestChallenge(
     } catch {
       return UNAVAILABLE;
     }
-    return isRecord(verdict) && verdict.success === true
-      ? { ok: true }
+    if (isRecord(verdict) && verdict.success === true) return { ok: true };
+    const codes =
+      isRecord(verdict) && Array.isArray(verdict["error-codes"])
+        ? verdict["error-codes"]
+        : [];
+    return codes.includes("internal-error")
+      ? UNAVAILABLE
       : { ok: false, reason: "invalid" };
   } catch {
     return UNAVAILABLE;

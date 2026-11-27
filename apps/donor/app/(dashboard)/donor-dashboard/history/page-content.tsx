@@ -109,6 +109,13 @@ const STATUS_OPTIONS = [
   { value: "Refunded", label: "Refunded" },
 ];
 
+export function receiptPendingNote(
+  transactions: { status: string }[],
+): string | null {
+  const received = transactions.filter((t) => t.status === "Received").length;
+  return received > 0 ? `${received} received, not yet receipted` : null;
+}
+
 /**
  * "1 processing · 1 failed" for gifts that are in the year but not in the
  * paid total or receipts; null when every gift was paid.
@@ -119,7 +126,6 @@ export function unsettledNote(
   const count = (status: string) =>
     transactions.filter((t) => t.status === status).length;
   const parts = [
-    ["received, not yet receipted", count("Received")],
     ["processing", count("Processing")],
     ["failed", count("Failed")],
     ["refunded", count("Refunded")],
@@ -282,6 +288,7 @@ function YearSummaryCard({
     .filter((t) => isSettledGift(t.status))
     .reduce((sum, t) => sum + t.amount, 0);
   const note = unsettledNote(transactions);
+  const pending = receiptPendingNote(transactions);
   const hasPaid = paidTotal > 0;
   const statementLabel =
     year === currentYear
@@ -304,6 +311,9 @@ function YearSummaryCard({
           <p className="text-sm text-foreground">
             {yearSummary(transactions, year, currentYear)}
           </p>
+          {pending ? (
+            <p className="text-sm text-muted-foreground">Counted: {pending}.</p>
+          ) : null}
           {note ? (
             <p className="text-sm text-muted-foreground">
               Not counted: {note}.

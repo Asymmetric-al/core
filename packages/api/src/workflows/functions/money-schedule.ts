@@ -1,7 +1,9 @@
 import { serverEnv } from "@asym/env";
 
 import {
+  ACCOUNT_READ_DEADLINE_MS,
   runMoneySchedule,
+  type AccountReader,
   type MoneyScheduleRpc,
 } from "../../donate/money-schedule";
 import { createStripePaymentAdapter } from "../../donate/provider-operations/stripe-adapter";
@@ -14,6 +16,17 @@ import { assertStripeTestModeKey } from "../../stripe/test-mode-key";
 import { requireWorkflowAdminClient } from "../admin-client";
 import { inngest } from "../inngest/client";
 
+export function accountReaderFor(secretKey: string): AccountReader {
+  const stripe = createStripeClient(secretKey, {
+    timeout: ACCOUNT_READ_DEADLINE_MS,
+    maxNetworkRetries: 0,
+  }) as unknown as StripeConnectClient;
+  return {
+    retrieve: (accountId: string) =>
+      fetchConnectedAccountSnapshot(stripe, accountId),
+  };
+}
+
 async function runWithAdminClient() {
   const client = requireWorkflowAdminClient("money_schedule") as unknown as {
     rpc: MoneyScheduleRpc;
@@ -23,15 +36,7 @@ async function runWithAdminClient() {
   return runMoneySchedule({
     rpc: (fn, args) => client.rpc(fn, args),
     paymentAdapter: () => createStripePaymentAdapter({ secretKey: testKey() }),
-    accountReader: () => {
-      const stripe = createStripeClient(
-        testKey(),
-      ) as unknown as StripeConnectClient;
-      return {
-        retrieve: (accountId: string) =>
-          fetchConnectedAccountSnapshot(stripe, accountId),
-      };
-    },
+    accountReader: () => accountReaderFor(testKey()),
   });
 }
 
