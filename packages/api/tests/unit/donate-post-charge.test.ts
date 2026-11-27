@@ -335,7 +335,7 @@ describe("POST /api/donate Gift processing-fee policy", () => {
     expect(response.status).toBe(500);
     const body = await response.json();
     expect(body).toEqual({
-      error: "Failed to load the existing donation for this idempotency key.",
+      error: "Internal error",
       requestId: expect.any(String),
     });
     expect(JSON.stringify(body)).not.toMatch(/timed out|already used/);

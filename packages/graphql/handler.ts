@@ -774,6 +774,21 @@ const resolvers = {
         },
         { userId: auth.userId, tenantId: auth.tenantId },
       );
+      if (mismatched === null) {
+        console.error("[graphql] Gift ownership lookup failed", {
+          donationId: begin.donationId,
+          replayed: begin.replayed,
+        });
+        throw createGraphQLError(
+          "Donation was created but could not be read back",
+          {
+            extensions: {
+              code: "DONATION_READBACK_FAILED",
+              ...(begin.replayed ? {} : { donationId: begin.donationId }),
+            },
+          },
+        );
+      }
       if (mismatched.length > 0) {
         console.error(
           "[graphql] Idempotency key replay does not match request",

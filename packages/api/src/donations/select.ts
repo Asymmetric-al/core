@@ -67,11 +67,16 @@ export async function callerGiftMismatches(
   row: Record<string, unknown>,
   gift: RequestedGift,
   person: { userId: string; tenantId: string },
-): Promise<string[]> {
+): Promise<string[] | null> {
   const mismatched = giftMismatches(row, gift);
   if (!mismatched.includes("profile")) return mismatched;
-  const own = await findOwnDonor(supabase, person).catch(() => null);
-  if (own?.status !== "found") return mismatched;
+  let own: Awaited<ReturnType<typeof findOwnDonor>>;
+  try {
+    own = await findOwnDonor(supabase, person);
+  } catch {
+    return null;
+  }
+  if (own.status !== "found") return mismatched;
   return giftMismatches(row, { ...gift, ownDonorId: own.donor.id });
 }
 
