@@ -45,7 +45,11 @@ import {
   stripParens,
   tenantBound,
 } from "../../../scripts/verify/tenant-rls-catalog.mjs";
-import { ownMinistryCommandRows } from "../../fixtures/own-ministry-commands";
+import {
+  OWN_MINISTRY_HELPERS,
+  ownMinistryCommandRows,
+  ownMinistryHelperRows,
+} from "../../fixtures/own-ministry-commands";
 import { preMembershipCommandRows } from "../../fixtures/pre-membership-commands";
 
 const table = (name: string, over: Record<string, unknown> = {}) => ({
@@ -347,7 +351,7 @@ describe("WP4 command boundaries", () => {
       ).toContain("WRAPPER_GRANTS_HUMAN public.block(uuid)");
     },
   );
-  it("judges the repository's reviewed pre-membership list unless told otherwise (D-18, AL-2678: the list is no longer empty, so the synthetic catalogs of this file judge an empty one, and this case judges the real one)", () => {
+  it("judges the repository's reviewed pre-membership list unless told otherwise (D-18, AL-2678: the list is no longer empty, so the synthetic catalogs of this file judge an empty one, and this case judges the real one; AL-2680 fix round C3: with the own-ministry lane's two pinned helpers)", () => {
     const empty = {
       tables: [],
       definers: [],
@@ -361,8 +365,12 @@ describe("WP4 command boundaries", () => {
         evaluateTenantRlsCatalog({ ...empty, commands: [] }, listed()),
       ).sort(),
     ).toEqual(
-      [...preMembershipEntries, ...ownMinistryEntries]
-        .map((entry) => `COMMAND_EXCEPTION_UNREVIEWED ${entry.function}`)
+      [
+        ...preMembershipEntries.map((entry) => entry.function),
+        ...ownMinistryEntries.map((entry) => entry.function),
+        ...OWN_MINISTRY_HELPERS,
+      ]
+        .map((fn) => `COMMAND_EXCEPTION_UNREVIEWED ${fn}`)
         .sort(),
     );
     expect(
@@ -372,6 +380,7 @@ describe("WP4 command boundaries", () => {
           commands: [
             ...preMembershipCommandRows(),
             ...ownMinistryCommandRows(),
+            ...ownMinistryHelperRows(),
           ],
         },
         listed(),
