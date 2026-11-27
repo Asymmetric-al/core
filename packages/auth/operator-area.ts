@@ -26,6 +26,8 @@ export const OPERATOR_AREA_ROOT = "/operator";
 const SIGN_IN_PATH = "/login";
 const CALLBACK_PATH = "/auth/callback";
 const SIGN_OUT_PATH = "/api/auth/signout";
+const CORE_SIGN_IN_PATH = "/api/auth/sign-in";
+const CORE_SESSION_PATH = "/api/auth/session";
 
 const ASYM_HEADER_PREFIX = "x-asym-";
 const AREA_CACHE_CONTROL = "private, no-store, no-transform, max-age=0";
@@ -298,13 +300,17 @@ export async function admitOperationsSignIn(
         ? "callback"
         : pathname === SIGN_OUT_PATH && request.method === "POST"
           ? "sign-out"
-          : null;
+          : pathname === CORE_SIGN_IN_PATH && request.method === "POST"
+            ? "core-sign-in"
+            : pathname === CORE_SESSION_PATH && reads
+              ? "session"
+              : null;
   if (step === null) return null;
   if (!isOperationsAddress(request.headers, operationsNamesFromEnv(env))) {
     return null;
   }
   if (step === "sign-in") return signInPage(request);
-  if (step === "sign-out") {
+  if (step === "sign-out" || step === "core-sign-in") {
     const refusal = await admitApiMutation(request, pathname);
     if (refusal) return refusal;
   }
