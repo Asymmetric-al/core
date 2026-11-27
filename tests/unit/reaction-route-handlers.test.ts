@@ -279,16 +279,9 @@ describe("donor reaction route handlers", () => {
       expect(
         requestClient.postLookup.single.mock.invocationCallOrder[0]!,
       ).toBeLessThan(getAdminClientMock.mock.invocationCallOrder[0]!);
-      expect(revalidateTagMock).toHaveBeenNthCalledWith(
-        1,
-        `posts:tenant:${TENANT_ID}`,
-        "max",
-      );
-      expect(revalidateTagMock).toHaveBeenNthCalledWith(
-        2,
-        `post:${POST_ID}`,
-        "max",
-      );
+      expect(revalidateTagMock.mock.calls).toEqual([
+        [`post:${POST_ID}`, "max"],
+      ]);
     },
   );
 
