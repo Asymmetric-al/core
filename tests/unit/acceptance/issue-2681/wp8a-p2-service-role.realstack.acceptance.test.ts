@@ -685,7 +685,7 @@ describe.skipIf(!ADMIN_URL)(
       }
     });
 
-    it("the catalog gate passes it: the gate reads no default privileges, the relations of public only, and CREATE on the schemas the release fingerprint covers, failing only on the super-admin branches, bare staff reads and field_policies_read pin that 20261127040000, later in the chain than this replay, closes (D-18, AL-2675: the gate holds WP2c rest B's rules since then), and on the allowlisted checkout config read, which a later file creates (D-18, AL-2681 PR 2a: 20261127050200 is after this replay's last file)", () => {
+    it("the catalog gate passes it: the gate reads no default privileges, the relations of public only, and CREATE on the schemas the release fingerprint covers, failing only on the super-admin branches, bare staff reads and field_policies_read pin that 20261127040000, later in the chain than this replay, closes (D-18, AL-2675: the gate holds WP2c rest B's rules since then), and on the allowlisted checkout config read, which a later file creates (D-18, AL-2681 PR 2a: 20261127050200 is after this replay's last file; D-18, AL-2681 PR 2b: named in its four-argument form, which 20261127080100 creates)", () => {
       const gate = runTenantRlsCatalogGate({ databaseUrl: replay.url });
       const wp2cFile = readdirSync("supabase/migrations").find((f) =>
         /^\d{14}_wp2c_rest_no_super_admin\.sql$/.test(f),
@@ -720,7 +720,7 @@ describe.skipIf(!ADMIN_URL)(
       }) =>
         (f.code === "ANON_ALLOWLIST_STALE" &&
           f.function ===
-            "public.checkout_giving_config(p_host text, p_targets jsonb)") ||
+            "public.checkout_giving_config(p_host text, p_targets jsonb, p_surface text, p_source_site uuid)") ||
         ((f.code === "POLICY_SUPER_ADMIN_BRANCH" ||
           f.code === "TENANT_CONDITION_MISSING" ||
           f.code === "STAFF_READ_ON_BARE_STAFF_CHECK") &&

@@ -165,7 +165,8 @@ function runVerifier(
         anon_execute: true,
       },
       {
-        function: "public.checkout_giving_config(p_host text, p_targets jsonb)",
+        function:
+          "public.checkout_giving_config(p_host text, p_targets jsonb, p_surface text, p_source_site uuid)",
         schema: "public",
         owner: "postgres",
         owner_bypass: true,
@@ -346,7 +347,7 @@ else if (sql.startsWith("-- field-policy-manifest-gate:v1")) {
 
 describe("supabase migrations verifier", () => {
   itPosix(
-    "requires the reviewed census after applying the complete migration sequence (D-18, AL-2678: the fake catalog carries the two reviewed pre-membership claim commands, which the gate now requires; D-18, AL-2676: and public.resolve_home_host, the second allowlisted anonymous read since WP3b part 2; D-18, AL-2681: and public.checkout_giving_config, the third, since WP8a part 2 rest 2a)",
+    "requires the reviewed census after applying the complete migration sequence (D-18, AL-2678: the fake catalog carries the two reviewed pre-membership claim commands, which the gate now requires; D-18, AL-2676: and public.resolve_home_host, the second allowlisted anonymous read since WP3b part 2; D-18, AL-2681: and public.checkout_giving_config, the third, since WP8a part 2 rest 2a; D-18, AL-2681 PR 2b: in its four-argument form)",
     () => {
       const result = runVerifier("clean");
       expect(result.status).toBe(0);

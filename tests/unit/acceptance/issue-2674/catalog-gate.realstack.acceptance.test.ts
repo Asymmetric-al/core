@@ -443,14 +443,14 @@ describe.skipIf(!ADMIN_URL)("AL-2674 catalog gate (real stack)", () => {
     }
   });
 
-  it("only the verified-host lookup, the home read and the checkout config read are on the anonymous definer allowlist (D-18: AL-2676: WP3b part 2 adds public.resolve_home_host, ruling Q6; AL-2681 PR 2a adds public.checkout_giving_config, ruling W8-R18)", () => {
+  it("only the verified-host lookup, the home read and the checkout config read are on the anonymous definer allowlist (D-18: AL-2676: WP3b part 2 adds public.resolve_home_host, ruling Q6; AL-2681 PR 2a adds public.checkout_giving_config, ruling W8-R18; AL-2681 PR 2b names it in its four-argument form, the list staying at three)", () => {
     expect(json(ANON_DEFINER_ALLOWLIST_PATH)).toMatchObject({
       entries: [
         { function: "public.resolve_verified_host(p_host text)" },
         { function: "public.resolve_home_host(p_host text)" },
         {
           function:
-            "public.checkout_giving_config(p_host text, p_targets jsonb)",
+            "public.checkout_giving_config(p_host text, p_targets jsonb, p_surface text, p_source_site uuid)",
         },
       ],
     });
