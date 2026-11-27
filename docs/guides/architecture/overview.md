@@ -99,12 +99,14 @@ may only narrow to it (`packages/auth/docs/adr/0015-organization-from-the-verifi
 The assistant's `/eve/v1/*` routes never read it. With the switch on the
 dashboards' addresses carry no organization ID: a person with one row of the
 surface works at `/admin/…` or `/missionary/…`, a staff member with several
-staff rows at `/admin/~<sub-role>/…`; an ID first segment, a one-row person's
-sub-role and a sub-role over a path outside the tenant segment answer `404`
-(`no-store`) before a session is read, and the choosers list the name's rows
-only. Web Studio's entry carries `role=<sub-role>` alone, and its REST calls
-and server functions carry the name's generation, refused `scope_mismatch`
-without it (`packages/auth/docs/adr/0006-web-studio-outside-the-tenant-segment.md`,
+staff rows at `/admin/~<sub-role>/…`; an ID first segment and a sub-role over
+a path outside the tenant segment answer `404` (`no-store`) before a session
+is read, a one-row person's sub-role once their rows are read, and the
+choosers list the name's rows only. Web Studio's entry carries
+`role=<sub-role>` alone, and its REST calls and server functions carry the
+name's generation, refused `scope_mismatch` without it before any of
+Payload's handlers runs
+(`packages/auth/docs/adr/0006-web-studio-outside-the-tenant-segment.md`,
 decisions 20 and 21). `bun run test:e2e:n2-on` proves both in a browser on
 this machine; CI does not run it.
 

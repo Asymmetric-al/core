@@ -311,7 +311,13 @@ is scoped to a document, so changing organization means loading a new one.
     and refuses `scope_mismatch` any REST or GraphQL call with a request that
     lacks the generation byte for byte (never trimmed or case-folded) or the
     tenant and row of the cookie's choice, a read included, before it signs
-    anyone in; a page render, with no request, needs none.
+    anyone in; a page render, with no request, needs none. The same decision
+    (`createWebStudioCallerResolver`) gates each of the REST route's exports
+    (`claimedCallsOnly` in `apps/admin/src/cms/web-studio-api-route.ts`): a
+    refused call, whatever its method or endpoint, a custom one included,
+    gets the refusal's status, JSON and `x-asym-web-studio-refusal` before
+    Payload's router or any endpoint runs. Pages, the draft preview included,
+    run the strategies without a request, as the Payload layout does.
     `webStudioServerFunctionRefusal` compares the generation of the cookie's
     selection the same way before any of Payload's handlers runs. Payload's
     stock API view links its REST address in a new tab, which cannot carry a
