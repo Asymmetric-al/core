@@ -433,6 +433,49 @@ export async function runBaselineProof() {
     restCreateStatus: restPresentation.status,
   };
 
+  const suppliedMedia = randomUUID();
+  const keptMedia = await service.registerMediaRecord(payload, {
+    id: suppliedMedia,
+    tenantId: tenantA,
+    alt: "Supplied",
+  });
+  const restMedia = await e2eRest({
+    handleEndpoints,
+    config,
+    person: editorA,
+    method: "POST",
+    pathname: "/web-studio/api/media",
+    body: { id: randomUUID(), tenant: tenantA, alt: "Through REST" },
+  });
+  const actorMedia = await outcome(async () =>
+    actor.actorCreate(await reqFor(editorA), {
+      collection: "media",
+      data: { id: randomUUID(), alt: "Through the actor port" },
+    }),
+  );
+  const suppliedPage = randomUUID();
+  const pageWithId = await outcome(async () =>
+    actor.actorCreate(await reqFor(editorA), {
+      collection: "pages",
+      data: {
+        id: suppliedPage,
+        site: siteA.id,
+        title: "Supplied",
+        slug: "supplied",
+      },
+      draft: true,
+    }),
+  );
+  results.suppliedMediaIds = {
+    servicePortKept: keptMedia.id === suppliedMedia,
+    restCreateStatus: restMedia.status,
+    actorCreateRefused: !actorMedia.ok && actorMedia.status === 403,
+    actorCreate: actorMedia.ok ? "accepted" : actorMedia.status,
+    pageCreateDiscardedId:
+      pageWithId.ok && String(pageWithId.value.id) !== suppliedPage,
+    pageCreate: pageWithId.ok ? "saved" : pageWithId.message,
+  };
+
   const media = await service.registerMediaRecord(payload, {
     id: randomUUID(),
     tenantId: tenantA,
@@ -499,6 +542,7 @@ export async function runBaselineProof() {
   results.jsonBlocks = {
     pageId: blocksPage.id,
     mediaId: media.id,
+    tenantId: tenantA,
     depth0: shape(await readAt(0)),
     depth1: shape(await readAt(1)),
   };
@@ -662,7 +706,11 @@ export async function runDeletedMediaRead() {
   const payload = await getPayload({ config, importMap: {} });
   const pageId = process.env.PAYLOAD_QUALIFICATION_PAGE_ID;
   const mediaId = process.env.PAYLOAD_QUALIFICATION_MEDIA_ID;
-  await service.deleteMediaRecord(payload, mediaId);
+  await service.deleteMediaRecord(
+    payload,
+    mediaId,
+    process.env.PAYLOAD_QUALIFICATION_TENANT_ID,
+  );
   const [doc] = await service.serviceFind(payload, {
     collection: "pages",
     where: { id: { equals: pageId } },
@@ -675,6 +723,53 @@ export async function runDeletedMediaRead() {
   return {
     heroImage: hero.backgroundImage ?? null,
     richTextNodeValue: rich?.value ?? null,
+  };
+}
+
+export async function runPoolingProbe() {
+  const { config, getPayload, service } = await loadPayload();
+  const payload = await getPayload({ config, importMap: {} });
+  const tenantId = randomUUID();
+  const site = await service.createSitePresentation(payload, {
+    siteId: randomUUID(),
+    tenantId,
+  });
+  const page = await service.serviceCreate(payload, {
+    collection: "pages",
+    data: {
+      tenant: tenantId,
+      site: site.id,
+      title: "Pooling",
+      slug: "pooling",
+    },
+    draft: true,
+  });
+  const written = Array.from({ length: 8 }, (_, index) => `Pooling ${index}`);
+  const settled = await Promise.allSettled(
+    written.map((title) =>
+      service.serviceUpdate(payload, {
+        collection: "pages",
+        id: page.id,
+        data: { title },
+        draft: true,
+      }),
+    ),
+  );
+  const [stored] = await service.serviceFind(payload, {
+    collection: "pages",
+    where: { id: { equals: page.id } },
+    draft: true,
+  });
+  await payload.destroy();
+  return {
+    pageId: page.id,
+    written,
+    errors: settled.flatMap((result) =>
+      result.status === "rejected"
+        ? [String(result.reason?.message ?? result.reason).slice(0, 300)]
+        : [],
+    ),
+    stored: stored?.title ?? null,
   };
 }
 

@@ -17,6 +17,7 @@ const modes = {
   baseline: "runBaselineProof",
   "blocks-read": "runBlocksRead",
   "deleted-media-read": "runDeletedMediaRead",
+  "pooling-probe": "runPoolingProbe",
 };
 
 if (!Object.hasOwn(modes, mode)) {

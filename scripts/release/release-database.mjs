@@ -605,9 +605,11 @@ export function sweepSitePresentations({
     `Site presentations: handing ${judged.missing.length} of ${state.sites.length} Site(s) to the sweep, which runs Payload as cms_runtime.`,
   );
   const secret = randomBytes(32).toString("hex");
+  const encodedPassword = new URL(runtime.databaseUrl).password;
   const secrets = [
     secret,
-    decodeURIComponent(new URL(runtime.databaseUrl).password),
+    decodeURIComponent(encodedPassword),
+    encodedPassword,
   ];
   const result = runCommand("bun", [SITE_PRESENTATION_SWEEP], {
     cwd: repoRoot,

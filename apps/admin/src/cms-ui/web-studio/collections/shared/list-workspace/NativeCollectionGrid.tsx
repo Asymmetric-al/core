@@ -44,8 +44,9 @@ import {
 } from "@payloadcms/ui";
 import { FileSearch, ListFilter, Plus, SearchX, Trash2 } from "lucide-react";
 import Image from "next/image";
-import { useEffect, useId, useMemo, useRef, useState } from "react";
+import { useContext, useEffect, useId, useMemo, useRef, useState } from "react";
 
+import { DocumentThumbnailSource } from "./document-thumbnail-source";
 import { GridBulkActions, type GridBulkOptions } from "./grid-bulk-actions";
 import { GridGroupByMenu } from "./grid-group-by-menu";
 import { GridSortMenu } from "./grid-sort-menu";
@@ -67,7 +68,6 @@ import {
   PAYLOAD_FALLBACK_SORT,
   parsePayloadSort,
   plainCellValue,
-  resolveDocumentThumbnail,
   STATUS_COLUMN_SIZE,
   toPayloadSort,
   visibilityFromColumns,
@@ -175,7 +175,7 @@ function DocumentStatusBadge({ doc }: { doc: Record<string, unknown> }) {
 }
 
 function DocumentThumbnail({ doc }: { doc: Record<string, unknown> }) {
-  const src = resolveDocumentThumbnail(doc);
+  const src = useContext(DocumentThumbnailSource)(doc);
   if (!src) return null;
   return (
     <Image
@@ -466,7 +466,7 @@ function MobileRow({
   useAsTitle: string;
 }) {
   const { doc, id } = row.original;
-  const thumbnail = resolveDocumentThumbnail(doc);
+  const thumbnail = useContext(DocumentThumbnailSource)(doc);
   return (
     <Item variant="outline" size="sm" render={<div />}>
       {selectable ? (

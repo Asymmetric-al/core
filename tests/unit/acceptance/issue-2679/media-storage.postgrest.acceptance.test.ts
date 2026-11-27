@@ -38,6 +38,24 @@ vi.mock("@asym/database/supabase/admin", () => ({
       : { client: null, error: "Admin client unavailable" },
 }));
 
+const { registered, registerFailures } = vi.hoisted(() => ({
+  registered: [] as Array<{ id: string; tenantId: string }>,
+  registerFailures: [] as Error[],
+}));
+
+vi.mock("../../../../apps/admin/src/cms/ports/service-port", () => ({
+  registerMediaRecord: async (
+    _payload: unknown,
+    media: { id: string; tenantId: string },
+  ) => {
+    registered.push({ id: media.id, tenantId: media.tenantId });
+    const failure = registerFailures.shift();
+    if (failure) throw failure;
+    return { id: media.id };
+  },
+  deleteMediaRecord: async () => undefined,
+}));
+
 vi.mock("@asym/lib/audit/logger", () => ({
   createAuditLogger: () => ({
     logRequired: async () => undefined,
@@ -1627,6 +1645,176 @@ describe.skipIf(!required && !configured)(
       expect(keptMidObjs.rows.map((r) => r.name)).toEqual(
         [midMasterKey, midVariantKey].sort(),
       );
+    });
+    it("registers an upload only after the person's own token reads it as ready in the organization Web Studio selected, and a retry writes no second object (WP6 rest, pull request 2, invariants 1, 3 and 4)", async () => {
+      process.env.NEXT_PUBLIC_SUPABASE_URL = url!;
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY = anonKey!;
+      const { webStudioMediaRegisterEndpoint } =
+        await import("../../../../apps/admin/src/cms/media-endpoints");
+      const register = webStudioMediaRegisterEndpoint.handler as (
+        req: unknown,
+      ) => Promise<Response>;
+      registered.length = 0;
+
+      const actor = (
+        user: CreatedUser,
+        tenantId: string,
+        assignmentId: string,
+      ) => ({
+        id: user.id,
+        collection: "principal-links",
+        tenantId,
+        assignmentId,
+        staffRole: "development",
+        isTenantAdmin: false,
+      });
+      const ask = (
+        user: CreatedUser,
+        who: ReturnType<typeof actor>,
+        assetId: string,
+      ) =>
+        register(
+          Object.assign(
+            new Request(
+              "http://127.0.0.1:3001/web-studio/api/web-studio/media/register",
+              {
+                method: "POST",
+                headers: {
+                  "content-type": "application/json",
+                  cookie: user.cookieHeader,
+                },
+                body: JSON.stringify({ assetId, alt: "Registered" }),
+              },
+            ),
+            { user: who, payload: { marker: "payload" }, context: {} },
+          ),
+        );
+
+      const bytes = await sharp({
+        create: { width: 320, height: 240, channels: 3, background: "#2c70b8" },
+      })
+        .jpeg()
+        .toBuffer();
+      const upload = async (
+        user: CreatedUser,
+        tenantId: string,
+        assignmentId: string,
+        finalize = true,
+      ) => {
+        const startRes = await startMediaPost(
+          staffRequest("/api/cms/media/start", user, tenantId, assignmentId, {
+            byteSize: bytes.byteLength,
+            mimeType: "image/jpeg",
+          }),
+        );
+        expect(startRes.status).toBe(201);
+        const started = (await startRes.json()) as {
+          assetId: string;
+          stagingPath: string;
+          signedUrl: string;
+        };
+        createdStorageKeys.add(started.stagingPath);
+        const put = await fetch(started.signedUrl, {
+          method: "PUT",
+          headers: { "content-type": "image/jpeg" },
+          body: new Uint8Array(bytes),
+        });
+        expect(put.ok, `signed PUT ${put.status}`).toBe(true);
+        if (finalize) {
+          const finalizeRes = await finalizeMediaPost(
+            staffRequest(
+              "/api/cms/media/finalize",
+              user,
+              tenantId,
+              assignmentId,
+              {
+                assetId: started.assetId,
+              },
+            ),
+          );
+          expect(finalizeRes.status).toBe(200);
+          await trackAssetKeys(
+            (
+              (await finalizeRes.json()) as {
+                asset: Parameters<typeof trackAssetKeys>[0];
+              }
+            ).asset,
+          );
+        }
+        return started.assetId;
+      };
+      const objectsUnder = async (tenantId: string) =>
+        Number(
+          (
+            await db!.query(
+              "select count(*) from storage.objects where bucket_id = $1 and name like $2",
+              [MEDIA_BUCKET, `${tenantId}/%`],
+            )
+          ).rows[0].count,
+        );
+
+      const readyA = await upload(staffA, tenantA, mStaffA);
+      const readyB = await upload(staffB, tenantB, mStaffB);
+      const uploadingA = await upload(staffA, tenantA, mStaffA, false);
+      const deletedA = await upload(staffA, tenantA, mStaffA);
+      expect(
+        (
+          await deleteMediaPost(
+            staffRequest("/api/cms/media/delete", staffA, tenantA, mStaffA, {
+              assetId: deletedA,
+            }),
+          )
+        ).status,
+      ).toBe(200);
+      const multiUnderB = await upload(multiUser, tenantB, mMultiB);
+
+      const refusals: Array<
+        [string, CreatedUser, ReturnType<typeof actor>, string]
+      > = [
+        ["B's asset from A", staffA, actor(staffA, tenantA, mStaffA), readyB],
+        ["a random id", staffA, actor(staffA, tenantA, mStaffA), randomUUID()],
+        [
+          "an asset still uploading",
+          staffA,
+          actor(staffA, tenantA, mStaffA),
+          uploadingA,
+        ],
+        ["a deleted asset", staffA, actor(staffA, tenantA, mStaffA), deletedA],
+        [
+          "B's tenant claimed without a B membership",
+          staffA,
+          actor(staffA, tenantB, mStaffA),
+          readyB,
+        ],
+        [
+          "an asset the person finalized under B, with Web Studio on A",
+          multiUser,
+          actor(multiUser, tenantA, mMultiA),
+          multiUnderB,
+        ],
+      ];
+      for (const [label, user, who, assetId] of refusals) {
+        const refused = await ask(user, who, assetId);
+        expect(refused.status, label).toBeGreaterThanOrEqual(400);
+      }
+      expect(registered).toEqual([]);
+
+      const objectsBefore = await objectsUnder(tenantA);
+      registerFailures.push(new Error("connection terminated"));
+      await expect(
+        ask(staffA, actor(staffA, tenantA, mStaffA), readyA),
+      ).rejects.toThrow("connection terminated");
+      const retried = await ask(
+        staffA,
+        actor(staffA, tenantA, mStaffA),
+        readyA.toUpperCase(),
+      );
+      expect(retried.status).toBe(200);
+      expect(await objectsUnder(tenantA)).toBe(objectsBefore);
+      expect(registered).toEqual([
+        { id: readyA, tenantId: tenantA },
+        { id: readyA, tenantId: tenantA },
+      ]);
     });
   },
 );

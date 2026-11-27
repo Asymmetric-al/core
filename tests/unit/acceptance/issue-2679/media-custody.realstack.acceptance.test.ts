@@ -977,6 +977,27 @@ describe.skipIf(!ADMIN_URL)(
       });
     });
 
+    it("answers another organization's asset exactly as an asset that exists nowhere (WP6 rest, pull request 2, round 2, G2)", async () => {
+      await inTx(async () => {
+        const staffA = {
+          sub: id.UStaffA,
+          headers: { "x-asym-tenant": id.TA, "x-asym-assignment": id.mStaffA },
+        };
+        const refusal = async (assetId: string) => {
+          const result = await queryAs(
+            "authenticated",
+            staffA,
+            `select public.delete_media_asset($1, $2)`,
+            [id.TA, assetId],
+          );
+          return { code: result.code, message: result.message };
+        };
+        const foreign = await refusal(id.assetReadyB);
+        expect(foreign).toEqual(await refusal(randomUUID()));
+        expect(foreign.code).toBe("P0002");
+      });
+    });
+
     it("re-checks tenant status, live assignment and capability under locks during concurrent revocation, capability loss and suspension (Finding 4)", async () => {
       const tMain = randomUUID();
       const tSusp = randomUUID();

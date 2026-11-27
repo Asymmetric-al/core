@@ -42,15 +42,15 @@ export function assertSweepTarget(env = process.env) {
 
 export function failureText(error, env = process.env) {
   const message = error instanceof Error ? error.message : String(error);
+  let raw = "";
   let password = "";
   try {
-    password = decodeURIComponent(
-      new URL(env.PAYLOAD_DATABASE_URI ?? "").password,
-    );
+    raw = new URL(env.PAYLOAD_DATABASE_URI ?? "").password;
+    password = decodeURIComponent(raw);
   } catch {
     password = "";
   }
-  return scrubbed(message, [env.PAYLOAD_SECRET, password]);
+  return scrubbed(message, [env.PAYLOAD_SECRET, password, raw]);
 }
 
 export function readSweepInput(text) {

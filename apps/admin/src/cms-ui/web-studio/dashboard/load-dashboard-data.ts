@@ -15,9 +15,11 @@ export type WebStudioDashboardCollection = {
   total: number | null;
   /** Unpublished documents; null when the collection has no drafts. */
   drafts: number | null;
+  draftsFailed: boolean;
 };
 
-export type WebStudioDocumentStatus = "changed" | "draft" | "published";
+export type WebStudioDocumentStatus =
+  "changed" | "draft" | "published" | "unknown";
 
 export type WebStudioDashboardRecent = {
   id: string;
@@ -43,7 +45,10 @@ export type WebStudioDashboardData = {
 const RECENT_LIMIT = 6;
 
 type LoadArgs = {
-  payload: Pick<Payload, "collections" | "count" | "find" | "findVersions">;
+  payload: Pick<
+    Payload,
+    "collections" | "count" | "find" | "findVersions" | "logger"
+  >;
   req: PayloadRequest;
   permissions: SanitizedPermissions | undefined;
 };
@@ -56,12 +61,26 @@ function hasDrafts(
   return Boolean(versions && typeof versions === "object" && versions.drafts);
 }
 
+function reportFailure(
+  payload: LoadArgs["payload"],
+  read: string,
+  error: unknown,
+): void {
+  payload.logger.error(
+    { err: error },
+    `Web Studio dashboard: the ${read} failed`,
+  );
+}
+
 async function countOrNull(
+  payload: LoadArgs["payload"],
+  read: string,
   run: () => Promise<{ totalDocs: number }>,
 ): Promise<number | null> {
   try {
     return (await run()).totalDocs;
-  } catch {
+  } catch (error) {
+    reportFailure(payload, read, error);
     return null;
   }
 }
@@ -109,7 +128,8 @@ async function publishedParentIds({
         return [];
       }),
     );
-  } catch {
+  } catch (error) {
+    reportFailure(payload, `${slug} version-status read`, error);
     return null;
   }
 }
@@ -119,7 +139,7 @@ function documentStatus(
   changedIds: Set<string> | null,
 ): WebStudioDocumentStatus | null {
   if (doc._status === "draft") {
-    if (changedIds === null) return null;
+    if (changedIds === null) return "unknown";
     return changedIds.has(String(doc.id)) ? "changed" : "draft";
   }
   return doc._status === "published" ? "published" : null;
@@ -181,7 +201,8 @@ async function loadRecent({
             } satisfies WebStudioDashboardRecent,
           ];
         });
-      } catch {
+      } catch (error) {
+        reportFailure(payload, `${collection.slug} recent read`, error);
         return null;
       }
     }),
@@ -214,7 +235,7 @@ export async function loadWebStudioDashboardData({
           group.collections.map(async (collection) => {
             const drafted = hasDrafts(payload, collection.slug);
             const [total, drafts] = await Promise.all([
-              countOrNull(() =>
+              countOrNull(payload, `${collection.slug} count`, () =>
                 payload.count({
                   collection: collection.slug,
                   overrideAccess: false,
@@ -222,7 +243,7 @@ export async function loadWebStudioDashboardData({
                 }),
               ),
               drafted
-                ? countOrNull(() =>
+                ? countOrNull(payload, `${collection.slug} draft count`, () =>
                     payload.count({
                       collection: collection.slug,
                       overrideAccess: false,
@@ -239,6 +260,7 @@ export async function loadWebStudioDashboardData({
               href: collection.listPath,
               total,
               drafts: total === null ? null : drafts,
+              draftsFailed: drafted && total !== null && drafts === null,
             } satisfies WebStudioDashboardCollection;
           }),
         ),

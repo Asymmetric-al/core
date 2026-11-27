@@ -66,6 +66,8 @@ const ROOT: readonly Endpoint[] = [
   { method: "GET", path: "/access" },
   { method: "GET", path: "/og" },
   { method: "POST", path: "/web-studio/create-from-template" },
+  { method: "POST", path: "/web-studio/media/register" },
+  { method: "POST", path: "/web-studio/media/remove" },
 ];
 const COLLECTION: readonly Endpoint[] = [
   { method: "POST", path: "/:id/duplicate" },
@@ -135,14 +137,20 @@ describe("the endpoints under Web Studio's REST route, derived from the pinned P
     );
   });
 
-  it("include Core's one custom endpoint, and no upload, orderable or global endpoint", () => {
+  it("include Core's three custom endpoints (create from template, the media library's register and remove), and no upload, orderable or global endpoint", () => {
     const config = readFileSync(
       path.join(process.cwd(), "apps/admin/payload.config.ts"),
       "utf8",
     );
-    expect(config).toContain(
-      "endpoints: [webStudioCreateFromTemplateEndpoint]",
+    expect(config).toMatch(
+      /endpoints: \[\s*webStudioCreateFromTemplateEndpoint,\s*webStudioMediaRegisterEndpoint,\s*webStudioMediaRemoveEndpoint,\s*\]/,
     );
+    const media = readFileSync(
+      path.join(process.cwd(), "apps/admin/src/cms/media-endpoints.ts"),
+      "utf8",
+    );
+    expect(media).toContain('path: "/web-studio/media/register"');
+    expect(media).toContain('path: "/web-studio/media/remove"');
     expect(config).not.toMatch(/\bglobals:/);
     const collections = readFileSync(
       path.join(process.cwd(), "apps/admin/src/cms/collections/media.ts"),

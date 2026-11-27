@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import { serializePublishedPageLike } from "../../../apps/admin/src/cms/preview/serialize-published-page";
 
@@ -99,9 +99,9 @@ describe("serializePublishedPageLike (D-18: WP6 part 2b gives pages a family ins
         backgroundImage: {
           id: MEDIA_ID,
           alt: "Jane in field",
-          url: null,
-          thumbnailURL: null,
-          cardURL: null,
+          url: `/api/media/${MEDIA_ID}`,
+          thumbnailURL: `/api/media/${MEDIA_ID}?variant=w320`,
+          cardURL: `/api/media/${MEDIA_ID}`,
           width: null,
           height: null,
           mimeType: null,
@@ -113,7 +113,7 @@ describe("serializePublishedPageLike (D-18: WP6 part 2b gives pages a family ins
     ]);
   });
 
-  it("serializes a media record as the package serializer does, emitting none of its tenant, credit or folder", async () => {
+  it("serializes a media record as the package serializer does, emitting none of its tenant, credit or folder, and only the preview gives it the signed-in media route (public media is WP7's)", async () => {
     const { serializePublicPage } =
       await import("../../../packages/api/src/cms/public/serializer");
 
@@ -157,6 +157,74 @@ describe("serializePublishedPageLike (D-18: WP6 part 2b gives pages a family ins
       "url",
       "width",
     ]);
-    expect(shipped.layout).toEqual(packaged.layout);
+    const unaddressed = {
+      ...shipped.layout[0],
+      media: {
+        ...shipped.layout[0].media,
+        url: null,
+        thumbnailURL: null,
+        cardURL: null,
+      },
+    };
+    expect([unaddressed]).toEqual(packaged.layout);
+    expect(packaged.layout[0].media.url).toBeNull();
+    expect(shipped.layout[0].media.url).toBe(`/api/media/${MEDIA_ID}`);
+  });
+});
+
+describe("preview media addresses (WP6 rest, pull request 2, invariant 5): a draft shows its images through /api/media/<id>", () => {
+  const page = (media: unknown) => ({
+    id: PAGE_ID,
+    title: "Field",
+    slug: "field",
+    layout: [{ blockType: "media-feature", media, mediaCaption: null }],
+  });
+
+  it("gives a stored media record the signed-in media route's bounded variants, never a storage address: w320, which every image has, and the largest the image has for the card", () => {
+    const [block] = serializePublishedPageLike(
+      page({
+        id: MEDIA_ID.toUpperCase(),
+        alt: "Jane in field",
+        url: "https://project.supabase.co/storage/v1/object/cms-media/x.jpg",
+      }),
+    ).layout as Array<{ media: Record<string, unknown> }>;
+    expect(block!.media).toEqual({
+      id: MEDIA_ID.toUpperCase(),
+      alt: "Jane in field",
+      url: `/api/media/${MEDIA_ID}`,
+      thumbnailURL: `/api/media/${MEDIA_ID}?variant=w320`,
+      cardURL: `/api/media/${MEDIA_ID}`,
+      width: null,
+      height: null,
+      mimeType: null,
+    });
+  });
+
+  it("gives no address to a media value whose id is not a hex UUID", () => {
+    const [block] = serializePublishedPageLike(
+      page({ id: "../../etc/passwd", alt: "x" }),
+    ).layout as Array<{ media: Record<string, unknown> }>;
+    expect(block!.media).toMatchObject({
+      url: null,
+      thumbnailURL: null,
+      cardURL: null,
+    });
+  });
+
+  it("carries the admin app's base path when the apps are served under paths, since the unoptimized image adds none (fix round F3)", () => {
+    vi.stubEnv("CORE_SERVE_UNDER_PATHS", "1");
+    vi.stubEnv("CORE_APP_BASE_PATH", "/admin");
+    try {
+      const [block] = serializePublishedPageLike(
+        page({ id: MEDIA_ID, alt: "Jane in field" }),
+      ).layout as Array<{ media: Record<string, unknown> }>;
+      expect(block!.media).toMatchObject({
+        url: `/admin/api/media/${MEDIA_ID}`,
+        thumbnailURL: `/admin/api/media/${MEDIA_ID}?variant=w320`,
+        cardURL: `/admin/api/media/${MEDIA_ID}`,
+      });
+    } finally {
+      vi.unstubAllEnvs();
+    }
   });
 });

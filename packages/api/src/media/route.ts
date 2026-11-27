@@ -5,6 +5,7 @@ import {
 } from "@asym/auth/context";
 import { isServeUnderPathsEnabled } from "@asym/database/app-base-path";
 import { getSupabasePublicConfig } from "@asym/database/supabase/config";
+import { captureError } from "@asym/lib/monitoring/sentry";
 import { createServerClient, parseCookieHeader } from "@supabase/ssr";
 import { unstable_rethrow } from "next/navigation";
 import { NextResponse, type NextRequest } from "next/server";
@@ -38,7 +39,7 @@ function getBearerToken(request: Request): string | null {
   return token || null;
 }
 
-function emptyResponse(status: 401 | 404): NextResponse {
+function emptyResponse(status: 401 | 404 | 503): NextResponse {
   return new NextResponse(null, {
     status,
     headers: PRIVATE_NO_CACHE_HEADERS,
@@ -70,6 +71,23 @@ async function createMediaSessionClient(
       },
     }) as unknown as RequestSessionClient;
   }
+}
+
+function reportMediaFailure(error: unknown, stage: string): void {
+  captureError(
+    error instanceof Error ? error : new Error(`media route ${stage} failure`),
+    { route: "media", stage },
+  );
+}
+
+function isAuthServiceFailure(error: unknown): boolean {
+  const value = error as { name?: unknown; status?: unknown } | null;
+  if (!value) return false;
+  if (value.name === "AuthRetryableFetchError") return true;
+  return (
+    typeof value.status === "number" &&
+    (value.status === 0 || value.status >= 500)
+  );
 }
 
 function parseMediaAccessRow(data: unknown): {
@@ -110,7 +128,8 @@ export async function GET(
     sessionClient = await createMediaSessionClient(request);
   } catch (error) {
     unstable_rethrow(error);
-    return emptyResponse(401);
+    reportMediaFailure(error, "auth-service");
+    return emptyResponse(503);
   }
 
   const {
@@ -118,6 +137,10 @@ export async function GET(
     error: userError,
   } = await sessionClient.auth.getUser(bearerToken ?? undefined);
 
+  if (userError && isAuthServiceFailure(userError)) {
+    reportMediaFailure(userError, "auth-service");
+    return emptyResponse(503);
+  }
   if (userError || !user) {
     return emptyResponse(401);
   }
@@ -141,7 +164,8 @@ export async function GET(
     { p_asset_id: assetId },
   );
   if (accessError) {
-    return emptyResponse(404);
+    reportMediaFailure(accessError, "access");
+    return emptyResponse(503);
   }
 
   const access = parseMediaAccessRow(accessRows);
