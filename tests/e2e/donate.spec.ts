@@ -57,7 +57,7 @@ test.describe("Donation flow", () => {
     expect(donateApiRequests).toHaveLength(0);
   });
 
-  test("authenticated checkout path still reaches the payment step", async ({
+  test("with giving off, a signed-in donor's checkout says giving is unavailable and offers no payment", async ({
     page,
   }) => {
     const session = await installDemoSessionInBrowser(page, "donor");
@@ -65,38 +65,30 @@ test.describe("Donation flow", () => {
       !session.ok,
       `Donor demo session unavailable: POST /api/auth/demo-account returned ${session.status}.`,
     );
-
-    await page.route("**/api/donate", async (route) => {
-      const request = route.request();
-      if (request.method() !== "GET") {
-        await route.continue();
-        return;
-      }
-
-      await route.fulfill({
-        body: JSON.stringify({ publishableKey: null }),
-        contentType: "application/json",
-        status: 200,
-      });
+    const donatePosts: string[] = [];
+    page.on("request", (request) => {
+      if (
+        request.method() === "POST" &&
+        new URL(request.url()).pathname === "/api/donate"
+      )
+        donatePosts.push(request.url());
     });
+    const configAnswer = page.waitForResponse(
+      (response) =>
+        response.request().method() === "POST" &&
+        new URL(response.url()).pathname === "/api/checkout/config",
+    );
 
     await page.goto(
-      "/checkout?amount=100&workerId=miss-001&missionary_id=20000000-0000-0000-0000-000000000001",
+      "/checkout?amount=100&missionary_id=20000000-0000-0000-0000-000000000001",
     );
 
     await expect(page).toHaveURL(/\/checkout/);
+    expect((await configAnswer).status()).toBe(503);
     await expect(
-      page.getByRole("heading", { name: /your gift/i }),
+      page.getByText(/We can't take this gift online right now/),
     ).toBeVisible();
-
-    await page.getByRole("button", { name: /next step/i }).click();
-    await page.getByLabel(/first name/i).fill("Ada");
-    await page.getByLabel(/last name/i).fill("Lovelace");
-    await page.getByLabel(/email address/i).fill("ada@example.com");
-    await page.getByRole("button", { name: /continue to payment/i }).click();
-
-    await expect(
-      page.getByRole("heading", { name: /secure payment/i }),
-    ).toBeVisible();
+    await expect(page.getByRole("button", { name: /^Give \$/ })).toHaveCount(0);
+    expect(donatePosts).toHaveLength(0);
   });
 });

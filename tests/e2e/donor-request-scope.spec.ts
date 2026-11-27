@@ -109,9 +109,9 @@ test("the donor portal renders in the donor membership's scope and its own-API c
 /**
  * Record D-41 (council round 1 on slice B, SB2; council round 2, BR2):
  * leaving the portal is one document load at the click, and outside it the
- * scope functions return nothing. The checkout's own-API request (its
- * runtime config, `GET /api/donate`) names no tenant or assignment, and is
- * sent once: the checkout never renders on the portal's document first.
+ * scope functions return nothing. The checkout's config read (`POST
+ * /api/checkout/config`) names no tenant or assignment, and is sent once:
+ * the checkout never renders on the portal's document first.
  */
 test("leaving the portal for the public checkout loads one new document, whose own-API requests carry no scope", async ({
   page,
@@ -157,19 +157,19 @@ test("leaving the portal for the public checkout loads one new document, whose o
     await route.fulfill({ response, json: snapshot });
   });
 
-  // Every runtime-config request the checkout makes, with every header it
+  // Every config read the checkout makes, with every header it
   // carried.
   const configHeaders: Record<string, string>[] = [];
-  await page.route("**/api/donate", async (route) => {
-    if (route.request().method() !== "GET") return route.continue();
+  await page.route("**/api/checkout/config", async (route) => {
+    if (route.request().method() !== "POST") return route.continue();
     configHeaders.push(await route.request().allHeaders());
-    await route.fulfill({ json: { publishableKey: null } });
+    await route.fulfill({ json: {} });
   });
 
-  const log = logRequests(page, ["/checkout", "/api/donate"]);
+  const log = logRequests(page, ["/checkout", "/api/checkout/config"]);
 
   // What the checkout itself costs when loaded directly: one document and
-  // its runtime-config requests. A production build sends one; on a
+  // its config reads. A production build sends one; on a
   // development server React's StrictMode runs the checkout's config effect
   // twice in one document, the first cancelled by its own cleanup. Leaving
   // the portal must cost exactly that, and nothing from the portal's
@@ -182,8 +182,8 @@ test("leaving the portal for the public checkout loads one new document, whose o
   const configAnswered = () =>
     page.waitForResponse(
       (response) =>
-        response.request().method() === "GET" &&
-        new URL(response.url()).pathname === "/api/donate" &&
+        response.request().method() === "POST" &&
+        new URL(response.url()).pathname === "/api/checkout/config" &&
         response.status() === 200,
     );
   let from = log.length;
@@ -194,8 +194,8 @@ test("leaving the portal for the public checkout loads one new document, whose o
   });
   await directConfigAnswered;
   const direct = log.slice(from);
-  const directConfigRequests = ofPath(direct, "/api/donate").filter(
-    (entry) => entry.method === "GET",
+  const directConfigRequests = ofPath(direct, "/api/checkout/config").filter(
+    (entry) => entry.method === "POST",
   ).length;
   expect(directConfigRequests).toBeGreaterThanOrEqual(1);
   expect(directConfigRequests).toBeLessThanOrEqual(2);
@@ -228,7 +228,7 @@ test("leaving the portal for the public checkout loads one new document, whose o
   const leaving = log.slice(from);
   // Once, as a document, and first: the checkout never rendered on the
   // portal's document (which would have asked for it as a router request,
-  // and sent its runtime-config request from there, before the reload).
+  // and sent its config read from there, before the reload).
   expect(ofPath(leaving, "/checkout")).toEqual([
     { path: "/checkout", kind: "navigation:document", method: "GET" },
   ]);
@@ -237,10 +237,12 @@ test("leaving the portal for the public checkout loads one new document, whose o
     kind: "navigation:document",
     method: "GET",
   });
-  // The checkout's runtime-config requests, exactly as many as a direct
+  // The checkout's config reads, exactly as many as a direct
   // load sends, all from its own document.
   expect(
-    ofPath(leaving, "/api/donate").filter((entry) => entry.method === "GET"),
+    ofPath(leaving, "/api/checkout/config").filter(
+      (entry) => entry.method === "POST",
+    ),
   ).toHaveLength(directConfigRequests);
   // None of them named a tenant or an assignment.
   const leavingHeaders = configHeaders.slice(configFrom);
