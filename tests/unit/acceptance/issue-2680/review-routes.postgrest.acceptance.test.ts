@@ -7,6 +7,7 @@ import {
   GET as feed,
   POST as submit,
 } from "../../../../packages/api/src/posts/index";
+import { PATCH as edit } from "../../../../packages/api/src/posts/post";
 import { POST as withdrawOwn } from "../../../../packages/api/src/posts/withdraw";
 import { membershipsForRole } from "../../../fixtures/auth-memberships";
 import {
@@ -55,7 +56,7 @@ describe.skipIf(!required && ![url, database, anon, service].some(Boolean))(
   "AL-2680 WP7 pull request 1: an update under review through the routes, on real tokens",
   () => {
     const fx = identityKeysFixture();
-    const { TA, ids, user, token } = fx;
+    const { TA, TB, ids, user, token } = fx;
     const publicEnv = {
       url: process.env.NEXT_PUBLIC_SUPABASE_URL,
       key: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
@@ -142,6 +143,36 @@ describe.skipIf(!required && ![url, database, anon, service].some(Boolean))(
             [TA, ids.dDonor, user.missionary, ids.mi, status],
           );
 
+    const versionOf = async (post: string) =>
+      (
+        await fx.db!.query(
+          "select content_version from public.posts where id = $1",
+          [post],
+        )
+      ).rows[0]?.content_version as number;
+    const seenBy = async (
+      who: keyof typeof token | null,
+      auth: AuthContext | { isAuthenticated: false },
+      post: string,
+    ) => {
+      s.auth = auth;
+      const response = await feed(
+        who
+          ? call(who, "/api/posts?limit=100")
+          : new NextRequest("http://localhost/api/posts?limit=100"),
+      );
+      if (response.status !== 200) return response.status;
+      const json = (await response.json()) as { posts?: { id: string }[] };
+      return (json.posts ?? []).some((p) => p.id === post);
+    };
+    const revoke = (live: boolean) =>
+      fx.db!.query(
+        live
+          ? "update authz.memberships set is_active = true, revoked_at = null where id = $1"
+          : "update authz.memberships set is_active = false, revoked_at = now() where id = $1",
+        [ids.mMissionary],
+      );
+
     beforeAll(() => {
       process.env.NEXT_PUBLIC_SUPABASE_URL = url;
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY = anon;
@@ -181,7 +212,10 @@ describe.skipIf(!required && ![url, database, anon, service].some(Boolean))(
       const approved = await review(
         call("admin", `/api/admin/posts/${post.id}/review`, {
           method: "POST",
-          body: JSON.stringify({ decision: "approve" }),
+          body: JSON.stringify({
+            decision: "approve",
+            version: await versionOf(post.id),
+          }),
         }),
         { params: Promise.resolve({ postId: post.id }) },
       );
@@ -226,7 +260,10 @@ describe.skipIf(!required && ![url, database, anon, service].some(Boolean))(
       const refused = await review(
         call("donor", `/api/admin/posts/${post.id}/review`, {
           method: "POST",
-          body: JSON.stringify({ decision: "approve" }),
+          body: JSON.stringify({
+            decision: "approve",
+            version: await versionOf(post.id),
+          }),
         }),
         { params: Promise.resolve({ postId: post.id }) },
       );
@@ -237,6 +274,123 @@ describe.skipIf(!required && ![url, database, anon, service].some(Boolean))(
       );
       expect(state.rows).toEqual([{ review_state: "submitted" }]);
       expect(await feedIds("giver", ids.mGiver!)).not.toContain(post.id);
+    });
+
+    it("T5 partners.11: the feed route answers 401 to anon and leaves an approved partners-only update out for a pending follow, staff of another organization and its author once their assignment is revoked", async () => {
+      await follow("approved");
+      s.auth = member(user.missionary, ids.mMissionary!, "missionary");
+      const created = await submit(
+        call("missionary", "/api/posts", {
+          method: "POST",
+          body: JSON.stringify({
+            content: doc("Partners only"),
+            visibility: "partners",
+            status: "published",
+          }),
+        }),
+      );
+      const { post } = (await created.json()) as { post: { id: string } };
+      s.auth = reviewer();
+      const approved = await review(
+        call("admin", `/api/admin/posts/${post.id}/review`, {
+          method: "POST",
+          body: JSON.stringify({
+            decision: "approve",
+            version: await versionOf(post.id),
+          }),
+        }),
+        { params: Promise.resolve({ postId: post.id }) },
+      );
+      expect(approved.status).toBe(200);
+      const donor = member(user.donor, ids.mDonor!, "donor");
+      expect(await seenBy("donor", donor, post.id)).toBe(true);
+
+      expect(await seenBy(null, { isAuthenticated: false }, post.id)).toBe(401);
+      await follow("pending");
+      expect(await seenBy("donor", donor, post.id)).toBe(false);
+      await follow("approved");
+      const staffB = {
+        userId: user.staffB,
+        email: null,
+        tenantId: TB,
+        role: "staff",
+        memberships: membershipsForRole("staff", TB),
+        profileId: user.staffB,
+        isAuthenticated: true,
+        assignment: {
+          userId: user.staffB,
+          tenantId: TB,
+          membershipRole: "staff",
+          staffRole: "development",
+          isTenantAdmin: false,
+          revision: "1",
+          assignmentId: ids.mStaffB,
+        },
+        assignmentDenial: null,
+      } as AuthContext;
+      expect(await seenBy("staffB", staffB, post.id)).toBe(false);
+      const author = member(user.missionary, ids.mMissionary!, "missionary");
+      expect(await seenBy("missionary", author, post.id)).toBe(true);
+      await revoke(false);
+      try {
+        expect(await seenBy("missionary", author, post.id)).not.toBe(true);
+      } finally {
+        await revoke(true);
+      }
+      await follow(null);
+    });
+
+    it("C1: an edit goes through the lane on the missionary's own token: refused while their assignment is revoked, writing nothing, and once it is live again it lands with an audit row naming the assignment", async () => {
+      s.auth = member(user.missionary, ids.mMissionary!, "missionary");
+      const created = await submit(
+        call("missionary", "/api/posts", {
+          method: "POST",
+          body: JSON.stringify({
+            title: "Before",
+            content: doc("Before"),
+            visibility: "public",
+            status: "published",
+          }),
+        }),
+      );
+      expect(created.status).toBe(201);
+      const { post } = (await created.json()) as { post: { id: string } };
+      const change = () =>
+        edit(
+          call("missionary", `/api/posts/${post.id}`, {
+            method: "PATCH",
+            body: JSON.stringify({
+              title: "After",
+              content: doc("After"),
+              visibility: "public",
+              status: "published",
+              post_type: "Update",
+              media: [],
+            }),
+          }),
+          { params: Promise.resolve({ postId: post.id }) },
+        );
+      await revoke(false);
+      try {
+        expect((await change()).status).toBe(404);
+      } finally {
+        await revoke(true);
+      }
+      const before = await fx.db!.query(
+        "select title from public.posts where id = $1",
+        [post.id],
+      );
+      expect(before.rows).toEqual([{ title: "Before" }]);
+      const done = await change();
+      expect(done.status, JSON.stringify(await done.clone().json())).toBe(200);
+      const audits = await fx.db!.query(
+        "select details->>'assignment_id' as assignment from public.audit_logs where tenant_id = $1 and resource_id = $2 and action = 'ministry_update.submit'",
+        [TA, post.id],
+      );
+      expect(audits.rows).toEqual([
+        { assignment: ids.mMissionary },
+        { assignment: ids.mMissionary },
+      ]);
     });
   },
 );

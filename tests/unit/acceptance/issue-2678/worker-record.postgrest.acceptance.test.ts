@@ -878,8 +878,26 @@ describe.skipIf(!required && ![url, database, anon, service].some(Boolean))(
       expect(await reveals(id.pU!)).toEqual([]);
     });
 
-    it("T4 a restriction through the route holds at once on every surface r1, r2a and r2s cover: the donor portal, the feed, comments, GET /api/donations, GraphQL, a stored receipt rendered again, and the colleague's Partners; none shows the legal identity, the profile name or the Party name (AL-2680: the feed and the comments leave the restricted worker's update out altogether)", async () => {
+    it("T4 a restriction through the route holds at once on every surface r1, r2a and r2s cover: the donor portal, the feed, comments, GET /api/donations, GraphQL, a stored receipt rendered again, and the colleague's Partners; none shows the legal identity, the profile name or the Party name (AL-2680: the feed and the comments leave the restricted worker's update out altogether, and its fix round T6 first shows both there)", async () => {
       const forbidden = ["Profile Rowan", "Party Rowan", "Donor Rowan"];
+      as("D");
+      const feedBefore = (await (
+        await getFeed(request("D", "GET", `/api/posts?missionaryId=${user.R}`))
+      ).json()) as { posts?: Record<string, unknown>[] };
+      expect(
+        (feedBefore.posts ?? []).some((p) => p.id === id.postR),
+        "the update is in the feed before the restriction",
+      ).toBe(true);
+      const commentsBefore = (await (
+        await getComments(
+          request("D", "GET", `/api/posts/${id.postR}/comments`),
+          { params: Promise.resolve({ postId: id.postR! }) },
+        )
+      ).json()) as { comments?: { user_id: string }[] };
+      expect(
+        (commentsBefore.comments ?? []).map((c) => c.user_id).sort(),
+        "both seeded comments are read before the restriction",
+      ).toEqual([user.D, user.R].sort());
       as("A");
       const restricted = await answer(
         await command("A", "restrict", id.wR!, {

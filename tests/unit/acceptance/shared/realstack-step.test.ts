@@ -381,6 +381,8 @@ const REAL_DATABASE_FILES = [
     "issue-2679/cms-clean-baseline.realstack",
     "issue-2679/cms-tenancy.realstack",
     "issue-2679/site-presentations.realstack",
+    "issue-2680/review-fixes.realstack",
+    "issue-2680/review-migration.realstack",
     "issue-2680/review-races.realstack",
     "issue-2680/review.realstack",
     "issue-2681/wp8a-part1.realstack",
@@ -584,21 +586,25 @@ describe("required PostgREST suites run on the local Supabase stack (#2706)", ()
     "issue-2677/field-policy-reader",
     "issue-2677/member-care",
     "issue-2679/media-storage",
-  ])("runs %s in a blocking step", (suite) => {
-    const file = `${A}/${suite}.postgrest.acceptance.test.ts`;
-    const runs = job?.steps?.filter((step) =>
-      step.run
-        ?.split("\n")
-        .some(
-          (line) =>
-            line.startsWith("bunx vitest run --maxWorkers=1 ") &&
-            line.split(" ").includes(file),
-        ),
-    );
-    expect(runs).toHaveLength(1);
-    expect(runs![0]).not.toHaveProperty("if");
-    expect(runs![0]).not.toHaveProperty("continue-on-error");
-  });
+    "issue-2680/review-routes",
+  ])(
+    "runs %s in a blocking step (AL-2680 fix round T7 adds the review routes)",
+    (suite) => {
+      const file = `${A}/${suite}.postgrest.acceptance.test.ts`;
+      const runs = job?.steps?.filter((step) =>
+        step.run
+          ?.split("\n")
+          .some(
+            (line) =>
+              line.startsWith("bunx vitest run --maxWorkers=1 ") &&
+              line.split(" ").includes(file),
+          ),
+      );
+      expect(runs).toHaveLength(1);
+      expect(runs![0]).not.toHaveProperty("if");
+      expect(runs![0]).not.toHaveProperty("continue-on-error");
+    },
+  );
 });
 
 describe("#2714's real-stack steps (AL-2671 stage 1)", () => {

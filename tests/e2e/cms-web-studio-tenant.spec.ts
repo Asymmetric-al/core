@@ -2489,11 +2489,12 @@ test("@cms what was copied in another tab while the organization choice was on i
     },
   );
   try {
-    await chooseOrganization(page, SECOND);
+    const choosing = chooseOrganization(page, SECOND);
     await choicePosted;
     await stale.getByRole("menuitem", { name: "Copy Field" }).click();
     await expect.poll(() => clipboardOf(page)).not.toBeNull();
     release();
+    await choosing;
     await page.waitForURL((url) => url.pathname === "/web-studio");
   } finally {
     release();
