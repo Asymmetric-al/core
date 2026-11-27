@@ -50,22 +50,19 @@ describe("AL-2681 PR 2a: what is mounted and what is not", () => {
     });
   });
 
-  it("the config read's route is mounted on the donor app; the guest intake handler is mounted nowhere until 2b", () => {
+  it("the config read's route and the intake route are mounted on the donor app; the intake handler is mounted nowhere else (D-18, AL-2681 PR 2b: POST /api/donate is the guest intake)", () => {
     expect(read("apps/donor/app/api/checkout/config/route.ts").trim()).toBe(
       'export { POST } from "@asym/api/donate/guest/config-route";',
     );
+    expect(read("apps/donor/app/api/donate/route.ts").trim()).toBe(
+      'export { POST } from "@asym/api/donate/guest/intake-route";',
+    );
     const mounts = [...sourceFiles("apps")].filter((file) =>
-      /guest\/intake-handler|createGuestIntakeHandler|begin_line_gift/.test(
+      /guest\/intake-(handler|route)|createGuestIntakeHandler|begin_line_gift/.test(
         read(file),
       ),
     );
-    expect(mounts).toEqual([]);
-    expect(
-      existsSync(path.join(ROOT, "apps/donor/app/api/donate/route.ts")),
-    ).toBe(true);
-    expect(read("apps/donor/app/api/donate/route.ts")).not.toMatch(
-      /guest\/intake-handler/,
-    );
+    expect(mounts).toEqual(["apps/donor/app/api/donate/route.ts"]);
   });
 
   it("the money schedule is served once, beside the existing functions (AL-2681 PR 2b, issue 2857 item 39: the array handed to serve lists it exactly once as an element)", () => {

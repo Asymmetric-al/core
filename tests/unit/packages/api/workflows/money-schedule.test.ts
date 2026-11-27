@@ -24,6 +24,7 @@ vi.mock("../../../../../packages/api/src/workflows/admin-client", () => ({
 import {
   MONEY_SCHEDULE_PARTS,
   runMoneySchedule,
+  sendOneOperation,
   type MoneyScheduleDeps,
 } from "../../../../../packages/api/src/donate/money-schedule";
 import {
@@ -550,5 +551,30 @@ describe("AL-2681 PR 2b: the schedule purges the limit's expired rows and keeps 
       handled: 1,
       deferred: 1,
     });
+  });
+});
+
+describe("AL-2681 PR 2b: one operation sent inline for the intake route", () => {
+  it("runs the operation through the runner with a 25-second budget and answers its PaymentIntent only when it succeeded", async () => {
+    const budgets: Array<number | undefined> = [];
+    const answers = [
+      { result: "succeeded", providerObjectId: "pi_inline1" },
+      { result: "unknown", errorCode: "stripe_timeout" },
+    ];
+    const runOperation = vi.fn(async (input: { budgetMs?: number }) => {
+      budgets.push(input.budgetMs);
+      return {
+        sent: true,
+        claim: { data: { outcome: "claimed" }, error: null },
+        answer: answers.shift(),
+      } as never;
+    });
+    const { rpc } = fakeRpc([]);
+    const base = deps({ runOperation: runOperation as never }, rpc);
+    expect(await sendOneOperation(base, OP)).toEqual({
+      paymentIntentId: "pi_inline1",
+    });
+    expect(await sendOneOperation(base, OP)).toBeNull();
+    expect(budgets).toEqual([25_000, 25_000]);
   });
 });
