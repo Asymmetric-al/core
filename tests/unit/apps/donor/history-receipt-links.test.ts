@@ -21,10 +21,12 @@ describe("donor history receipt/statement links", () => {
   // controls download them through the own-API wrapper, which sends the
   // document's tenant and assignment; a link would be a page load with no
   // header. Each assertion still pins the control to its route.
-  it("wires the Receipt control to the donation's receipt route as a real download", () => {
+  it("wires the Receipt control to the donation's receipt route as a real download, and shows none for a gift with no receipt link (D-18, AL-2681 fix round F6: a line-based gift has none until WP8b receipts it)", () => {
     // A download of the row's receiptUrl (not an inert button).
     expect(source).toMatch(/useOwnApiDownload\(\)/);
-    expect(source).toMatch(/download\(tx\.receiptUrl\)/);
+    expect(source).toMatch(/const receiptUrl = tx\.receiptUrl;/);
+    expect(source).toMatch(/if \(tx\.status !== "Paid" \|\| !receiptUrl\)/);
+    expect(source).toMatch(/download\(receiptUrl\)/);
     expect(source).toMatch(/aria-label=\{receiptLabel\(tx\)\}/);
   });
 

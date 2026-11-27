@@ -340,7 +340,10 @@ describe.skipIf(!ready)(
 
         ids.feeFund = await feeFund(db, fx.A);
         const feeCovered = await giftIntake(db, fx.A, {
-          lines: [{ amount: 10000 }, { fee: true, amount: 300 }],
+          lines: [
+            { amount: 10000 },
+            { fund: ids.feeFund, fee: true, amount: 300 },
+          ],
         });
         await pay(db, feeCovered);
         ids.feeGift = (await giftOf(db, feeCovered.donationId))!.id as string;
@@ -644,7 +647,7 @@ describe.skipIf(!ready)(
       const allocationsOf = async () =>
         (
           await db.query(
-            `SELECT fund_id, amount, missionary_id, memo, is_fee_cover
+            `SELECT fund_id, amount::int AS amount, missionary_id, memo, is_fee_cover
                FROM public.staged_gift_allocations
               WHERE staged_gift_id = $1 ORDER BY is_fee_cover, line_number`,
             [ids.feeGift],
