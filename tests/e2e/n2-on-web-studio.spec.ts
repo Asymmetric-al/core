@@ -15,6 +15,13 @@ test.skip(!proofReady(), "run through `bun run test:e2e:n2-on`");
 const STALE_MESSAGE =
   "This page was opened for a different organization. Reload the page to continue; nothing was saved.";
 
+async function documentFetchInPlace(page: Page) {
+  await expect(page.locator("[data-web-studio-scope]")).toBeAttached();
+  await page.waitForFunction(
+    () => !window.fetch.toString().includes("[native code]"),
+  );
+}
+
 async function enterWebStudio(page: Page) {
   const documents: string[] = [];
   page.on("request", (request) => {
@@ -48,6 +55,7 @@ async function enterWebStudio(page: Page) {
 }
 
 async function createDraftPage(page: Page, title: string): Promise<string> {
+  await documentFetchInPlace(page);
   return page.evaluate(async (pageTitle) => {
     const sites = await fetch(
       "/admin/web-studio/api/site-presentations?limit=1&depth=0&sort=id",
@@ -99,7 +107,7 @@ async function deletePageAfter(
 async function deletePage(page: Page, id: string) {
   page.on("dialog", (dialog) => void dialog.accept());
   await page.goto("/admin/web-studio");
-  await expect(page.locator("[data-web-studio-scope]")).toBeAttached();
+  await documentFetchInPlace(page);
   const status = await page.evaluate(async (pageId) => {
     const response = await fetch(`/admin/web-studio/api/pages/${pageId}`, {
       method: "DELETE",
@@ -174,6 +182,7 @@ test("Web Studio left open after the name's generation moved refuses a page made
   const saved = saveName();
   try {
     bumpGeneration();
+    await documentFetchInPlace(page);
     const answer = await page.evaluate(async () => {
       const response = await fetch(
         "/admin/web-studio/api/web-studio/create-from-template",
