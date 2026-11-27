@@ -16,6 +16,8 @@ import {
   finish,
   freshSecrets,
   holdInterrupts,
+  serveUntilStopped,
+  waitForQuietMachine,
   waitForServer,
   watchServers,
   parseOptions,
@@ -259,6 +261,50 @@ describe("the runner never runs against a server it did not start (#2858 items 4
     await expect(
       waitForServer(1, () => "admin exited (code 1)", 60_000),
     ).rejects.toThrow("admin exited (code 1)");
+  });
+
+  it("ends the wait for a quiet machine at once when the run is interrupted or a server fails", async () => {
+    const busy = () => 99;
+    const late = new Promise((resolve) => setTimeout(resolve, 2_000, "late"));
+    const write = vi.spyOn(process.stdout, "write").mockReturnValue(true);
+    try {
+      for (const stopped of [
+        Promise.resolve("SIGINT"),
+        new Promise((resolve) => setTimeout(resolve, 20, "admin exited")),
+      ]) {
+        const waited = waitForQuietMachine(10, stopped, busy).then(
+          () => "ended",
+        );
+        await expect(Promise.race([waited, late])).resolves.toBe("ended");
+      }
+    } finally {
+      write.mockRestore();
+    }
+  });
+
+  it("tells a waiter at once when a watched server fails", async () => {
+    const donor = new EventEmitter();
+    const watch = watchServers([{ name: "donor", process: donor }]);
+    setTimeout(() => donor.emit("exit", 1, null), 10);
+    await expect(watch.failed()).resolves.toMatch(/donor exited \(code 1\)/);
+  });
+
+  it("stops serving with a failing exit as soon as a watched server dies, and ends cleanly on an interrupt", async () => {
+    const admin = new EventEmitter();
+    const watch = watchServers([{ name: "admin", process: admin }]);
+    const never = { wait: () => new Promise<NodeJS.Signals>(() => {}) };
+    setTimeout(() => admin.emit("exit", null, "SIGKILL"), 10);
+    await expect(serveUntilStopped(never, watch)).rejects.toThrow(
+      /admin exited \(code SIGKILL\)/,
+    );
+
+    const quiet = watchServers([
+      { name: "missionary", process: new EventEmitter() },
+    ]);
+    const interrupted = {
+      wait: () => Promise.resolve("SIGINT" as NodeJS.Signals),
+    };
+    await expect(serveUntilStopped(interrupted, quiet)).resolves.toBe(0);
   });
 
   it("holds an interrupt until the restore has run, and then lets it go", () => {
