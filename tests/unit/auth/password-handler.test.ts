@@ -90,7 +90,9 @@ function withSession(method: "password" | "recovery", ageSeconds = 60) {
 
 type Call = { method: string; url: string; auth: string | null; body: string };
 
-function fakeProvider(options: { updateRefusal?: boolean } = {}) {
+function fakeProvider(
+  options: { updateRefusal?: "weak_password" | "same_password" } = {},
+) {
   const calls: Call[] = [];
   const fetch = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
     const url = input instanceof Request ? input.url : input.toString();
@@ -129,8 +131,11 @@ function fakeProvider(options: { updateRefusal?: boolean } = {}) {
         return Response.json(
           {
             code: 422,
-            error_code: "weak_password",
-            msg: "Password should contain at least one character of each",
+            error_code: options.updateRefusal,
+            msg:
+              options.updateRefusal === "same_password"
+                ? "New password should be different from the old password."
+                : "Password should contain at least one character of each",
           },
           { status: 422 },
         );
@@ -289,7 +294,7 @@ describe("Core's password route (AL-2671 N4 PR 1)", () => {
     ).toBe(400);
     expect(verifications()).toEqual([]);
 
-    provider = fakeProvider({ updateRefusal: true });
+    provider = fakeProvider({ updateRefusal: "weak_password" });
     vi.stubGlobal("fetch", provider.fetch);
     const refused = await change({
       currentPassword: CURRENT,
@@ -298,6 +303,17 @@ describe("Core's password route (AL-2671 N4 PR 1)", () => {
     const body = await refused.text();
     expect(refused.status).toBe(422);
     expect(body).not.toMatch(/at least one character/i);
+  });
+
+  it("answers the provider's refusal of the old password again in Core's words, as Core's own check does", async () => {
+    withSession("recovery", 60);
+    provider = fakeProvider({ updateRefusal: "same_password" });
+    vi.stubGlobal("fetch", provider.fetch);
+    const response = await change({ newPassword: NEXT });
+    const body = await response.text();
+    expect(response.status).toBe(400);
+    expect(JSON.parse(body)).toMatchObject({ code: "PASSWORD_UNCHANGED" });
+    expect(body).not.toMatch(/different from the old password/i);
   });
 
   it("never writes a password to a log", async () => {
