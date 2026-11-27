@@ -20,10 +20,6 @@ import {
 } from "../../../../packages/api/src/missionary-portal/donor";
 import { GET as listPartners } from "../../../../packages/api/src/missionary-portal/donors";
 import { GET as getTasks } from "../../../../packages/api/src/missionary-portal/tasks";
-import {
-  createInitialEditDonorFormValues,
-  type EditDonorFormSource,
-} from "../../../../apps/missionary/app/donors/edit-donor-form-model";
 import { membershipsForRole } from "../../../fixtures/auth-memberships";
 
 import type { AuthContext } from "../../../../packages/auth/context";
@@ -355,7 +351,7 @@ describe.skipIf(!required && ![url, database, anon, service].some(Boolean))(
       expect(await rowOf(added.donorId)).toMatchObject({ email: null });
     });
 
-    it("a partner added with no phone has no preferred channel wherever the missionary reads it, the list and the snapshot, and an edit from its form that does not touch the preference writes none (fix round F2 of 2859; red: both read email, and the edit stores email)", async () => {
+    it("a partner added with no phone has no preferred channel wherever the missionary reads it, the list and the snapshot, and an edit that sends back the preference it read, as the edit form does, writes none (fix round F2 of 2859; red: both read email, and the edit stores email)", async () => {
       const name = `No Phone ${TA.slice(0, 6)}`;
       const response = await addPartner(
         request(
@@ -382,7 +378,7 @@ describe.skipIf(!required && ![url, database, anon, service].some(Boolean))(
       );
       const row = (
         (await list.json()) as {
-          donors: (EditDonorFormSource & { id: string })[];
+          donors: { id: string; preferred_contact: unknown }[];
         }
       ).donors.find((donor) => donor.id === donorId);
       const snapshot = await getSnapshot(
@@ -400,10 +396,11 @@ describe.skipIf(!required && ![url, database, anon, service].some(Boolean))(
         snapshot: relationship?.preferredContact,
       }).toEqual({ list: null, snapshot: null });
 
-      const values = createInitialEditDonorFormValues(row);
       const edited = await PATCH(
         request("adder", "PATCH", `/api/missionary/donors/${donorId}`, {
-          ...values,
+          ...edit(name),
+          phone: "",
+          preferred_contact: row?.preferred_contact,
           notes: "Met at the market",
         }),
         withDonor(donorId),
