@@ -149,7 +149,7 @@ const GUARD_REACH = [
   "tenant_guard.own_ministry(tenant_guard.command_context) EXECUTE",
   "tenant_guard.request_assignment_id() EXECUTE",
   "tenant_guard.request_claims() EXECUTE",
-  "tenant_guard.review_ministry_update(tenant_guard.command_context,uuid,text,text) EXECUTE",
+  "tenant_guard.review_ministry_update(tenant_guard.command_context,uuid,text,integer,text) EXECUTE",
 ];
 
 /**

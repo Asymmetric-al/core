@@ -20,13 +20,16 @@
 --   nothing, if any existing one belongs to such a post or to no post; the
 --   count names how many.
 --
--- Locks, observed in pg_locks just before COMMIT (PostgreSQL 17, on
--- develop's chain and its seed): ACCESS EXCLUSIVE on public.posts (its new
--- unique constraint) and on each of the four tables (ALTER TABLE, its
--- policies and trigger) to COMMIT; SHARE ROW EXCLUSIVE on public.tenants
--- (the new keys): readers pass, writers wait. lock_timeout stops a run
--- rather than queue it. On that database every existing row took its
--- post's tenant (18 likes, 20 comments, 12 prayers, 9 fires).
+-- Locks. Right after lock_timeout, before the preflight, the file takes
+-- SHARE ROW EXCLUSIVE on public.tenants (the new keys), then ACCESS
+-- EXCLUSIVE on public.posts (its new unique constraint) and on the four
+-- tables (ALTER TABLE, their policies and trigger), in the live order
+-- (tenants, then posts, before its reactions and comments), all held to
+-- COMMIT: readers of tenants pass, writers wait. Observed in pg_locks just
+-- before COMMIT (PostgreSQL 17, on develop's chain and its seed): nothing
+-- besides these. lock_timeout stops a run rather than queue it. On that
+-- database every existing row took its post's tenant (18 likes, 20
+-- comments, 12 prayers, 9 fires).
 --
 -- Recovery. A run lost between its COMMIT and its ledger row stops on the
 -- next run at its first statement after the preflight (42P07,
@@ -46,6 +49,8 @@
 
 BEGIN;
 SET LOCAL lock_timeout = '5s';
+LOCK TABLE public.tenants IN SHARE ROW EXCLUSIVE MODE;
+LOCK TABLE public.posts, public.post_likes, public.post_prayers, public.post_fires, public.post_comments IN ACCESS EXCLUSIVE MODE;
 
 DO $$
 -- preflight: post tables carry their post's tenant
