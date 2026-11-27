@@ -200,14 +200,14 @@ describe("CORE_SERVE_UNDER_PATHS build switch", () => {
     { VERCEL_TARGET_ENV: "PRODUCTION" },
     { VERCEL_TARGET_ENV: "Production", VERCEL_ENV: "preview" },
     { VERCEL_TARGET_ENV: "core-development", VERCEL_ENV: "production" },
-  ])("throws when enabled on a production target %j", (targetEnv) => {
+  ])("allows the approved switch on a production target %j", (targetEnv) => {
     expect(isProductionBuildTarget(targetEnv)).toBe(true);
-    expect(() =>
+    expect(
       resolveServeUnderPaths({
         [CORE_SERVE_UNDER_PATHS_ENV]: "1",
         ...targetEnv,
       }),
-    ).toThrow(/production/i);
+    ).toBe(true);
   });
 
   it.each([
@@ -449,12 +449,14 @@ describe("the donor's rewrites of the dashboards' static files", () => {
     ]);
   });
 
-  it("refuses a production build or a bad switch before reading either origin", () => {
-    const production = donorRefusal(
-      envThatRefusesOrigins({ ...ON, VERCEL_ENV: "production" }),
-    );
-    expect(production).toMatch(/production/i);
-    expect(production).not.toMatch(/read FRONT_/);
+  it("validates both upstreams on production and refuses an invalid switch before reading them", () => {
+    expect(
+      serveUnderPathsDonorRewrites({
+        ...ON,
+        ...BOTH_UPSTREAMS,
+        VERCEL_ENV: "production",
+      }),
+    ).toEqual(EXPECTED_DONOR_REWRITES);
     const badSwitch = donorRefusal(
       envThatRefusesOrigins({ [CORE_SERVE_UNDER_PATHS_ENV]: "2" }),
     );
@@ -737,14 +739,14 @@ describe("the three next.config.ts files in off and on modes", () => {
     expect((failure as Error).message).not.toContain("m.example.test");
   });
 
-  it("refuses to load admin next.config when CORE_SERVE_UNDER_PATHS=1 on production", async () => {
+  it("loads admin next.config when CORE_SERVE_UNDER_PATHS=1 on production", async () => {
     vi.stubEnv("CORE_SERVE_UNDER_PATHS", "1");
     vi.stubEnv("VERCEL_ENV", "production");
     vi.stubEnv("VERCEL_TARGET_ENV", "");
 
-    await expect(import("../../../apps/admin/next.config")).rejects.toThrow(
-      /production/i,
-    );
+    expect(
+      (await import("../../../apps/admin/next.config")).nextConfig.basePath,
+    ).toBe("/admin");
   });
 
   it("hashes both origins in the donor build and leaves the root build env alone", () => {
