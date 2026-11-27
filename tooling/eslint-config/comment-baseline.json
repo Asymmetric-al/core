@@ -85,7 +85,6 @@
   "apps/admin/app/(auth)/forgot-password/reset/loading.tsx": 1,
   "apps/admin/app/(auth)/forgot-password/reset/page.tsx": 1,
   "apps/admin/app/(auth)/loading.tsx": 1,
-  "apps/admin/app/(auth)/login/page.tsx": 2,
   "apps/admin/app/(auth)/no-access/page.tsx": 1,
   "apps/admin/app/(auth)/register/page.tsx": 1,
   "apps/admin/app/(auth)/web-studio/organization/actions.ts": 2,

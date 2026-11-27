@@ -34,9 +34,8 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
         demoOnly={!operations && serverEnv.DEMO_ONLY_LOGIN === true}
         title="Sign in"
         subtitle="Access is by invitation. Ask your Mission Control administrator for an account."
-        // Invitation guidance replaces the registration link. Password reset
-        // is self-service, through the default /forgot-password link.
         showRegisterLink={false}
+        forgotPasswordHref={operations ? null : undefined}
       />
     </>
   );
