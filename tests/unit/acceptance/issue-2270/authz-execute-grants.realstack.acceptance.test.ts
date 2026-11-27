@@ -49,9 +49,9 @@ const PRED =
   "(authz.is_super_admin() OR authz.has_staff_membership(tenant_id, NULL::authz.staff_role[]))";
 const LOG_INSERT =
   "(authz.is_super_admin() OR ((auth.uid() = actor_user_id) AND authz.has_staff_membership(tenant_id, NULL::authz.staff_role[])))";
-/** The predicate the second release of WP2b gives the standing policies (AL-2675). */
+/** The predicate the standing policies carry since WP2c rest B (AL-2675). */
 const PRED_NOW =
-  "(( SELECT authz.is_super_admin() AS is_super_admin) OR ((tenant_id = ( SELECT authz.current_tenant_id() AS current_tenant_id)) AND ( SELECT authz.assignment_is('staff'::authz.membership_role) AS assignment_is)))";
+  "((tenant_id = ( SELECT authz.current_tenant_id() AS current_tenant_id)) AND ( SELECT authz.staff_read() AS staff_read))";
 void PRED;
 void LOG_INSERT;
 
@@ -353,7 +353,7 @@ describe.skipIf(!ADMIN_URL)("#2270 authz EXECUTE grants (R)", () => {
   // class of the request's one assignment beside the super-admin branch; the
   // five write policies are gone, and no write grant stands behind any of
   // them (activation review Q7, Q8, and the coordinator's follow-up on Q7).
-  it("C8: the standing policies are TO authenticated with this chain's predicates; the dropped ones are gone with their grants", () =>
+  it("C8: the standing policies are TO authenticated with this chain's predicates; the dropped ones are gone with their grants (D-18, AL-2675: WP2c rest B removed the standing reads' super-admin branch and moved their staff check to the staff-read helper)", () =>
     tx(async () => {
       const gone = await db.query(
         "select policyname from pg_policies where schemaname = 'public' and policyname = any($1)",
