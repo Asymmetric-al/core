@@ -16,6 +16,7 @@ import {
   Field,
   FieldContent,
   FieldDescription,
+  FieldError,
   FieldLabel,
 } from "@asym/ui/components/shadcn/field";
 import { Input } from "@asym/ui/components/shadcn/input";
@@ -45,6 +46,39 @@ import {
 
 const REASON_MAX = 500;
 const FAILURE_TEXT = "Something went wrong. Nothing was changed.";
+const REASON_MISSING = "Give a reason.";
+const ALIAS_MISSING = "A restricted or high-risk worker needs a public alias.";
+const NOTHING_CHOSEN = "Choose what to change.";
+
+type FieldName = "reason" | "alias" | "level";
+type Problem = { field: FieldName; message: string; focus: string };
+
+function useFieldErrors() {
+  const [errors, setErrors] = useState<Partial<Record<FieldName, string>>>({});
+  const check = (problems: Problem[]) => {
+    setErrors(
+      Object.fromEntries(
+        problems.map((problem) => [problem.field, problem.message]),
+      ),
+    );
+    const first = problems[0];
+    if (first) document.getElementById(first.focus)?.focus();
+    return problems.length === 0;
+  };
+  const clear = (field: FieldName) =>
+    setErrors((current) => {
+      if (!(field in current)) return current;
+      const next = { ...current };
+      delete next[field];
+      return next;
+    });
+  return { errors, check, clear, reset: () => setErrors({}) };
+}
+
+const reasonProblem = (reason: string, id: string): Problem[] =>
+  reason.trim().length > 0
+    ? []
+    : [{ field: "reason", message: REASON_MISSING, focus: id }];
 
 function messageOf(error: unknown) {
   return error instanceof WorkerRequestError ? error.message : FAILURE_TEXT;
@@ -76,14 +110,16 @@ function ReasonField({
   value,
   onChange,
   disabled,
+  error,
 }: {
   id: string;
   value: string;
   onChange: (value: string) => void;
   disabled: boolean;
+  error?: string;
 }) {
   return (
-    <Field>
+    <Field data-invalid={error ? true : undefined}>
       <FieldLabel htmlFor={id}>Reason</FieldLabel>
       <Textarea
         id={id}
@@ -92,12 +128,16 @@ function ReasonField({
         rows={3}
         required
         disabled={disabled}
-        aria-describedby={`${id}-guidance`}
+        aria-invalid={error ? true : undefined}
+        aria-describedby={
+          error ? `${id}-guidance ${id}-error` : `${id}-guidance`
+        }
         onChange={(event) => onChange(event.target.value)}
       />
       <FieldDescription id={`${id}-guidance`}>
         {REASON_GUIDANCE}
       </FieldDescription>
+      {error ? <FieldError id={`${id}-error`}>{error}</FieldError> : null}
     </Field>
   );
 }
@@ -113,7 +153,6 @@ function ActionDialog({
   open,
   onOpenChange,
   onSubmit,
-  canSubmit,
   footer,
   children,
 }: {
@@ -127,7 +166,6 @@ function ActionDialog({
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onSubmit: () => void;
-  canSubmit: boolean;
   footer?: ReactNode;
   children: ReactNode;
 }) {
@@ -155,9 +193,10 @@ function ActionDialog({
         </DialogHeader>
         <form
           className="flex flex-col gap-4"
+          noValidate
           onSubmit={(event) => {
             event.preventDefault();
-            if (canSubmit && !pending) onSubmit();
+            if (!pending) onSubmit();
           }}
         >
           {children}
@@ -177,7 +216,7 @@ function ActionDialog({
                 >
                   Cancel
                 </Button>
-                <Button type="submit" disabled={pending || !canSubmit}>
+                <Button type="submit" disabled={pending}>
                   {submitLabel}
                 </Button>
               </>
@@ -193,6 +232,7 @@ function useCommandDialog(worker: Worker) {
   const [open, setOpen] = useState(false);
   const [reason, setReason] = useState("");
   const latch = useLatchedSubmit();
+  const fields = useFieldErrors();
   const command = useWorkerCommand(worker.assignmentId);
   const send = (next: WorkerCommand) =>
     latch.run(async () => {
@@ -206,8 +246,21 @@ function useCommandDialog(worker: Worker) {
       latch.setError(null);
       setReason("");
     }
+    fields.reset();
   };
-  return { open, openChange, reason, setReason, latch, send };
+  const changeReason = (next: string) => {
+    setReason(next);
+    fields.clear("reason");
+  };
+  return {
+    open,
+    openChange,
+    reason,
+    setReason: changeReason,
+    latch,
+    send,
+    fields,
+  };
 }
 
 function LevelChoice({
@@ -217,6 +270,7 @@ function LevelChoice({
   onChange,
   disabled,
   legend,
+  error,
 }: {
   id: string;
   levels: readonly SecurityLevel[];
@@ -224,6 +278,7 @@ function LevelChoice({
   onChange: (level: SecurityLevel) => void;
   disabled: boolean;
   legend: string;
+  error?: string;
 }) {
   return (
     <div className="flex flex-col gap-2">
@@ -232,6 +287,8 @@ function LevelChoice({
       </p>
       <RadioGroup
         aria-labelledby={`${id}-legend`}
+        aria-invalid={error ? true : undefined}
+        aria-describedby={error ? `${id}-error` : undefined}
         disabled={disabled}
         value={value ?? ""}
         onValueChange={(next) => {
@@ -250,11 +307,10 @@ function LevelChoice({
           </Field>
         ))}
       </RadioGroup>
+      {error ? <FieldError id={`${id}-error`}>{error}</FieldError> : null}
     </div>
   );
 }
-
-const canSend = (reason: string) => reason.trim().length > 0;
 
 export function ConfirmLevelDialog({ worker }: { worker: Worker }) {
   const id = useId();
@@ -270,19 +326,21 @@ export function ConfirmLevelDialog({ worker }: { worker: Worker }) {
       error={dialog.latch.error}
       open={dialog.open}
       onOpenChange={dialog.openChange}
-      canSubmit={canSend(dialog.reason)}
-      onSubmit={() =>
+      onSubmit={() => {
+        if (!dialog.fields.check(reasonProblem(dialog.reason, `${id}-reason`)))
+          return;
         void dialog.send({
           kind: "confirm",
           body: { level: worker.securityLevel, reason: dialog.reason },
-        })
-      }
+        });
+      }}
     >
       <ReasonField
         id={`${id}-reason`}
         value={dialog.reason}
         onChange={dialog.setReason}
         disabled={dialog.latch.pending}
+        error={dialog.fields.errors.reason}
       />
     </ActionDialog>
   );
@@ -328,8 +386,20 @@ export function RestrictDialog({ worker }: { worker: Worker }) {
       error={dialog.latch.error}
       open={dialog.open}
       onOpenChange={openChange}
-      canSubmit={canSend(dialog.reason) && !needsAlias}
-      onSubmit={() =>
+      onSubmit={() => {
+        const problems: Problem[] = [
+          ...(needsAlias
+            ? [
+                {
+                  field: "alias" as const,
+                  message: ALIAS_MISSING,
+                  focus: `${id}-alias`,
+                },
+              ]
+            : []),
+          ...reasonProblem(dialog.reason, `${id}-reason`),
+        ];
+        if (!dialog.fields.check(problems)) return;
         void dialog.send({
           kind: "restrict",
           body: {
@@ -338,8 +408,8 @@ export function RestrictDialog({ worker }: { worker: Worker }) {
             ...(doNotPublish ? { doNotPublish: true as const } : {}),
             reason: dialog.reason,
           },
-        })
-      }
+        });
+      }}
     >
       <LevelChoice
         id={`${id}-level`}
@@ -349,7 +419,7 @@ export function RestrictDialog({ worker }: { worker: Worker }) {
         onChange={choose}
         disabled={dialog.latch.pending}
       />
-      <Field>
+      <Field data-invalid={dialog.fields.errors.alias ? true : undefined}>
         <FieldLabel htmlFor={`${id}-alias`}>Public alias</FieldLabel>
         <Input
           id={`${id}-alias`}
@@ -357,14 +427,27 @@ export function RestrictDialog({ worker }: { worker: Worker }) {
           maxLength={200}
           autoComplete="off"
           disabled={dialog.latch.pending}
-          aria-describedby={`${id}-alias-help`}
-          onChange={(event) => setAlias(event.target.value)}
+          aria-invalid={dialog.fields.errors.alias ? true : undefined}
+          aria-describedby={
+            dialog.fields.errors.alias
+              ? `${id}-alias-help ${id}-alias-error`
+              : `${id}-alias-help`
+          }
+          onChange={(event) => {
+            setAlias(event.target.value);
+            dialog.fields.clear("alias");
+          }}
         />
         <FieldDescription id={`${id}-alias-help`}>
           {worker.publicAlias
             ? `Leave empty to keep ${worker.publicAlias}.`
             : "Required for a restricted or high-risk worker."}
         </FieldDescription>
+        {dialog.fields.errors.alias ? (
+          <FieldError id={`${id}-alias-error`}>
+            {dialog.fields.errors.alias}
+          </FieldError>
+        ) : null}
       </Field>
       {worker.doNotPublish ? null : (
         <Field orientation="horizontal">
@@ -389,6 +472,7 @@ export function RestrictDialog({ worker }: { worker: Worker }) {
         value={dialog.reason}
         onChange={dialog.setReason}
         disabled={dialog.latch.pending}
+        error={dialog.fields.errors.reason}
       />
     </ActionDialog>
   );
@@ -429,8 +513,23 @@ export function LiftDialog({ worker }: { worker: Worker }) {
       error={dialog.latch.error}
       open={dialog.open}
       onOpenChange={openChange}
-      canSubmit={canSend(dialog.reason) && (level !== null || clear)}
-      onSubmit={() =>
+      onSubmit={() => {
+        const firstLevel = levels[0];
+        const problems: Problem[] = [
+          ...(level === null && !clear
+            ? [
+                {
+                  field: "level" as const,
+                  message: NOTHING_CHOSEN,
+                  focus: firstLevel
+                    ? `${id}-level-${firstLevel}`
+                    : `${id}-clear`,
+                },
+              ]
+            : []),
+          ...reasonProblem(dialog.reason, `${id}-reason`),
+        ];
+        if (!dialog.fields.check(problems)) return;
         void dialog.send({
           kind: "lift",
           body: {
@@ -438,8 +537,8 @@ export function LiftDialog({ worker }: { worker: Worker }) {
             ...(clear ? { clearDoNotPublish: true as const } : {}),
             reason: dialog.reason,
           },
-        })
-      }
+        });
+      }}
     >
       {levels.length > 0 ? (
         <LevelChoice
@@ -447,10 +546,12 @@ export function LiftDialog({ worker }: { worker: Worker }) {
           legend="Lower the level to"
           levels={levels}
           value={level}
-          onChange={(next) =>
-            setChoice({ level: next, basis: worker.securityLevel })
-          }
+          onChange={(next) => {
+            setChoice({ level: next, basis: worker.securityLevel });
+            dialog.fields.clear("level");
+          }}
           disabled={dialog.latch.pending}
+          error={dialog.fields.errors.level}
         />
       ) : null}
       {worker.doNotPublish ? (
@@ -459,12 +560,23 @@ export function LiftDialog({ worker }: { worker: Worker }) {
             id={`${id}-clear`}
             checked={clear}
             disabled={dialog.latch.pending}
-            onCheckedChange={(checked) => setClear(checked === true)}
+            aria-invalid={
+              levels.length === 0 && dialog.fields.errors.level
+                ? true
+                : undefined
+            }
+            onCheckedChange={(checked) => {
+              setClear(checked === true);
+              dialog.fields.clear("level");
+            }}
           />
           <FieldContent>
             <FieldLabel htmlFor={`${id}-clear`}>
               Clear do not publish
             </FieldLabel>
+            {levels.length === 0 && dialog.fields.errors.level ? (
+              <FieldError>{dialog.fields.errors.level}</FieldError>
+            ) : null}
           </FieldContent>
         </Field>
       ) : null}
@@ -473,6 +585,7 @@ export function LiftDialog({ worker }: { worker: Worker }) {
         value={dialog.reason}
         onChange={dialog.setReason}
         disabled={dialog.latch.pending}
+        error={dialog.fields.errors.reason}
       />
     </ActionDialog>
   );
@@ -484,10 +597,12 @@ export function RevealDialog({ worker }: { worker: Worker }) {
   const [reason, setReason] = useState("");
   const [identity, setIdentity] = useState<RevealedIdentity | null>(null);
   const latch = useLatchedSubmit();
+  const fields = useFieldErrors();
   const close = () => {
     setIdentity(null);
     setReason("");
     latch.setError(null);
+    fields.reset();
     setOpen(false);
   };
   return (
@@ -500,7 +615,6 @@ export function RevealDialog({ worker }: { worker: Worker }) {
       error={latch.error}
       open={open}
       onOpenChange={(next) => (next ? setOpen(true) : close())}
-      canSubmit={canSend(reason) && identity === null}
       footer={
         identity ? (
           <Button type="button" onClick={close}>
@@ -508,15 +622,17 @@ export function RevealDialog({ worker }: { worker: Worker }) {
           </Button>
         ) : undefined
       }
-      onSubmit={() =>
+      onSubmit={() => {
+        if (identity !== null) return;
+        if (!fields.check(reasonProblem(reason, `${id}-reason`))) return;
         void latch.run(async () => {
           const revealed = await revealWorkerIdentity(
             worker.assignmentId,
             reason,
           );
           setIdentity(revealed);
-        })
-      }
+        });
+      }}
     >
       {identity ? (
         <div
@@ -545,8 +661,12 @@ export function RevealDialog({ worker }: { worker: Worker }) {
         <ReasonField
           id={`${id}-reason`}
           value={reason}
-          onChange={setReason}
+          onChange={(next) => {
+            setReason(next);
+            fields.clear("reason");
+          }}
           disabled={latch.pending}
+          error={fields.errors.reason}
         />
       )}
     </ActionDialog>
