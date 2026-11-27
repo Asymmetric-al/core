@@ -1277,7 +1277,7 @@ describe.skipIf(!ADMIN_URL)(
       // avatar only for a caller with a live membership of any class in the
       // post's organization; others get the rows with no name. The columns
       // are assumed to be (user_id, display_name, avatar_url), as ruled.
-      it("Q9: a donor cannot read another member's profile row; where the chain defines the commenter read, it names an author by display name alone, to a member of the post's organization only", () =>
+      it("Q9: a donor cannot read another member's profile row; where the chain defines the commenter read, it names an author by display name alone, to a member of the post's organization only (AL-2680: on an approved post, and to no one else at all)", () =>
         tx(async () => {
           const post = randomUUID();
           await db.query(
@@ -1294,6 +1294,7 @@ describe.skipIf(!ADMIN_URL)(
             tenant_id: q("TA"),
             status: "'published'",
             visibility: "'public'",
+            review_state: "'approved'",
           });
           for (const u of ["UADM", "UP"])
             await insertRow("post_comments", {
@@ -1341,11 +1342,8 @@ describe.skipIf(!ADMIN_URL)(
             UADM: ["Blair Admin", "https://example.org/a.png"],
             UP: [null, null],
           });
-          // A signed-in person with no row there: the rows, no names.
-          expect(await authors("UB", "mB")).toEqual({
-            UADM: [null, null],
-            UP: [null, null],
-          });
+          // A signed-in person with no row there: no row at all.
+          expect(await authors("UB", "mB")).toEqual({});
           const anon = await as(
             "anon",
             {},

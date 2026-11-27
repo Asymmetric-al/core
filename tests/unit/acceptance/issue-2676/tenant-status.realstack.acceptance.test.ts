@@ -21,12 +21,13 @@ describe.skipIf(!ADMIN_URL)("tenant status under a selected membership", () => {
   afterAll(() => db.end());
 
   it.each(["active", "suspended", "closed"])(
-    "applies %s across assignment, Storage, chooser, Web Studio and preamble (D-18, AL-2678: the donor is linked to its Party as the migration backfills a donor that names a profile)",
+    "applies %s across assignment, Storage, chooser, Web Studio and preamble (D-18, AL-2678: the donor is linked to its Party as the migration backfills a donor that names a profile; AL-2680: the fixture's post is approved, and post_comment_authors answers no row at all outside an active request organization)",
     async (status) => {
       await db.query("begin");
       try {
         await db.query(fixtureSql(id));
         await db.query(`insert into public.posts(id,tenant_id,content,status,visibility) values ('${id.TA}','${id.TA}','Fixture','published','public');
+          update public.posts set review_state='approved' where id='${id.TA}';
           insert into public.post_comments(post_id,user_id,content) values ('${id.TA}','${id.UADM}','Fixture');
           insert into public.donors(id,tenant_id,profile_id) select '${id.TA}','${id.TA}',id from public.profiles where user_id='${id.UDON}';
           insert into public.account_links(tenant_id,user_id,party_id,linked_via) select tenant_id,profile_id,party_id,'profile_backfill' from public.donors where id='${id.TA}';
@@ -102,9 +103,9 @@ describe.skipIf(!ADMIN_URL)("tenant status under a selected membership", () => {
           `select display_name from public.post_comment_authors('${id.TA}')`,
         );
         expect(authors.code, authors.message).toBeNull();
-        expect(authors.rows).toEqual([
-          { display_name: status === "active" ? "Blair Admin" : null },
-        ]);
+        expect(authors.rows).toEqual(
+          status === "active" ? [{ display_name: "Blair Admin" }] : [],
+        );
       } finally {
         await db.query("rollback");
       }
