@@ -7,6 +7,7 @@ import {
   ADMIN_URL,
   IN_MIGRATE_JOB,
   admitHosts,
+  attempt,
   begin,
   beginArgs,
   BEGIN_SQL,
@@ -514,6 +515,235 @@ describe.skipIf(!ADMIN_URL)(
           { r: "service_role", can: true },
         ]);
       }));
+
+    async function guardDirect(
+      tenant: string,
+      host: string,
+      surface: string,
+      request: GiftRequest,
+    ) {
+      const args = beginArgs({ ...request, host, surface });
+      await role(db, null);
+      await db.query(
+        "SELECT pg_catalog.set_config('app.current_tenant_id', '', true)",
+      );
+      await role(db, "service_role");
+      const a = await attempt(
+        db,
+        "SELECT tenant_guard.begin_line_gift($1, $2, $3, $4, $5::jsonb, $6, $7, $8, $9, $10::jsonb, $11::jsonb) AS r",
+        [tenant, ...args],
+      );
+      await role(db, null);
+      return a;
+    }
+
+    it("a forged or foreign host is refused 42501 host_not_admitted and writes nothing: claimed, ready, Unicode, overlong, Site as account area, home as Site", () =>
+      inTx(db, async () => {
+        const w = await world();
+        await role(db, null);
+        const claimedHost = `claimed-${randomUUID().slice(0, 8)}.give.example.test`;
+        await db.query(
+          `INSERT INTO public.site_domains (host, tenant_id, site_id, surfaces, expected_project, control_proved_at)
+           VALUES ($1, $2, $3, ARRAY['website'], 'donor', now())`,
+          [claimedHost, w.A.tenant, w.hostsA.siteId],
+        );
+        const readyHost = await readyOnlyHost(db, w.A);
+        const ok: GiftRequest = {
+          host: w.hostsA.site,
+          lines: [{ fund: w.A.fund, amount: 1000 }],
+        };
+        const actor = {
+          user_id: randomUUID(),
+          email: "a@example.test",
+          email_confirmed: true,
+        };
+        const before = [
+          await intakeCounts(db, w.A.tenant),
+          await intakeCounts(db, w.B.tenant),
+        ];
+        for (const [label, request] of [
+          ["claimed", { ...ok, host: claimedHost }],
+          ["ready", { ...ok, host: readyHost }],
+          ["Unicode", { ...ok, host: w.hostsA.site.replace("site-", "sité-") }],
+          ["overlong", { ...ok, host: `${"a".repeat(320)}.give.example.test` }],
+          ["Site as account area", { ...ok, surface: "donor_account", actor }],
+          ["home as Site", { ...ok, host: w.hostsA.home }],
+        ] as Array<[string, GiftRequest]>) {
+          const a = await begin(db, request);
+          expect(`${a.code} ${a.message}`, label).toBe(
+            "42501 host_not_admitted",
+          );
+        }
+        expect([
+          await intakeCounts(db, w.A.tenant),
+          await intakeCounts(db, w.B.tenant),
+        ]).toEqual(before);
+      }));
+
+    it("another organization's host with this organization's fund is target_not_found, and neither organization changes", () =>
+      inTx(db, async () => {
+        const w = await world();
+        const before = [
+          await intakeCounts(db, w.A.tenant),
+          await intakeCounts(db, w.B.tenant),
+        ];
+        const a = await begin(db, {
+          host: w.hostsB.site,
+          lines: [{ fund: w.A.fund, amount: 1000 }],
+        });
+        expect(`${a.code} ${a.message}`).toBe("22023 target_not_found");
+        expect([
+          await intakeCounts(db, w.A.tenant),
+          await intakeCounts(db, w.B.tenant),
+        ]).toEqual(before);
+      }));
+
+    it("a direct call naming another organization than the host's is refused 42501 host_not_admitted, before its own status is read", () =>
+      inTx(db, async () => {
+        const w = await world();
+        const lines = [{ fund: w.A.fund, amount: 1000 }];
+        const actor = {
+          user_id: randomUUID(),
+          email: "a@example.test",
+          email_confirmed: true,
+        };
+        const before = [
+          await intakeCounts(db, w.A.tenant),
+          await intakeCounts(db, w.B.tenant),
+        ];
+        const site = await guardDirect(w.B.tenant, w.hostsA.site, "website", {
+          host: "",
+          lines,
+        });
+        expect(`${site.code} ${site.message}`).toBe("42501 host_not_admitted");
+        const home = await guardDirect(
+          w.B.tenant,
+          w.hostsA.home,
+          "donor_account",
+          { host: "", lines, actor },
+        );
+        expect(`${home.code} ${home.message}`).toBe("42501 host_not_admitted");
+        await role(db, null);
+        await db.query(
+          "UPDATE public.tenants SET status = 'suspended' WHERE id = $1",
+          [w.B.tenant],
+        );
+        const suspended = await guardDirect(
+          w.B.tenant,
+          w.hostsA.site,
+          "website",
+          { host: "", lines },
+        );
+        expect(`${suspended.code} ${suspended.message}`).toBe(
+          "42501 host_not_admitted",
+        );
+        expect([
+          await intakeCounts(db, w.A.tenant),
+          await intakeCounts(db, w.B.tenant),
+        ]).toEqual(before);
+      }));
+
+    describe("a change committed while the command waits on its lock (two sessions, committed, removed in finally)", () => {
+      async function race(
+        change: (fx: Fixture, hosts: Hosts, s1: pg.Client) => Promise<void>,
+      ) {
+        const s1 = new pg.Client({ connectionString: ADMIN_URL });
+        const s2 = new pg.Client({ connectionString: ADMIN_URL });
+        await s1.connect();
+        await s2.connect();
+        let fx: Fixture | undefined;
+        try {
+          fx = await seedTwoTenants(db);
+          const hosts = await admitHosts(db, fx.A);
+          const pid2 = (await s2.query("SELECT pg_backend_pid() AS p")).rows[0]
+            .p as number;
+          await s1.query("BEGIN");
+          await change(fx, hosts, s1);
+          await s2.query("BEGIN");
+          await s2.query("SET LOCAL ROLE service_role");
+          const pending = s2
+            .query(
+              BEGIN_SQL,
+              beginArgs({
+                host: hosts.site,
+                lines: [{ fund: fx.A.fund, amount: 1000 }],
+              }),
+            )
+            .then(() => "committed")
+            .catch(
+              (e: { code?: string; message?: string }) =>
+                `${e.code} ${e.message}`,
+            );
+          let waited = false;
+          for (let i = 0; i < 100 && !waited; i += 1) {
+            const blockers = (
+              await db.query("SELECT pg_blocking_pids($1) AS b", [pid2])
+            ).rows[0].b as number[];
+            waited = blockers.length > 0;
+            if (!waited) await new Promise((r) => setTimeout(r, 50));
+          }
+          await s1.query("COMMIT");
+          const outcome = await pending;
+          await s2.query("ROLLBACK");
+          const counts = await intakeCounts(db, fx.A.tenant);
+          return { waited, outcome, counts };
+        } finally {
+          await s1.query("ROLLBACK").catch(() => undefined);
+          await s2.query("ROLLBACK").catch(() => undefined);
+          await s1.end();
+          await s2.end();
+          if (fx) await removeRest2aTenants(db, fx);
+        }
+      }
+
+      it("(a) the name loses its activation while the command waits on the name: host_not_admitted, nothing written", async () => {
+        const r = await race((_fx, hosts, s1) =>
+          s1
+            .query(
+              "UPDATE public.site_domains SET activation_proved_at = NULL WHERE host = $1",
+              [hosts.site],
+            )
+            .then(() => undefined),
+        );
+        expect(r).toMatchObject({
+          waited: true,
+          outcome: "42501 host_not_admitted",
+          counts: { intakes: 0, keys: 0 },
+        });
+      });
+
+      it("(b) the Site turns inactive while the command waits on the Site: host_not_admitted, nothing written", async () => {
+        const r = await race((_fx, hosts, s1) =>
+          s1
+            .query(
+              "UPDATE public.sites SET status = 'inactive' WHERE id = $1",
+              [hosts.siteId],
+            )
+            .then(() => undefined),
+        );
+        expect(r).toMatchObject({
+          waited: true,
+          outcome: "42501 host_not_admitted",
+          counts: { intakes: 0, keys: 0 },
+        });
+      });
+
+      it("(c) the organization is suspended while the command waits on it: organization_inactive, nothing written", async () => {
+        const r = await race((fx, _hosts, s1) =>
+          s1
+            .query(
+              "UPDATE public.tenants SET status = 'suspended' WHERE id = $1",
+              [fx.A.tenant],
+            )
+            .then(() => undefined),
+        );
+        expect(r).toMatchObject({
+          waited: true,
+          outcome: "55000 organization_inactive",
+          counts: { intakes: 0, keys: 0 },
+        });
+      });
+    });
 
     describe("two sessions posting one key (committed, removed in finally)", () => {
       it("the second waits for the first and answers its intake: one intake, one request", async () => {

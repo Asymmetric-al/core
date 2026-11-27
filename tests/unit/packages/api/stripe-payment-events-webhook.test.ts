@@ -332,4 +332,21 @@ describe("AL-2681 PR 2a: the payment-event destination (mounted; refuses without
       "record_provider_event_failure",
     ]);
   });
+
+  it("a tenant named in the metadata is never believed: the organization is the account's (W8-R39)", async () => {
+    const db = fakeDatabase();
+    const event = snapshotEvent();
+    const object = (event.data as { object: Record<string, unknown> }).object;
+    object.metadata = {
+      tenant_id: "00000000-0000-0000-0000-00000000000b",
+      asym_intake: "x",
+    };
+    const raw = JSON.stringify(event);
+    const res = await handlerWith(db)(request(raw, signed(raw)));
+    expect(res.status).toBe(200);
+    expect(db.stored[0]).toMatchObject({ tenant_id: TENANT_A });
+    expect(db.lookups).toEqual([
+      { provider_account_id: "acct_alpha1", livemode: false },
+    ]);
+  });
 });

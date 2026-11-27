@@ -357,4 +357,50 @@ describe("AL-2681 PR 2a: the guest intake handler (tested directly; not mounted 
       guest.calls.find((c) => c.fn === "begin_line_gift")!.args.p_actor,
     ).toBeNull();
   });
+
+  it("takes the host only from the request's own Host header: forwarded hosts, front headers, a tenant header and body fields are ignored (W8-R41)", async () => {
+    const s = setup();
+    await s.handler(
+      request(
+        body({ host: "evil.example", tenantId: "other", siteId: "other" }),
+        {
+          "x-forwarded-host": "evil.example",
+          "x-asym-front-host": "evil.example",
+          "x-asym-tenant": "66666666-6666-4666-8666-666666666666",
+        },
+      ),
+    );
+    const begin = s.calls.find((c) => c.fn === "begin_line_gift")!;
+    expect(begin.args.p_host).toBe("give.example.test");
+    expect(Object.keys(begin.args).sort()).toEqual(
+      [
+        "p_actor",
+        "p_client_key",
+        "p_contact",
+        "p_entry_surface",
+        "p_fee_cover",
+        "p_host",
+        "p_is_anonymous",
+        "p_lines",
+        "p_payment_method",
+        "p_source_code",
+      ].sort(),
+    );
+  });
+
+  it("a request with no Host header is unavailable and calls nothing", async () => {
+    const s = setup();
+    const req = request(body());
+    const headers = new Headers(req.headers);
+    headers.delete("host");
+    const res = await s.handler(
+      new Request("https://give.example.test/api/donate", {
+        method: "POST",
+        headers,
+        body: JSON.stringify(body()),
+      }),
+    );
+    expect(res.status).toBe(503);
+    expect(s.calls).toEqual([]);
+  });
 });

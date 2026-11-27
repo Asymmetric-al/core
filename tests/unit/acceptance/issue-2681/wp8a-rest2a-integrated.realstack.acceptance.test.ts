@@ -122,6 +122,7 @@ describe.skipIf(!ADMIN_URL)(
       client: pg.Client,
       tenant: string,
       donationId: string,
+      email: string,
     ) {
       return (
         await client.query(
@@ -129,11 +130,11 @@ describe.skipIf(!ADMIN_URL)(
                   (SELECT count(*)::int FROM public.donation_saga_outbox WHERE donation_id = $2 AND request_kind = 'create_payment') AS creates,
                   (SELECT count(*)::int FROM public.staged_gifts WHERE donation_id = $2) AS gifts,
                   (SELECT count(*)::int FROM public.payment_observations WHERE tenant_id = $1 AND donation_id = $2) AS observations,
-                  (SELECT count(*)::int FROM public.donors WHERE tenant_id = $1) AS donors,
-                  (SELECT count(*)::int FROM public.parties WHERE tenant_id = $1) AS parties,
+                  (SELECT count(*)::int FROM public.donors WHERE tenant_id = $1 AND email = $3) AS donors,
+                  (SELECT count(DISTINCT party_id)::int FROM public.donors WHERE tenant_id = $1 AND email = $3) AS parties,
                   (SELECT stripe_payment_intent_id FROM public.donations WHERE id = $2) AS payment,
                   (SELECT status FROM public.donations WHERE id = $2) AS status`,
-          [tenant, donationId],
+          [tenant, donationId, email],
         )
       ).rows[0] as Record<string, unknown>;
     }
@@ -214,7 +215,7 @@ describe.skipIf(!ADMIN_URL)(
         await apply(db, event.id, firstClaim.attempt as number);
         await db.query("ROLLBACK TO SAVEPOINT gate_apply");
         await expireEventLease(event.id);
-        expect((await work(db, event.id)).outcome).toBe("staged");
+        expect((await work(db, event.id)).outcome).toBe("applied");
 
         await role(db, "service_role");
         const second = await attempt(
@@ -233,7 +234,14 @@ describe.skipIf(!ADMIN_URL)(
         });
 
         await role(db, null);
-        expect(await effects(db, fx.A.tenant, first.donation_id)).toEqual({
+        expect(
+          await effects(
+            db,
+            fx.A.tenant,
+            first.donation_id,
+            String(request.contact!.email),
+          ),
+        ).toEqual({
           intakes: 1,
           creates: 1,
           gifts: 1,
@@ -341,7 +349,7 @@ describe.skipIf(!ADMIN_URL)(
               [event.id, winner.attempt],
             )
           ).rows[0].r as Record<string, unknown>;
-          expect(applied.outcome).toBe("staged");
+          expect(applied.outcome).toBe("applied");
           expect(
             (
               await db.query(

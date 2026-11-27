@@ -1,5 +1,20 @@
 import { describe, expect, it, vi } from "vitest";
 
+const adminClient = vi.hoisted(() => ({
+  rpc: vi.fn(async (fn: string) =>
+    fn === "money_due_work"
+      ? { data: [], error: null }
+      : { data: null, error: { message: "unexpected" } },
+  ),
+  from: vi.fn(() => {
+    throw new Error("the money schedule reads no table");
+  }),
+}));
+
+vi.mock("../../../../../packages/api/src/workflows/admin-client", () => ({
+  requireWorkflowAdminClient: () => adminClient,
+}));
+
 import {
   MONEY_SCHEDULE_PARTS,
   runMoneySchedule,
@@ -305,5 +320,26 @@ describe("AL-2681 PR 2a: the money schedule, one step-free function on the */30 
       { parts: [] },
     );
     expect(run).toHaveBeenCalledTimes(1);
+  });
+
+  it("its default runner holds an RPC-only client: one call of money_due_work and no table read (W8-R40)", async () => {
+    adminClient.rpc.mockClear();
+    adminClient.from.mockClear();
+    const step = new Proxy(
+      {},
+      {
+        get: () => () => {
+          throw new Error("the money schedule takes no step");
+        },
+      },
+    );
+    const result = (await moneyScheduleHandler({ step } as never)) as {
+      parts: Array<{ status: string }>;
+    };
+    expect(adminClient.rpc.mock.calls.map((c) => c[0])).toEqual([
+      "money_due_work",
+    ]);
+    expect(adminClient.from).not.toHaveBeenCalled();
+    expect(result.parts.every((p) => p.status === "idle")).toBe(true);
   });
 });

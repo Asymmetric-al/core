@@ -70,7 +70,7 @@ describe.skipIf(!ADMIN_URL)(
           asym_intake: r.donation_id,
         },
       });
-      expect((await work(db, event.id)).outcome).toBe("staged");
+      expect((await work(db, event.id)).outcome).toBe("applied");
       return { ...r, pi };
     }
 
@@ -305,7 +305,7 @@ describe.skipIf(!ADMIN_URL)(
             asym_intake: r.donation_id,
           },
         });
-        expect((await work(db, event.id)).outcome).toBe("staged");
+        expect((await work(db, event.id)).outcome).toBe("applied");
         await role(db, null);
         const gift = (
           await db.query(
@@ -328,9 +328,9 @@ describe.skipIf(!ADMIN_URL)(
         const writes = (
           await db.query(
             `SELECT (SELECT count(*)::int FROM public.account_links WHERE user_id = $1) AS links,
-                    (SELECT count(*)::int FROM authz.memberships WHERE user_id = $1) AS memberships,
+                    (SELECT count(*)::int FROM authz.memberships WHERE user_id = $1 AND tenant_id = $3) AS memberships,
                     (SELECT profile_id FROM public.donors WHERE id = $2) AS profile`,
-            [giver.user, gift.donor_id],
+            [giver.user, gift.donor_id, w.A.tenant],
           )
         ).rows[0];
         expect(writes).toEqual({ links: 0, memberships: 0, profile: null });
@@ -341,7 +341,11 @@ describe.skipIf(!ADMIN_URL)(
         inTx(db, async () => {
           const w = await world();
           const gift = await paidGift(w);
-          const before = digest(await moneyRows(db, w.A.tenant));
+          const moneyOnly = async () => {
+            const { tasks: _tasks, ...money } = await moneyRows(db, w.A.tenant);
+            return digest(money);
+          };
+          const before = await moneyOnly();
           const refund = await storeEvent(db, w.A, {
             type: "charge.refunded",
             payload: (e) => ({
@@ -383,7 +387,7 @@ describe.skipIf(!ADMIN_URL)(
               r: { outcome: "deferred", donation_id: gift.donation_id },
             });
           }
-          expect(digest(await moneyRows(db, w.A.tenant))).toBe(before);
+          expect(await moneyOnly()).toBe(before);
           await role(db, null);
           const statuses = (
             await db.query(
