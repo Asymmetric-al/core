@@ -1,3 +1,6 @@
+import { existsSync, readFileSync, statSync } from "node:fs";
+import path from "node:path";
+
 import { describe, expect, it } from "vitest";
 
 import { loadWorkflowDocument } from "../helpers/workflow-yaml";
@@ -197,5 +200,98 @@ describe("AL-2675 WP2c part 2a, T7: the operator area journey starts the stack",
     "apps/*/proxy.ts",
   ])("starts the journeys when %s changes", (file) => {
     expect(paths).toContain(file);
+  });
+});
+
+function matchesPattern(pattern: string, file: string): boolean {
+  const source = pattern
+    .split(/(\*\*|\*)/)
+    .map((part) =>
+      part === "**"
+        ? ".*"
+        : part === "*"
+          ? "[^/]*"
+          : part.replace(/[.+?^${}()|[\]\\]/g, "\\$&"),
+    )
+    .join("");
+  return new RegExp(`^${source}$`).test(file);
+}
+
+function resolveImport(from: string, specifier: string): string | null {
+  const base = path.posix.join(path.posix.dirname(from), specifier);
+  for (const candidate of [
+    base,
+    `${base}.ts`,
+    `${base}.tsx`,
+    `${base}.mjs`,
+    `${base}.js`,
+    `${base}/index.ts`,
+  ]) {
+    if (existsSync(candidate) && statSync(candidate).isFile()) return candidate;
+  }
+  return null;
+}
+
+function journeyImports(entry: string): string[] {
+  const seen = new Set<string>();
+  const queue = [entry];
+  while (queue.length) {
+    const file = queue.shift()!;
+    const text = readFileSync(file, "utf8");
+    for (const [, specifier] of text.matchAll(
+      /(?:^|\n)\s*(?:import|export)\b[^;]*?\bfrom\s+["'](\.{1,2}\/[^"']+)["']/g,
+    )) {
+      const target = resolveImport(file, specifier!);
+      expect(target, `${file} imports ${specifier}`).not.toBeNull();
+      if (!target || seen.has(target)) continue;
+      seen.add(target);
+      if (target.startsWith("tests/")) queue.push(target);
+    }
+  }
+  return [...seen].sort();
+}
+
+describe("#2845 item 2 (AL-2675 WP2c rest): a helper the operator journey imports starts the stack", () => {
+  const imports = journeyImports("tests/e2e/auth-operator-area.spec.ts");
+
+  it("derives the journey's imports, its helpers among them", () => {
+    expect(imports).toEqual(
+      expect.arrayContaining([
+        "tests/e2e/helpers/auth-mail.ts",
+        "tests/e2e/helpers/browser-stores.ts",
+        "tests/e2e/helpers/operator-reads.ts",
+        "tests/e2e/helpers/secret-pages.ts",
+        "tests/e2e/helpers/totp.ts",
+      ]),
+    );
+  });
+
+  it("lists every file the journey imports in the path filter", () => {
+    const unlisted = imports.filter(
+      (file) => !paths.some((pattern) => matchesPattern(pattern, file)),
+    );
+    expect(
+      unlisted,
+      "imported by the operator journey, not in the filter",
+    ).toEqual([]);
+  });
+
+  it("matches a pattern the way the filter does", () => {
+    expect(
+      matchesPattern("packages/auth/**", "packages/auth/constants.ts"),
+    ).toBe(true);
+    expect(
+      matchesPattern(
+        "apps/admin/app/(operator)/**",
+        "apps/admin/app/(operator)/operator/page.tsx",
+      ),
+    ).toBe(true);
+    expect(matchesPattern("apps/*/proxy.ts", "apps/admin/proxy.ts")).toBe(true);
+    expect(matchesPattern("apps/*/proxy.ts", "apps/admin/x/proxy.ts")).toBe(
+      false,
+    );
+    expect(
+      matchesPattern("tests/e2e/helpers/totp.ts", "tests/e2e/helpers/totp.tsx"),
+    ).toBe(false);
   });
 });

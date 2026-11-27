@@ -9,6 +9,7 @@ A platform operator is a person who may run platform commands: the commands that
 - `public.platform_operator_session()` runs the shared check alone and returns the operator's login id. Server code that acts for an operator outside the database calls it on the operator's own token first: the assistant runtime's platform gates (`withPlatformOperation(…, { platformOperator: true })`, and `isPlatformOperator()` in the handler context), and later the Auth admin module (plan 5.5). The operator area calls it from the browser, on the operator's own token, and shows the area as verified only when it returns the operator's own id.
 - `public.caller_is_platform_operator()` answers whether the signed-in caller is on the list. It never raises and does not ask for the second factor. The admin proxy and the operator page both use it to admit the operator area (`/operator`, WP2c part 2a): the proxy before the page renders, the page again before it renders anything.
 - The second factor is TOTP, switched on in `supabase/config.toml` (`[auth.mfa.totp]`). An operator enrols a factor and passes the challenge in the operator area (WP2c, part 2).
+- Two platform commands read for operators and write nothing (WP2c rest, `20261127035000`). `public.tenant_operators(uuid)` lists the platform operators who hold a live row in an organization, the people the assistant runtime's launch-permission grant accepts there; the launch-readiness settings' picker asks it through `GET /api/admin/eve/launch-readiness/operators`, on the caller's token, for an administrator of that organization who passes the shared check and holds a live staff row there, and only for the request's own organization while it is active. `public.platform_eve_history(integer)` returns the assistant runtime's changes recorded with no organization (a global kill switch or model-policy change), whoever made them, and never a row of an organization; the operator area shows them once the session is confirmed. Both refuse at the next call a person taken off the list.
 
 ## Adding or removing an operator
 
@@ -69,7 +70,8 @@ It prints one JSON line: the action, the login id, whether the list changed and 
 ## Proofs
 
 - `tests/unit/acceptance/issue-2675/platform-operators.realstack.acceptance.test.ts` and `platform-operator-script.realstack.acceptance.test.ts` run in CI's `migrate` job, on a plain Postgres: the list's privileges, the read function, the shared check by the request's assurance claim, and the script.
-- `node scripts/e2e/run-operator-mfa.mjs` proves the second factor on a running local Supabase stack, which CI's `migrate` job does not have: a password session at `aal1` is refused by the shared check, and passes after the operator enrols a TOTP factor and passes the challenge through the Auth API. It reads the stack from `supabase status` (set `OPERATOR_MFA_SUPABASE_WORKDIR` for a stack started with `--workdir`) and fails, never skips, when it cannot. The Local Supabase Stack workflow (`.github/workflows/local-supabase.yml`) runs it.
+- `tests/unit/acceptance/issue-2675/operator-reads.realstack.acceptance.test.ts` runs there too: the picker's list and the history with no organization, by the request's claims and headers, and their refusals.
+- `node scripts/e2e/run-operator-mfa.mjs` proves the second factor on a running local Supabase stack, which CI's `migrate` job does not have: a password session at `aal1` is refused by the shared check, and passes after the operator enrols a TOTP factor and passes the challenge through the Auth API. With those real `aal1` and `aal2` sessions it also calls the two operator reads through the Data API, and their refusals. It reads the stack from `supabase status` (set `OPERATOR_MFA_SUPABASE_WORKDIR` for a stack started with `--workdir`) and fails, never skips, when it cannot. The Local Supabase Stack workflow (`.github/workflows/local-supabase.yml`) runs it.
 
 ## Owner steps for a hosted project
 
@@ -87,7 +89,7 @@ In the area an operator:
 
 - with no verified authenticator, sets one up: the page shows a QR code and the key (the key exists only in that screen, never on Core's servers, logs or tables) and asks for the current code. Verifying signs the person out on their other devices;
 - with a verified authenticator but a session below `aal2`, enters the current code;
-- at `aal2`, once the database has confirmed the operator session, sees the authenticators, can add another, and can remove one only while at least two remain. Removing the last authenticator is the release owner's, below.
+- at `aal2`, once the database has confirmed the operator session, sees the authenticators, can add another, and can remove one only while at least two remain. Removing the last authenticator is the release owner's, below. The same screen lists the changes recorded with no organization, newest first; a refused or failed read says so and is never shown as an empty list.
 
 "Lost your authenticator?" tells the operator to ask the release owner, which is the only recovery the product offers; there are no recovery codes.
 
@@ -119,7 +121,7 @@ For a compromised device or account, work in this order. `platform.require_opera
 
 1. Remove the person from `authz.platform_operators` with the script (effective at the next call).
 2. Revoke the user's sessions and remove the compromised factor in Auth (dashboard or admin API); for an account compromise, also reset the password.
-3. Stay off the list until every access token issued before step 2 has expired: once the person is back on the list, such a token passes the list check again with its old `aal2` claim. The project's `jwt_expiry` (Authentication settings, access token expiry; `3600` seconds, one hour, in `supabase/config.toml`) fixes that time.
+3. Stay off the list until every access token issued before step 2 was complete has expired: a token can still be issued while step 2 is under way, before the sessions are revoked and the password is reset, and once the person is back on the list such a token passes the list check again with its old `aal2` claim. So the wait starts when the last action of step 2 has finished, and it lasts the affected hosted project's own access-token lifetime: read it from that project (Authentication settings, access token expiry), not from `supabase/config.toml`, whose `jwt_expiry` (`3600` seconds) sets local stacks only.
 4. Add the person back to the list with the script, and have them set up a new authenticator in the operator area at once: until they do, their password alone is enough to enrol.
 
 If the last operator is locked out or compromised, the release owner first adds a trusted replacement with the database script, which does not need an MFA session. Then remove the old operator before deleting the login from Auth.
