@@ -204,7 +204,7 @@ export function MediaUploadButton({
           </Button>
         }
       />
-      <DialogContent>
+      <DialogContent scrollable>
         <form noValidate onSubmit={submit} className="flex flex-col gap-4">
           <DialogHeader>
             <DialogTitle>Upload image</DialogTitle>
