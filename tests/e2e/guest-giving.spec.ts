@@ -2,7 +2,13 @@ import { mkdirSync, writeFileSync } from "node:fs";
 import path from "node:path";
 
 import AxeBuilder from "@axe-core/playwright";
-import { expect, test, type Page, type Request } from "@playwright/test";
+import {
+  expect,
+  test,
+  type Locator,
+  type Page,
+  type Request,
+} from "@playwright/test";
 import pg from "pg";
 
 import {
@@ -347,20 +353,23 @@ async function enterCard(page: Page, number: string) {
 }
 
 async function completeCardCheck(page: Page) {
-  const deadline = Date.now() + 120_000;
-  while (Date.now() < deadline) {
-    for (const frame of page.frames()) {
-      const button = frame.getByRole("button", {
-        name: /complete authentication|complete/i,
-      });
-      if (await button.count().catch(() => 0)) {
-        await button.first().click();
-        return;
-      }
-    }
-    await page.waitForTimeout(1_000);
-  }
-  throw new Error("Stripe's test card check did not appear");
+  const held: { button?: Locator } = {};
+  await expect
+    .poll(
+      async () => {
+        for (const frame of page.frames()) {
+          const button = frame.getByRole("button", { name: /complete/i });
+          if (await button.count().catch(() => 0)) {
+            held.button = button.first();
+            return true;
+          }
+        }
+        return false;
+      },
+      { timeout: 120_000 },
+    )
+    .toBe(true);
+  await held.button!.click();
 }
 
 async function shot(page: Page, name: string) {
