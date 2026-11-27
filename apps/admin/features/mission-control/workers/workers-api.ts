@@ -1,16 +1,29 @@
 "use client";
 
+import {
+  FAILURE_TEXT,
+  NOT_PERMITTED_TEXT,
+  OUTCOME_UNKNOWN_TEXT,
+  SECURITY_LEVELS,
+  revealEnvelopeSchema,
+  workerEnvelopeSchema,
+  workerListEnvelopeSchema,
+  type RevealedIdentity,
+  type SecurityLevel,
+  type Worker,
+} from "@asym/api/admin/workers/envelopes";
 import { ownApiFetch } from "@asym/database/own-api";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
-export const SECURITY_LEVELS = [
-  "standard",
-  "sensitive",
-  "restricted",
-  "high_risk",
-] as const;
+import type { z } from "zod";
 
-export type SecurityLevel = (typeof SECURITY_LEVELS)[number];
+export {
+  NOT_PERMITTED_TEXT,
+  SECURITY_LEVELS,
+  type RevealedIdentity,
+  type SecurityLevel,
+  type Worker,
+};
 
 export const LEVEL_LABELS: Record<SecurityLevel, string> = {
   standard: "Standard",
@@ -19,35 +32,11 @@ export const LEVEL_LABELS: Record<SecurityLevel, string> = {
   high_risk: "High risk",
 };
 
-export interface Worker {
-  assignmentId: string;
-  partyId: string;
-  displayName: string;
-  publicAlias: string | null;
-  securityLevel: SecurityLevel;
-  securityLevelSource: "manual" | "country_default" | "unreviewed_default";
-  doNotPublish: boolean;
-  hasLegalIdentity: boolean | null;
-  hasLogin: boolean;
-  createdAt: string;
-}
-
-export interface RevealedIdentity {
-  legalName: string;
-  realCountry: string | null;
-  preciseLocation: string | null;
-}
-
 export const WORKERS_QUERY_KEY = ["admin", "workers"] as const;
 
 export function workerQueryKey(assignmentId: string) {
   return [...WORKERS_QUERY_KEY, assignmentId] as const;
 }
-
-export const NOT_PERMITTED_TEXT =
-  "Only staff with the Restrict publication permission can change these settings.";
-
-const FAILURE_TEXT = "Something went wrong. Nothing was changed.";
 
 export class WorkerRequestError extends Error {
   readonly status: number;
@@ -60,6 +49,9 @@ export class WorkerRequestError extends Error {
     this.code = code;
   }
 }
+
+const outcomeUnknown = () =>
+  new WorkerRequestError(0, "OUTCOME_UNKNOWN", OUTCOME_UNKNOWN_TEXT);
 
 async function readError(response: Response): Promise<WorkerRequestError> {
   const body = (await response.json().catch(() => null)) as {
@@ -76,16 +68,23 @@ async function readError(response: Response): Promise<WorkerRequestError> {
   return new WorkerRequestError(response.status, code, message);
 }
 
-async function getJson<T>(path: string): Promise<T> {
+async function getJson<T>(path: string, schema: z.ZodType<T>): Promise<T> {
   const response = await ownApiFetch(path, {
     credentials: "same-origin",
     headers: { accept: "application/json" },
   });
   if (!response.ok) throw await readError(response);
-  return (await response.json()) as T;
+  const parsed = schema.safeParse(await response.json().catch(() => null));
+  if (!parsed.success)
+    throw new WorkerRequestError(response.status, null, FAILURE_TEXT);
+  return parsed.data;
 }
 
-async function postJson<T>(path: string, body: unknown): Promise<T> {
+async function postJson<T>(
+  path: string,
+  body: unknown,
+  schema: z.ZodType<T>,
+): Promise<T> {
   const response = await ownApiFetch(path, {
     method: "POST",
     credentials: "same-origin",
@@ -94,9 +93,13 @@ async function postJson<T>(path: string, body: unknown): Promise<T> {
       "content-type": "application/json",
     },
     body: JSON.stringify(body),
+  }).catch(() => {
+    throw outcomeUnknown();
   });
   if (!response.ok) throw await readError(response);
-  return (await response.json()) as T;
+  const parsed = schema.safeParse(await response.json().catch(() => null));
+  if (!parsed.success) throw outcomeUnknown();
+  return parsed.data;
 }
 
 const FRESH = {
@@ -110,7 +113,7 @@ export function useWorkers() {
     ...FRESH,
     queryKey: WORKERS_QUERY_KEY,
     queryFn: async () =>
-      (await getJson<{ workers: Worker[] }>("/api/admin/workers")).workers,
+      (await getJson("/api/admin/workers", workerListEnvelopeSchema)).workers,
   });
 }
 
@@ -120,8 +123,9 @@ export function useWorker(assignmentId: string) {
     queryKey: workerQueryKey(assignmentId),
     queryFn: async () =>
       (
-        await getJson<{ worker: Worker }>(
+        await getJson(
           `/api/admin/workers/${encodeURIComponent(assignmentId)}`,
+          workerEnvelopeSchema,
         )
       ).worker,
   });
@@ -148,9 +152,10 @@ export function useWorkerCommand(assignmentId: string) {
   return useMutation({
     mutationFn: async (command: WorkerCommand) =>
       (
-        await postJson<{ worker: Worker }>(
+        await postJson(
           `/api/admin/workers/${encodeURIComponent(assignmentId)}/${command.kind}`,
           command.body,
+          workerEnvelopeSchema,
         )
       ).worker,
     onSettled: () =>
@@ -162,15 +167,11 @@ export async function revealWorkerIdentity(
   assignmentId: string,
   reason: string,
 ): Promise<RevealedIdentity> {
-  const body = await postJson<RevealedIdentity>(
+  return postJson(
     `/api/admin/workers/${encodeURIComponent(assignmentId)}/reveal`,
     { reason },
+    revealEnvelopeSchema,
   );
-  return {
-    legalName: body.legalName,
-    realCountry: body.realCountry,
-    preciseLocation: body.preciseLocation,
-  };
 }
 
 export function isUnreviewed(worker: Pick<Worker, "securityLevelSource">) {

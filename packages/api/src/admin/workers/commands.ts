@@ -222,7 +222,7 @@ export const POST_REVEAL = withWorkersWrite(
         !parsed.success ||
         !sameId(parsed.data.party_id, prepared.row.party_id)
       )
-        return workersFailure("reveal", null, requestId);
+        return workersOutcomeUnknown("reveal", null, requestId);
       return NextResponse.json({
         legalName: parsed.data.legal_name,
         realCountry: parsed.data.real_country,

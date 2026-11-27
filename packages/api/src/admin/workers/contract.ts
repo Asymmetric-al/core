@@ -2,28 +2,30 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 
 import {
+  FAILURE_TEXT,
+  LEVEL_SOURCES,
+  NOT_PERMITTED_TEXT,
+  OUTCOME_UNKNOWN_TEXT,
+  SECURITY_LEVELS,
+  type Worker,
+} from "./envelopes";
+import {
   ApiHttpError,
   ensureJsonBody,
   reportOperationFailure,
 } from "../../shared/http-errors";
 import { READ_ALL_PAGE_SIZE, readAllPages } from "../../shared/read-all-pages";
 
+export {
+  FAILURE_TEXT,
+  NOT_PERMITTED_TEXT,
+  OUTCOME_UNKNOWN_TEXT,
+  SECURITY_LEVELS,
+  type SecurityLevel,
+  type Worker,
+} from "./envelopes";
+
 export const WORKERS_CAPABILITY = "safety.restrict_publication";
-
-export const SECURITY_LEVELS = [
-  "standard",
-  "sensitive",
-  "restricted",
-  "high_risk",
-] as const;
-
-export type SecurityLevel = (typeof SECURITY_LEVELS)[number];
-
-const LEVEL_SOURCES = [
-  "manual",
-  "country_default",
-  "unreviewed_default",
-] as const;
 
 export const REASON_MAX = 500;
 export const ALIAS_MAX = 200;
@@ -82,19 +84,6 @@ export const revealBodySchema = z.strictObject({ reason });
 
 export type WorkerRow = z.infer<typeof workerRowSchema>;
 
-export interface Worker {
-  assignmentId: string;
-  partyId: string;
-  displayName: string;
-  publicAlias: string | null;
-  securityLevel: SecurityLevel;
-  securityLevelSource: WorkerRow["security_level_source"];
-  doNotPublish: boolean;
-  hasLegalIdentity: boolean | null;
-  hasLogin: boolean;
-  createdAt: string;
-}
-
 export function toWorker(row: WorkerRow): Worker {
   return {
     assignmentId: row.assignment_id,
@@ -109,9 +98,6 @@ export function toWorker(row: WorkerRow): Worker {
     createdAt: row.created_at,
   };
 }
-
-export const NOT_PERMITTED_TEXT =
-  "Only staff with the Restrict publication permission can change these settings.";
 
 export const WORKER_ERRORS = {
   NOT_PERMITTED: { status: 403, text: NOT_PERMITTED_TEXT },
@@ -140,11 +126,6 @@ export const WORKER_ERRORS = {
 } as const;
 
 export type WorkerErrorCode = keyof typeof WORKER_ERRORS;
-
-export const FAILURE_TEXT = "Something went wrong. Nothing was changed.";
-
-export const OUTCOME_UNKNOWN_TEXT =
-  "The change may have been saved. Reload this worker before trying again.";
 
 const NO_STORE = "no-store";
 
