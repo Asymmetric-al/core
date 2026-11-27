@@ -7,6 +7,7 @@ import {
   ADMIN_URL,
   HOSTED_SERVICE_GRANTS,
   IN_MIGRATE_JOB,
+  accountClosedEvent,
   ageIntake,
   attempt,
   begin,
@@ -14,6 +15,7 @@ import {
   claim,
   configFor,
   grant,
+  guardUpdate,
   guestContact,
   intakeContactOf,
   intakeCounts,
@@ -758,6 +760,110 @@ describe.skipIf(!ADMIN_URL)(
             outcome: "replayed",
             gift_state: "paid",
           });
+        }));
+
+      it("F6 (b), the confirmation's finding 1: a gift paid only as a staff case (paid_after_abandon, paid_while_parked) is paid, never closed or open", () =>
+        inTx(db, async () => {
+          const w = await world();
+          const request = (key: string): GiftRequest => ({
+            host: w.hostsA.site,
+            key,
+            lines: [{ fund: w.A.fund, amount: 2100 }],
+            contact: { email: `same-${key}@example.test` },
+          });
+          const metadataOf = (r: ReturnType<typeof begun>) => ({
+            asym_operation: r.operation_id,
+            asym_intake: r.donation_id,
+          });
+
+          const abandoned = begun(await begin(db, request("staff-key")));
+          const abandonedPi = paymentIntent();
+          const claimedA = await claim(db, abandoned.operation_id);
+          await report(db, abandoned.operation_id, claimedA.attempt as number, {
+            result: "succeeded",
+            provider_object_id: abandonedPi,
+          });
+          expect(
+            (
+              await guardUpdate(
+                db,
+                w.A.tenant,
+                "UPDATE public.donations SET status = 'abandoned', abandoned_by = 'staff' WHERE id = $1",
+                [abandoned.donation_id],
+              )
+            ).ok,
+          ).toBe(true);
+          const lateSuccess = await storeEvent(db, w.A, {
+            pi: abandonedPi,
+            amount: 2100,
+            metadata: metadataOf(abandoned),
+          });
+          expect(await work(db, lateSuccess.id)).toMatchObject({
+            outcome: "case_opened",
+            kind: "paid_after_abandon",
+          });
+          expect(begun(await begin(db, request("staff-key")))).toMatchObject({
+            outcome: "replayed",
+            gift_state: "paid",
+          });
+
+          const parked = begun(await begin(db, request("parked-key")));
+          const claimedP = await claim(db, parked.operation_id);
+          await report(db, parked.operation_id, claimedP.attempt as number, {
+            result: "not_performed",
+            retry_delay_seconds: 30,
+            error_code: "stripe_rate_limited",
+          });
+          const closedEvent = await accountClosedEvent(db, w.A);
+          await role(db, "service_role");
+          await db.query("SELECT public.apply_account_event($1, 1, NULL)", [
+            closedEvent,
+          ]);
+          await role(db, null);
+          const parkedSuccess = await storeEvent(db, w.A, {
+            pi: paymentIntent(),
+            amount: 2100,
+            metadata: metadataOf(parked),
+          });
+          expect(await work(db, parkedSuccess.id)).toMatchObject({
+            outcome: "case_opened",
+            kind: "paid_while_parked",
+          });
+          expect(begun(await begin(db, request("parked-key")))).toMatchObject({
+            outcome: "replayed",
+            gift_state: "paid",
+          });
+        }));
+
+      it("F6 (b), the confirmation's finding 1: a replay after the provider reported the PaymentIntent cancelled is closed, never open", () =>
+        inTx(db, async () => {
+          const w = await world();
+          const request = (key: string): GiftRequest => ({
+            host: w.hostsA.site,
+            key,
+            lines: [{ fund: w.A.fund, amount: 2100 }],
+            contact: { email: `same-${key}@example.test` },
+          });
+          const cancelled = begun(await begin(db, request("cancelled-key")));
+          const pi = paymentIntent();
+          const claimed = await claim(db, cancelled.operation_id);
+          await report(db, cancelled.operation_id, claimed.attempt as number, {
+            result: "succeeded",
+            provider_object_id: pi,
+          });
+          const event = await storeEvent(db, w.A, {
+            type: "payment_intent.canceled",
+            pi,
+            amount: 2100,
+            metadata: {
+              asym_operation: cancelled.operation_id,
+              asym_intake: cancelled.donation_id,
+            },
+          });
+          await work(db, event.id);
+          expect(
+            begun(await begin(db, request("cancelled-key"))),
+          ).toMatchObject({ outcome: "replayed", gift_state: "closed" });
         }));
 
       it("T4: the Site, entry surface, source code and unlisted code of a line-based intake are sealed: 23514 donation_line_intake_sealed for the owner and service_role", () =>

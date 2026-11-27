@@ -134,7 +134,7 @@ describe("AL-2681 PR 2a: the anonymous config read's route (W8-R18)", () => {
     });
   });
 
-  it("F6 (a): a throw from reading the switch or the publishable key is the same generic unavailable", async () => {
+  it("F6 (a): a throw from reading the switch or the publishable key, or from making the database client (the confirmation's finding 3), is the same generic unavailable", async () => {
     for (const over of [
       {
         enabled: () => {
@@ -144,6 +144,13 @@ describe("AL-2681 PR 2a: the anonymous config read's route (W8-R18)", () => {
       {
         publishableKey: () => {
           throw new Error("environment unreadable");
+        },
+      },
+      {
+        rpc: () => {
+          throw new Error(
+            "Invalid supabaseUrl: Must be a valid HTTP or HTTPS URL.",
+          );
         },
       },
     ] as Array<Partial<GivingConfigDeps>>) {
