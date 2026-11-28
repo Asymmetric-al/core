@@ -14,6 +14,13 @@ const LEVEL_2 = process.env.GIVING_STRIPE_TEST_PROOF === "1";
 const SERVER_TIMEOUT_MS = Number(
   process.env.PLAYWRIGHT_WEB_SERVER_TIMEOUT_MS || 600_000,
 );
+const BUILD_AND_START_TIMEOUT_MS = Number(
+  process.env.PLAYWRIGHT_WEB_SERVER_TIMEOUT_MS || 1_200_000,
+);
+
+function builtServerCommand(app: string, port: number, hostname: string) {
+  return `bun run --cwd apps/${app} build && bun run --cwd apps/${app} start -- --port ${port} --hostname ${hostname}`;
+}
 
 const givingEnv: Record<string, string | undefined> = {
   ...process.env,
@@ -55,23 +62,27 @@ export default defineConfig({
   forbidOnly: !!process.env.CI,
   retries: 0,
   workers: 1,
-  timeout: 900_000,
-  expect: { timeout: 120_000 },
+  timeout: LEVEL_2 ? 900_000 : 300_000,
+  expect: { timeout: LEVEL_2 ? 120_000 : 30_000 },
   reporter: [["list"]],
   use: {
     trace: "retain-on-failure",
     screenshot: "only-on-failure",
-    navigationTimeout: 300_000,
-    actionTimeout: 120_000,
+    navigationTimeout: LEVEL_2 ? 300_000 : 60_000,
+    actionTimeout: LEVEL_2 ? 120_000 : 30_000,
   },
   projects: [{ name: "guest-giving", use: { ...devices["Desktop Chrome"] } }],
   webServer: [
     {
-      command: devServerCommand("donor", GUEST_GIVING_PORTS.donor, "127.0.0.1"),
+      command: builtServerCommand(
+        "donor",
+        GUEST_GIVING_PORTS.donor,
+        "127.0.0.1",
+      ),
       url: `http://127.0.0.1:${GUEST_GIVING_PORTS.donor}/api/playwright-ready`,
       env: givingEnv as Record<string, string>,
       reuseExistingServer: shouldReuseExistingServer(process.env),
-      timeout: SERVER_TIMEOUT_MS,
+      timeout: BUILD_AND_START_TIMEOUT_MS,
     },
     ...(LEVEL_2
       ? [
