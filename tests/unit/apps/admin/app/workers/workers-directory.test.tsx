@@ -57,6 +57,14 @@ function worker(id: string, overrides: Record<string, unknown> = {}) {
 }
 
 const A = "00000000-0000-4000-8000-00000000aaaa";
+const ENTITY_ONE = {
+  id: "00000000-0000-4000-8000-0000000000e1",
+  name: "Give Hope US",
+};
+const ENTITY_TWO = {
+  id: "00000000-0000-4000-8000-0000000000e2",
+  name: "Give Hope UK",
+};
 const B = "00000000-0000-4000-8000-00000000bbbb";
 
 const fetchMock = vi.fn();
@@ -236,11 +244,13 @@ describe("AL-2678 r2b1: the workers' directory", () => {
   it("with the capability, Add worker opens a form that validates on submit (display name, legal name and reason marked, focus on the first), keeps the legal name out of Session Replay, sends the names and reason, closes and reads the list again; without the capability there is no Add worker (WP5 rest 2b, create_worker's form; red: no Add worker)", async () => {
     state.caps = ["safety.restrict_publication"];
     let posted: unknown = null;
-    fetchMock.mockImplementation(async (_url: string, init?: RequestInit) => {
+    fetchMock.mockImplementation(async (url: string, init?: RequestInit) => {
       if (init?.method === "POST") {
         posted = JSON.parse(String(init.body));
         return reply(201, { worker: worker(A) });
       }
+      if (String(url).endsWith("/api/admin/workers/legal-entities"))
+        return reply(200, { legalEntities: [ENTITY_ONE] });
       return reply(200, { workers: [] });
     });
     const reads = () =>
@@ -251,6 +261,9 @@ describe("AL-2678 r2b1: the workers' directory", () => {
     fireEvent.click(await screen.findByRole("button", { name: "Add worker" }));
     const dialog = await screen.findByRole("dialog");
     fireEvent.click(within(dialog).getByRole("button", { name: "Add worker" }));
+    expect(
+      within(dialog).queryByRole("radiogroup", { name: "Legal entity" }),
+    ).toBeNull();
     const display = within(dialog).getByLabelText("Display name");
     await waitFor(() =>
       expect(display.getAttribute("aria-invalid")).toBe("true"),
@@ -284,5 +297,96 @@ describe("AL-2678 r2b1: the workers' directory", () => {
     show();
     expect(await screen.findByText("No workers yet.")).toBeTruthy();
     expect(screen.queryByRole("button", { name: "Add worker" })).toBeNull();
+  });
+  async function openFilledAddWorker(
+    answer: (body: unknown) => { status: number; body: unknown },
+    entities = [ENTITY_ONE, ENTITY_TWO],
+  ) {
+    state.caps = ["safety.restrict_publication"];
+    const posted: unknown[] = [];
+    fetchMock.mockImplementation(async (url: string, init?: RequestInit) => {
+      if (init?.method === "POST") {
+        const body = JSON.parse(String(init.body));
+        posted.push(body);
+        const { status, body: replyBody } = answer(body);
+        return reply(status, replyBody);
+      }
+      if (String(url).endsWith("/api/admin/workers/legal-entities"))
+        return reply(200, { legalEntities: entities });
+      return reply(200, { workers: [] });
+    });
+    show();
+    fireEvent.click(await screen.findByRole("button", { name: "Add worker" }));
+    const dialog = await screen.findByRole("dialog");
+    fireEvent.change(within(dialog).getByLabelText("Display name"), {
+      target: { value: "Worker Heron" },
+    });
+    fireEvent.change(within(dialog).getByLabelText("Legal name"), {
+      target: { value: "Legal Heron" },
+    });
+    fireEvent.change(within(dialog).getByLabelText("Reason"), {
+      target: { value: "New field worker" },
+    });
+    return { dialog, posted };
+  }
+
+  it("W1 (fix round of 2869): an organization with several legal entities offers them on Add worker; a submit without a choice marks the field with the server's sentence and focuses it, and the chosen entity's id is sent (red: no field, and the server refuses)", async () => {
+    const { dialog, posted } = await openFilledAddWorker(() => ({
+      status: 201,
+      body: { worker: worker(A) },
+    }));
+    const group = await within(dialog).findByRole("radiogroup", {
+      name: "Legal entity",
+    });
+    fireEvent.click(within(dialog).getByRole("button", { name: "Add worker" }));
+    await waitFor(() =>
+      expect(group.getAttribute("aria-invalid")).toBe("true"),
+    );
+    expect(
+      within(dialog).getByText(
+        "Choose the legal entity this worker serves under.",
+      ),
+    ).toBeTruthy();
+    expect(document.activeElement).toBe(
+      within(dialog).getByRole("radio", { name: "Give Hope US" }),
+    );
+    expect(posted).toEqual([]);
+    fireEvent.click(
+      within(dialog).getByRole("radio", { name: "Give Hope UK" }),
+    );
+    fireEvent.click(within(dialog).getByRole("button", { name: "Add worker" }));
+    await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull());
+    expect(posted).toEqual([
+      {
+        displayName: "Worker Heron",
+        legalName: "Legal Heron",
+        legalEntityId: ENTITY_TWO.id,
+        reason: "New field worker",
+      },
+    ]);
+  });
+
+  it("W1 (fix round of 2869): the server's legal-entity refusal is shown against the Legal entity field, not as the dialog's alert, and the dialog stays open (red: no field to show it against)", async () => {
+    const { dialog } = await openFilledAddWorker(() => ({
+      status: 404,
+      body: {
+        error: "That legal entity is not this organization's.",
+        code: "LEGAL_ENTITY_NOT_FOUND",
+      },
+    }));
+    fireEvent.click(
+      await within(dialog).findByRole("radio", { name: "Give Hope US" }),
+    );
+    fireEvent.click(within(dialog).getByRole("button", { name: "Add worker" }));
+    const group = within(dialog).getByRole("radiogroup", {
+      name: "Legal entity",
+    });
+    await waitFor(() =>
+      expect(group.getAttribute("aria-invalid")).toBe("true"),
+    );
+    expect(
+      within(dialog).getByText("That legal entity is not this organization's."),
+    ).toBeTruthy();
+    expect(screen.getByRole("dialog")).toBeTruthy();
   });
 });

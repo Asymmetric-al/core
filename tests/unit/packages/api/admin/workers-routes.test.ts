@@ -11,6 +11,7 @@ import {
 } from "../../../../../packages/api/src/admin/workers/commands";
 import {
   GET,
+  GET_LEGAL_ENTITIES,
   GET_RECORD,
   GET_UNREVIEWED_COUNT,
 } from "../../../../../packages/api/src/admin/workers/read";
@@ -1315,6 +1316,58 @@ describe("AL-2678 WP5 part 2-r2b1: the workers' routes (contract, error map, ali
       expect(rpc).not.toHaveBeenCalled();
     },
   );
+
+  it("W1 (fix round of 2869): the legal-entities read answers this organization's entities, id and name only, ordered by name, with no-store, to staff holding Restrict publication; a missionary is refused 403 and nothing is read (red: no read)", async () => {
+    const calls: unknown[][] = [];
+    const query = {
+      select: (...args: unknown[]) => (calls.push(["select", ...args]), query),
+      eq: (...args: unknown[]) => (calls.push(["eq", ...args]), query),
+      order: (...args: unknown[]) => (calls.push(["order", ...args]), query),
+      then: <R>(resolve: (value: { data: unknown; error: null }) => R) =>
+        Promise.resolve(
+          resolve({
+            data: [
+              {
+                id: "00000000-0000-4000-8000-0000000000e1",
+                name: "Give Hope UK",
+              },
+              {
+                id: "00000000-0000-4000-8000-0000000000e2",
+                name: "Give Hope US",
+              },
+            ],
+            error: null,
+          }),
+        ),
+    };
+    const from = vi.fn(() => query);
+    h.session.mockResolvedValue({ rpc: vi.fn(), from });
+    h.auth.mockResolvedValue(makeAuth("admin"));
+    const response = await GET_LEGAL_ENTITIES(
+      get("/api/admin/workers/legal-entities"),
+    );
+    expect(response.status).toBe(200);
+    expect(await read(response)).toEqual({
+      legalEntities: [
+        { id: "00000000-0000-4000-8000-0000000000e1", name: "Give Hope UK" },
+        { id: "00000000-0000-4000-8000-0000000000e2", name: "Give Hope US" },
+      ],
+    });
+    expect(from).toHaveBeenCalledWith("legal_entities");
+    expect(calls).toEqual([
+      ["select", "id, name"],
+      ["eq", "tenant_id", TENANT],
+      ["order", "name", { ascending: true }],
+      ["order", "id", { ascending: true }],
+    ]);
+    from.mockClear();
+    h.auth.mockResolvedValue(makeAuth("missionary"));
+    const refused = await GET_LEGAL_ENTITIES(
+      get("/api/admin/workers/legal-entities"),
+    );
+    expect(refused.status).toBe(403);
+    expect(from).not.toHaveBeenCalled();
+  });
 
   it.each([
     [

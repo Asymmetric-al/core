@@ -828,5 +828,38 @@ describe.skipIf(!required && ![url, database, anon, service].some(Boolean))(
         [id.wU, id.wK, id.wV, id.wR, id.wC].sort(),
       );
     });
+    it("W1 (fix round of 2869): through the routes with A's real token, the legal-entities read lists only A's entity, and Add worker naming B's entity is refused 404 LEGAL_ENTITY_NOT_FOUND with nothing written (red: no read)", async () => {
+      const { GET_LEGAL_ENTITIES } = await routes.list();
+      const { POST_CREATE } = await routes.commands();
+      const listed = await GET_LEGAL_ENTITIES(
+        request("A", "GET", "/api/admin/workers/legal-entities"),
+      );
+      expect(listed.status).toBe(200);
+      expect(await listed.json()).toEqual({
+        legalEntities: [{ id: TA, name: "A" }],
+      });
+      const workers = async () =>
+        (
+          await db.query(
+            "select count(*)::int as n from public.missionaries where tenant_id = $1",
+            [TA],
+          )
+        ).rows[0].n as number;
+      const before = await workers();
+      const refused = await POST_CREATE(
+        request("A", "POST", "/api/admin/workers", {
+          displayName: "Worker Plover",
+          legalName: "Legal Placeholder",
+          legalEntityId: TB,
+          reason: "New field worker",
+        }),
+      );
+      expect(refused.status).toBe(404);
+      expect(await refused.json()).toMatchObject({
+        error: "That legal entity is not this organization's.",
+        code: "LEGAL_ENTITY_NOT_FOUND",
+      });
+      expect(await workers()).toBe(before);
+    });
   },
 );
