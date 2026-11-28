@@ -183,6 +183,33 @@ export const WORKER_ERRORS = {
 
 export type WorkerErrorCode = keyof typeof WORKER_ERRORS;
 
+export const INVITE_CAPABILITIES = [
+  "people.manage_members",
+  "safety.restrict_publication",
+] as const;
+
+export type InviteCapability = (typeof INVITE_CAPABILITIES)[number];
+
+const INVITE_PERMISSION_LABELS: Record<InviteCapability, string> = {
+  "people.manage_members": "Manage members",
+  "safety.restrict_publication": "Restrict publication",
+};
+
+export const INVITE_PERMISSIONS_CHANGED_TEXT =
+  "Your permissions here have changed. Reload the page to see what you can do.";
+
+export function inviteNotPermittedText(
+  missing: readonly InviteCapability[],
+): string {
+  if (missing.length === 0) return INVITE_PERMISSIONS_CHANGED_TEXT;
+  const labels = INVITE_CAPABILITIES.filter((capability) =>
+    missing.includes(capability),
+  ).map((capability) => INVITE_PERMISSION_LABELS[capability]);
+  return labels.length === 1
+    ? `Inviting a worker to sign in needs the ${labels[0]} permission.`
+    : `Inviting a worker to sign in needs the ${labels.join(" and ")} permissions.`;
+}
+
 const NO_STORE = "no-store";
 
 export function workerError(
@@ -192,6 +219,15 @@ export function workerError(
   return NextResponse.json(
     { error: WORKER_ERRORS[code].text, code },
     { status, headers: { "Cache-Control": NO_STORE } },
+  );
+}
+
+export function inviteNotPermitted(
+  missing: readonly InviteCapability[],
+): NextResponse {
+  return NextResponse.json(
+    { error: inviteNotPermittedText(missing), code: "NOT_PERMITTED" },
+    { status: 403, headers: { "Cache-Control": NO_STORE } },
   );
 }
 

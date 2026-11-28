@@ -1,6 +1,8 @@
+import { hasContextCapability } from "@asym/auth/context";
 import { NextResponse } from "next/server";
 
 import {
+  INVITE_CAPABILITIES,
   WORKERS_CAPABILITY,
   assignmentIdOf,
   commandResultSchema,
@@ -8,6 +10,7 @@ import {
   createBodySchema,
   createResultSchema,
   inviteBodySchema,
+  inviteNotPermitted,
   inviteResultSchema,
   isBlank,
   liftBodySchema,
@@ -290,6 +293,10 @@ export const POST_CREATE = withWorkersWrite(
 export const POST_INVITE = withWorkersWrite(
   withOperation(
     async ({ auth, request, sessionClient, requestId }, context) => {
+      const missing = INVITE_CAPABILITIES.filter(
+        (capability) => !hasContextCapability(auth, capability),
+      );
+      if (missing.length > 0) return inviteNotPermitted(missing);
       const prepared = await prepare(
         "invite",
         { request, sessionClient, requestId, context },
@@ -309,6 +316,7 @@ export const POST_INVITE = withWorkersWrite(
         p_legal_entity_id: null,
         p_reason: reason,
       });
+      if (codeOf(error) === "42501") return inviteNotPermitted([]);
       if (error) return refusal("invite", error, requestId);
       const parsed = inviteResultSchema.safeParse(data);
       if (
@@ -329,6 +337,5 @@ export const POST_INVITE = withWorkersWrite(
         { status: 201, headers: INVITATION_HEADERS },
       );
     },
-    WRITE,
   ),
 );

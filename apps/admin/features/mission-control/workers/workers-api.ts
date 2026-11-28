@@ -67,7 +67,9 @@ async function readError(response: Response): Promise<WorkerRequestError> {
   const code = typeof body?.code === "string" ? body.code : null;
   const message =
     response.status === 403
-      ? NOT_PERMITTED_TEXT
+      ? code === "NOT_PERMITTED" && typeof body?.error === "string"
+        ? body.error
+        : NOT_PERMITTED_TEXT
       : code && typeof body?.error === "string"
         ? body.error
         : FAILURE_TEXT;
