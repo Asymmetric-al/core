@@ -226,7 +226,8 @@ function props(
   };
 }
 
-const giveButton = () => screen.getByRole("button", { name: /^Give/ });
+const giveButton = () =>
+  screen.getByRole("button", { name: /^Give( \$\S+)?$/ });
 
 async function fill(
   email = "gail@example.test",
@@ -578,6 +579,7 @@ describe("AL-2681 B fix round X4: one gift, one key", () => {
     fireEvent.change(screen.getByLabelText("Email"), {
       target: { value: "gail@example.test" },
     });
+    await waitFor(() => expect(turnstile.resets).toBe(1));
     fireEvent.click(giveButton());
     await screen.findByText("Your gift was received.");
     expect(donates()).toHaveLength(2);
@@ -664,11 +666,13 @@ describe("AL-2681 B fix round X4: one gift, one key", () => {
       GIFT_PAYMENT_STORAGE,
       JSON.stringify({ ...stored, account: "acct_other" }),
     );
+    await waitFor(() => expect(turnstile.resets).toBe(1));
     fireEvent.click(giveButton());
     await screen.findByText(
       /This gift was already started with different details, so nothing was charged this time/,
     );
     expect(window.sessionStorage.getItem(GIFT_PAYMENT_STORAGE)).toBeNull();
+    await waitFor(() => expect(turnstile.resets).toBe(2));
     fireEvent.click(giveButton());
     await screen.findByText("Your gift was received.");
     expect(donates()).toHaveLength(3);

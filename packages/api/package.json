@@ -29,6 +29,7 @@
     "./donate/idempotency": "./src/donate/idempotency.ts",
     "./donate/guest/config-route": "./src/donate/guest/config-route.ts",
     "./donate/guest/intake-route": "./src/donate/guest/intake-route.ts",
+    "./donate/guest/giving-open": "./src/donate/guest/giving-open.ts",
     "./donate/guest/donor-matching": "./src/donate/guest/donor-matching.ts",
     "./donate/guest/donor-merge": "./src/donate/guest/donor-merge.ts",
     "./donate/outbox": "./src/donate/outbox.ts",

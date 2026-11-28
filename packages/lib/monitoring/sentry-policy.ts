@@ -20,8 +20,19 @@ function normalizeInvitePathname(pathname: string): string {
     : stripped;
 }
 
+const CLIENT_SECRET_PARAM_PATTERN =
+  /([?&](?:payment_intent_client_secret|setup_intent_client_secret|client_secret)=)[^&#\s"'<>]*/g;
+const CLIENT_SECRET_VALUE_PATTERN =
+  /\b(?:pi|seti)_[A-Za-z0-9]+_secret_[A-Za-z0-9]+/g;
+
 export function scrubInviteFragmentFromUrl(value: string): string {
   return value.replace(INVITE_URL_FRAGMENT_PATTERN, "$1");
+}
+
+export function scrubClientSecrets(value: string): string {
+  return value
+    .replace(CLIENT_SECRET_PARAM_PATTERN, "$1[Filtered]")
+    .replace(CLIENT_SECRET_VALUE_PATTERN, "[Filtered]");
 }
 
 function isPlainRecord(value: unknown): value is Record<string, unknown> {
@@ -39,7 +50,7 @@ export function scrubInviteFragmentsDeep<T>(
 ): T {
   if (depth > 16 || value === null || value === undefined) return value;
   if (typeof value === "string") {
-    return scrubInviteFragmentFromUrl(value) as T;
+    return scrubClientSecrets(scrubInviteFragmentFromUrl(value)) as T;
   }
   if (typeof value !== "object") return value;
   if (seen.has(value)) return value;
@@ -158,7 +169,14 @@ export function getSentryCompatibilityOptions() {
         response: { deny: [...sensitiveKeys] },
       },
       httpBodies: [],
-      urlQueryParams: { deny: [...sensitiveKeys] },
+      urlQueryParams: {
+        deny: [
+          ...sensitiveKeys,
+          "payment_intent_client_secret",
+          "setup_intent_client_secret",
+          "client_secret",
+        ],
+      },
       genAI: { inputs: false, outputs: false },
       mcp: { inputs: false, outputs: false },
       databaseQueryData: false,

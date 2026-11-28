@@ -99,11 +99,6 @@
       "count": 12
     }
   },
-  "apps/donor/app/(public)/(solid)/checkout/loading.tsx": {
-    "shadcn/no-restyle": {
-      "count": 1
-    }
-  },
   "apps/donor/app/(public)/(solid)/help/about/page.tsx": {
     "shadcn/no-restyle": {
       "count": 4

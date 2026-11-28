@@ -12,6 +12,7 @@ export type CheckoutLink = {
   target: CheckoutTarget | null;
   amountCents: number | null;
   monthly: boolean;
+  coverFees: boolean;
   sourceSiteId: string | null;
 };
 
@@ -38,8 +39,38 @@ export function readCheckoutLink(params: CheckoutSearchParams): CheckoutLink {
     target,
     amountCents: parseAmountCents(first(params.amount)),
     monthly: first(params.frequency)?.toLowerCase() === "monthly",
+    coverFees: first(params.coverFees) === "1",
     sourceSiteId: source && UUID.test(source) ? source.toLowerCase() : null,
   };
+}
+
+export function checkoutSurface(input: {
+  hostSurface: "website" | "donor_account";
+  isHome: boolean;
+  sourceSiteId: string | null;
+}): "website" | "donor_account" {
+  return input.sourceSiteId && input.isHome
+    ? "donor_account"
+    : input.hostSurface;
+}
+
+export function checkoutPath(input: {
+  target: CheckoutTarget | null;
+  amountCents: number | null;
+  coverFees: boolean;
+  sourceSiteId: string | null;
+}): string {
+  const params = new URLSearchParams();
+  if (input.target)
+    params.set(
+      input.target.kind === "fund" ? "fund_id" : "missionary_id",
+      input.target.id,
+    );
+  if (input.amountCents)
+    params.set("amount", (input.amountCents / 100).toFixed(2));
+  params.set("coverFees", input.coverFees ? "1" : "0");
+  if (input.sourceSiteId) params.set("sourceSiteId", input.sourceSiteId);
+  return `/checkout?${params.toString()}`;
 }
 
 export function handOffHref(input: {
@@ -49,14 +80,5 @@ export function handOffHref(input: {
   coverFees: boolean;
   sourceSiteId: string | null;
 }): string {
-  const params = new URLSearchParams();
-  params.set(
-    input.target.kind === "fund" ? "fund_id" : "missionary_id",
-    input.target.id,
-  );
-  if (input.amountCents)
-    params.set("amount", (input.amountCents / 100).toFixed(2));
-  params.set("coverFees", input.coverFees ? "1" : "0");
-  if (input.sourceSiteId) params.set("sourceSiteId", input.sourceSiteId);
-  return `https://${input.homeHost}/checkout?${params.toString()}`;
+  return `https://${input.homeHost}${checkoutPath(input)}`;
 }

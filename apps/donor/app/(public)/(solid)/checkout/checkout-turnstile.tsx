@@ -19,20 +19,37 @@ declare global {
 
 const SCRIPT_SRC =
   "https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit";
+export const TURNSTILE_RETRY_MS = 2_000;
+export const TURNSTILE_LOAD_ATTEMPTS = 3;
 
 let loading: Promise<TurnstileApi | null> | null = null;
 
-function loadTurnstile(): Promise<TurnstileApi | null> {
+function loadOnce(): Promise<TurnstileApi | null> {
   if (window.turnstile) return Promise.resolve(window.turnstile);
   loading ??= new Promise((resolve) => {
     const script = document.createElement("script");
     script.src = SCRIPT_SRC;
     script.async = true;
     script.onload = () => resolve(window.turnstile ?? null);
-    script.onerror = () => resolve(null);
+    script.onerror = () => {
+      script.remove();
+      loading = null;
+      resolve(null);
+    };
     document.head.appendChild(script);
   });
   return loading;
+}
+
+async function loadTurnstile(
+  active: () => boolean,
+): Promise<TurnstileApi | null> {
+  for (let attempt = 1; attempt <= TURNSTILE_LOAD_ATTEMPTS; attempt += 1) {
+    const api = await loadOnce();
+    if (api || !active()) return api;
+    await new Promise((resolve) => setTimeout(resolve, TURNSTILE_RETRY_MS));
+  }
+  return null;
 }
 
 export function CheckoutTurnstile({
@@ -50,7 +67,8 @@ export function CheckoutTurnstile({
 
   useEffect(() => {
     let active = true;
-    void loadTurnstile().then((turnstile) => {
+    let retry: ReturnType<typeof setTimeout> | undefined;
+    void loadTurnstile(() => active).then((turnstile) => {
       if (!active || !turnstile || !container.current) return;
       api.current = turnstile;
       widget.current = turnstile.render(container.current, {
@@ -59,11 +77,19 @@ export function CheckoutTurnstile({
         "refresh-expired": "auto",
         callback: (token: string) => onToken(token),
         "expired-callback": () => onToken(null),
-        "error-callback": () => onToken(null),
+        "error-callback": () => {
+          onToken(null);
+          clearTimeout(retry);
+          retry = setTimeout(() => {
+            if (active) turnstile.reset(widget.current);
+          }, TURNSTILE_RETRY_MS);
+          return true;
+        },
       });
     });
     return () => {
       active = false;
+      clearTimeout(retry);
       if (widget.current) api.current?.remove(widget.current);
     };
   }, [siteKey, onToken]);

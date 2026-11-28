@@ -1,10 +1,12 @@
-import { formatCurrency } from "@asym/lib/utils";
-
 export const CHECKOUT_WORDS = {
   configUnavailable:
     "We can't take this gift online right now. It may be the designation you chose, or online giving may be paused. You haven't been charged.",
+  configUnavailableKeyHeld:
+    "We can't take this gift online right now, so nothing was charged this time. If you gave a moment ago, check that gift before you start again.",
   intakeUnavailable:
     "This ministry can't take gifts online here right now. You haven't been charged.",
+  intakeUnavailableKeyHeld:
+    "This ministry can't take gifts online here right now, so nothing was charged this time. If you gave a moment ago, check that gift before you start again.",
   notStarted:
     "Your payment didn't start, and your card wasn't charged. Please try again.",
   challenge:
@@ -26,7 +28,6 @@ export const CHECKOUT_WORDS = {
   giftClosed:
     "This payment can no longer be completed, and your card wasn't charged. Your details are saved: start the gift again.",
   received: "Your gift was received.",
-  claimOffer: "Verify your email to claim your giving history.",
   targetNotFound:
     "This ministry can't accept that designation. You haven't been charged.",
   addressBucket:
@@ -35,6 +36,10 @@ export const CHECKOUT_WORDS = {
     "You've started several gifts recently. Your card wasn't charged. Try again in a few minutes.",
   declined:
     "Your card was declined, and you haven't been charged. Check the card details or try another card.",
+  cardCheckUnfinished:
+    "Your bank's card check wasn't finished, so your card wasn't charged. You can try again.",
+  accountChanged:
+    "This ministry's payment details changed while you were giving. Nothing was charged. Reload this page to give.",
   pending: "Your payment is processing. You don't need to keep this page open.",
   cancelled:
     "The card check was cancelled, so your card wasn't charged. You can try again.",
@@ -51,8 +56,23 @@ export type CheckoutNotice = {
   text: string;
 };
 
-export function amountOutOfRange(minCents: number, maxCents: number): string {
-  return `Online gifts must be between ${formatCurrency(minCents / 100)} and ${formatCurrency(maxCents / 100)}. Your card wasn't charged.`;
+function money(cents: number, currency: string): string {
+  try {
+    return new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: currency.toUpperCase(),
+    }).format(cents / 100);
+  } catch {
+    return `${(cents / 100).toFixed(2)} ${currency.toUpperCase()}`;
+  }
+}
+
+export function amountOutOfRange(
+  minCents: number,
+  maxCents: number,
+  currency: string,
+): string {
+  return `Online gifts must be between ${money(minCents, currency)} and ${money(maxCents, currency)}. Your card wasn't charged.`;
 }
 
 const DETAIL_REFUSALS = new Set([
@@ -72,14 +92,20 @@ export type IntakeRefusal = {
   currency?: string;
 };
 
-export function intakeRefusalWords(refusal: IntakeRefusal): string {
+export function intakeRefusalWords(
+  refusal: IntakeRefusal,
+  keyHeldElsewhere = false,
+): string {
   const { status, error } = refusal;
   if (status === 429)
     return refusal.bucket === "person"
       ? CHECKOUT_WORDS.personBucket
       : CHECKOUT_WORDS.addressBucket;
   if (status === 401) return CHECKOUT_WORDS.signInRequired;
-  if (error === "giving_unavailable") return CHECKOUT_WORDS.intakeUnavailable;
+  if (error === "giving_unavailable")
+    return keyHeldElsewhere
+      ? CHECKOUT_WORDS.intakeUnavailableKeyHeld
+      : CHECKOUT_WORDS.intakeUnavailable;
   if (error === "payment_not_started") return CHECKOUT_WORDS.notStarted;
   if (error === "challenge_required" || error === "challenge_failed")
     return CHECKOUT_WORDS.challenge;
@@ -94,23 +120,43 @@ export function intakeRefusalWords(refusal: IntakeRefusal): string {
   if (
     error === "amount_out_of_range" &&
     typeof refusal.minCents === "number" &&
-    typeof refusal.maxCents === "number"
+    typeof refusal.maxCents === "number" &&
+    typeof refusal.currency === "string" &&
+    refusal.currency.length === 3
   )
-    return amountOutOfRange(refusal.minCents, refusal.maxCents);
+    return amountOutOfRange(
+      refusal.minCents,
+      refusal.maxCents,
+      refusal.currency,
+    );
   if (DETAIL_REFUSALS.has(error) || error === "amount_out_of_range")
     return CHECKOUT_WORDS.detailsRefused;
   return CHECKOUT_WORDS.notStarted;
 }
 
-export type PaymentState =
-  "succeeded" | "processing" | "requires_payment_method" | "canceled" | string;
+export type HeldPayment = {
+  status: string;
+  last_payment_error?: { code?: string; type?: string } | null;
+};
 
-export function paymentStateNotice(state: PaymentState): CheckoutNotice {
-  if (state === "succeeded")
+export const FINAL_STATES = new Set(["succeeded", "processing", "canceled"]);
+
+export function paymentStateNotice(payment: HeldPayment): CheckoutNotice {
+  const { status } = payment;
+  if (status === "succeeded")
     return { tone: "success", text: CHECKOUT_WORDS.received };
-  if (state === "processing")
+  if (status === "processing")
     return { tone: "info", text: CHECKOUT_WORDS.pending };
-  if (state === "canceled")
+  if (status === "canceled")
     return { tone: "error", text: CHECKOUT_WORDS.giftClosed };
-  return { tone: "error", text: CHECKOUT_WORDS.declined };
+  if (status === "requires_action")
+    return { tone: "error", text: CHECKOUT_WORDS.cardCheckUnfinished };
+  if (
+    status === "requires_payment_method" &&
+    payment.last_payment_error?.code === "payment_intent_authentication_failure"
+  )
+    return { tone: "error", text: CHECKOUT_WORDS.cancelled };
+  if (status === "requires_payment_method" && payment.last_payment_error)
+    return { tone: "error", text: CHECKOUT_WORDS.declined };
+  return { tone: "error", text: CHECKOUT_WORDS.notStarted };
 }

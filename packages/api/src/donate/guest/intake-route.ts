@@ -3,6 +3,7 @@ import { getAdminClient } from "@asym/database/supabase/admin";
 import { createClient } from "@asym/database/supabase/server";
 import { serverEnv } from "@asym/env";
 
+import { isGuestGivingOpen } from "./giving-open";
 import {
   createGuestIntakeHandler,
   type GuestIntakeRpc,
@@ -13,7 +14,7 @@ import {
 } from "../../workflows/functions/money-schedule";
 
 export const POST = createGuestIntakeHandler({
-  enabled: () => serverEnv.GUEST_GIVING_ENABLED === true,
+  enabled: () => isGuestGivingOpen(),
   challengeSecret: () => serverEnv.TURNSTILE_SECRET_KEY,
   rpc: () => {
     const { client, error } = getAdminClient();

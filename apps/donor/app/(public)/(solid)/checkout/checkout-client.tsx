@@ -17,23 +17,34 @@ import {
 } from "@stripe/react-stripe-js";
 import { loadStripe, type Stripe } from "@stripe/stripe-js";
 import Link from "next/link";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import {
   forgetGiftKey,
+  forgetPayment,
   giftKeyFor,
+  holdsAnyLiveKey,
   rememberedPayment,
   rememberPayment,
   safeStorage,
-  GIFT_KEY_STORAGE,
+  takeSecretFromAddress,
+  type GiftKeyInputs,
+  type StoredPayment,
 } from "./checkout-gift-key";
-import { handOffHref, type CheckoutLink } from "./checkout-targets";
+import {
+  checkoutPath,
+  handOffHref,
+  type CheckoutLink,
+  type CheckoutTarget,
+} from "./checkout-targets";
 import { CheckoutTurnstile } from "./checkout-turnstile";
 import {
   CHECKOUT_WORDS,
+  FINAL_STATES,
   intakeRefusalWords,
   paymentStateNotice,
   type CheckoutNotice,
+  type HeldPayment,
   type IntakeRefusal,
 } from "./checkout-words";
 
@@ -60,12 +71,35 @@ type Config =
 
 type Outcome = { notice: CheckoutNotice; final: boolean; signIn?: boolean };
 
-const FINAL_STATES = new Set(["succeeded", "processing", "canceled"]);
+type GuestInstead = { kind: "mode" } | { kind: "link"; href: string } | null;
 
-function targetLine(link: CheckoutLink, amountCents: number) {
-  return link.target?.kind === "missionary"
-    ? { missionaryId: link.target.id, amountCents }
-    : { fundId: link.target?.id ?? "", amountCents };
+const DEFAULT_CENTS = 2500;
+const OPEN_STATES = new Set([
+  "requires_payment_method",
+  "requires_confirmation",
+  "requires_action",
+]);
+const LOST: Outcome = {
+  notice: { tone: "error", text: CHECKOUT_WORDS.lostConnection },
+  final: false,
+};
+
+const say = (text: string, final = false): Outcome => ({
+  notice: { tone: "error", text },
+  final,
+});
+
+function outcomeOf(payment: HeldPayment): Outcome {
+  return {
+    notice: paymentStateNotice(payment),
+    final: FINAL_STATES.has(payment.status),
+  };
+}
+
+function targetLine(target: CheckoutTarget | null, amountCents: number) {
+  return target?.kind === "missionary"
+    ? { missionaryId: target.id, amountCents }
+    : { fundId: target?.id ?? "", amountCents };
 }
 
 function feeCents(amountCents: number, coverFees: boolean) {
@@ -77,18 +111,79 @@ function feeCents(amountCents: number, coverFees: boolean) {
   }).coverAmountCents;
 }
 
-function loginHref() {
-  const next = `${window.location.pathname}${window.location.search}`;
-  return `/login?next=${encodeURIComponent(next)}`;
+export function parseTypedAmount(text: string): number | null {
+  const cleaned = text.trim().replace(/^\$/, "").replace(/,/g, "");
+  if (!/^\d{1,8}(\.\d{0,2})?$/.test(cleaned)) return null;
+  const cents = Math.round(Number(cleaned) * 100);
+  return cents > 0 ? cents : null;
+}
+
+const amountTextOf = (cents: number) => (cents / 100).toFixed(2);
+
+function sameTarget(held: StoredPayment, target: CheckoutTarget | null) {
+  return Boolean(
+    target && held.target?.kind === target.kind && held.target.id === target.id,
+  );
+}
+
+async function retrieve(
+  stripe: Stripe | null,
+  clientSecret: string,
+): Promise<HeldPayment | null> {
+  if (!stripe) return null;
+  const result = (await stripe.retrievePaymentIntent(clientSecret)) as {
+    paymentIntent?: HeldPayment;
+  };
+  return result.paymentIntent?.status ? result.paymentIntent : null;
+}
+
+async function readHeld(held: StoredPayment): Promise<HeldPayment | null> {
+  const stripe = await loadStripe(held.publishableKey, {
+    stripeAccount: held.account,
+  });
+  return retrieve(stripe, held.clientSecret);
+}
+
+function FinalView(props: {
+  outcome: Outcome;
+  wayBackHost: string | null;
+  onAgain: () => void;
+}) {
+  return (
+    <div className="flex flex-col gap-4">
+      <Alert role="status">
+        <AlertDescription>{props.outcome.notice.text}</AlertDescription>
+      </Alert>
+      <div className="flex flex-wrap items-center gap-3">
+        <Button type="button" variant="outline" onClick={props.onAgain}>
+          Give again
+        </Button>
+        {props.wayBackHost ? (
+          <a
+            className="text-sm underline"
+            href={`https://${props.wayBackHost}`}
+            rel="noreferrer"
+          >
+            Back to {props.wayBackHost}
+          </a>
+        ) : null}
+      </div>
+    </div>
+  );
 }
 
 function GiveForm(props: {
   client: CheckoutPageClientProps;
   config: Extract<Config, { state: "ready" }>;
   amountCents: number;
+  amountValid: boolean;
   coverFees: boolean;
   mode: "guest" | "signed_in";
+  sourceSiteId: string | null;
+  signInHref: string;
+  guestInstead: GuestInstead;
   onGuest: () => void;
+  heldOutcome: Outcome | null;
 }) {
   const stripe = useStripe();
   const elements = useElements();
@@ -99,64 +194,103 @@ function GiveForm(props: {
   const [token, setToken] = useState<string | null>(null);
   const [resetSignal, setResetSignal] = useState(0);
   const [busy, setBusy] = useState(false);
+  const [touched, setTouched] = useState(false);
   const [outcome, setOutcome] = useState<Outcome | null>(null);
-  const heldChecked = useRef(false);
   const total =
     props.amountCents + feeCents(props.amountCents, props.coverFees);
   const signedIn = props.mode === "signed_in";
+  const shown = touched ? outcome : (outcome ?? props.heldOutcome);
 
-  const freshChallenge = () => setResetSignal((n) => n + 1);
+  const freshChallenge = () => {
+    setToken(null);
+    setResetSignal((n) => n + 1);
+  };
 
-  const readPayment = useCallback(
-    async (clientSecret: string): Promise<Outcome | null> => {
-      if (!stripe) return null;
-      const result = (await stripe.retrievePaymentIntent(clientSecret)) as {
-        paymentIntent?: { status: string };
-      };
-      const status = result.paymentIntent?.status;
-      if (!status) return null;
-      const final = FINAL_STATES.has(status);
-      if (final) forgetGiftKey(safeStorage("local"), safeStorage("session"));
-      return { notice: paymentStateNotice(status), final };
-    },
-    [stripe],
-  );
+  const contactEmail = signedIn ? (props.client.signedInEmail ?? "") : email;
+  const name = signedIn ? "" : `${firstName} ${lastName}`.trim();
+
+  const giftInputs = (): GiftKeyInputs => ({
+    lines: [targetLine(props.client.link.target, props.amountCents)],
+    coverFees: props.coverFees,
+    isAnonymous: anonymous,
+    surface: props.client.surface,
+    mode: props.mode,
+    contact: signedIn
+      ? { email: contactEmail }
+      : { email, firstName, lastName },
+    sourceSiteId: props.sourceSiteId,
+  });
+
+  const settle = (payment: HeldPayment, key: string) => {
+    const result = outcomeOf(payment);
+    if (result.final) forgetGiftKey(safeStorage("local"), key);
+    setOutcome(result);
+  };
+
+  const confirmWith = async (clientSecret: string, key: string) => {
+    if (!stripe || !elements) return setOutcome(LOST);
+    const confirmed = (await stripe.confirmPayment({
+      elements,
+      clientSecret,
+      confirmParams: {
+        return_url: window.location.href,
+        payment_method_data: {
+          billing_details: name
+            ? { email: contactEmail, name }
+            : { email: contactEmail },
+        },
+      },
+      redirect: "if_required",
+    })) as {
+      error?: { type?: string; code?: string; message?: string };
+      paymentIntent?: HeldPayment;
+    };
+    if (!confirmed.error)
+      return settle(confirmed.paymentIntent ?? { status: "processing" }, key);
+    const { code, type, message } = confirmed.error;
+    if (code === "payment_intent_authentication_failure")
+      return setOutcome(say(CHECKOUT_WORDS.cancelled));
+    if (type === "card_error") return setOutcome(say(CHECKOUT_WORDS.declined));
+    if (type === "validation_error")
+      return setOutcome(say(message ?? CHECKOUT_WORDS.notStarted));
+    const current = await retrieve(stripe, clientSecret).catch(() => null);
+    if (current && FINAL_STATES.has(current.status))
+      return settle(current, key);
+    setOutcome(LOST);
+  };
 
   const give = async () => {
-    if (!stripe || !elements || busy) return;
+    if (!stripe || !elements || busy || !props.amountValid) return;
     setBusy(true);
+    setTouched(true);
     setOutcome(null);
     try {
       const submitted = (await elements.submit()) as {
         error?: { message?: string };
       };
       if (submitted.error) {
-        setOutcome({
-          notice: {
-            tone: "error",
-            text: submitted.error.message ?? CHECKOUT_WORDS.declined,
-          },
-          final: false,
-        });
+        setOutcome(say(submitted.error.message ?? CHECKOUT_WORDS.notStarted));
         return;
+      }
+      const tab = safeStorage("session");
+      const shared = safeStorage("local");
+      const { key, reused } = await giftKeyFor(giftInputs(), shared);
+      const held = rememberedPayment(tab);
+      if (held?.key === key && held.account === props.config.account) {
+        const current = await retrieve(stripe, held.clientSecret);
+        if (current && OPEN_STATES.has(current.status)) {
+          await confirmWith(held.clientSecret, key);
+          return;
+        }
+        if (current && FINAL_STATES.has(current.status)) {
+          settle(current, key);
+          return;
+        }
       }
       if (!token) {
-        setOutcome({
-          notice: { tone: "error", text: CHECKOUT_WORDS.challenge },
-          final: false,
-        });
+        setOutcome(say(CHECKOUT_WORDS.challenge));
         return;
       }
-      const lines = [targetLine(props.client.link, props.amountCents)];
-      const key = await giftKeyFor(
-        {
-          lines,
-          coverFees: props.coverFees,
-          isAnonymous: anonymous,
-          surface: props.client.surface,
-        },
-        safeStorage("local"),
-      );
       const response = await ownApiFetch("/api/donate", {
         method: "POST",
         headers: { "content-type": "application/json" },
@@ -164,147 +298,96 @@ function GiveForm(props: {
           key,
           mode: props.mode,
           surface: props.client.surface,
-          lines,
+          lines: [targetLine(props.client.link.target, props.amountCents)],
           coverFees: props.coverFees,
           paymentMethod: "card",
           isAnonymous: anonymous,
           contact: signedIn
-            ? { email: props.client.signedInEmail ?? "" }
+            ? { email: contactEmail }
             : { email, firstName, lastName },
           challengeToken: token,
-          ...(props.client.link.sourceSiteId
-            ? { sourceSiteId: props.client.link.sourceSiteId }
-            : {}),
+          ...(props.sourceSiteId ? { sourceSiteId: props.sourceSiteId } : {}),
         }),
-      });
+      }).finally(freshChallenge);
       const answer = (await response.json().catch(() => ({}))) as Record<
         string,
         unknown
       >;
       if (!response.ok) {
         const refusal = { status: response.status, ...answer } as IntakeRefusal;
-        const held = rememberedPayment(safeStorage("session"));
-        const heldOutcome =
-          refusal.error === "idempotency_key_reused" && held?.key === key
-            ? await readPayment(held.clientSecret)
-            : null;
-        if (heldOutcome) {
-          setOutcome(heldOutcome);
+        if (refusal.error === "idempotency_key_reused") {
+          if (held?.key === key) {
+            const current = await readHeld(held).catch(() => null);
+            if (current && FINAL_STATES.has(current.status)) {
+              settle(current, key);
+              return;
+            }
+            forgetPayment(tab);
+          }
+          forgetGiftKey(shared, key);
+          setOutcome(say(CHECKOUT_WORDS.keyReused));
           return;
         }
-        if (
-          refusal.error === "idempotency_key_reused" ||
-          refusal.error === "gift_closed"
-        )
-          safeStorage("local")?.removeItem(GIFT_KEY_STORAGE);
-        if (
-          [400, 429, 503].includes(response.status) ||
-          refusal.error === "gift_closed"
-        )
-          freshChallenge();
+        if (refusal.error === "gift_closed") forgetGiftKey(shared, key);
+        const completed = refusal.error === "gift_already_completed";
         setOutcome({
           notice: {
-            tone:
-              refusal.error === "gift_already_completed" ? "success" : "error",
-            text: intakeRefusalWords(refusal),
+            tone: completed ? "success" : "error",
+            text: intakeRefusalWords(refusal, reused && held?.key !== key),
           },
-          final: refusal.error === "gift_already_completed",
+          final: completed,
           signIn: response.status === 401,
         });
         return;
       }
       const clientSecret = String(answer.clientSecret);
-      rememberPayment(safeStorage("session"), {
+      const account =
+        typeof answer.connectedAccountId === "string"
+          ? answer.connectedAccountId
+          : props.config.account;
+      rememberPayment(tab, {
         key,
         clientSecret,
-        account: props.config.account,
+        account,
         publishableKey: props.config.publishableKey,
+        target: props.client.link.target,
       });
-      const name = signedIn ? "" : `${firstName} ${lastName}`.trim();
-      const confirmed = (await stripe.confirmPayment({
-        elements,
-        clientSecret,
-        confirmParams: {
-          return_url: window.location.href,
-          payment_method_data: {
-            billing_details: signedIn
-              ? { email: props.client.signedInEmail ?? undefined }
-              : { email, name },
-          },
-        },
-        redirect: "if_required",
-      })) as {
-        error?: { type?: string; code?: string; message?: string };
-        paymentIntent?: { status: string };
-      };
-      if (confirmed.error) {
-        const code = confirmed.error.code ?? "";
-        setOutcome({
-          notice: {
-            tone: "error",
-            text:
-              confirmed.error.type === "card_error" ||
-              confirmed.error.type === "validation_error"
-                ? CHECKOUT_WORDS.declined
-                : code === "payment_intent_authentication_failure"
-                  ? CHECKOUT_WORDS.cancelled
-                  : CHECKOUT_WORDS.lostConnection,
-          },
-          final: false,
-        });
+      if (account !== props.config.account) {
+        setOutcome(say(CHECKOUT_WORDS.accountChanged));
         return;
       }
-      const status = confirmed.paymentIntent?.status ?? "processing";
-      if (FINAL_STATES.has(status))
-        forgetGiftKey(safeStorage("local"), safeStorage("session"));
-      setOutcome({
-        notice: paymentStateNotice(status),
-        final: FINAL_STATES.has(status),
-      });
+      await confirmWith(clientSecret, key);
     } catch {
-      setOutcome({
-        notice: { tone: "error", text: CHECKOUT_WORDS.lostConnection },
-        final: false,
-      });
+      setOutcome(LOST);
     } finally {
       setBusy(false);
     }
   };
 
-  useEffect(() => {
-    if (heldChecked.current || !stripe) return;
-    heldChecked.current = true;
-    const held = rememberedPayment(safeStorage("session"));
-    const shared = safeStorage("local")?.getItem(GIFT_KEY_STORAGE);
-    if (!held || !shared || !shared.includes(held.key)) return;
-    void readPayment(held.clientSecret).then(
-      (heldOutcome) => heldOutcome && setOutcome(heldOutcome),
-    );
-  }, [stripe, readPayment]);
-
-  if (outcome?.final) {
+  if (shown?.final) {
     return (
-      <div className="flex flex-col gap-4">
-        <Alert role="status">
-          <AlertDescription>{outcome.notice.text}</AlertDescription>
-        </Alert>
-        {outcome.notice.tone === "success" ? (
-          <p className="text-sm text-muted-foreground">
-            {CHECKOUT_WORDS.claimOffer}
-          </p>
-        ) : null}
-        {props.config.wayBackHost ? (
-          <a
-            className="text-sm underline"
-            href={`https://${props.config.wayBackHost}`}
-            rel="noreferrer"
-          >
-            Back to {props.config.wayBackHost}
-          </a>
-        ) : null}
-      </div>
+      <FinalView
+        outcome={shown}
+        wayBackHost={props.config.wayBackHost}
+        onAgain={() => {
+          forgetPayment(safeStorage("session"));
+          setTouched(true);
+          setOutcome(null);
+        }}
+      />
     );
   }
+
+  const guestButton =
+    props.guestInstead?.kind === "mode" ? (
+      <Button type="button" variant="link" onClick={props.onGuest}>
+        Give as a guest instead
+      </Button>
+    ) : props.guestInstead?.kind === "link" ? (
+      <a className="text-sm underline" href={props.guestInstead.href}>
+        Give as a guest instead
+      </a>
+    ) : null;
 
   return (
     <form
@@ -315,16 +398,9 @@ function GiveForm(props: {
       }}
     >
       {signedIn ? (
-        <div className="flex flex-col gap-2">
+        <div className="flex flex-col items-start gap-2">
           <p className="text-sm">Giving as {props.client.signedInEmail}</p>
-          <Button
-            type="button"
-            variant="link"
-            className="self-start"
-            onClick={props.onGuest}
-          >
-            Give as a guest instead
-          </Button>
+          {guestButton}
         </div>
       ) : (
         <div className="grid gap-4 sm:grid-cols-2">
@@ -361,8 +437,8 @@ function GiveForm(props: {
       )}
       <PaymentElement
         options={{
-          wallets: { applePay: "never", googlePay: "never" },
-          fields: { billingDetails: { name: "never", email: "never" } },
+          wallets: { applePay: "never", googlePay: "never", link: "never" },
+          fields: { billingDetails: { email: "never" } },
         }}
       />
       <div className="flex items-center gap-3">
@@ -385,30 +461,28 @@ function GiveForm(props: {
         onToken={setToken}
         resetSignal={resetSignal}
       />
-      {outcome ? (
+      {shown ? (
         <Alert
-          variant={outcome.notice.tone === "error" ? "destructive" : "default"}
+          variant={shown.notice.tone === "error" ? "destructive" : "default"}
           role="alert"
         >
-          <AlertDescription>{outcome.notice.text}</AlertDescription>
-          {outcome.signIn ? (
-            <div className="mt-3 flex flex-wrap gap-3">
-              <a className="text-sm underline" href={loginHref()}>
+          <AlertDescription>{shown.notice.text}</AlertDescription>
+          {shown.signIn ? (
+            <div className="mt-3 flex flex-wrap items-center gap-3">
+              <Link className="text-sm underline" href={props.signInHref}>
                 Sign in again
-              </a>
-              <Button type="button" variant="link" onClick={props.onGuest}>
-                Give as a guest instead
-              </Button>
+              </Link>
+              {guestButton}
             </div>
           ) : null}
         </Alert>
       ) : null}
       <Button
         type="submit"
-        disabled={busy || !stripe || !elements}
+        disabled={busy || !stripe || !elements || !props.amountValid}
         aria-busy={busy}
       >
-        Give {formatCurrency(total / 100)}
+        {props.amountValid ? `Give ${formatCurrency(total / 100)}` : "Give"}
       </Button>
     </form>
   );
@@ -416,18 +490,43 @@ function GiveForm(props: {
 
 export function CheckoutPageClient(props: CheckoutPageClientProps) {
   const { link } = props;
+  const accountSurface = props.surface === "donor_account";
+  const sourceSiteId = accountSurface ? link.sourceSiteId : null;
   const [onceChosen, setOnceChosen] = useState(!link.monthly);
-  const [amountCents, setAmountCents] = useState(link.amountCents ?? 2500);
-  const [coverFees, setCoverFees] = useState(false);
+  const [amountText, setAmountText] = useState(
+    amountTextOf(link.amountCents ?? DEFAULT_CENTS),
+  );
+  const [lastCents, setLastCents] = useState(link.amountCents ?? DEFAULT_CENTS);
+  const typedCents = parseTypedAmount(amountText);
+  const [coverFees, setCoverFees] = useState(link.coverFees);
   const [config, setConfig] = useState<Config>({
     state: link.target ? "loading" : "idle",
   });
+  const [keyHeld, setKeyHeld] = useState(false);
+  const [held, setHeld] = useState<Outcome | null>(null);
   const email = props.signedInEmail ?? null;
   const [mode, setMode] = useState<"guest" | "signed_in">(
-    props.signedInEmail && (props.isHome || props.surface === "donor_account")
-      ? "signed_in"
-      : "guest",
+    email && (props.isHome || accountSurface) ? "signed_in" : "guest",
   );
+
+  useEffect(() => {
+    takeSecretFromAddress();
+    const stored = rememberedPayment(safeStorage("session"));
+    if (!stored || !sameTarget(stored, link.target)) return;
+    let active = true;
+    void readHeld(stored)
+      .then((payment) => {
+        if (!active) return;
+        if (!payment) return setHeld(LOST);
+        if (FINAL_STATES.has(payment.status))
+          forgetGiftKey(safeStorage("local"), stored.key);
+        setHeld(outcomeOf(payment));
+      })
+      .catch(() => active && setHeld(LOST));
+    return () => {
+      active = false;
+    };
+  }, [link.target]);
 
   useEffect(() => {
     if (!link.target) return;
@@ -442,7 +541,7 @@ export function CheckoutPageClient(props: CheckoutPageClientProps) {
             : { missionaryId: link.target.id },
         ],
         surface: props.surface,
-        ...(link.sourceSiteId ? { sourceSiteId: link.sourceSiteId } : {}),
+        ...(sourceSiteId ? { sourceSiteId } : {}),
       }),
     })
       .then(async (response) => {
@@ -451,14 +550,17 @@ export function CheckoutPageClient(props: CheckoutPageClientProps) {
           unknown
         >;
         if (!active) return;
-        setConfig(
+        const ready =
           response.ok &&
-            typeof body.publishableKey === "string" &&
-            typeof body.connectedAccountId === "string"
+          typeof body.publishableKey === "string" &&
+          typeof body.connectedAccountId === "string";
+        if (!ready) setKeyHeld(holdsAnyLiveKey(safeStorage("local")));
+        setConfig(
+          ready
             ? {
                 state: "ready",
-                publishableKey: body.publishableKey,
-                account: body.connectedAccountId,
+                publishableKey: body.publishableKey as string,
+                account: body.connectedAccountId as string,
                 wayBackHost:
                   typeof body.wayBackHost === "string"
                     ? body.wayBackHost
@@ -471,21 +573,55 @@ export function CheckoutPageClient(props: CheckoutPageClientProps) {
     return () => {
       active = false;
     };
-  }, [link.target, link.sourceSiteId, props.surface]);
+  }, [link.target, sourceSiteId, props.surface]);
 
   const stripePromise = useMemo<Promise<Stripe | null> | null>(
     () =>
       config.state === "ready"
-        ? loadStripe(config.publishableKey, { stripeAccount: config.account })
+        ? loadStripe(config.publishableKey, {
+            stripeAccount: config.account,
+          }).catch(() => null)
         : null,
     [config],
   );
 
-  const total = amountCents + feeCents(amountCents, coverFees);
-  const accountOnly = props.surface === "donor_account";
+  const [stripeFailed, setStripeFailed] = useState(false);
+  useEffect(() => {
+    let active = true;
+    void stripePromise?.then((stripe) => {
+      if (active && !stripe) setStripeFailed(true);
+    });
+    return () => {
+      active = false;
+    };
+  }, [stripePromise]);
+
+  const cents = typedCents ?? lastCents;
+  const total = cents + feeCents(cents, coverFees);
+  const details = {
+    target: link.target,
+    amountCents: cents,
+    coverFees,
+  };
+  const signInHref = `/login?next=${encodeURIComponent(
+    checkoutPath({ ...details, sourceSiteId: link.sourceSiteId }),
+  )}`;
+  const wayBackHost = config.state === "ready" ? config.wayBackHost : null;
+  const guestInstead: GuestInstead = !accountSurface
+    ? { kind: "mode" }
+    : wayBackHost && link.target
+      ? {
+          kind: "link",
+          href: `https://${wayBackHost}${checkoutPath({ ...details, sourceSiteId: null })}`,
+        }
+      : null;
+  const startAgain = () => {
+    forgetPayment(safeStorage("session"));
+    setHeld(null);
+  };
 
   return (
-    <main className="min-h-dvh bg-background pb-24 pt-24 font-sans">
+    <div className="min-h-dvh bg-background pb-24 pt-24 font-sans">
       <div className="container mx-auto max-w-2xl px-4">
         <Card className="flex flex-col gap-6 p-6">
           <h1 className="text-2xl font-semibold tracking-tight">Give</h1>
@@ -511,6 +647,12 @@ export function CheckoutPageClient(props: CheckoutPageClientProps) {
                 Give once instead
               </Button>
             </div>
+          ) : held?.final ? (
+            <FinalView
+              outcome={held}
+              wayBackHost={wayBackHost}
+              onAgain={startAgain}
+            />
           ) : (
             <>
               <p className="text-sm text-muted-foreground">
@@ -521,11 +663,16 @@ export function CheckoutPageClient(props: CheckoutPageClientProps) {
                 <Input
                   id="checkout-amount"
                   inputMode="decimal"
-                  value={(amountCents / 100).toFixed(2)}
+                  value={amountText}
+                  aria-invalid={typedCents === null}
                   onChange={(event) => {
-                    const cents = Math.round(Number(event.target.value) * 100);
-                    if (Number.isFinite(cents) && cents >= 0)
-                      setAmountCents(cents);
+                    setAmountText(event.target.value);
+                    const next = parseTypedAmount(event.target.value);
+                    if (next !== null) setLastCents(next);
+                  }}
+                  onBlur={() => {
+                    if (typedCents !== null)
+                      setAmountText(amountTextOf(typedCents));
                   }}
                 />
               </Field>
@@ -546,14 +693,13 @@ export function CheckoutPageClient(props: CheckoutPageClientProps) {
               </div>
               {props.surface === "website" &&
               !props.isHome &&
-              props.homeHost &&
-              link.target ? (
+              props.homeHost ? (
                 <a
                   className="self-start text-sm underline"
                   href={handOffHref({
                     homeHost: props.homeHost,
                     target: link.target,
-                    amountCents,
+                    amountCents: cents,
                     coverFees,
                     sourceSiteId: props.siteId,
                   })}
@@ -564,19 +710,29 @@ export function CheckoutPageClient(props: CheckoutPageClientProps) {
               {config.state === "unavailable" ? (
                 <Alert role="alert" variant="destructive">
                   <AlertDescription>
-                    {CHECKOUT_WORDS.configUnavailable}
+                    {held
+                      ? held.notice.text
+                      : keyHeld
+                        ? CHECKOUT_WORDS.configUnavailableKeyHeld
+                        : CHECKOUT_WORDS.configUnavailable}
                   </AlertDescription>
                 </Alert>
-              ) : accountOnly && mode !== "signed_in" ? (
+              ) : accountSurface && mode !== "signed_in" ? (
                 <Link
                   className="self-start text-sm underline"
-                  href="/login?next=%2Fcheckout"
+                  href={signInHref}
                 >
                   Sign in to give from your account
                 </Link>
-              ) : config.state === "ready" &&
-                stripePromise &&
-                amountCents > 0 ? (
+              ) : stripeFailed ? (
+                <Alert role="alert" variant="destructive">
+                  <AlertDescription>
+                    {held
+                      ? CHECKOUT_WORDS.lostConnection
+                      : CHECKOUT_WORDS.configUnavailable}
+                  </AlertDescription>
+                </Alert>
+              ) : config.state === "ready" && stripePromise ? (
                 <Elements
                   stripe={stripePromise}
                   options={{
@@ -589,10 +745,15 @@ export function CheckoutPageClient(props: CheckoutPageClientProps) {
                   <GiveForm
                     client={{ ...props, signedInEmail: email }}
                     config={config}
-                    amountCents={amountCents}
+                    amountCents={cents}
+                    amountValid={typedCents !== null}
                     coverFees={coverFees}
                     mode={mode}
+                    sourceSiteId={sourceSiteId}
+                    signInHref={signInHref}
+                    guestInstead={guestInstead}
                     onGuest={() => setMode("guest")}
+                    heldOutcome={held}
                   />
                 </Elements>
               ) : null}
@@ -600,6 +761,6 @@ export function CheckoutPageClient(props: CheckoutPageClientProps) {
           )}
         </Card>
       </div>
-    </main>
+    </div>
   );
 }

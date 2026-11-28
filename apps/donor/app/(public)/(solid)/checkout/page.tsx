@@ -8,6 +8,7 @@ import { headers } from "next/headers";
 
 import { CheckoutPageClient, type CheckoutSurface } from "./checkout-client";
 import {
+  checkoutSurface,
   readCheckoutLink,
   type CheckoutSearchParams,
 } from "./checkout-targets";
@@ -87,15 +88,19 @@ export default async function CheckoutPage({
   searchParams: Promise<CheckoutSearchParams>;
 }) {
   const [params, requestHeaders] = await Promise.all([searchParams, headers()]);
+  const link = readCheckoutLink(params);
   const facts = await hostFacts(requestHeaders.get("host")?.trim() ?? "");
+  const surface: CheckoutSurface = checkoutSurface({
+    hostSurface: facts.surface,
+    isHome: facts.isHome,
+    sourceSiteId: link.sourceSiteId,
+  });
   const email =
-    facts.isHome || facts.surface === "donor_account"
-      ? await signedInEmail()
-      : null;
+    facts.isHome || surface === "donor_account" ? await signedInEmail() : null;
   return (
     <CheckoutPageClient
-      link={readCheckoutLink(params)}
-      surface={facts.surface}
+      link={link}
+      surface={surface}
       isHome={facts.isHome}
       homeHost={facts.homeHost}
       siteId={facts.siteId}
