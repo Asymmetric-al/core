@@ -433,6 +433,76 @@ describe.skipIf(!READY)(
       expect((await tryPassword(email, NEW_PASSWORD)).status).toBe(200);
     });
 
+    it("leaves no extra live session when the provider refuses the new password", async () => {
+      const email = `n4-refused-save-${nonce()}@example.test`;
+      const userId = await adminCreate(email);
+      jar.current = new Map();
+      expect(
+        (
+          await post(
+            signIn,
+            "/api/auth/sign-in",
+            { email, password: PASSWORD },
+            address(),
+          )
+        ).status,
+      ).toBe(200);
+      const before = await liveSessions(userId);
+      const refused = await post(
+        changePassword,
+        "/api/auth/password",
+        { currentPassword: PASSWORD, newPassword: "n4".repeat(50) },
+        address(),
+      );
+      expect(refused.status).toBe(422);
+      expect(await liveSessions(userId)).toBe(before);
+      expect((await tryPassword(email, PASSWORD)).status).toBe(200);
+    });
+
+    it("refuses a recovery token that the provider did not sign", async () => {
+      const email = `n4-forged-${nonce()}@example.test`;
+      const userId = await adminCreate(email);
+      const now = Math.floor(Date.now() / 1000);
+      const part = (value: unknown) =>
+        Buffer.from(JSON.stringify(value)).toString("base64url");
+      const forged = [
+        part({ alg: "HS256", typ: "JWT" }),
+        part({
+          sub: userId,
+          email,
+          aud: "authenticated",
+          role: "authenticated",
+          exp: now + 3600,
+          amr: [{ method: "recovery", timestamp: now }],
+        }),
+        Buffer.from("not the provider's signature").toString("base64url"),
+      ].join(".");
+      const ref = new URL(API).hostname.split(".")[0];
+      jar.current = new Map([
+        [
+          `sb-${ref}-auth-token`,
+          `base64-${Buffer.from(
+            JSON.stringify({
+              access_token: forged,
+              refresh_token: "forged-refresh",
+              token_type: "bearer",
+              expires_in: 3600,
+              expires_at: now + 3600,
+              user: { id: userId, email },
+            }),
+          ).toString("base64url")}`,
+        ],
+      ]);
+      const response = await post(
+        changePassword,
+        "/api/auth/password",
+        { newPassword: NEW_PASSWORD },
+        address(),
+      );
+      expect([401, 403]).toContain(response.status);
+      expect((await tryPassword(email, PASSWORD)).status).toBe(200);
+    });
+
     async function recoveryLink(email: string): Promise<string> {
       for (let attempt = 0; attempt < 60; attempt += 1) {
         const search = await fetch(
@@ -488,6 +558,13 @@ describe.skipIf(!READY)(
         address(),
       );
       expect(saved.status).toBe(200);
+      const again = await post(
+        changePassword,
+        "/api/auth/password",
+        { newPassword: "n4 third sign-in phrase" },
+        address(),
+      );
+      expect(again.status).toBe(403);
       const provider = await fetch(`${API}/auth/v1/token?grant_type=password`, {
         method: "POST",
         headers: { apikey: ANON, "Content-Type": "application/json" },
