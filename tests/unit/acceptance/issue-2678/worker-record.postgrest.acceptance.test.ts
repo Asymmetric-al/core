@@ -2,10 +2,40 @@ import { randomUUID } from "node:crypto";
 
 import { createClient } from "@supabase/supabase-js";
 import { NextRequest } from "next/server";
-import pg from "pg";
-import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
+import {
+  afterAll,
+  afterEach,
+  beforeAll,
+  describe,
+  expect,
+  it,
+  vi,
+} from "vitest";
 
+import { downSql } from "./assignment-keys.helpers";
 import { BLANK_ALIASES, REAL_ALIAS, codePoints } from "./blank-aliases";
+import { migration } from "./harness";
+import {
+  absent,
+  anon,
+  as,
+  cleanupWorkerRecordStack,
+  database,
+  freshLogin,
+  id,
+  NOT_PERMITTED,
+  onAuth,
+  provisionWorkerRecordStack,
+  REFUSAL_TEXT,
+  required,
+  rpc,
+  service,
+  TA,
+  TB,
+  token,
+  url,
+  user,
+} from "./worker-record.postgrest-fixture";
 import { renderContributionReceiptSnapshotPdf } from "../../../../packages/api/src/admin/contribution-operations/receipt-pdf";
 import {
   readWorkerRows,
@@ -19,15 +49,11 @@ import { GET as getFeed } from "../../../../packages/api/src/posts/index";
 import { postAuthorName } from "../../../../packages/database/hooks/donor-feed-posts";
 import { createGraphQLHandler } from "../../../../packages/graphql/handler";
 
+import type { Person } from "./worker-record.postgrest-fixture";
 import type * as AuthModule from "../../../../packages/auth/context";
 import type * as EnvModule from "../../../../packages/env";
 import type { DocRaptorClient } from "@asym/docraptor-client";
-
-const url = process.env.WP5_IDENTITY_IT_URL;
-const database = process.env.WP5_IDENTITY_IT_DATABASE_URL;
-const anon = process.env.WP5_IDENTITY_IT_ANON_KEY;
-const service = process.env.WP5_IDENTITY_IT_SERVICE_KEY;
-const required = process.env.GITHUB_JOB === "local-supabase";
+import type pg from "pg";
 
 const s = vi.hoisted(() => ({ auth: null as unknown }));
 vi.mock("@asym/auth/context", async (orig) => ({
@@ -67,240 +93,9 @@ vi.mock("next/cache", () => ({
   cacheTag: vi.fn(),
 }));
 
-const PEOPLE = ["A", "P", "D", "M", "B", "DS", "R", "C"] as const;
-type Person = (typeof PEOPLE)[number];
-const TA = randomUUID();
-const TB = randomUUID();
-const id = Object.fromEntries(
-  [
-    "mA",
-    "mP",
-    "mD",
-    "mM",
-    "mB",
-    "mDSA",
-    "mDSB",
-    "mR",
-    "mC",
-    "pU",
-    "pK",
-    "pV",
-    "pZ",
-    "pR",
-    "pC",
-    "pD",
-    "pS",
-    "pN",
-    "pE",
-    "pX",
-    "pY",
-    "wU",
-    "wK",
-    "wV",
-    "wZ",
-    "wR",
-    "wC",
-    "dD",
-    "dR",
-    "gD",
-    "gR",
-    "postR",
-    "snap",
-  ].map((k) => [k, randomUUID()]),
-) as Record<string, string>;
-const user = {} as Record<Person, string>;
-const token = {} as Record<Person, string>;
-
-const IDENTITY = [
-  "Legal Kestrel",
-  "Country Kestrel",
-  "Place Kestrel",
-  "Legal Vale",
-  "Country Vale",
-  "Place Vale",
-  "Legal Zed",
-  "Country Zed",
-  "Place Zed",
-  "Legal Rowan",
-  "Country Rowan",
-  "Place Rowan",
-];
-const IDENTITY_KEYS = [
-  "legal_name",
-  "legalname",
-  "real_country",
-  "realcountry",
-  "precise_location",
-  "preciselocation",
-];
-const NOT_PERMITTED =
-  "Only staff with the Restrict publication permission can change these settings.";
-const REFUSAL_TEXT: Record<string, string> = {
-  NOT_FOUND: "Worker not found.",
-  NO_IDENTITY: "No legal name is recorded for this worker.",
-  REASON_REQUIRED: "Give a reason.",
-  NOTHING_TO_CHANGE: "Choose what to change.",
-  LEVEL_CHANGED: "This worker's level has changed. Reload to see it.",
-  ALIAS_REQUIRED: "A restricted or high-risk worker needs a public alias.",
-  ALIAS_IS_LEGAL_NAME:
-    "The public alias must differ from the worker's legal name.",
-  INVALID_INPUT: "Check the form and try again.",
-};
-
-function restoreEnv(name: string, value: string | undefined) {
-  if (value === undefined) delete process.env[name];
-  else process.env[name] = value;
-}
-
-function absent(value: unknown, extra: string[] = []) {
-  const text = JSON.stringify(value).toLowerCase();
-  for (const word of [...IDENTITY, ...extra])
-    expect(text, `the body holds ${word}`).not.toContain(word.toLowerCase());
-  for (const key of IDENTITY_KEYS)
-    expect(text, `the body holds the key ${key}`).not.toContain(`"${key}"`);
-}
-
-async function api(
-  path: string,
-  init: { key?: string; bearer?: string; body?: unknown; method?: string } = {},
-) {
-  return fetch(`${url}/${path}`, {
-    method: init.method ?? (init.body === undefined ? "GET" : "POST"),
-    headers: {
-      apikey: init.key ?? anon!,
-      Authorization: `Bearer ${init.bearer ?? anon!}`,
-      "Content-Type": "application/json",
-    },
-    body: init.body === undefined ? undefined : JSON.stringify(init.body),
-  });
-}
-
-async function rpc(name: string, body: Record<string, unknown>) {
-  const response = await fetch(`${url}/rest/v1/rpc/${name}`, {
-    method: "POST",
-    headers: {
-      apikey: anon!,
-      Authorization: `Bearer ${token.A}`,
-      "Content-Type": "application/json",
-      "x-asym-tenant": TA,
-      "x-asym-assignment": id.mA!,
-    },
-    body: JSON.stringify(body),
-  });
-  const text = await response.text();
-  return {
-    status: response.status,
-    body: text ? (JSON.parse(text) as Record<string, unknown>) : null,
-  };
-}
-
-type Role = "staff" | "missionary" | "donor";
-const contexts: Record<
-  string,
-  {
-    who: Person;
-    tenant: string;
-    assignment: string;
-    role: Role;
-    staffRole: string | null;
-    admin: boolean;
-  }
-> = {
-  A: {
-    who: "A",
-    tenant: TA,
-    assignment: id.mA!,
-    role: "staff",
-    staffRole: "development",
-    admin: true,
-  },
-  P: {
-    who: "P",
-    tenant: TA,
-    assignment: id.mP!,
-    role: "staff",
-    staffRole: "member_care",
-    admin: false,
-  },
-  D: {
-    who: "D",
-    tenant: TA,
-    assignment: id.mD!,
-    role: "donor",
-    staffRole: null,
-    admin: false,
-  },
-  M: {
-    who: "M",
-    tenant: TA,
-    assignment: id.mM!,
-    role: "missionary",
-    staffRole: null,
-    admin: false,
-  },
-  B: {
-    who: "B",
-    tenant: TB,
-    assignment: id.mB!,
-    role: "staff",
-    staffRole: "development",
-    admin: true,
-  },
-  DSA: {
-    who: "DS",
-    tenant: TA,
-    assignment: id.mDSA!,
-    role: "staff",
-    staffRole: "finance",
-    admin: false,
-  },
-  DSB: {
-    who: "DS",
-    tenant: TB,
-    assignment: id.mDSB!,
-    role: "staff",
-    staffRole: "finance",
-    admin: false,
-  },
-  C: {
-    who: "C",
-    tenant: TA,
-    assignment: id.mC!,
-    role: "missionary",
-    staffRole: null,
-    admin: false,
-  },
-};
-
-function as(key: keyof typeof contexts) {
-  const c = contexts[key]!;
-  s.auth = {
-    userId: user[c.who],
-    profileId: user[c.who],
-    email: null,
-    tenantId: c.tenant,
-    isAuthenticated: true,
-    role: c.admin ? "admin" : c.role,
-    memberships: [
-      {
-        tenantId: c.tenant,
-        role: c.role,
-        staffRole: c.staffRole,
-        isActive: true,
-        isTenantAdmin: c.admin,
-      },
-    ],
-    assignment: {
-      userId: user[c.who],
-      tenantId: c.tenant,
-      membershipRole: c.role,
-      staffRole: c.staffRole,
-      isTenantAdmin: c.admin,
-      assignmentId: c.assignment,
-    },
-  };
-  return c.who;
-}
+onAuth((auth) => {
+  s.auth = auth;
+});
 
 function request(
   who: Person | null,
@@ -400,11 +195,6 @@ describe.skipIf(!required && ![url, database, anon, service].some(Boolean))(
   "AL-2678 WP5 part 2-r2b1: the worker's record through its routes with real tokens (T3) and a restriction at once on every surface (T4)",
   () => {
     let db: pg.Client;
-    const publicEnv = {
-      url: process.env.NEXT_PUBLIC_SUPABASE_URL,
-      anonKey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
-      publishable: process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY,
-    };
     const parties = async () =>
       (
         await db.query(
@@ -421,211 +211,14 @@ describe.skipIf(!required && ![url, database, anon, service].some(Boolean))(
       ).rows as { details: Record<string, unknown> }[];
 
     beforeAll(async () => {
-      if (
-        !url ||
-        !database ||
-        !anon ||
-        !service ||
-        ![url, database].every((value) =>
-          ["localhost", "127.0.0.1", "[::1]"].includes(new URL(value).hostname),
-        )
-      )
-        throw Error("A disposable local Supabase stack is required");
-      process.env.NEXT_PUBLIC_SUPABASE_URL = url;
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY = anon;
-      delete process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
-      for (const who of PEOPLE) {
-        const credentials = {
-          email: `r2b1-${who.toLowerCase()}-${TA}@example.test`,
-          password: randomUUID(),
-        };
-        const created = await api("auth/v1/admin/users", {
-          key: service,
-          bearer: service,
-          body: { ...credentials, email_confirm: true },
-        });
-        expect(created.ok, `Auth fixture ${who}: ${created.status}`).toBe(true);
-        user[who] = (await created.json()).id;
-        const login = await api("auth/v1/token?grant_type=password", {
-          body: credentials,
-        });
-        expect(login.ok, `Sign-in ${who}: ${login.status}`).toBe(true);
-        token[who] = (await login.json()).access_token;
-      }
-      db = new pg.Client({ connectionString: database });
-      await db.connect();
-      await db.query("begin");
-      try {
-        const v = { ...id, TA, TB, ...user } as Record<string, string>;
-        const sql = (text: string, values: unknown[] = []) =>
-          db.query(
-            text.replace(/:(\w+)/g, (_m, key: string) => {
-              if (!(key in v)) throw Error(`no fixture value ${key}`);
-              return `'${v[key]}'`;
-            }),
-            values,
-          );
-        await sql(
-          `insert into public.tenants (id, name, slug) values (:TA, 'r2b1 A', 'r2b1-a-' || :TA), (:TB, 'r2b1 B', 'r2b1-b-' || :TB)`,
-        );
-        await sql(
-          `insert into public.legal_entities (id, tenant_id, name, country_code, currency, legal_name) values (:TA, :TA, 'A', 'US', 'usd', 'A'), (:TB, :TB, 'B', 'US', 'usd', 'B')`,
-        );
-        await sql(
-          `delete from authz.memberships where user_id in (:A, :P, :D, :M, :B, :DS, :R, :C)`,
-        );
-        await sql(
-          `insert into authz.memberships (id, user_id, tenant_id, role, staff_role, is_tenant_admin) values
-             (:mA, :A, :TA, 'staff', 'development', true), (:mP, :P, :TA, 'staff', 'member_care', false),
-             (:mD, :D, :TA, 'donor', null, false), (:mM, :M, :TA, 'missionary', null, false),
-             (:mB, :B, :TB, 'staff', 'development', true),
-             (:mDSA, :DS, :TA, 'staff', 'finance', false), (:mDSB, :DS, :TB, 'staff', 'finance', false),
-             (:mR, :R, :TA, 'missionary', null, false), (:mC, :C, :TA, 'missionary', null, false)`,
-        );
-        await sql(
-          `update public.profiles set display_name = 'Profile Rowan', full_name = 'Profile Rowan', first_name = 'Profile Rowan', last_name = 'Profile Rowan' where id = :R;
-           update public.profiles set display_name = 'Profile Cole', full_name = 'Profile Cole', first_name = 'Cole', last_name = 'Worker' where id = :C;
-           update public.profiles set display_name = 'Donor Dee', full_name = 'Donor Dee', first_name = 'Donor', last_name = 'Dee' where id = :D`,
-        );
-        await sql(
-          `insert into public.parties (id, tenant_id, display_name, security_level, security_level_source, public_alias) values
-             (:pU, :TA, 'Worker Umber', 'standard', 'unreviewed_default', null),
-             (:pK, :TA, 'Worker Kestrel', 'standard', 'manual', null),
-             (:pV, :TA, 'Worker Vale', 'restricted', 'manual', 'Birch'),
-             (:pR, :TA, 'Party Rowan', 'standard', 'manual', null),
-             (:pC, :TA, 'Party Cole', 'standard', 'manual', null),
-             (:pD, :TA, 'Donor Dee', 'standard', 'manual', null),
-             (:pZ, :TB, 'Worker Zed', 'standard', 'manual', null),
-             (:pS, :TA, 'Worker Sorrel', 'standard', 'manual', 'Ash'),
-             (:pN, :TA, 'Worker Nettle', 'standard', 'manual', 'Ash'),
-             (:pE, :TA, 'Worker Esker', 'standard', 'manual', 'Ash'),
-             (:pX, :TA, 'Worker Xylem', 'restricted', 'manual', 'Elm'),
-             (:pY, :TA, 'Worker Yew', 'standard', 'manual', null)`,
-        );
-        await sql(
-          `insert into public.missionaries (id, tenant_id, party_id, profile_id, legal_entity_id) values
-             (:wU, :TA, :pU, null, :TA), (:wK, :TA, :pK, null, :TA), (:wV, :TA, :pV, null, :TA),
-             (:wR, :TA, :pR, :R, :TA), (:wC, :TA, :pC, :C, :TA), (:wZ, :TB, :pZ, null, :TB)`,
-        );
-        await sql(
-          `insert into private.party_restricted (party_id, tenant_id, legal_name, real_country, precise_location) values
-             (:pK, :TA, 'Legal Kestrel', 'Country Kestrel', 'Place Kestrel'),
-             (:pV, :TA, 'Legal Vale', 'Country Vale', 'Place Vale'),
-             (:pR, :TA, 'Legal Rowan', 'Country Rowan', 'Place Rowan'),
-             (:pZ, :TB, 'Legal Zed', 'Country Zed', 'Place Zed')`,
-        );
-        await sql(
-          `insert into public.account_links (tenant_id, user_id, party_id, linked_via) values
-             (:TA, :R, :pR, 'profile_backfill'), (:TA, :C, :pC, 'profile_backfill'), (:TA, :D, :pD, 'profile_backfill')`,
-        );
-        await sql(
-          `insert into public.donors (id, tenant_id, party_id, profile_id, missionary_id, giving_preferences, name, email) values
-             (:dD, :TA, :pD, :D, :R, '{"defaultAnonymousToRecipient": false}', 'Donor Dee', 'r2b1-dee-' || :dD || '@example.test'),
-             (:dR, :TA, :pR, :R, :C, '{"defaultAnonymousToRecipient": false}', 'Donor Rowan', 'r2b1-rowan-' || :dR || '@example.test')`,
-        );
-        await sql(
-          `insert into public.donations (id, tenant_id, donor_id, missionary_id, amount, status, gift_date) values
-             (:gD, :TA, :dD, :wR, 1000, 'completed', '2026-11-01'), (:gR, :TA, :dR, :wC, 2000, 'completed', '2026-11-02')`,
-        );
-        await sql(
-          `insert into public.posts (id, tenant_id, missionary_id, content, visibility, status) values (:postR, :TA, :R, 'From R', 'public', 'published')`,
-        );
-        await sql(
-          `update public.posts set review_state = 'approved' where id = :postR`,
-        );
-        await sql(
-          `insert into public.post_comments (post_id, user_id, content) values (:postR, :R, 'r2b1 R'), (:postR, :D, 'r2b1 D')`,
-        );
-        await sql(
-          `insert into public.contribution_receipt_snapshots (id, tenant_id, donation_id, kind, content) values (:snap, :TA, :gD, 'pdf', $1)`,
-          [
-            JSON.stringify({
-              version: 1,
-              donationId: id.gD,
-              donorName: "Donor Dee",
-              giftDate: "2026-11-01",
-              currencyCode: "USD",
-              effective: {
-                amountCents: 1000,
-                fundId: null,
-                missionaryId: id.wR,
-                paymentStatus: "completed",
-              },
-              designationLines: [
-                {
-                  id: "line-R",
-                  amountCents: 1000,
-                  fundId: null,
-                  fundName: "Fund R",
-                  missionaryId: id.wR,
-                  missionaryName: "Profile Rowan",
-                  memo: "Memo R",
-                },
-              ],
-              affectedFields: ["amount"],
-              adjustmentId: null,
-              generatedAt: "2026-11-02T00:00:00.000Z",
-            }),
-          ],
-        );
-        await db.query("commit");
-      } catch (error) {
-        await db.query("rollback");
-        throw error;
-      }
-    });
+      db = await provisionWorkerRecordStack();
+    }, 900_000);
 
-    afterAll(async () => {
-      restoreEnv("NEXT_PUBLIC_SUPABASE_URL", publicEnv.url);
-      restoreEnv("NEXT_PUBLIC_SUPABASE_ANON_KEY", publicEnv.anonKey);
-      restoreEnv("NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY", publicEnv.publishable);
-      try {
-        if (db)
-          try {
-            await db.query("rollback").catch(() => undefined);
-            await db.query("begin");
-            try {
-              for (const statement of [
-                "delete from public.audit_logs where tenant_id = any($1::uuid[])",
-                "delete from public.contribution_receipt_snapshots where tenant_id = any($1::uuid[])",
-                "delete from public.post_comments where post_id in (select id from public.posts where tenant_id = any($1::uuid[]))",
-                "delete from public.posts where tenant_id = any($1::uuid[])",
-                "delete from public.account_links where tenant_id = any($1::uuid[])",
-                "delete from private.party_restricted where tenant_id = any($1::uuid[])",
-                "delete from public.donations where tenant_id = any($1::uuid[])",
-                "delete from public.giving_target_entity_locks where tenant_id = any($1::uuid[])",
-                "delete from public.donors where tenant_id = any($1::uuid[])",
-                "delete from public.missionaries where tenant_id = any($1::uuid[])",
-                "delete from public.parties where tenant_id = any($1::uuid[])",
-                "delete from public.legal_entities where tenant_id = any($1::uuid[])",
-                "delete from authz.memberships where tenant_id = any($1::uuid[])",
-                "delete from public.tenants where id = any($1::uuid[])",
-              ])
-                await db.query(statement, [[TA, TB]]);
-              await db.query("commit");
-            } catch (error) {
-              await db.query("rollback");
-              throw error;
-            }
-          } finally {
-            await db.end();
-          }
-      } finally {
-        const failures: string[] = [];
-        for (const who of PEOPLE)
-          if (user[who])
-            try {
-              const deleted = await api(`auth/v1/admin/users/${user[who]}`, {
-                key: service,
-                bearer: service,
-                method: "DELETE",
-              });
-              if (!deleted.ok) failures.push(`${who}: ${deleted.status}`);
-            } catch (error) {
-              failures.push(`${who}: ${String(error)}`);
-            }
-        expect(failures, "auth users the fixture could not delete").toEqual([]);
-      }
+    afterAll(() => cleanupWorkerRecordStack());
+
+    afterEach(() => {
+      absent(seen);
+      seen.length = 0;
     });
 
     it("T3 an administrator reads the directory and the count, confirms U (Q12: badge, filter and count clear together), restricts K with an alias, lifts K, and reveals K with exactly one audit row; a second confirm of U is 409 LEVEL_CHANGED", async () => {
@@ -739,6 +332,7 @@ describe.skipIf(!required && ![url, database, anon, service].some(Boolean))(
       expect((k.worker as Record<string, unknown>).hasLegalIdentity).toBeNull();
       expect(typeof (await count(who))).toBe("number");
       const state = await parties();
+      const revealedBefore = (await reveals(id.pK!)).length;
       for (const [name, body] of [
         ["restrict", { level: "high_risk", alias: "Owl", reason: "x" }],
         ["lift", { clearDoNotPublish: true, reason: "x" }],
@@ -756,7 +350,7 @@ describe.skipIf(!required && ![url, database, anon, service].some(Boolean))(
         seen.push(refused);
       }
       expect(await parties()).toEqual(state);
-      expect(await reveals(id.pK!)).toHaveLength(1);
+      expect(await reveals(id.pK!)).toHaveLength(revealedBefore);
       seen.push(rows, k);
     });
 
@@ -1019,6 +613,10 @@ describe.skipIf(!required && ![url, database, anon, service].some(Boolean))(
     });
 
     it("T4b (review fix) an update whose alias is blank or invisible-only keeps the stored alias, so the public name stays the alias across that update, an audited reveal and a lift, and the profile name is never shown (AL-2680: while do-not-publish holds, the update leaves the feed)", async () => {
+      await db.query(
+        "update public.parties set security_level = 'restricted', security_level_source = 'manual', public_alias = 'Wren', do_not_publish = false where id = $1",
+        [id.pR],
+      );
       const forbidden = ["Profile Rowan", "Party Rowan", "Donor Rowan"];
       const publicName = async () => {
         as("D");
@@ -1250,10 +848,251 @@ describe.skipIf(!required && ![url, database, anon, service].some(Boolean))(
         [id.wU, id.wK, id.wV, id.wR, id.wC].sort(),
       );
     });
+    it("W1 (fix round of 2869): through the routes with A's real token, the legal-entities read lists only A's entity, and Add worker naming B's entity is refused 404 LEGAL_ENTITY_NOT_FOUND with nothing written (red: no read)", async () => {
+      const who = as("A");
+      const { GET_LEGAL_ENTITIES } = await routes.list();
+      const { POST_CREATE } = await routes.commands();
+      const listed = await GET_LEGAL_ENTITIES(
+        request(who, "GET", "/api/admin/workers/legal-entities"),
+      );
+      expect(listed.status).toBe(200);
+      expect(await listed.json()).toEqual({
+        legalEntities: [{ id: TA, name: "A" }],
+      });
+      const workers = async () =>
+        (
+          await db.query(
+            "select count(*)::int as n from public.missionaries where tenant_id = $1",
+            [TA],
+          )
+        ).rows[0].n as number;
+      const before = await workers();
+      const refused = await POST_CREATE(
+        request(who, "POST", "/api/admin/workers", {
+          displayName: "Worker Plover",
+          legalName: "Legal Placeholder",
+          legalEntityId: TB,
+          reason: "New field worker",
+        }),
+      );
+      expect(refused.status).toBe(404);
+      expect(await refused.json()).toMatchObject({
+        error: "That legal entity is not this organization's.",
+        code: "LEGAL_ENTITY_NOT_FOUND",
+      });
+      expect(await workers()).toBe(before);
+    });
+    async function newWorker(name: string) {
+      const party = (
+        await db.query(
+          "insert into public.parties (tenant_id, display_name, security_level, security_level_source) values ($1, $2, 'standard', 'manual') returning id",
+          [TA, name],
+        )
+      ).rows[0].id as string;
+      const worker = (
+        await db.query(
+          "insert into public.missionaries (tenant_id, party_id, profile_id, legal_entity_id) values ($1, $2, null, $1) returning id",
+          [TA, party],
+        )
+      ).rows[0].id as string;
+      return { party, worker };
+    }
+    async function invite(assignmentId: string, email: string) {
+      const who = as("A");
+      const { POST_INVITE } = await routes.commands();
+      return POST_INVITE(
+        request(who, "POST", `/api/admin/workers/${assignmentId}/invite`, {
+          email,
+          reason: "Sign in to your record",
+        }),
+        params(assignmentId),
+      );
+    }
+    async function invited(assignmentId: string, email: string) {
+      const response = await invite(assignmentId, email);
+      const body = (await response.json()) as Record<string, unknown>;
+      expect(response.status, JSON.stringify(body)).toBe(201);
+      const parts = /^\/invite\/([^#]+)#(.+)$/.exec(String(body.invitePath));
+      expect(parts, "the invite path").not.toBeNull();
+      return { body, link: { selector: parts![1]!, verifier: parts![2]! } };
+    }
+    async function accept(
+      bearer: string,
+      link: { selector: string; verifier: string },
+    ) {
+      const { POST } =
+        await import("../../../../packages/api/src/invitations/accept");
+      return POST(
+        new NextRequest("http://localhost/api/invitations/accept", {
+          method: "POST",
+          headers: {
+            authorization: `Bearer ${bearer}`,
+            "content-type": "application/json",
+            "x-asym-name-tenant": TA,
+          },
+          body: JSON.stringify(link),
+        }),
+      );
+    }
+    async function ties(party: string, login: string) {
+      const rows = async (text: string, values: unknown[]) =>
+        (await db.query(text, values)).rows;
+      return {
+        invitations: (
+          await rows(
+            "select status from public.membership_invitations where tenant_id = $1 and party_id = $2",
+            [TA, party],
+          )
+        )
+          .map((r) => r.status as string)
+          .sort(),
+        worker: await rows(
+          "select profile_id from public.missionaries where tenant_id = $1 and party_id = $2",
+          [TA, party],
+        ),
+        links: await rows(
+          "select user_id, linked_via from public.account_links where tenant_id = $1 and party_id = $2 order by user_id",
+          [TA, party],
+        ),
+        memberships: (
+          await rows(
+            "select role::text from authz.memberships where tenant_id = $1 and user_id = $2 order by role",
+            [TA, login],
+          )
+        ).map((r) => r.role as string),
+      };
+    }
 
-    it("T3 the revealed values reach no other response", () => {
-      expect(seen.length).toBeGreaterThan(10);
-      absent(seen);
+    it("W7 (fix round of 2869): through the invite route with A's real token, a worker with no login is invited: 201 with the link, no-store and no referrer, and one issued missionary invitation naming the worker's Party; R, who has a login, is refused 409 HAS_LOGIN and nothing is issued (guard: the route was proven against mocks only)", async () => {
+      const w = await newWorker("Worker Ibis");
+      const email = `r2b1-ibis-${randomUUID()}@example.test`;
+      const response = await invite(w.worker, email);
+      const body = (await response.json()) as Record<string, unknown>;
+      expect(response.status, JSON.stringify(body)).toBe(201);
+      expect(response.headers.get("cache-control")).toBe("no-store");
+      expect(response.headers.get("referrer-policy")).toBe("no-referrer");
+      expect(body.invitation).toMatchObject({ email });
+      expect(String(body.invitePath)).toMatch(/^\/invite\/[^#]+#.+$/);
+      expect(
+        (
+          await db.query(
+            "select status, role::text, party_id from public.membership_invitations where tenant_id = $1 and email_normalized = $2",
+            [TA, email],
+          )
+        ).rows,
+      ).toEqual([{ status: "issued", role: "missionary", party_id: w.party }]);
+      const issuedCount = async () =>
+        (
+          await db.query(
+            "select count(*)::int n from public.membership_invitations where tenant_id = $1",
+            [TA],
+          )
+        ).rows[0].n as number;
+      const before = await issuedCount();
+      const refused = await invite(
+        id.wR!,
+        `r2b1-rowan-${randomUUID()}@example.test`,
+      );
+      expect(refused.status).toBe(409);
+      expect(await refused.json()).toMatchObject({
+        error: "This worker already has a login.",
+        code: "HAS_LOGIN",
+      });
+      expect(await issuedCount()).toBe(before);
+    });
+
+    it("W7 (fix round of 2869): two people invited to one worker accept through POST /api/invitations/accept with their real tokens: the first becomes the worker's login; the second reads 409 WORKER_HAS_LOGIN (55006) with its sentence, and nothing is written for them: no membership, no link, the worker's login unchanged, their invitation still issued (guard: the route's mapping was proven against a mock only)", async () => {
+      const w = await newWorker("Worker Jacana");
+      const first = await freshLogin("jacana-first");
+      const second = await freshLogin("jacana-second");
+      const one = await invited(w.worker, first.email);
+      const two = await invited(w.worker, second.email);
+      const accepted = await accept(first.bearer, one.link);
+      const acceptedBody = (await accepted.json()) as Record<string, unknown>;
+      expect(accepted.status, JSON.stringify(acceptedBody)).toBe(200);
+      expect(acceptedBody).toMatchObject({
+        user_id: first.userId,
+        party_id: w.party,
+        assignment_id: w.worker,
+      });
+      const before = await ties(w.party, second.userId);
+      const refused = await accept(second.bearer, two.link);
+      expect(refused.status).toBe(409);
+      expect(refused.headers.get("cache-control")).toBe("no-store");
+      expect(await refused.json()).toEqual({
+        error:
+          "This worker already has a login. Ask your organization for help.",
+        code: "WORKER_HAS_LOGIN",
+      });
+      const after = await ties(w.party, second.userId);
+      expect(after).toEqual(before);
+      expect(after).toEqual({
+        invitations: ["accepted", "issued"],
+        worker: [{ profile_id: first.userId }],
+        links: [{ user_id: first.userId, linked_via: "invitation" }],
+        memberships: [],
+      });
+    });
+
+    it("W7 (fix round of 2869): D, a donor of the organization on another Party, accepts an invitation to a worker through POST /api/invitations/accept with D's real token and reads 409 LOGIN_TIED_ELSEWHERE (21000) with its sentence; nothing is written: the worker keeps no login, no link, D keeps only the donor membership, the invitation is still issued (guard: the route's mapping was proven against a mock only)", async () => {
+      const w = await newWorker("Worker Kiskadee");
+      const { link } = await invited(w.worker, `r2b1-d-${TA}@example.test`);
+      const before = await ties(w.party, user.D);
+      expect(before).toEqual({
+        invitations: ["issued"],
+        worker: [{ profile_id: null }],
+        links: [],
+        memberships: ["donor"],
+      });
+      const refused = await accept(token.D, link);
+      expect(refused.status).toBe(409);
+      expect(refused.headers.get("cache-control")).toBe("no-store");
+      expect(await refused.json()).toEqual({
+        error:
+          "This account already belongs to another person in this organization. Ask your organization for help.",
+        code: "LOGIN_TIED_ELSEWHERE",
+      });
+      expect(await ties(w.party, user.D)).toEqual(before);
+    });
+
+    it("W8 (fix round of 2869): on the local stack, connected as postgres with the hosted role's attributes (no superuser, BYPASSRLS), 090300's Down UPDATE, run as written, revokes an issued worker invitation although membership_invitations forces row security and its one policy is tenant_guard's; in a transaction rolled back", async () => {
+      const w = await newWorker("Worker Limpkin");
+      await invited(w.worker, `r2b1-limpkin-${randomUUID()}@example.test`);
+      const statement = downSql(migration("_wp5_rest2b_worker_invitations"))
+        .split("\n")
+        .find((line) =>
+          line.startsWith("UPDATE public.membership_invitations"),
+        );
+      expect(statement, "the Down's UPDATE").toBeDefined();
+      const status = async () =>
+        (
+          await db.query(
+            "select status from public.membership_invitations where tenant_id = $1 and party_id = $2",
+            [TA, w.party],
+          )
+        ).rows.map((r) => r.status as string);
+      await db.query("begin");
+      try {
+        expect(
+          (
+            await db.query(
+              "select current_user::text who, r.rolsuper, r.rolbypassrls, c.relforcerowsecurity, (select array_agg(p.polroles::regrole[]::text) from pg_catalog.pg_policy p where p.polrelid = c.oid) policies from pg_catalog.pg_roles r, pg_catalog.pg_class c where r.rolname = current_user and c.oid = 'public.membership_invitations'::regclass",
+            )
+          ).rows[0],
+        ).toEqual({
+          who: "postgres",
+          rolsuper: false,
+          rolbypassrls: true,
+          relforcerowsecurity: true,
+          policies: ["{tenant_guard}"],
+        });
+        const changed = await db.query(statement!);
+        expect(changed.rowCount).toBeGreaterThanOrEqual(1);
+        expect(await status()).toEqual(["revoked"]);
+      } finally {
+        await db.query("rollback");
+      }
+      expect(await status()).toEqual(["issued"]);
     });
   },
 );

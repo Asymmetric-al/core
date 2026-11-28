@@ -98,14 +98,15 @@ describe.skipIf(!required && ![url, database, service].some(Boolean))(
           "Content-Type": "application/json",
         },
       });
-    const signIn = (who: Person) => {
+    const signIn = (who: string) => {
+      const id = user[who as Person] ?? who;
       s.auth = {
-        userId: user[who],
+        userId: id,
         email: null,
         tenantId: TA,
         role: "donor",
         memberships: membershipsForRole("donor", TA),
-        profileId: user[who],
+        profileId: id,
         isAuthenticated: true,
       } as AuthContext;
     };
@@ -114,7 +115,7 @@ describe.skipIf(!required && ![url, database, service].some(Boolean))(
       "idempotency-key": key,
     });
 
-    const viaDonations = async (who: Person, key: string) => {
+    const viaDonations = async (who: string, key: string) => {
       signIn(who);
       const response = await donations(
         new NextRequest("http://localhost/api/donations", {
@@ -130,7 +131,7 @@ describe.skipIf(!required && ![url, database, service].some(Boolean))(
         body,
       };
     };
-    const viaGraphQL = async (who: Person, key: string) => {
+    const viaGraphQL = async (who: string, key: string) => {
       signIn(who);
       const response = await createGraphQLHandler().POST(
         new Request("http://localhost/api/graphql", {
@@ -279,16 +280,56 @@ describe.skipIf(!required && ![url, database, service].some(Boolean))(
       } finally {
         await db.end();
         const failures: string[] = [];
-        for (const who of PEOPLE)
-          if (user[who]) {
-            const deleted = await api(`auth/v1/admin/users/${user[who]}`, {
+        for (const id of [...PEOPLE.map((who) => user[who]), ...logins])
+          if (id) {
+            const deleted = await api(`auth/v1/admin/users/${id}`, {
               method: "DELETE",
             });
-            if (!deleted.ok) failures.push(`${who}: ${deleted.status}`);
+            if (!deleted.ok) failures.push(`${id}: ${deleted.status}`);
           }
         expect(failures, "auth users the fixture could not delete").toEqual([]);
       }
     });
+
+    const logins: string[] = [];
+    const newLogin = async () => {
+      const created = await api("auth/v1/admin/users", {
+        method: "POST",
+        body: JSON.stringify({
+          email: `wp5rest2b-gift-${randomUUID()}@example.test`,
+          password: randomUUID(),
+          email_confirm: true,
+        }),
+      });
+      expect(created.ok, `Auth fixture: ${created.status}`).toBe(true);
+      const id = (await created.json()).id as string;
+      logins.push(id);
+      return id;
+    };
+    const party = async (name: string) =>
+      (
+        await db.query<{ id: string }>(
+          "insert into public.parties (tenant_id, display_name) values ($1, $2) returning id",
+          [TA, name],
+        )
+      ).rows[0]!.id;
+    const unprofiledDonor = async (on: string) =>
+      (
+        await db.query<{ id: string }>(
+          "insert into public.donors (tenant_id, party_id, name) values ($1, $2, 'Donor') returning id",
+          [TA, on],
+        )
+      ).rows[0]!.id;
+    const link = (login: string, on: string) =>
+      db.query(
+        "insert into public.account_links (tenant_id, user_id, party_id, linked_via) values ($1, $2, $3, 'account_claim')",
+        [TA, login, on],
+      );
+    const workerRow = (login: string, on: string) =>
+      db.query(
+        "insert into public.missionaries (tenant_id, party_id, profile_id, legal_entity_id) values ($1, $2, $3, $1)",
+        [TA, on, login],
+      );
 
     const entries = [
       ["POST /api/donations", viaDonations, 409],
@@ -373,6 +414,40 @@ describe.skipIf(!required && ![url, database, service].some(Boolean))(
             )
           ).rows[0].n,
         ).toBe(0);
+      });
+
+      it(`${name}: a login with an account link resolves through that link only: linked to a Party with no donor, with a worker row on another Party whose donor gave under a key, its retry of that key is refused and runs no payment (WP5 rest 2b item zero, issue 2835's item 1; red: answered as its own through the worker row)`, async () => {
+        const owner = await newLogin();
+        const linked = await newLogin();
+        const given = await party("Given");
+        await unprofiledDonor(given);
+        await link(owner, given);
+        await link(linked, await party("Linked, no donor"));
+        await workerRow(linked, given);
+        const key = `linked-${name}-${randomUUID()}`;
+        expect((await call(owner, key)).id).toBeTruthy();
+        s.payments = [];
+        const retry = await call(linked, key);
+        expect(retry.status, JSON.stringify(retry.body)).toBe(refused);
+        expect(retry.id).toBeUndefined();
+        expect(s.payments).toEqual([]);
+      });
+
+      it(`${name}: on the worker path the Party must hold exactly one donor, the one asked for: once the worker's Party holds two donors, the worker's retry of a key given on one of them is refused and runs no payment (WP5 rest 2b item zero, issue 2835's item 1; red: answered as its own)`, async () => {
+        const owner = await newLogin();
+        const worker = await newLogin();
+        const given = await party("Given, then two donors");
+        await unprofiledDonor(given);
+        await link(owner, given);
+        await workerRow(worker, given);
+        const key = `two-${name}-${randomUUID()}`;
+        expect((await call(owner, key)).id).toBeTruthy();
+        await unprofiledDonor(given);
+        s.payments = [];
+        const retry = await call(worker, key);
+        expect(retry.status, JSON.stringify(retry.body)).toBe(refused);
+        expect(retry.id).toBeUndefined();
+        expect(s.payments).toEqual([]);
       });
     }
   },

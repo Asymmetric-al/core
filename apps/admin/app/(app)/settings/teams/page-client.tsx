@@ -1,10 +1,7 @@
 "use client";
 
 import { useRoutePathname } from "@asym/auth/tenant-navigation";
-import {
-  crossAppHref,
-  isServeUnderPathsEnabled,
-} from "@asym/database/document-reload";
+import { isServeUnderPathsEnabled } from "@asym/database/document-reload";
 import { ownApiFetch } from "@asym/database/own-api";
 import { useMC } from "@asym/lib/mission-control/context";
 import {
@@ -80,6 +77,8 @@ import {
   type StaffAccount,
   type StaffSubroleValue,
 } from "./staff-directory";
+
+import { formatInvitationAddress } from "@/features/mission-control/invitations/invitation-address";
 
 function isStaffSubrole(
   value: string | null | undefined,
@@ -590,20 +589,7 @@ function MembersDirectory({
   );
 }
 
-export function formatInvitationAddress(
-  created: { role: "staff" | "missionary"; invitePath: string },
-  origin: string,
-): string {
-  if (isServeUnderPathsEnabled()) {
-    const targetApp = created.role === "staff" ? "admin" : "missionary";
-    const prefixed = crossAppHref(targetApp, created.invitePath);
-    return origin ? `${origin}${prefixed}` : prefixed;
-  }
-  if (created.role === "staff") {
-    return origin ? `${origin}${created.invitePath}` : created.invitePath;
-  }
-  return created.invitePath;
-}
+export { formatInvitationAddress };
 
 function InviteMemberDialog({
   open,

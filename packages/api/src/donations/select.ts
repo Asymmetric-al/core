@@ -90,6 +90,14 @@ async function ownDonorOf(
   const linked = await findOwnDonor(supabase, person);
   if (linked.status === "found") return linked.donor.id;
   if (linked.status === "multiple") return null;
+  const { data: link, error: linkError } = await supabase
+    .from("account_links")
+    .select("party_id")
+    .eq("tenant_id", person.tenantId)
+    .eq("user_id", person.userId)
+    .maybeSingle();
+  if (linkError) throw new Error(linkError.message);
+  if (link) return null;
   const donorId =
     typeof row.donor_id === "string"
       ? row.donor_id
@@ -103,14 +111,14 @@ async function ownDonorOf(
     .limit(2);
   if (workersError) throw new Error(workersError.message);
   if (workers?.length !== 1 || !workers[0]?.party_id) return null;
-  const { data: donor, error: donorError } = await supabase
+  const { data: donors, error: donorsError } = await supabase
     .from("donors")
-    .select("party_id")
+    .select("id")
     .eq("tenant_id", person.tenantId)
-    .eq("id", donorId)
-    .maybeSingle();
-  if (donorError) throw new Error(donorError.message);
-  return donor?.party_id === workers[0].party_id ? donorId : null;
+    .eq("party_id", workers[0].party_id)
+    .limit(2);
+  if (donorsError) throw new Error(donorsError.message);
+  return donors?.length === 1 && donors[0]?.id === donorId ? donorId : null;
 }
 
 /** A UUID in one comparable form (lowercase hex, no braces or hyphens). */
