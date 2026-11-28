@@ -1,18 +1,18 @@
 export const CHECKOUT_WORDS = {
-  configUnavailable:
-    "We can't take this gift online right now. It may be the designation you chose, or online giving may be paused. You haven't been charged.",
-  configUnavailableKeyHeld:
-    "We can't take this gift online right now, so nothing was charged this time. If you gave a moment ago, check that gift before you start again.",
-  intakeUnavailable:
-    "This ministry can't take gifts online here right now. You haven't been charged.",
-  intakeUnavailableKeyHeld:
-    "This ministry can't take gifts online here right now, so nothing was charged this time. If you gave a moment ago, check that gift before you start again.",
+  unavailable: "Giving here is unavailable right now. Nothing was charged.",
+  unavailableUnconfirmed:
+    "Giving here is unavailable right now, and we could not confirm what happened to your payment. Check your card or bank statement before you give again.",
+  amountInvalid: "Enter the amount in dollars, like 25 or 1,000.50.",
+  paymentCancelled:
+    "This payment was cancelled, so your card wasn't charged. You can start the gift again here.",
   notStarted:
     "Your payment didn't start, and your card wasn't charged. Please try again.",
   challenge:
     "We couldn't finish our quick security check. Your card wasn't charged. Please try again.",
   signInRequired:
     "Your sign-in has ended. Your card wasn't charged. Sign in again to give from your account, or give as a guest.",
+  signInRequiredNoGuest:
+    "Your sign-in has ended. Your card wasn't charged. Sign in again to give from your account.",
   oneEntityNotice:
     "Each gift goes to one legal entity of this ministry. Designations of different entities need separate gifts.",
   linesSpanEntities:
@@ -94,18 +94,22 @@ export type IntakeRefusal = {
 
 export function intakeRefusalWords(
   refusal: IntakeRefusal,
-  keyHeldElsewhere = false,
+  keyHeld = false,
+  guestOffered = true,
 ): string {
   const { status, error } = refusal;
   if (status === 429)
     return refusal.bucket === "person"
       ? CHECKOUT_WORDS.personBucket
       : CHECKOUT_WORDS.addressBucket;
-  if (status === 401) return CHECKOUT_WORDS.signInRequired;
+  if (status === 401)
+    return guestOffered
+      ? CHECKOUT_WORDS.signInRequired
+      : CHECKOUT_WORDS.signInRequiredNoGuest;
   if (error === "giving_unavailable")
-    return keyHeldElsewhere
-      ? CHECKOUT_WORDS.intakeUnavailableKeyHeld
-      : CHECKOUT_WORDS.intakeUnavailable;
+    return keyHeld
+      ? CHECKOUT_WORDS.unavailableUnconfirmed
+      : CHECKOUT_WORDS.unavailable;
   if (error === "payment_not_started") return CHECKOUT_WORDS.notStarted;
   if (error === "challenge_required" || error === "challenge_failed")
     return CHECKOUT_WORDS.challenge;
@@ -139,7 +143,7 @@ export type HeldPayment = {
   last_payment_error?: { code?: string; type?: string } | null;
 };
 
-export const FINAL_STATES = new Set(["succeeded", "processing", "canceled"]);
+export const FINAL_STATES = new Set(["succeeded", "processing"]);
 
 export function paymentStateNotice(payment: HeldPayment): CheckoutNotice {
   const { status } = payment;
@@ -148,7 +152,7 @@ export function paymentStateNotice(payment: HeldPayment): CheckoutNotice {
   if (status === "processing")
     return { tone: "info", text: CHECKOUT_WORDS.pending };
   if (status === "canceled")
-    return { tone: "error", text: CHECKOUT_WORDS.giftClosed };
+    return { tone: "error", text: CHECKOUT_WORDS.paymentCancelled };
   if (status === "requires_action")
     return { tone: "error", text: CHECKOUT_WORDS.cardCheckUnfinished };
   if (

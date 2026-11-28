@@ -25,6 +25,16 @@ export function parseAmountCents(raw: string | null): number | null {
   return cents > 0 ? cents : null;
 }
 
+const PLAIN_AMOUNT = /^\d{1,8}(\.\d{0,2})?$/;
+const GROUPED_AMOUNT = /^\d{1,3}(,\d{3}){1,2}(\.\d{0,2})?$/;
+
+export function parseTypedAmount(text: string): number | null {
+  const typed = text.trim().replace(/^\$/, "");
+  if (!PLAIN_AMOUNT.test(typed) && !GROUPED_AMOUNT.test(typed)) return null;
+  const cents = Math.round(Number(typed.replaceAll(",", "")) * 100);
+  return cents > 0 && cents < 10_000_000_000 ? cents : null;
+}
+
 export function readCheckoutLink(params: CheckoutSearchParams): CheckoutLink {
   const missionary = first(params.missionary_id) ?? first(params.workerId);
   const fund = first(params.fund_id);

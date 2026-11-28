@@ -94,7 +94,7 @@ const CASES: Case[] = [
   {
     code: "giving_unavailable",
     status: 503,
-    words: CHECKOUT_WORDS.intakeUnavailable,
+    words: CHECKOUT_WORDS.unavailable,
     over: { enabled: () => false },
   },
   {

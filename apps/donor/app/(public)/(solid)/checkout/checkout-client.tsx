@@ -34,6 +34,7 @@ import {
 import {
   checkoutPath,
   handOffHref,
+  parseTypedAmount,
   type CheckoutLink,
   type CheckoutTarget,
 } from "./checkout-targets";
@@ -111,13 +112,6 @@ function feeCents(amountCents: number, coverFees: boolean) {
   }).coverAmountCents;
 }
 
-export function parseTypedAmount(text: string): number | null {
-  const cleaned = text.trim().replace(/^\$/, "").replace(/,/g, "");
-  if (!/^\d{1,8}(\.\d{0,2})?$/.test(cleaned)) return null;
-  const cents = Math.round(Number(cleaned) * 100);
-  return cents > 0 ? cents : null;
-}
-
 const amountTextOf = (cents: number) => (cents / 100).toFixed(2);
 
 function sameTarget(held: StoredPayment, target: CheckoutTarget | null) {
@@ -135,6 +129,12 @@ async function retrieve(
     paymentIntent?: HeldPayment;
   };
   return result.paymentIntent?.status ? result.paymentIntent : null;
+}
+
+function holdsPaymentFor(target: CheckoutTarget | null): boolean {
+  if (typeof window === "undefined") return false;
+  const stored = rememberedPayment(safeStorage("session"));
+  return Boolean(stored && sameTarget(stored, target));
 }
 
 async function readHeld(held: StoredPayment): Promise<HeldPayment | null> {
@@ -223,7 +223,9 @@ function GiveForm(props: {
 
   const settle = (payment: HeldPayment, key: string) => {
     const result = outcomeOf(payment);
-    if (result.final) forgetGiftKey(safeStorage("local"), key);
+    if (result.final || payment.status === "canceled")
+      forgetGiftKey(safeStorage("local"), key);
+    if (payment.status === "canceled") forgetPayment(safeStorage("session"));
     setOutcome(result);
   };
 
@@ -276,16 +278,26 @@ function GiveForm(props: {
       const shared = safeStorage("local");
       const { key, reused } = await giftKeyFor(giftInputs(), shared);
       const held = rememberedPayment(tab);
-      if (held?.key === key && held.account === props.config.account) {
-        const current = await retrieve(stripe, held.clientSecret);
-        if (current && OPEN_STATES.has(current.status)) {
-          await confirmWith(held.clientSecret, key);
+      if (held?.key === key) {
+        const current = await readHeld(held).catch(() => null);
+        if (!current) {
+          setOutcome(LOST);
           return;
         }
-        if (current && FINAL_STATES.has(current.status)) {
+        if (FINAL_STATES.has(current.status) || current.status === "canceled") {
           settle(current, key);
           return;
         }
+        if (held.account !== props.config.account) {
+          setOutcome(say(CHECKOUT_WORDS.accountChanged));
+          return;
+        }
+        if (OPEN_STATES.has(current.status)) {
+          await confirmWith(held.clientSecret, key);
+          return;
+        }
+        settle(current, key);
+        return;
       }
       if (!token) {
         setOutcome(say(CHECKOUT_WORDS.challenge));
@@ -316,24 +328,21 @@ function GiveForm(props: {
       if (!response.ok) {
         const refusal = { status: response.status, ...answer } as IntakeRefusal;
         if (refusal.error === "idempotency_key_reused") {
-          if (held?.key === key) {
-            const current = await readHeld(held).catch(() => null);
-            if (current && FINAL_STATES.has(current.status)) {
-              settle(current, key);
-              return;
-            }
-            forgetPayment(tab);
-          }
           forgetGiftKey(shared, key);
           setOutcome(say(CHECKOUT_WORDS.keyReused));
           return;
         }
-        if (refusal.error === "gift_closed") forgetGiftKey(shared, key);
         const completed = refusal.error === "gift_already_completed";
+        if (refusal.error === "gift_closed" || completed)
+          forgetGiftKey(shared, key);
         setOutcome({
           notice: {
             tone: completed ? "success" : "error",
-            text: intakeRefusalWords(refusal, reused && held?.key !== key),
+            text: intakeRefusalWords(
+              refusal,
+              reused,
+              props.guestInstead !== null,
+            ),
           },
           final: completed,
           signIn: response.status === 401,
@@ -353,7 +362,20 @@ function GiveForm(props: {
         target: props.client.link.target,
       });
       if (account !== props.config.account) {
-        setOutcome(say(CHECKOUT_WORDS.accountChanged));
+        if (!reused) {
+          setOutcome(say(CHECKOUT_WORDS.accountChanged));
+          return;
+        }
+        const replayed = await readHeld({
+          key,
+          clientSecret,
+          account,
+          publishableKey: props.config.publishableKey,
+          target: props.client.link.target,
+        }).catch(() => null);
+        if (!replayed) setOutcome(LOST);
+        else if (FINAL_STATES.has(replayed.status)) settle(replayed, key);
+        else setOutcome(say(CHECKOUT_WORDS.accountChanged));
         return;
       }
       await confirmWith(clientSecret, key);
@@ -504,6 +526,9 @@ export function CheckoutPageClient(props: CheckoutPageClientProps) {
   });
   const [keyHeld, setKeyHeld] = useState(false);
   const [held, setHeld] = useState<Outcome | null>(null);
+  const [heldReading, setHeldReading] = useState(() =>
+    holdsPaymentFor(link.target),
+  );
   const email = props.signedInEmail ?? null;
   const [mode, setMode] = useState<"guest" | "signed_in">(
     email && (props.isHome || accountSurface) ? "signed_in" : "guest",
@@ -517,12 +542,19 @@ export function CheckoutPageClient(props: CheckoutPageClientProps) {
     void readHeld(stored)
       .then((payment) => {
         if (!active) return;
+        setHeldReading(false);
         if (!payment) return setHeld(LOST);
-        if (FINAL_STATES.has(payment.status))
+        if (FINAL_STATES.has(payment.status) || payment.status === "canceled")
           forgetGiftKey(safeStorage("local"), stored.key);
+        if (payment.status === "canceled")
+          forgetPayment(safeStorage("session"));
         setHeld(outcomeOf(payment));
       })
-      .catch(() => active && setHeld(LOST));
+      .catch(() => {
+        if (!active) return;
+        setHeldReading(false);
+        setHeld(LOST);
+      });
     return () => {
       active = false;
     };
@@ -569,7 +601,11 @@ export function CheckoutPageClient(props: CheckoutPageClientProps) {
             : { state: "unavailable" },
         );
       })
-      .catch(() => active && setConfig({ state: "unavailable" }));
+      .catch(() => {
+        if (!active) return;
+        setKeyHeld(holdsAnyLiveKey(safeStorage("local")));
+        setConfig({ state: "unavailable" });
+      });
     return () => {
       active = false;
     };
@@ -589,7 +625,9 @@ export function CheckoutPageClient(props: CheckoutPageClientProps) {
   useEffect(() => {
     let active = true;
     void stripePromise?.then((stripe) => {
-      if (active && !stripe) setStripeFailed(true);
+      if (!active || stripe) return;
+      setKeyHeld(holdsAnyLiveKey(safeStorage("local")));
+      setStripeFailed(true);
     });
     return () => {
       active = false;
@@ -615,6 +653,11 @@ export function CheckoutPageClient(props: CheckoutPageClientProps) {
           href: `https://${wayBackHost}${checkoutPath({ ...details, sourceSiteId: null })}`,
         }
       : null;
+  const unavailableWords = held
+    ? held.notice.text
+    : keyHeld
+      ? CHECKOUT_WORDS.unavailableUnconfirmed
+      : CHECKOUT_WORDS.unavailable;
   const startAgain = () => {
     forgetPayment(safeStorage("session"));
     setHeld(null);
@@ -665,6 +708,9 @@ export function CheckoutPageClient(props: CheckoutPageClientProps) {
                   inputMode="decimal"
                   value={amountText}
                   aria-invalid={typedCents === null}
+                  aria-describedby={
+                    typedCents === null ? "checkout-amount-error" : undefined
+                  }
                   onChange={(event) => {
                     setAmountText(event.target.value);
                     const next = parseTypedAmount(event.target.value);
@@ -675,6 +721,14 @@ export function CheckoutPageClient(props: CheckoutPageClientProps) {
                       setAmountText(amountTextOf(typedCents));
                   }}
                 />
+                {typedCents === null ? (
+                  <p
+                    id="checkout-amount-error"
+                    className="text-sm text-destructive"
+                  >
+                    {CHECKOUT_WORDS.amountInvalid}
+                  </p>
+                ) : null}
               </Field>
               <div className="flex items-center gap-3">
                 <Checkbox
@@ -707,15 +761,18 @@ export function CheckoutPageClient(props: CheckoutPageClientProps) {
                   Give signed in
                 </a>
               ) : null}
-              {config.state === "unavailable" ? (
+              {props.surface === "website" && props.isHome && !email ? (
+                <Link
+                  className="self-start text-sm underline"
+                  href={signInHref}
+                >
+                  Sign in to give from your account
+                </Link>
+              ) : null}
+              {(config.state === "unavailable" || stripeFailed) &&
+              heldReading ? null : config.state === "unavailable" ? (
                 <Alert role="alert" variant="destructive">
-                  <AlertDescription>
-                    {held
-                      ? held.notice.text
-                      : keyHeld
-                        ? CHECKOUT_WORDS.configUnavailableKeyHeld
-                        : CHECKOUT_WORDS.configUnavailable}
-                  </AlertDescription>
+                  <AlertDescription>{unavailableWords}</AlertDescription>
                 </Alert>
               ) : accountSurface && mode !== "signed_in" ? (
                 <Link
@@ -727,9 +784,7 @@ export function CheckoutPageClient(props: CheckoutPageClientProps) {
               ) : stripeFailed ? (
                 <Alert role="alert" variant="destructive">
                   <AlertDescription>
-                    {held
-                      ? CHECKOUT_WORDS.lostConnection
-                      : CHECKOUT_WORDS.configUnavailable}
+                    {held ? CHECKOUT_WORDS.lostConnection : unavailableWords}
                   </AlertDescription>
                 </Alert>
               ) : config.state === "ready" && stripePromise ? (
