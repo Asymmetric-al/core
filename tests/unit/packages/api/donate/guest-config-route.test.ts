@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const doubles = vi.hoisted(() => ({
   cookieBound: vi.fn(async () => ({
@@ -41,8 +41,16 @@ function request(cookie?: string) {
 }
 
 beforeEach(() => {
+  vi.stubEnv("GUEST_GIVING_ENABLED", "true");
+  vi.stubEnv("TURNSTILE_SECRET_KEY", "1x0000000000000000000000000000000AA");
+  vi.stubEnv("NEXT_PUBLIC_TURNSTILE_SITE_KEY", "1x00000000000000000000AA");
+  vi.stubEnv("NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY", "pk_test_51abc");
   doubles.cookieBound.mockClear();
   doubles.anonymousRpc.mockClear();
+});
+
+afterEach(() => {
+  vi.unstubAllEnvs();
 });
 
 describe("AL-2681 part 2a fix round F4: the config read is anonymous", () => {

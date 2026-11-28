@@ -239,10 +239,19 @@ export async function givingReadback(db: pg.Client, world: GivingWorld) {
 }
 
 export const STRIPE_JS_STUB = `(() => {
-  const log = (window.__stripeStub = window.__stripeStub || { loads: [], elements: [], confirms: [], retrieves: 0 });
-  const plan = () => window.__stripeStubPlan || {
-    confirm: { paymentIntent: { status: "succeeded" } },
-    retrieve: { paymentIntent: { status: "succeeded" } },
+  const log = (window.__stripeStub = window.__stripeStub || { loads: [], elements: [], paymentElements: [], confirms: [], refused: [], retrieves: 0 });
+  const intents = (window.__stripeStubIntents = window.__stripeStubIntents || {});
+  const plan = () => window.__stripeStubPlan || {};
+  const nextConfirm = () => {
+    const p = plan();
+    if (Array.isArray(p.confirms) && p.confirms.length) return p.confirms.shift();
+    return p.confirm || { paymentIntent: { status: "succeeded" } };
+  };
+  const stateAfter = (answer) => {
+    if (answer.paymentIntent) return { status: answer.paymentIntent.status };
+    const error = answer.error || {};
+    if (error.type === "card_error") return { status: "requires_payment_method", last_payment_error: { code: error.code, type: error.type } };
+    return null;
   };
   function Stripe(key, options) {
     log.loads.push({ key, options: options || {} });
@@ -255,7 +264,8 @@ export const STRIPE_JS_STUB = `(() => {
       elements(options) {
         log.elements.push(options || {});
         return {
-          create(type) {
+          create(type, createOptions) {
+            log.paymentElements.push(createOptions || {});
             const handlers = {};
             return {
               mount(node) {
@@ -268,7 +278,7 @@ export const STRIPE_JS_STUB = `(() => {
               },
               on(event, cb) { (handlers[event] = handlers[event] || []).push(cb); return this; },
               off(event, cb) { handlers[event] = (handlers[event] || []).filter((x) => x !== cb); return this; },
-              update() {}, unmount() {}, destroy() {}, focus() {}, blur() {}, clear() {},
+              update(next) { if (next) log.paymentElements.push(next); }, unmount() {}, destroy() {}, focus() {}, blur() {}, clear() {},
             };
           },
           getElement() { return null; },
@@ -278,12 +288,28 @@ export const STRIPE_JS_STUB = `(() => {
         };
       },
       confirmPayment(args) {
-        log.confirms.push({ confirmParams: args && args.confirmParams, redirect: args && args.redirect });
-        return Promise.resolve(plan().confirm);
+        const confirmParams = (args && args.confirmParams) || {};
+        log.confirms.push({ clientSecret: args && args.clientSecret, confirmParams, redirect: args && args.redirect });
+        const fields = ((log.paymentElements[log.paymentElements.length - 1] || {}).fields || {}).billingDetails || {};
+        const details = ((confirmParams.payment_method_data || {}).billing_details) || {};
+        for (const field of Object.keys(fields)) {
+          const given = details[field];
+          if (fields[field] === "never" && !(typeof given === "string" && given !== "")) {
+            log.refused.push(field);
+            return Promise.reject(new Error("IntegrationError: billing_details." + field + " is required when fields.billingDetails." + field + " is never"));
+          }
+        }
+        const answer = nextConfirm();
+        const state = stateAfter(answer);
+        if (state && args && args.clientSecret) intents[args.clientSecret] = state;
+        if (answer.markSucceeded && args && args.clientSecret) intents[args.clientSecret] = { status: "succeeded" };
+        return Promise.resolve(answer);
       },
-      retrievePaymentIntent() {
+      retrievePaymentIntent(clientSecret) {
         log.retrieves += 1;
-        return Promise.resolve(plan().retrieve);
+        const p = plan();
+        if (p.retrieve) return Promise.resolve(p.retrieve);
+        return Promise.resolve({ paymentIntent: intents[clientSecret] || { status: "requires_payment_method", last_payment_error: null } });
       },
     };
   }

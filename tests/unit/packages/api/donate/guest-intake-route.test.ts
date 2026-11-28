@@ -105,6 +105,10 @@ function giftRequest() {
 }
 
 beforeEach(() => {
+  vi.stubEnv("GUEST_GIVING_ENABLED", "");
+  vi.stubEnv("TURNSTILE_SECRET_KEY", "1x0000000000000000000000000000000AA");
+  vi.stubEnv("NEXT_PUBLIC_TURNSTILE_SITE_KEY", "1x00000000000000000000AA");
+  vi.stubEnv("NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY", "pk_test_51abc");
   admin.made = 0;
   admin.calls = [];
   provider.sendFirstPayment.mockClear();
@@ -120,6 +124,7 @@ beforeEach(() => {
 
 afterEach(() => {
   vi.unstubAllGlobals();
+  vi.unstubAllEnvs();
   env.serverEnv.GUEST_GIVING_ENABLED = false;
 });
 
@@ -134,6 +139,7 @@ describe("AL-2681 PR 2b: the intake route on the donor app (ruling W8-R17's serv
 
   it("with the switch on, its one service-key client calls exactly the limit and the intake command, and reads no table; the first send and the client secret go through the money schedule's own client", async () => {
     env.serverEnv.GUEST_GIVING_ENABLED = true;
+    vi.stubEnv("GUEST_GIVING_ENABLED", "true");
     const res = await POST(giftRequest());
     expect(res.status).toBe(200);
     expect(await res.json()).toEqual({

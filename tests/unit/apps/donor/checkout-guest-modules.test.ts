@@ -7,8 +7,11 @@ import {
   giftKeyFor,
   rememberedPayment,
   rememberPayment,
+  type GiftKeyInputs,
 } from "../../../../apps/donor/app/(public)/(solid)/checkout/checkout-gift-key";
 import {
+  checkoutPath,
+  checkoutSurface,
   handOffHref,
   readCheckoutLink,
 } from "../../../../apps/donor/app/(public)/(solid)/checkout/checkout-targets";
@@ -32,11 +35,15 @@ function memory() {
   };
 }
 
-const inputs = (amountCents = 2500) => ({
-  lines: [{ fundId: FUND, amountCents }],
+const inputs = (over: Partial<GiftKeyInputs> = {}): GiftKeyInputs => ({
+  lines: [{ fundId: FUND, amountCents: 2500 }],
   coverFees: false,
   isAnonymous: false,
   surface: "website",
+  mode: "guest",
+  contact: { email: "gail@example.test", firstName: "Gail", lastName: "Guest" },
+  sourceSiteId: null,
+  ...over,
 });
 
 describe("AL-2681 PR 2b: the checkout's words (the coordinator's approved sentences)", () => {
@@ -98,7 +105,7 @@ describe("AL-2681 PR 2b: the checkout's words (the coordinator's approved senten
     expect(intakeRefusalWords(refusal)).toBe(words);
   });
 
-  it("amount_out_of_range shows the bounds the server sent, in the gift's currency, and types no figure of its own", () => {
+  it("amount_out_of_range shows the bounds the server sent, in the currency the server names, and types no figure of its own", () => {
     expect(
       intakeRefusalWords({
         status: 400,
@@ -116,88 +123,215 @@ describe("AL-2681 PR 2b: the checkout's words (the coordinator's approved senten
         error: "amount_out_of_range",
         minCents: 100,
         maxCents: 2_000,
-        currency: "usd",
+        currency: "cad",
       }),
     ).toBe(
-      "Online gifts must be between $1.00 and $20.00. Your card wasn't charged.",
+      "Online gifts must be between CA$1.00 and CA$20.00. Your card wasn't charged.",
+    );
+    expect(
+      intakeRefusalWords({
+        status: 400,
+        error: "amount_out_of_range",
+        minCents: 100,
+        maxCents: 2_000,
+      }),
+    ).toBe(CHECKOUT_WORDS.detailsRefused);
+  });
+
+  it("the intake's unavailable sentence takes the key-reused form when this browser already held the gift's key", () => {
+    expect(
+      intakeRefusalWords({ status: 503, error: "giving_unavailable" }, true),
+    ).toBe(
+      "This ministry can't take gifts online here right now, so nothing was charged this time. If you gave a moment ago, check that gift before you start again.",
     );
   });
 
-  it("no sentence promises a receipt, a match or an account, and key reuse never says nothing was charged before", () => {
+  it("no sentence promises a receipt, a match, an account or a claim, and key reuse never says nothing was charged before", () => {
     for (const text of Object.values(CHECKOUT_WORDS)) {
-      expect(text).not.toMatch(/receipt|matched|added to your account/i);
+      expect(text).not.toMatch(
+        /receipt|matched|added to your account|claim your giving history/i,
+      );
     }
     expect(CHECKOUT_WORDS.keyReused).not.toContain("Your card wasn't charged");
     expect(CHECKOUT_WORDS.received).toBe("Your gift was received.");
-    expect(CHECKOUT_WORDS.claimOffer).toBe(
-      "Verify your email to claim your giving history.",
-    );
+    expect(CHECKOUT_WORDS).not.toHaveProperty("claimOffer");
   });
 
-  it("a payment's state reads its sentence: received only on success", () => {
-    expect(paymentStateNotice("succeeded")).toEqual({
+  it("a payment's state reads its sentence: received only on success, declined only of a card that was tried", () => {
+    expect(paymentStateNotice({ status: "succeeded" })).toEqual({
       tone: "success",
       text: "Your gift was received.",
     });
-    expect(paymentStateNotice("processing").text).toBe(CHECKOUT_WORDS.pending);
-    expect(paymentStateNotice("requires_payment_method").text).toBe(
-      CHECKOUT_WORDS.declined,
+    expect(paymentStateNotice({ status: "processing" }).text).toBe(
+      CHECKOUT_WORDS.pending,
     );
-    expect(paymentStateNotice("canceled").text).not.toBe(
+    expect(
+      paymentStateNotice({
+        status: "requires_payment_method",
+        last_payment_error: { code: "card_declined", type: "card_error" },
+      }).text,
+    ).toBe(CHECKOUT_WORDS.declined);
+    expect(
+      paymentStateNotice({
+        status: "requires_payment_method",
+        last_payment_error: null,
+      }).text,
+    ).toBe(CHECKOUT_WORDS.notStarted);
+    expect(paymentStateNotice({ status: "requires_confirmation" }).text).toBe(
+      CHECKOUT_WORDS.notStarted,
+    );
+    expect(paymentStateNotice({ status: "requires_action" }).text).toBe(
+      "Your bank's card check wasn't finished, so your card wasn't charged. You can try again.",
+    );
+    expect(
+      paymentStateNotice({
+        status: "requires_payment_method",
+        last_payment_error: {
+          code: "payment_intent_authentication_failure",
+          type: "card_error",
+        },
+      }).text,
+    ).toBe(CHECKOUT_WORDS.cancelled);
+    expect(paymentStateNotice({ status: "canceled" }).text).not.toBe(
       CHECKOUT_WORDS.received,
     );
   });
 });
 
-describe("AL-2681 PR 2b, the inventory ruling 6: one gift key across the browser's tabs", () => {
-  it("two tabs with the same inputs send the same key; other inputs make a new one", async () => {
+describe("AL-2681 PR 2b, the inventory ruling 6 and fix round X4: one key for each gift across the browser's tabs", () => {
+  it("two tabs with the same gift send the same key; another amount, fee choice or anonymity makes a new one", async () => {
     const shared = memory();
     let n = 0;
     const next = () => `key-${(n += 1)}`;
     const first = await giftKeyFor(inputs(), shared, 1_000, next);
-    const second = await giftKeyFor(inputs(), shared, 2_000, next);
-    expect(second).toBe(first);
-    const other = await giftKeyFor(inputs(3000), shared, 3_000, next);
-    expect(other).not.toBe(first);
+    expect(first).toEqual({ key: "key-1", reused: false });
+    expect(await giftKeyFor(inputs(), shared, 2_000, next)).toEqual({
+      key: "key-1",
+      reused: true,
+    });
+    const amount = await giftKeyFor(
+      inputs({ lines: [{ fundId: FUND, amountCents: 3000 }] }),
+      shared,
+      3_000,
+      next,
+    );
+    expect(amount.key).not.toBe("key-1");
   });
 
-  it("the key is forgotten when the window passes or a final state is shown, and nothing personal is stored with it", async () => {
+  it("the key covers the contact as the server normalises it, the mode and the source Site", async () => {
+    const shared = memory();
+    let n = 0;
+    const next = () => `key-${(n += 1)}`;
+    const base = (await giftKeyFor(inputs(), shared, 1_000, next)).key;
+    const same = await giftKeyFor(
+      inputs({
+        contact: {
+          email: "  GAIL@Example.test ",
+          firstName: " Gail ",
+          lastName: "Guest",
+        },
+      }),
+      shared,
+      1_000,
+      next,
+    );
+    expect(same.key).toBe(base);
+    for (const changed of [
+      inputs({ contact: { email: "gail@example.org" } }),
+      inputs({ contact: { email: "gail@example.test", firstName: "Gale" } }),
+      inputs({ mode: "signed_in" }),
+      inputs({ sourceSiteId: SITE }),
+    ])
+      expect((await giftKeyFor(changed, shared, 1_000, next)).key).not.toBe(
+        base,
+      );
+  });
+
+  it("the shared store keeps one key for each gift: a second gift does not take the first's key, and the first gift's key comes back", async () => {
+    const shared = memory();
+    let n = 0;
+    const next = () => `key-${(n += 1)}`;
+    const first = (await giftKeyFor(inputs(), shared, 1_000, next)).key;
+    const other = (
+      await giftKeyFor(
+        inputs({ lines: [{ missionaryId: WORKER, amountCents: 2500 }] }),
+        shared,
+        2_000,
+        next,
+      )
+    ).key;
+    expect(other).not.toBe(first);
+    expect((await giftKeyFor(inputs(), shared, 3_000, next)).key).toBe(first);
+  });
+
+  it("forgetting a key removes only that key; a key is forgotten when the window passes; nothing personal is stored", async () => {
     const shared = memory();
     const tab = memory();
-    const key = await giftKeyFor(inputs(), shared, 1_000);
+    let n = 0;
+    const next = () => `key-${(n += 1)}`;
+    const first = (await giftKeyFor(inputs(), shared, 1_000, next)).key;
+    const other = (
+      await giftKeyFor(
+        inputs({ lines: [{ missionaryId: WORKER, amountCents: 2500 }] }),
+        shared,
+        1_000,
+        next,
+      )
+    ).key;
+    forgetGiftKey(shared, first, 1_000);
+    expect((await giftKeyFor(inputs(), shared, 1_000, next)).key).not.toBe(
+      first,
+    );
     expect(
-      await giftKeyFor(inputs(), shared, 1_000 + GIFT_KEY_WINDOW_MS + 1),
-    ).not.toBe(key);
-    expect(shared.store.get(GIFT_KEY_STORAGE)).not.toMatch(/@|Gail/);
+      (
+        await giftKeyFor(
+          inputs({ lines: [{ missionaryId: WORKER, amountCents: 2500 }] }),
+          shared,
+          1_000,
+          next,
+        )
+      ).key,
+    ).toBe(other);
+    expect(
+      (
+        await giftKeyFor(
+          inputs({ lines: [{ missionaryId: WORKER, amountCents: 2500 }] }),
+          shared,
+          1_000 + GIFT_KEY_WINDOW_MS + 1,
+          next,
+        )
+      ).key,
+    ).not.toBe(other);
+    expect(shared.store.get(GIFT_KEY_STORAGE)).not.toMatch(/@|Gail|Guest/);
     rememberPayment(tab, {
-      key,
+      key: first,
       clientSecret: "pi_1_secret_x",
       account: "acct_1",
       publishableKey: "pk_test_1",
+      target: { kind: "fund", id: FUND },
     });
     expect(rememberedPayment(tab)).toMatchObject({
       clientSecret: "pi_1_secret_x",
+      target: { kind: "fund", id: FUND },
     });
-    expect(shared.store.size).toBe(1);
-    forgetGiftKey(shared, tab);
-    expect(shared.store.size).toBe(0);
-    expect(rememberedPayment(tab)).toBeNull();
   });
 });
 
 describe("AL-2681 PR 2b: what the checkout reads from its link", () => {
-  it("reads a missionary, a fund, an amount, monthly and a source Site, and nothing that is not a UUID", () => {
+  it("reads a missionary, a fund, an amount, monthly, the fee choice and a source Site, and nothing that is not a UUID", () => {
     expect(
       readCheckoutLink({
         missionary_id: WORKER,
         amount: "25",
         frequency: "monthly",
+        coverFees: "1",
         sourceSiteId: SITE,
       }),
     ).toEqual({
       target: { kind: "missionary", id: WORKER },
       amountCents: 2500,
       monthly: true,
+      coverFees: true,
       sourceSiteId: SITE,
     });
     expect(readCheckoutLink({ fund_id: FUND, amount: "10.50" }).target).toEqual(
@@ -209,11 +343,17 @@ describe("AL-2681 PR 2b: what the checkout reads from its link", () => {
     });
     expect(readCheckoutLink({ fund: "general" }).target).toBeNull();
     expect(
-      readCheckoutLink({ fund_id: "x", sourceSiteId: "y", amount: "-3" }),
+      readCheckoutLink({
+        fund_id: "x",
+        sourceSiteId: "y",
+        amount: "-3",
+        coverFees: "yes",
+      }),
     ).toEqual({
       target: null,
       amountCents: null,
       monthly: false,
+      coverFees: false,
       sourceSiteId: null,
     });
   });
@@ -235,5 +375,44 @@ describe("AL-2681 PR 2b: what the checkout reads from its link", () => {
       coverFees: "1",
       sourceSiteId: SITE,
     });
+    expect(
+      checkoutPath({
+        target: { kind: "missionary", id: WORKER },
+        amountCents: 750,
+        coverFees: false,
+        sourceSiteId: null,
+      }),
+    ).toBe(`/checkout?missionary_id=${WORKER}&amount=7.50&coverFees=0`);
+  });
+
+  it("an address carrying a source Site that arrives at a home is the account surface, whatever else the name serves (fix round X6.1)", () => {
+    expect(
+      checkoutSurface({
+        hostSurface: "website",
+        isHome: true,
+        sourceSiteId: SITE,
+      }),
+    ).toBe("donor_account");
+    expect(
+      checkoutSurface({
+        hostSurface: "website",
+        isHome: true,
+        sourceSiteId: null,
+      }),
+    ).toBe("website");
+    expect(
+      checkoutSurface({
+        hostSurface: "website",
+        isHome: false,
+        sourceSiteId: SITE,
+      }),
+    ).toBe("website");
+    expect(
+      checkoutSurface({
+        hostSurface: "donor_account",
+        isHome: true,
+        sourceSiteId: null,
+      }),
+    ).toBe("donor_account");
   });
 });

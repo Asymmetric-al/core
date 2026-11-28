@@ -135,11 +135,63 @@ async function countResets(page: Page) {
   });
 }
 
-async function typeGuest(page: Page, email: string) {
+async function typeGuest(
+  page: Page,
+  email: string,
+  names: [string, string] = ["Ada", "Lovelace"],
+) {
   await page.getByLabel("Email").fill(email);
-  await page.getByLabel("First name").fill("Ada");
-  await page.getByLabel("Last name").fill("Lovelace");
+  await page.getByLabel("First name").fill(names[0]);
+  await page.getByLabel("Last name").fill(names[1]);
 }
+
+async function answerIntake(page: Page, account: string) {
+  const secrets = new Map<string, string>();
+  await page.context().route("**/api/donate", (route) => {
+    if (route.request().method() !== "POST") return route.continue();
+    const body = JSON.parse(route.request().postData() ?? "{}") as {
+      key?: string;
+      lines?: Array<{ amountCents?: number }>;
+    };
+    const key = String(body.key);
+    if (!secrets.has(key))
+      secrets.set(
+        key,
+        [`pi_j${secrets.size + 1}`, "secret", "journey"].join("_"),
+      );
+    return route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({
+        intakeId: "00000000-0000-4000-8000-000000000001",
+        clientSecret: secrets.get(key),
+        connectedAccountId: account,
+        amountCents: body.lines?.[0]?.amountCents ?? 0,
+      }),
+    });
+  });
+}
+
+async function planStripe(page: Page, plan: Record<string, unknown>) {
+  await page.context().addInitScript((value) => {
+    (window as Window & { __stripeStubPlan?: unknown }).__stripeStubPlan =
+      value;
+  }, plan);
+}
+
+type StubLog = {
+  confirms: Array<{ clientSecret?: string }>;
+  refused: string[];
+  retrieves: number;
+};
+
+const stubLog = (page: Page) =>
+  page.evaluate(
+    () => (window as Window & { __stripeStub?: StubLog }).__stripeStub!,
+  );
+
+const DECLINED = { error: { type: "card_error", code: "card_declined" } };
+const LOST = { error: { type: "api_connection_error" } };
 
 test.describe("Guest giving with the switch on (Level 1: Stripe.js stubbed at the network)", () => {
   test.skip(LEVEL_2, "Level 2 runs the real Payment Element instead");
@@ -302,7 +354,7 @@ test.describe("Guest giving with the switch on (Level 1: Stripe.js stubbed at th
     await expect(page.getByRole("button", { name: /^Give \$/ })).toHaveCount(0);
   });
 
-  test("the thank-you says only that the gift was received, and a reload reads the payment's state from Stripe.js without asking our server", async ({
+  test("a lost answer from a payment that went through ends in received; the thank-you says only that, and a reload reads the payment's state from Stripe.js without asking our server", async ({
     page,
   }) => {
     const heldSecret = ["pi_journey", "secret", "held"].join("_");
@@ -337,11 +389,11 @@ test.describe("Guest giving with the switch on (Level 1: Stripe.js stubbed at th
     await typeGuest(page, `thanks-${Date.now()}@example.test`);
     await waitForChallenge(page);
     await page.getByRole("button", { name: /^Give \$/ }).click();
-    await expect(page.getByText(WORDS.lostConnection)).toBeVisible();
-    await expect(page.getByText(WORDS.received)).toHaveCount(0);
+    await expect(page.getByText(WORDS.received)).toBeVisible();
+    await expect(page.getByText(WORDS.lostConnection)).toHaveCount(0);
     await page.reload();
     await expect(page.getByText(WORDS.received)).toBeVisible();
-    await expect(page.getByText(WORDS.claim)).toBeVisible();
+    await expect(page.getByText(WORDS.claim)).toHaveCount(0);
     expect(
       await page.evaluate(
         () =>
@@ -351,6 +403,183 @@ test.describe("Guest giving with the switch on (Level 1: Stripe.js stubbed at th
     ).toBeGreaterThanOrEqual(1);
     expect(sent.filter((line) => line.includes(heldSecret))).toEqual([]);
     expect(page.url()).not.toContain("secret");
+  });
+
+  test("the amount is typed: select, type, clear, type again and tab away; the form stays and Give waits for a valid amount", async ({
+    page,
+  }) => {
+    await answerIntake(page, world.accounts.A1);
+    const posts = donatePosts(page);
+    await page.goto(
+      checkoutUrl(world.hosts.siteA, `fund_id=${world.funds.A1}&amount=25`),
+    );
+    await typeGuest(page, `typed-${Date.now()}@example.test`);
+    const amount = page.getByLabel("Amount (USD)");
+    await amount.click();
+    await amount.press("ControlOrMeta+a");
+    await amount.pressSequentially("50");
+    await expect(
+      page.getByRole("button", { name: "Give $50.00" }),
+    ).toBeVisible();
+    await amount.press("ControlOrMeta+a");
+    await amount.press("Backspace");
+    await expect(page.getByLabel("Email")).toBeVisible();
+    await expect(page.getByTestId("stripe-stub-payment")).toBeVisible();
+    await expect(page.getByRole("button", { name: /^Give/ })).toBeDisabled();
+    await amount.pressSequentially("7.5");
+    await amount.press("Tab");
+    await expect(amount).toHaveValue("7.50");
+    await waitForChallenge(page);
+    await page.getByRole("button", { name: "Give $7.50" }).click();
+    await expect(page.getByText(WORDS.received)).toBeVisible();
+    expect(posts[0]?.lines).toEqual([
+      { fundId: world.funds.A1, amountCents: 750 },
+    ]);
+  });
+
+  test("a declined card, then a second card in the same tab: the same open payment is confirmed, with no second request", async ({
+    page,
+  }) => {
+    await answerIntake(page, world.accounts.A1);
+    await planStripe(page, { confirms: [DECLINED] });
+    const posts = donatePosts(page);
+    await page.goto(
+      checkoutUrl(world.hosts.siteA, `fund_id=${world.funds.A1}&amount=26`),
+    );
+    await typeGuest(page, `second-card-${Date.now()}@example.test`);
+    await waitForChallenge(page);
+    await page.getByRole("button", { name: /^Give \$/ }).click();
+    await expect(page.getByText(WORDS.declined)).toBeVisible();
+    await page.getByRole("button", { name: /^Give \$/ }).click();
+    await expect(page.getByText(WORDS.received)).toBeVisible();
+    expect(posts).toHaveLength(1);
+    const log = await stubLog(page);
+    expect(log.confirms.map((c) => c.clientSecret)).toEqual([
+      log.confirms[0]!.clientSecret,
+      log.confirms[0]!.clientSecret,
+    ]);
+  });
+
+  test("a declined card, then a corrected e-mail, then a second card: the card is tried under a new key", async ({
+    page,
+  }) => {
+    await answerIntake(page, world.accounts.A1);
+    await planStripe(page, { confirms: [DECLINED] });
+    const posts = donatePosts(page);
+    await page.goto(
+      checkoutUrl(world.hosts.siteA, `fund_id=${world.funds.A1}&amount=27`),
+    );
+    await countResets(page);
+    const stamp = Date.now();
+    await typeGuest(page, `corrected-${stamp}@exmaple.test`);
+    await waitForChallenge(page);
+    await page.getByRole("button", { name: /^Give \$/ }).click();
+    await expect(page.getByText(WORDS.declined)).toBeVisible();
+    await page.getByLabel("Email").fill(`corrected-${stamp}@example.test`);
+    await page.waitForFunction(
+      () => ((window as Challenged).__resets ?? 0) >= 1,
+    );
+    await waitForChallenge(page);
+    await page.getByRole("button", { name: /^Give \$/ }).click();
+    await expect(page.getByText(WORDS.received)).toBeVisible();
+    expect(posts).toHaveLength(2);
+    expect(posts[1]?.key).not.toBe(posts[0]?.key);
+    const log = await stubLog(page);
+    expect(log.confirms).toHaveLength(2);
+    expect(log.confirms[1]!.clientSecret).not.toBe(
+      log.confirms[0]!.clientSecret,
+    );
+  });
+
+  test("two pages of one browser with two different gifts, then the first gift again in a new page: the first gift's key is sent again", async ({
+    page,
+  }) => {
+    await answerIntake(page, world.accounts.A1);
+    await planStripe(page, { confirms: [LOST] });
+    const email = `two-gifts-${Date.now()}@example.test`;
+    const first = checkoutUrl(
+      world.hosts.siteA,
+      `fund_id=${world.funds.A1}&amount=40`,
+    );
+    const second = checkoutUrl(
+      world.hosts.siteA,
+      `fund_id=${world.funds.A1}&amount=41`,
+    );
+    const keys: unknown[] = [];
+    for (const url of [first, second, first]) {
+      const tab = await page.context().newPage();
+      const posts = donatePosts(tab);
+      await tab.goto(url);
+      await typeGuest(tab, email);
+      await waitForChallenge(tab);
+      await tab.getByRole("button", { name: /^Give \$/ }).click();
+      await expect.poll(() => posts.length).toBe(1);
+      keys.push(posts[0]?.key);
+      await tab.close();
+    }
+    expect(keys[1]).not.toBe(keys[0]);
+    expect(keys[2]).toBe(keys[0]);
+  });
+
+  test("after a gift a reload shows the same thank-you; a guest who leaves both names empty can give", async ({
+    page,
+  }) => {
+    await answerIntake(page, world.accounts.A1);
+    await page.goto(
+      checkoutUrl(world.hosts.siteA, `fund_id=${world.funds.A1}&amount=28`),
+    );
+    await typeGuest(page, `reload-${Date.now()}@example.test`, ["", ""]);
+    await waitForChallenge(page);
+    await page.getByRole("button", { name: /^Give \$/ }).click();
+    await expect(page.getByText(WORDS.received)).toBeVisible();
+    expect((await stubLog(page)).refused).toEqual([]);
+    await page.reload();
+    await expect(page.getByText(WORDS.received)).toBeVisible();
+    await expect(page.getByLabel("Email")).toHaveCount(0);
+    await expect(page.getByText(WORDS.claim)).toHaveCount(0);
+  });
+
+  test("a hand-off from a website to the home is the account surface, and its sign-in keeps the gift", async ({
+    page,
+  }) => {
+    await page.goto(
+      checkoutUrl(world.hosts.siteA, `fund_id=${world.funds.A1}&amount=29`),
+    );
+    const handOff = page.getByRole("link", { name: "Give signed in" });
+    await expect(handOff).toBeVisible();
+    const target = new URL((await handOff.getAttribute("href"))!);
+    expect(target.host).toBe(world.hosts.homeA);
+    expect(target.searchParams.get("sourceSiteId")).toBe(world.sites.siteA);
+    const reads: Array<Record<string, unknown>> = [];
+    page.on("request", (request) => {
+      if (new URL(request.url()).pathname === "/api/checkout/config")
+        reads.push(JSON.parse(request.postData() ?? "{}"));
+    });
+    await page.goto(
+      `${origin(world.hosts.homeA)}${target.pathname}${target.search}`,
+    );
+    const signIn = page.getByRole("link", {
+      name: "Sign in to give from your account",
+    });
+    await expect(signIn).toBeVisible();
+    await expect(page.getByLabel("Email")).toHaveCount(0);
+    const next = new URL(
+      (await signIn.getAttribute("href"))!,
+      origin(world.hosts.homeA),
+    ).searchParams.get("next")!;
+    expect(
+      Object.fromEntries(new URL(next, origin(world.hosts.homeA)).searchParams),
+    ).toEqual({
+      fund_id: world.funds.A1,
+      amount: "29.00",
+      coverFees: "0",
+      sourceSiteId: world.sites.siteA,
+    });
+    await expect.poll(() => reads.length).toBeGreaterThan(0);
+    expect(reads[0]).toMatchObject({
+      surface: "donor_account",
+      sourceSiteId: world.sites.siteA,
+    });
   });
 });
 

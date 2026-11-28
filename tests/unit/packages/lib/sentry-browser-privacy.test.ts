@@ -119,6 +119,46 @@ describe("real Sentry browser HTTP context under Core's collection policy", () =
     expect(fetch).not.toHaveBeenCalled();
   });
 
+  it("takes a payment's client secret out of the collected page address and out of breadcrumbs (AL-2681 fix round X8)", async () => {
+    vi.spyOn(globalThis, "fetch").mockRejectedValue(
+      new Error("Network disabled in the browser privacy fixture"),
+    );
+    const secret = ["pi_3Fix", "secret", "Round8"].join("_");
+    window.history.replaceState(
+      {},
+      "",
+      `/checkout?fund_id=f1&payment_intent=pi_3Fix&payment_intent_client_secret=${secret}&redirect_status=succeeded`,
+    );
+    const envelopes: unknown[] = [];
+    Sentry.init({
+      ...getSentryCompatibilityOptions(),
+      dsn: "https://public@example.invalid/1",
+      transport: () => ({
+        send: async (envelope: unknown) => {
+          envelopes.push(envelope);
+          return { statusCode: 200 };
+        },
+        flush: async () => true,
+      }),
+    });
+    Sentry.addBreadcrumb({
+      category: "navigation",
+      data: {
+        from: `/checkout?payment_intent_client_secret=${secret}`,
+        to: "/checkout?fund_id=f1",
+      },
+    });
+    Sentry.addBreadcrumb({
+      category: "fetch",
+      message: `GET https://api.stripe.com/v1/payment_intents/pi_3Fix?client_secret=${secret}`,
+    });
+    Sentry.captureMessage("local client secret fixture");
+    await Sentry.flush(1_000);
+    expect(envelopes).not.toEqual([]);
+    expect(JSON.stringify(envelopes)).not.toContain(secret);
+    expect(fetch).not.toHaveBeenCalled();
+  });
+
   it.each([
     {
       name: "admin",
