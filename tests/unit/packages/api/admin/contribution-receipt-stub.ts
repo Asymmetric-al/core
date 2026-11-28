@@ -122,6 +122,139 @@ export const STAGED_GIFT = {
   metadata: {},
 };
 
+export const TABLE_RULES: Record<
+  string,
+  { required: string[]; notNull: string[]; unique: string[][] }
+> = {
+  contribution_adjustments: {
+    required: [
+      "tenant_id",
+      "donation_id",
+      "adjustment_type",
+      "reason",
+      "source_surface",
+    ],
+    notNull: [
+      "id",
+      "tenant_id",
+      "donation_id",
+      "adjustment_type",
+      "status",
+      "effective_values",
+      "reason",
+      "source_surface",
+      "created_at",
+    ],
+    unique: [["tenant_id", "idempotency_key"]],
+  },
+  contribution_receipt_snapshots: {
+    required: ["tenant_id", "donation_id", "kind"],
+    notNull: [
+      "id",
+      "tenant_id",
+      "donation_id",
+      "kind",
+      "content",
+      "created_at",
+    ],
+    unique: [["adjustment_id", "kind"]],
+  },
+  email_send_logs: {
+    required: ["tenant_id", "idempotency_key", "correlation_id"],
+    notNull: [
+      "id",
+      "tenant_id",
+      "idempotency_key",
+      "correlation_id",
+      "status",
+      "recipient_count",
+      "message_type",
+      "requested_at",
+      "retry_count",
+      "metadata",
+    ],
+    unique: [["tenant_id", "idempotency_key"]],
+  },
+  staged_gifts: {
+    required: ["tenant_id", "donation_id", "amount", "intake_format"],
+    notNull: [
+      "id",
+      "tenant_id",
+      "donation_id",
+      "amount",
+      "currency",
+      "status",
+      "donor_match_status",
+      "allocation_status",
+      "receipt_status",
+      "crm_post_status",
+      "metadata",
+      "created_at",
+      "updated_at",
+      "intake_format",
+    ],
+    unique: [["donation_id"], ["tenant_id", "id", "legal_entity_id"]],
+  },
+};
+
+function notNullRefusal(
+  table: string,
+  operation: "insert" | "update",
+  payload: Row,
+): { code: string; message: string } | null {
+  const rules = TABLE_RULES[table];
+  if (!rules) return null;
+  const missing =
+    operation === "insert"
+      ? rules.required.find(
+          (column) => payload[column] === undefined || payload[column] === null,
+        )
+      : undefined;
+  const nulled = rules.notNull.find(
+    (column) => Object.hasOwn(payload, column) && payload[column] === null,
+  );
+  const column = missing ?? nulled;
+  return column
+    ? {
+        code: "23502",
+        message: `null value in column "${column}" of relation "${table}" violates not-null constraint`,
+      }
+    : null;
+}
+
+const STORES: Record<string, (state: State) => Row[]> = {
+  email_send_logs: (state) => state.emailSendLogs,
+  contribution_receipt_snapshots: (state) => state.snapshots,
+  contribution_adjustments: (state) => state.adjustments,
+};
+
+const DEFAULTS: Record<string, Row> = {
+  email_send_logs: { status: "pending" },
+};
+
+function uniqueRefusal(
+  table: string,
+  candidate: Row,
+  rows: Row[],
+  skip: ReadonlySet<Row>,
+): { code: string; message: string } | null {
+  for (const key of TABLE_RULES[table]?.unique ?? []) {
+    if (key.some((column) => candidate[column] == null)) continue;
+    if (
+      rows.some(
+        (row) =>
+          !skip.has(row) &&
+          key.every((column) => row[column] === candidate[column]),
+      )
+    )
+      return {
+        code: "23505",
+        message: `duplicate key value violates unique constraint ${table}_${key.join("_")}_key`,
+      };
+  }
+  return null;
+}
+
 export interface State {
   donationMissionaryId: string | null;
   allocations: Row[];
@@ -144,6 +277,14 @@ export interface State {
   keyLookups?: number;
   donorDoNotEmail?: boolean;
   suppressionTypes?: string[];
+  writeGate?: (
+    table: string,
+    operation: "insert" | "update",
+    payload: Row,
+  ) => Promise<void> | void;
+  onSecondKeyLookup?: () => void;
+  currentDonorId?: string;
+  donorRows?: Record<string, Row>;
 }
 
 export class QueryBuilder {
@@ -154,6 +295,7 @@ export class QueryBuilder {
   private inValues: unknown[] = [];
   private eqs: Array<[string, unknown]> = [];
   private neqs: Array<[string, unknown]> = [];
+  private ors: Array<Array<[string, string, string]>> = [];
 
   constructor(
     private readonly table: string,
@@ -185,6 +327,15 @@ export class QueryBuilder {
     this.neqs.push([column, value]);
     return this;
   }
+  or(filters: string) {
+    this.ors.push(
+      filters.split(",").map((clause) => {
+        const [column, op, ...rest] = clause.split(".");
+        return [column!, op!, rest.join(".")];
+      }),
+    );
+    return this;
+  }
   ilike() {
     return this;
   }
@@ -210,11 +361,59 @@ export class QueryBuilder {
     return this;
   }
 
+  private cell(row: Row, column: string) {
+    return column.startsWith("metadata->>")
+      ? (row.metadata as Row | undefined)?.[column.slice("metadata->>".length)]
+      : row[column];
+  }
+
+  private matches(row: Row) {
+    return (
+      this.eqs.every(([column, value]) => this.cell(row, column) === value) &&
+      this.neqs.every(([column, value]) => this.cell(row, column) !== value) &&
+      this.ors.every((clauses) =>
+        clauses.some(([column, op, value]) => {
+          const actual = this.cell(row, column);
+          if (op === "is" && value === "null") return actual == null;
+          if (op === "eq") return actual != null && String(actual) === value;
+          if (op === "neq") return actual != null && String(actual) !== value;
+          throw new Error(`the stub cannot filter ${column}.${op}.${value}`);
+        }),
+      )
+    );
+  }
+
   private resolve(): {
     data: unknown;
     error: { code?: string; message: string } | null;
   } {
     const { state } = this;
+    if (this.operation !== "select" && this.payload) {
+      const refused = notNullRefusal(this.table, this.operation, this.payload);
+      if (refused) return { data: null, error: refused };
+    }
+    const store = STORES[this.table]?.(state);
+    if (store && this.operation === "insert" && this.payload) {
+      const refused = uniqueRefusal(
+        this.table,
+        { ...DEFAULTS[this.table], ...this.payload },
+        store,
+        new Set(),
+      );
+      if (refused) return { data: null, error: refused };
+    }
+    if (store && this.operation === "update" && this.payload) {
+      const targets = store.filter((row) => this.matches(row));
+      for (const row of targets) {
+        const refused = uniqueRefusal(
+          this.table,
+          { ...row, ...this.payload },
+          store,
+          new Set(targets),
+        );
+        if (refused) return { data: null, error: refused };
+      }
+    }
     state.ops?.push(
       this.operation === "select"
         ? `select ${this.table} ${this.columns}`
@@ -226,7 +425,7 @@ export class QueryBuilder {
           data: {
             id: DONATION_ID,
             tenant_id: TENANT_ID,
-            donor_id: "donor-1",
+            donor_id: state.currentDonorId ?? "donor-1",
             missionary_id: state.donationMissionaryId,
             fund_id: state.donationFundId ?? null,
             amount: 25_000,
@@ -242,13 +441,17 @@ export class QueryBuilder {
         };
       case "staged_gifts":
         if (this.operation === "update") {
-          Object.assign(state.stagedGift, this.payload);
+          if (this.matches(state.stagedGift))
+            Object.assign(state.stagedGift, this.payload);
           return { data: null, error: null };
         }
         return { data: state.stagedGift, error: null };
       case "staged_gift_allocations":
         return { data: state.allocations, error: null };
-      case "donors":
+      case "donors": {
+        const id = this.eqs.find(([column]) => column === "id")?.[1];
+        const own = typeof id === "string" ? state.donorRows?.[id] : undefined;
+        if (own) return { data: structuredClone(own), error: null };
         return {
           data: {
             id: "donor-1",
@@ -260,6 +463,7 @@ export class QueryBuilder {
           },
           error: null,
         };
+      }
       case "missionaries": {
         const wantsPublicName = /\bworker_public_name\b/.test(this.columns);
         if (wantsPublicName && (state.failWorkerNames ?? 0) > 0) {
@@ -307,6 +511,11 @@ export class QueryBuilder {
           ? { data: null, error: { message: "gift holds are unavailable" } }
           : { data: [], error: null };
       case "contribution_receipt_snapshots": {
+        if (this.operation === "update") {
+          for (const row of state.snapshots.filter((r) => this.matches(r)))
+            Object.assign(row, structuredClone(this.payload));
+          return { data: null, error: null };
+        }
         if (this.operation !== "insert")
           return {
             data: state.snapshots
@@ -315,23 +524,6 @@ export class QueryBuilder {
               )
               .map((row) => structuredClone(row)),
             error: null,
-          };
-        if (
-          this.payload?.adjustment_id &&
-          !state.snapshotConflictOnce &&
-          state.snapshots.some(
-            (row) =>
-              row.adjustment_id === this.payload?.adjustment_id &&
-              row.kind === this.payload?.kind,
-          )
-        )
-          return {
-            data: null,
-            error: {
-              code: "23505",
-              message:
-                "duplicate key value violates unique constraint contribution_receipt_snapshots_adjustment_kind_key",
-            },
           };
         if ((state.failSnapshotInserts ?? 0) > 0) {
           state.failSnapshotInserts! -= 1;
@@ -364,23 +556,9 @@ export class QueryBuilder {
         return { data: { id: row.id }, error: null };
       }
       case "email_send_logs": {
-        const cell = (row: Row, column: string) =>
-          column.startsWith("metadata->>")
-            ? (row.metadata as Row | undefined)?.[
-                column.slice("metadata->>".length)
-              ]
-            : row[column];
         const matching = () =>
           state.emailSendLogs
-            .filter(
-              (row) =>
-                this.eqs.every(
-                  ([column, value]) => cell(row, column) === value,
-                ) &&
-                this.neqs.every(
-                  ([column, value]) => cell(row, column) !== value,
-                ),
-            )
+            .filter((row) => this.matches(row))
             .sort((a, b) =>
               String(b.requested_at ?? "").localeCompare(
                 String(a.requested_at ?? ""),
@@ -398,23 +576,9 @@ export class QueryBuilder {
             error: null,
           };
         }
-        if (
-          state.emailSendLogs.some(
-            (row) =>
-              row.tenant_id === this.payload?.tenant_id &&
-              row.idempotency_key === this.payload?.idempotency_key,
-          )
-        )
-          return {
-            data: null,
-            error: {
-              code: "23505",
-              message:
-                "duplicate key value violates unique constraint email_send_logs_tenant_idempotency_unique",
-            },
-          };
         const row = {
           id: `send-log-${state.emailSendLogs.length + 1}`,
+          ...DEFAULTS.email_send_logs,
           ...structuredClone(this.payload),
         };
         state.emailSendLogs.push(row);
@@ -431,6 +595,11 @@ export class QueryBuilder {
       case "contribution_corrections":
         return { data: [], error: null };
       case "contribution_adjustments": {
+        if (this.operation === "update") {
+          for (const row of state.adjustments.filter((r) => this.matches(r)))
+            Object.assign(row, structuredClone(this.payload));
+          return { data: null, error: null };
+        }
         if (this.operation === "insert") {
           const key = this.payload?.idempotency_key;
           if (state.winnerRow && state.winnerRow.idempotency_key === key) {
@@ -441,14 +610,6 @@ export class QueryBuilder {
               error: { code: "23505", message: "duplicate idempotency key" },
             };
           }
-          if (
-            typeof key === "string" &&
-            state.adjustments.some((row) => row.idempotency_key === key)
-          )
-            return {
-              data: null,
-              error: { code: "23505", message: "duplicate idempotency key" },
-            };
           const row = {
             id: `adj-${state.adjustments.length + 1}`,
             created_at: new Date(
@@ -464,6 +625,7 @@ export class QueryBuilder {
           if (state.keyLookups === 2 && state.commitOnSecondKeyLookup) {
             state.adjustments.push(state.commitOnSecondKeyLookup);
             state.commitOnSecondKeyLookup = undefined;
+            state.onSecondKeyLookup?.();
           }
         }
         const adjustments = state.adjustments.filter((row) =>
@@ -494,7 +656,17 @@ export class QueryBuilder {
       error: { code?: string; message: string } | null;
     }) => T,
   ): Promise<T> {
-    return Promise.resolve(this.resolve()).then(onfulfilled);
+    const gate =
+      this.operation === "select"
+        ? undefined
+        : this.state.writeGate?.(
+            this.table,
+            this.operation,
+            this.payload ?? {},
+          );
+    return Promise.resolve(gate)
+      .then(() => this.resolve())
+      .then(onfulfilled);
   }
 }
 

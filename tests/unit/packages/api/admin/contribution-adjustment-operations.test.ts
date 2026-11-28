@@ -98,6 +98,10 @@ class QueryBuilder {
     return this;
   }
 
+  or(_filters: string) {
+    return this;
+  }
+
   is(column: string, value: null) {
     this.ordinaryFundsOnly = column === "system_purpose" && value === null;
     return this;
@@ -458,6 +462,7 @@ describe("applyContributionCorrection", () => {
       insertCount: 0,
       stagedGift: {
         id: "staged-1",
+        donor_id: "donor-1",
         status: "posted",
         review_reason: null,
         receipt_status: "sent",
@@ -492,6 +497,7 @@ describe("applyContributionCorrection", () => {
       insertCount: 0,
       stagedGift: {
         id: "staged-1",
+        donor_id: "donor-1",
         status: "posted",
         review_reason: null,
         receipt_status: "sent",
@@ -523,6 +529,7 @@ describe("applyContributionCorrection", () => {
       insertCount: 0,
       stagedGift: {
         id: "staged-1",
+        donor_id: "donor-1",
         status: "posted",
         review_reason: null,
         receipt_status: "sent",
@@ -559,6 +566,7 @@ describe("applyContributionCorrection", () => {
       insertCount: 0,
       stagedGift: {
         id: "staged-1",
+        donor_id: "donor-1",
         status: "posted",
         review_reason: null,
         receipt_status: "sent",
