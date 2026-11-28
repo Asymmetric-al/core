@@ -282,6 +282,8 @@ jobs:
         run: node scripts/release/vercel-release.mjs deploy
       - name: Register job functions
         if: vars.RELEASE_REGISTER_JOB_FUNCTIONS == 'true' && contains(steps.plan.outputs.apps, 'admin')
+        env:
+          VERCEL_ADMIN_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_ADMIN_AUTOMATION_BYPASS_SECRET }}
         run: node scripts/release/vercel-release.mjs register-jobs
 
   marker:
