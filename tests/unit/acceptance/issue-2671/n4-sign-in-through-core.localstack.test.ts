@@ -426,9 +426,8 @@ describe.skipIf(!READY)(
         from,
       );
       expect(right.status).toBe(200);
-      expect(await liveSessions(userId)).toBeLessThanOrEqual(
-        withAnotherBrowser,
-      );
+      expect(withAnotherBrowser).toBe(before + 1);
+      expect(await liveSessions(userId)).toBe(1);
       expect((await tryPassword(email, PASSWORD)).status).toBe(401);
       expect((await tryPassword(email, NEW_PASSWORD)).status).toBe(200);
     });

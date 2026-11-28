@@ -257,6 +257,26 @@ describe("choosing a new password", () => {
     expect(router.refresh).toHaveBeenCalled();
   });
 
+  it("says the save could not be confirmed when the answer is lost, and what to try", async () => {
+    passwordRoute.mockRejectedValueOnce(new TypeError("Failed to fetch"));
+    render(
+      <ResetPasswordScreen
+        appId="donor"
+        recovery={{ email: "ada@example.com", secondsLeft: 3600 }}
+      />,
+    );
+    expect(
+      screen.getByText(/your other devices will be signed out/),
+    ).toBeTruthy();
+    type("New password", "long enough phrase");
+    type("Confirm new password", "long enough phrase");
+    fireEvent.click(screen.getByRole("button", { name: "Save new password" }));
+    expect((await screen.findByRole("alert")).textContent).toContain(
+      "We couldn’t confirm whether your new password was saved. Sign in with it; if that doesn’t work, ask for a new link.",
+    );
+    expect(router.replace).not.toHaveBeenCalled();
+  });
+
   it("keeps the person on the form when Core refuses the password, in Core's words", async () => {
     passwordRoute.mockResolvedValue(
       Response.json(

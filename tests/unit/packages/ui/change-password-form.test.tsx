@@ -133,9 +133,28 @@ describe("ChangePasswordForm", () => {
     submit();
     await waitFor(() =>
       expect(screen.getByRole("alert").textContent).toBe(
-        "Your password couldn’t be changed. Try again.",
+        "We couldn’t confirm whether your password changed. Sign in with your new password; if that doesn’t work, use your old one.",
       ),
     );
+  });
+
+  it("says the outcome could not be confirmed when the answer cannot be read", async () => {
+    passwordRoute.mockResolvedValueOnce(
+      new Response("not json", { status: 200 }),
+    );
+    render(<ChangePasswordForm />);
+    fillChange();
+    submit();
+    expect((await screen.findByRole("alert")).textContent).toBe(
+      "We couldn’t confirm whether your password changed. Sign in with your new password; if that doesn’t work, use your old one.",
+    );
+  });
+
+  it("says what a change does to the person's other sessions", () => {
+    render(<ChangePasswordForm />);
+    expect(
+      screen.getByText("Changing it signs you out on your other devices."),
+    ).toBeTruthy();
   });
 
   it("refuses reusing the current password", async () => {
