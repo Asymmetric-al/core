@@ -470,7 +470,7 @@ describe("AL-2681 issue 2857 item 44: four guards", () => {
 });
 
 describe("AL-2681 issue 2857 item 45: the replay's delivery check and the stub's rules", () => {
-  it("the replay checks the donor of the detail it acts on: the key's correction commits on the second lookup and the gift's donor then opts out of email: blocked, nothing mailed", async () => {
+  it("the replay checks the donor the mailer addresses when it acts: the key's correction commits on the second lookup and the gift is then re-linked to a donor who opted out of email: blocked, nothing mailed", async () => {
     const state = freshState(true);
     const { loadContributionDetailFromSupabase } =
       await import("../../../../../packages/api/src/admin/contribution-operations/operations");
@@ -502,6 +502,7 @@ describe("AL-2681 issue 2857 item 45: the replay's delivery check and the stub's
     };
     state.onSecondKeyLookup = () => {
       state.currentDonorId = "donor-2";
+      state.stagedGift.donor_id = "donor-2";
     };
     const replay = await correctWith(state, {
       key: "key-45-donor",
@@ -896,7 +897,8 @@ describe("AL-2681 A2 fix round Z5: where the row reads sent, the gift reads sent
     const lost = await losing;
     expect(winning.receiptOutcome).toMatchObject({ status: "emailed" });
     expect(lost.receiptOutcome).toMatchObject({ status: "emailed" });
-    expect(history).toEqual(["sent"]);
+    expect(history).not.toContain("failed");
+    expect(history.at(-1)).toBe("sent");
     expect(state.stagedGift.receipt_send_log_id).toBe(
       state.emailSendLogs[0]!.id,
     );

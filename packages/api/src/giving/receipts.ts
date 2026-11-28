@@ -42,8 +42,19 @@ interface ReceiptGiftIdentity {
 
 interface ReceiptSendResult {
   sendLogId: string | null;
-  status: "sent" | "failed" | "suppressed";
+  status: "sent" | "failed" | "suppressed" | "bounced";
 }
+
+const FINAL_ROW_STATES: ReadonlySet<string> = new Set([
+  "sent",
+  "bounced",
+  "complained",
+]);
+
+type SendLogRef = { id: string | null; status: string };
+
+const finalRowOf = (row: SendLogRef | null): SendLogRef | null =>
+  row !== null && FINAL_ROW_STATES.has(row.status) ? row : null;
 
 function formatMoney(cents: number, currency: string) {
   return new Intl.NumberFormat("en-US", {
@@ -299,6 +310,27 @@ async function markGiftReceipt(
   }
 }
 
+async function markGiftUnlessSentWith(
+  supabaseAdmin: SupabaseAdminClient,
+  giftId: string,
+  fields: JsonRecord,
+  sendLogId: string | null,
+) {
+  let update = supabaseAdmin
+    .from("staged_gifts")
+    .update({ ...fields, updated_at: new Date().toISOString() })
+    .eq("id", giftId);
+  if (sendLogId) {
+    update = update.or(
+      `receipt_status.neq.sent,receipt_send_log_id.is.null,receipt_send_log_id.neq.${sendLogId}`,
+    );
+  }
+  const updateResult = await update;
+  if (updateResult.error) {
+    throw new Error(updateResult.error.message);
+  }
+}
+
 const sentGiftFields = (sendLogId: string | null): JsonRecord => ({
   receipt_status: "sent",
   receipt_send_log_id: sendLogId,
@@ -311,12 +343,31 @@ type ReceiptAnswer = "attempt" | "row";
 function answerOf(
   answer: ReceiptAnswer,
   attempt: ReceiptSendResult["status"],
-  row: { id: string | null; status: string } | null,
+  row: SendLogRef | null,
+  own: boolean,
 ): ReceiptSendResult {
-  if (answer === "row" && row?.status === "sent") {
-    return { sendLogId: row.id, status: "sent" };
+  const final = answer === "row" ? finalRowOf(row) : null;
+  if (final) {
+    return {
+      sendLogId: final.id,
+      status: final.status === "sent" ? "sent" : "bounced",
+    };
   }
-  return { sendLogId: row?.id ?? null, status: attempt };
+  return { sendLogId: own ? (row?.id ?? null) : null, status: attempt };
+}
+
+export async function receiptRecipientDonorId(input: {
+  supabaseAdmin: SupabaseAdminClient;
+  tenantId: string;
+  stagedGiftId: string | null;
+}): Promise<string | null> {
+  if (!input.stagedGiftId) return null;
+  const gift = await loadStagedGiftById({
+    supabaseAdmin: input.supabaseAdmin,
+    tenantId: input.tenantId,
+    stagedGiftId: input.stagedGiftId,
+  });
+  return gift.donorId;
 }
 
 async function deliverReceiptEmailForGift(input: {
@@ -384,23 +435,34 @@ async function deliverReceiptEmailForGift(input: {
       decision: consent,
       source: input.source,
     });
-    if (recorded?.status === "sent") {
-      return answerOf(input.answer, "suppressed", recorded);
+    const recordedFinal = finalRowOf(recorded);
+    if (recordedFinal) {
+      await markGiftReceipt(
+        input.supabaseAdmin,
+        gift.id,
+        sentGiftFields(recordedFinal.id),
+      );
+      return answerOf(input.answer, "suppressed", recordedFinal, false);
     }
-    await markGiftReceipt(input.supabaseAdmin, gift.id, {
-      receipt_status: "suppressed",
-      receipt_send_log_id: null,
-      last_error_code: consent.reason,
-      last_error_message: consentSkipMessage(consent.reason),
-    });
-    const after = await readRow();
-    if (after?.status === "sent") {
+    await markGiftUnlessSentWith(
+      input.supabaseAdmin,
+      gift.id,
+      {
+        receipt_status: "suppressed",
+        receipt_send_log_id: null,
+        last_error_code: consent.reason,
+        last_error_message: consentSkipMessage(consent.reason),
+      },
+      recorded?.id ?? null,
+    );
+    const after = finalRowOf(await readRow());
+    if (after) {
       await markGiftReceipt(
         input.supabaseAdmin,
         gift.id,
         sentGiftFields(after.id),
       );
-      return answerOf(input.answer, "suppressed", after);
+      return answerOf(input.answer, "suppressed", after, false);
     }
     return { sendLogId: null, status: "suppressed" };
   }
@@ -440,24 +502,34 @@ async function deliverReceiptEmailForGift(input: {
     retry_count: result.retryCount ?? 0,
     metadata: input.metadata,
   });
-  if (log.status === "sent") {
-    await markGiftReceipt(input.supabaseAdmin, gift.id, sentGiftFields(log.id));
-    return answerOf(input.answer, attempt, log);
+  const logFinal = finalRowOf(log);
+  if (logFinal) {
+    await markGiftReceipt(
+      input.supabaseAdmin,
+      gift.id,
+      sentGiftFields(logFinal.id),
+    );
+    return answerOf(input.answer, attempt, logFinal, attempt === "sent");
   }
-  await markGiftReceipt(input.supabaseAdmin, gift.id, {
-    receipt_status: "failed",
-    receipt_send_log_id: log.id,
-    last_error_code: result.errors?.[0]?.code ?? null,
-    last_error_message: result.errors?.[0]?.message ?? null,
-  });
-  const after = await readRow();
-  if (after?.status === "sent") {
+  await markGiftUnlessSentWith(
+    input.supabaseAdmin,
+    gift.id,
+    {
+      receipt_status: "failed",
+      receipt_send_log_id: log.id,
+      last_error_code: result.errors?.[0]?.code ?? null,
+      last_error_message: result.errors?.[0]?.message ?? null,
+    },
+    log.id,
+  );
+  const after = finalRowOf(await readRow());
+  if (after) {
     await markGiftReceipt(
       input.supabaseAdmin,
       gift.id,
       sentGiftFields(after.id),
     );
-    return answerOf(input.answer, attempt, after);
+    return answerOf(input.answer, attempt, after, false);
   }
   return { sendLogId: log.id, status: "failed" };
 }
@@ -504,7 +576,9 @@ async function recordSendLog(
     .update(values)
     .eq("tenant_id", tenantId)
     .eq("idempotency_key", key)
-    .neq("status", "sent");
+    .neq("status", "sent")
+    .neq("status", "bounced")
+    .neq("status", "complained");
   if (updated.error) {
     throw new Error(updated.error.message);
   }

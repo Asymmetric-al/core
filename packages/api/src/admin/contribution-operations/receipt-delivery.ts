@@ -263,7 +263,8 @@ export interface ReceiptDeliveryOutcome {
     | "failed"
     | "pending"
     | "superseded"
-    | "bounced";
+    | "bounced"
+    | "unrecognized";
   reason: string | null;
   snapshotId: string | null;
   affectedFields: string[];
