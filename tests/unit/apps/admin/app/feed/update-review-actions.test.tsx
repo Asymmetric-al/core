@@ -206,6 +206,46 @@ describe("Mission Control's review queue (AL-2680, WP7 pull request 1)", () => {
     );
   });
 
+  it("binds a rejection to the version its dialog opened on: after the list refreshes with new words the server refuses it, and the dialog says the update changed and shows the new words (WP7 1b, item 2)", async () => {
+    const { sent, queue } = stubServer();
+    mount();
+    await screen.findByText("Waiting update");
+    fireEvent.click(
+      screen.getByRole("button", { name: "Don’t approve Clinic opens" }),
+    );
+    const dialog = await screen.findByRole("dialog");
+    queue.waiting = {
+      ...queue.waiting,
+      content: "<p>Waiting update, revised</p>",
+      content_version: 3,
+    };
+    await getQueryClient().invalidateQueries({ queryKey: ["moderation"] });
+    await screen.findByText("Waiting update, revised");
+    fireEvent.change(within(dialog).getByRole("textbox", { name: "Reason" }), {
+      target: { value: "Names a partner church" },
+    });
+    const versions = () =>
+      sent.map((call) => (call.body as { version?: number }).version);
+    fireEvent.click(
+      within(dialog).getByRole("button", { name: "Don’t approve" }),
+    );
+    await waitFor(() => expect(versions()).toEqual([2]));
+    expect((await within(dialog).findByRole("alert")).textContent).toContain(
+      "The update changed since it was read",
+    );
+    expect(
+      within(dialog).getByText(
+        "This update changed after you opened it. Its words now:",
+      ),
+    ).toBeTruthy();
+    expect(within(dialog).getByText("Waiting update, revised")).toBeTruthy();
+    fireEvent.click(
+      within(dialog).getByRole("button", { name: "Don’t approve" }),
+    );
+    await waitFor(() => expect(versions()).toEqual([2, 3]));
+    await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull());
+  });
+
   it("withdraws an approved update from All posts with a reason, and offers no withdrawal on one still waiting there", async () => {
     const { sent } = stubServer();
     mount();
