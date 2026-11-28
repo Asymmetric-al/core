@@ -246,12 +246,27 @@ describe("AL-2681 issue 2857 item 42: the gift's receipt status never moves back
   it("two same-key retries, the one the consent gate refuses writing the gift last: the gift reads sent and that requester is told emailed", async () => {
     const state = freshState(true);
     await failedFirstSend(state, "key-42-refuse-last");
+    let releaseSend!: () => void;
+    let sendReached!: () => void;
+    const atSend = new Promise<void>((resolve) => {
+      sendReached = resolve;
+    });
+    const sendHeld = new Promise<void>((resolve) => {
+      releaseSend = resolve;
+    });
+    sendEmailMock.mockImplementationOnce(async () => {
+      sendReached();
+      await sendHeld;
+      return delivered;
+    });
+    const winningRun = correctWith(state, { key: "key-42-refuse-last" });
+    await atSend;
     const gate = gateOnce(state, "staged_gifts", "suppressed");
     state.suppressionTypes = ["bounce"];
     const losing = correctWith(state, { key: "key-42-refuse-last" });
     await gate.atGate;
-    state.suppressionTypes = [];
-    const winning = await correctWith(state, { key: "key-42-refuse-last" });
+    releaseSend();
+    const winning = await winningRun;
     gate.release();
     const lost = await losing;
     expect(winning.receiptOutcome).toMatchObject({ status: "emailed" });
