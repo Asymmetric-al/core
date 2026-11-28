@@ -193,6 +193,16 @@ describe("the local Supabase workflow's path filter", () => {
     },
   );
 
+  it.each([
+    "tests/unit/acceptance/issue-2680/review-routes.postgrest.acceptance.test.ts",
+    "packages/api/src/admin/posts/**",
+  ])(
+    "starts the review routes' proof when %s, the suite or the review route it drives, changes (AL-2680 fix round T7)",
+    (file) => {
+      expect(paths).toContain(file);
+    },
+  );
+
   it("starts them when either app's chooser changes", () => {
     // Mission Control's chooser lives in (auth), which the filter names.
     expect(paths).toContain("apps/*/app/(auth)/**");

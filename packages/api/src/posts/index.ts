@@ -1,6 +1,7 @@
 import {
   getAuthContext,
   hasContextRoleClass,
+  requestScopeOf,
   requireAuth,
   requireRoleClass,
   type AuthenticatedContext,
@@ -10,79 +11,55 @@ import {
   fetchUserPostInteractions,
   toUserPostInteractionSets,
 } from "@asym/database/supabase/post-interactions";
-import { revalidateTag } from "next/cache";
 import { type NextRequest, NextResponse } from "next/server";
 
 import { createMissionaryPost } from "./create";
-import { FEED_POST_SELECT } from "./select";
+import {
+  FEED_POST_AUTHOR_SELECT,
+  FEED_POST_SELECT,
+  forReader,
+  type FeedPostRow,
+} from "./select";
 import { postsQuerySchema, postWriteSchema } from "../schemas/posts";
-import { CACHE_TAGS } from "../shared/cache-tags";
 import { readJsonBodyOrNull, toErrorResponse } from "../shared/http-errors";
-
-interface FeedPostsQuery {
-  tenantId: string;
-  status: string;
-  offset: number;
-  limit: number;
-  missionaryId?: string | null;
-  viewerProfileId: string;
-}
+import { createRequestSessionClient } from "../shared/request-session-client";
 
 const NO_STORE = { "Cache-Control": "private, no-store" };
 
-function getAdminClientOrThrow() {
-  const { client: supabaseAdmin, error: adminError } = getAdminClient();
-  if (!supabaseAdmin) {
-    throw new Error(adminError ?? "Admin client unavailable");
-  }
-  return supabaseAdmin;
+interface AuthorRow {
+  id: string;
+  author?: unknown;
+  post_author_public_name?: string | null;
 }
 
-async function getFeedPosts({
-  tenantId,
-  status,
-  offset,
-  limit,
-  missionaryId,
-  viewerProfileId,
-}: FeedPostsQuery) {
-  const supabaseAdmin = getAdminClientOrThrow();
-
-  let query = supabaseAdmin
+async function withPostAuthors<T extends FeedPostRow>(posts: T[]) {
+  if (posts.length === 0) return [];
+  const { client, error } = getAdminClient();
+  if (!client) throw new Error(error ?? "Admin client unavailable");
+  const { data, error: readError } = await client
     .from("posts")
-    .select(FEED_POST_SELECT)
-    .eq("tenant_id", tenantId)
-    .eq("status", status)
-    .order("created_at", { ascending: false })
-    .range(offset, offset + limit - 1);
-
-  if (missionaryId) {
-    query = query.eq("missionary_id", missionaryId);
-  }
-  // This read bypasses RLS and no audience (partner) check exists here yet,
-  // so fail closed with or without a missionary filter: public posts (what
-  // browser RLS exposes) plus the caller's own posts, which a missionary must
-  // still see to manage partners-only ones.
-  query = query.or(`visibility.eq.public,missionary_id.eq.${viewerProfileId}`);
-
-  const { data: posts, error } = await query;
-  if (error) {
-    throw error;
-  }
-
-  return posts ?? [];
+    .select(FEED_POST_AUTHOR_SELECT)
+    .in(
+      "id",
+      posts.map((post) => post.id),
+    );
+  if (readError) throw readError;
+  const authors = new Map(
+    ((data ?? []) as unknown as AuthorRow[]).map((row) => [row.id, row]),
+  );
+  return posts.map((post) => {
+    const row =
+      post.worker_withheld === true ? undefined : authors.get(post.id);
+    return {
+      ...post,
+      author: row?.author ?? null,
+      post_author_public_name: row?.post_author_public_name ?? null,
+    };
+  });
 }
 
 export async function GET(request: NextRequest) {
   try {
-    const adminClientState = getAdminClient();
-    if (!adminClientState.client) {
-      return NextResponse.json(
-        { error: adminClientState.error },
-        { status: 503 },
-      );
-    }
-
     const auth = await getAuthContext(request);
     requireAuth(auth);
     const ctx = auth as AuthenticatedContext;
@@ -95,38 +72,47 @@ export async function GET(request: NextRequest) {
       missionaryId: searchParams.get("missionaryId"),
     });
 
-    let effectiveMissionaryId = missionaryId ?? null;
-    if (status !== "published") {
-      if (!hasContextRoleClass(ctx, "missionary")) {
-        return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-      }
-      effectiveMissionaryId = ctx.profileId;
+    const ownDrafts = status !== "published";
+    if (ownDrafts && !hasContextRoleClass(ctx, "missionary")) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
-    const posts = await getFeedPosts({
-      tenantId: ctx.tenantId,
-      status,
-      offset,
-      limit,
-      missionaryId: effectiveMissionaryId,
-      viewerProfileId: ctx.profileId,
-    });
+    const supabase = await createRequestSessionClient(
+      request,
+      requestScopeOf(ctx),
+    );
+    let query = supabase
+      .from("posts")
+      .select(FEED_POST_SELECT)
+      .eq("tenant_id", ctx.tenantId)
+      .eq("status", status)
+      .order("created_at", { ascending: false })
+      .range(offset, offset + limit - 1);
+    if (ownDrafts) {
+      query = query.eq("author_user_id", ctx.userId);
+    } else if (missionaryId) {
+      query = query.eq("missionary_id", missionaryId);
+    }
 
-    const postIds = posts.map((post: { id: string }) => post.id);
-    if (postIds.length === 0)
+    const { data, error } = await query;
+    if (error) throw error;
+
+    const posts = await withPostAuthors(
+      (data ?? []) as unknown as FeedPostRow[],
+    );
+    if (posts.length === 0)
       return NextResponse.json({ posts: [] }, { headers: NO_STORE });
 
     const interactionRows = await fetchUserPostInteractions(
-      adminClientState.client,
+      supabase,
       ctx.userId,
-      postIds,
+      posts.map((post) => post.id),
     );
-
     const { likedPostIds, prayedPostIds, firedPostIds } =
       toUserPostInteractionSets(interactionRows);
 
-    const postsWithStatus = posts.map((post: { id: string }) => ({
-      ...post,
+    const postsWithStatus = posts.map((post) => ({
+      ...forReader(post, ctx.userId),
       user_liked: likedPostIds.has(post.id),
       user_prayed: prayedPostIds.has(post.id),
       user_fired: firedPostIds.has(post.id),
@@ -154,20 +140,35 @@ export async function POST(request: NextRequest) {
     }
 
     const result = await createMissionaryPost({
-      supabaseAdmin: getAdminClientOrThrow(),
+      supabase: await createRequestSessionClient(request, requestScopeOf(ctx)),
       auth: ctx,
       input: parsed.data,
-      request,
     });
     if (!result.ok) {
       return NextResponse.json(
-        { error: result.error },
+        result.code
+          ? { error: result.error, code: result.code }
+          : { error: result.error },
         { status: result.status },
       );
     }
 
-    revalidateTag(CACHE_TAGS.tenantPosts(ctx.tenantId), "max");
-    return NextResponse.json({ post: result.post }, { status: 201 });
+    const unnamed = {
+      ...result.post,
+      author: null,
+      post_author_public_name: null,
+    };
+    const post = await withPostAuthors([result.post]).then(
+      ([named]) => named ?? unnamed,
+      (error: unknown) => {
+        console.error(
+          "[posts] naming a submitted update's author failed",
+          error,
+        );
+        return unnamed;
+      },
+    );
+    return NextResponse.json({ post }, { status: 201 });
   } catch (e) {
     return toErrorResponse(e);
   }

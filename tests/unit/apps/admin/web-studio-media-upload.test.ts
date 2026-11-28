@@ -377,3 +377,37 @@ describe("media addresses for thumbnails (invariant 5)", () => {
     expect(mediaAddress("../x", "w320")).toBeNull();
   });
 });
+
+describe("the adapter parses what it receives at its one boundary (WP7 item zero, #2839 06:00)", () => {
+  it.each([
+    ["an asset id that is no UUID", { assetId: "../x", signedUrl: SIGNED }],
+    ["a signed address that is no URL", { assetId: ASSET, signedUrl: "tok" }],
+    ["a missing signed address", { assetId: ASSET }],
+  ])(
+    "refuses a start answer with %s before any byte is sent",
+    async (_label, answer) => {
+      own.fetch.mockResolvedValueOnce(json(201, answer));
+      expect(await uploadMediaFile(photo(), details)).toMatchObject({
+        ok: false,
+        stage: "start",
+      });
+      expect(documentFetch).not.toHaveBeenCalled();
+    },
+  );
+
+  it("refuses a registration answer that names another id, keeping the asset for Try again", async () => {
+    documentFetch.mockResolvedValueOnce(json(200, { id: "not-a-uuid" }));
+    expect(await registerUploadedMedia(ASSET, details)).toMatchObject({
+      ok: false,
+      stage: "register",
+      assetId: ASSET,
+    });
+  });
+
+  it("shows its own sentence for an error answer whose message is blank", async () => {
+    own.fetch.mockResolvedValueOnce(json(400, { error: "   " }));
+    const outcome = await uploadMediaFile(photo(), details);
+    expect(outcome).toMatchObject({ ok: false, stage: "start" });
+    expect(outcome.ok ? "" : outcome.message.trim()).not.toBe("");
+  });
+});

@@ -72,8 +72,8 @@ type Role = "staff" | "missionary" | "donor";
  * the tenant the request resolves to (NULL when it resolves to none) and `$2`
  * the caller's login. A read of a tenant table gives nothing when no tenant
  * resolves; the reads that keep no tenant condition (the caller's own
- * profile, the public posts and their comments, the caller's own rows and
- * organizations) give the same rows whatever the headers say
+ * profile, the caller's own rows and organizations) give the same rows
+ * whatever the headers say
  * (docs/security/tenant-policy-activation-review.md, section 3).
  * `refused`: `authenticated` holds no SELECT on the table, so every call is
  * refused, as the owner's privilege check shows.
@@ -96,18 +96,6 @@ const read = {
     rule: `select id from public.profiles where id in (${OWN_PROFILES})`,
     tenant: false,
   },
-  posts: {
-    sql: "select id from public.posts order by id",
-    rule: "select id from public.posts where status = 'published' and visibility = 'public'",
-    tenant: false,
-  },
-  postComments: {
-    sql: "select id from public.post_comments order by id",
-    rule: `select c.id from public.post_comments c
-             join public.posts p on p.id = c.post_id
-            where p.status = 'published' and p.visibility = 'public'`,
-    tenant: false,
-  },
   fieldPolicies: {
     sql: "select record_type, field_key, surface from public.field_policies order by 1, 2, 3",
     rule: `select record_type, field_key, surface from public.field_policies
@@ -128,6 +116,32 @@ const read = {
     tenant: false,
   },
 } satisfies Record<string, Read>;
+
+const SERVED_POST =
+  "review_state = 'approved' and status = 'published' and not worker_withheld";
+const FOLLOWED_MINISTRY = `ministry_assignment_id in (select f.ministry_assignment_id from public.follows f
+   where f.tenant_id = $1 and f.status = 'approved'
+     and f.donor_id in (select d.id from public.donors d
+                         where d.tenant_id = $1
+                           and d.party_id in (select al.party_id from public.account_links al
+                                               where al.tenant_id = $1 and al.user_id = $2)))`;
+const POSTS_BY_CLASS: Record<Role, string> = {
+  staff: "tenant_id = $1 and status = 'published'",
+  missionary: `tenant_id = $1 and (author_user_id = $2 or (${SERVED_POST} and visibility = 'public'))`,
+  donor: `tenant_id = $1 and ${SERVED_POST} and (visibility = 'public' or ${FOLLOWED_MINISTRY})`,
+};
+const posts = (role: Role): Read => ({
+  sql: "select id from public.posts order by id",
+  rule: `select id from public.posts where ${POSTS_BY_CLASS[role]}`,
+  tenant: true,
+});
+const postComments = (role: Role): Read => ({
+  sql: "select id from public.post_comments order by id",
+  rule: `select c.id from public.post_comments c
+          where c.tenant_id = $1
+            and c.post_id in (select id from public.posts where ${POSTS_BY_CLASS[role]})`,
+  tenant: true,
+});
 
 /** A tenant table every row of which the class reads in the tenant. */
 const wholeTenant = (table: string): Read => ({
@@ -168,8 +182,8 @@ const READS: Record<Role, Read[]> = {
       ...wholeTenant("funds"),
       rule: "select id from public.funds where tenant_id = $1 and system_purpose is null",
     },
-    read.posts,
-    read.postComments,
+    posts("staff"),
+    postComments("staff"),
     read.fieldPolicies,
     read.assignments,
     read.organizations,
@@ -178,7 +192,7 @@ const READS: Record<Role, Read[]> = {
     read.profiles,
     ownRows("donations", "missionary_id", "missionaries"),
     ownRows("donor_pledges", "missionary_id", "missionaries"),
-    read.posts,
+    posts("missionary"),
     {
       // Follows admit staff and a donor's own; a missionary row reads none.
       sql: "select id from public.follows order by id",
@@ -197,7 +211,7 @@ const READS: Record<Role, Read[]> = {
     },
     ownRows("donations", "donor_id", "donors"),
     ownRows("donor_feed_preferences", "donor_id", "donors"),
-    read.posts,
+    posts("donor"),
     read.fieldPolicies,
     read.assignments,
   ],
@@ -337,7 +351,7 @@ describe.skipIf(!ADMIN_URL)(
       return want;
     }
 
-    describe("every read gives exactly the rows its class may see when the headers are sent", () => {
+    describe("every read gives exactly the rows its class may see when the headers are sent (AL-2680: each class's posts rule is the review's, the author's own, a reviewer's published ones and approved ones, no longer every published post)", () => {
       it.each(SURFACES)("%s", async (_label, sub, user, tenant, role) => {
         const headers = {
           "x-asym-tenant": tenant,
@@ -380,7 +394,7 @@ describe.skipIf(!ADMIN_URL)(
       });
     });
 
-    describe("without the headers, with the tenant alone, or with another organization's id, no tenant row and no error", () => {
+    describe("without the headers, with the tenant alone, or with another organization's id, no tenant row and no error (AL-2680: posts follow the review's rules here too)", () => {
       it.each(SURFACES)("%s", async (_label, sub, user, tenant, role) => {
         const other = tenant === DEMO ? SECOND : DEMO;
         const own = row(user, tenant, role);

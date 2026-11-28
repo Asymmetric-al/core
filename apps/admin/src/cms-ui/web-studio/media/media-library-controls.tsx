@@ -306,7 +306,7 @@ export function MediaDeleteButton({
     setFailure(null);
     const outcome = await deleteMediaFile(id).catch(() => ({
       ok: false as const,
-      message: "The image was not deleted. Try again.",
+      message: "The delete stopped before it could be confirmed. Try again.",
     }));
     setBusy(false);
     if (outcome.ok) {
@@ -344,7 +344,7 @@ export function MediaDeleteButton({
         </AlertDialogHeader>
         {failure ? (
           <Alert variant="destructive">
-            <AlertTitle>The image was not deleted</AlertTitle>
+            <AlertTitle>Image deletion could not finish</AlertTitle>
             <AlertDescription>{failure}</AlertDescription>
           </Alert>
         ) : null}

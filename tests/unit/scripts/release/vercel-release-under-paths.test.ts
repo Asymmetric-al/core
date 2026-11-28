@@ -28,6 +28,10 @@ import { EXPECTED_PROJECTS } from "../../../../scripts/verify/vercel-build-contr
 
 forbidNetwork();
 
+const RELEASE_PROOF_ENV = {
+  VERCEL_ADMIN_AUTOMATION_BYPASS_SECRET: "made-up-admin-proof",
+};
+
 const COULD_NOT_REACH =
   "The migration health check did not pass: the health route could not be reached; not promoted.";
 
@@ -84,10 +88,51 @@ describe("runCli hands its request and sleep to every step that calls out", () =
       async (_input: URL | RequestInfo, _init?: RequestInit) =>
         new Response(null, { status: 200 }),
     );
-    await runCli(["register-jobs"], {}, silent, { request: asFetch(request) });
+    await runCli(["register-jobs"], RELEASE_PROOF_ENV, silent, {
+      request: asFetch(request),
+    });
     expect(
       request.mock.calls.map(([input, init]) => [String(input), init?.method]),
     ).toEqual([["https://admin.asymmetric.al/api/inngest", "PUT"]]);
+  });
+
+  it("register-jobs sends the admin deployment's bypass secret as its proof, with no query", async () => {
+    const request = vi.fn(
+      async (_input: URL | RequestInfo, _init?: RequestInit) =>
+        new Response(null, { status: 200 }),
+    );
+    await runCli(["register-jobs"], RELEASE_PROOF_ENV, silent, {
+      request: asFetch(request),
+    });
+    const [[input, init]] = request.mock.calls;
+    expect(new URL(String(input)).search).toBe("");
+    expect(init?.headers).toEqual({
+      "x-vercel-protection-bypass": "made-up-admin-proof",
+    });
+  });
+
+  it("register-jobs without the admin bypass secret stops before any request, naming the variable and no value", async () => {
+    const request = vi.fn();
+    await expect(
+      runCli(["register-jobs"], {}, silent, { request: asFetch(request) }),
+    ).rejects.toThrow(
+      "The job-function registration needs VERCEL_ADMIN_AUTOMATION_BYPASS_SECRET; nothing was sent.",
+    );
+    expect(request).not.toHaveBeenCalled();
+  });
+
+  it("release.yml gives the register step the admin bypass secret, and no other secret", () => {
+    const workflow = readFileSync(".github/workflows/release.yml", "utf8");
+    const step = workflow.slice(
+      workflow.indexOf("- name: Register job functions"),
+      workflow.indexOf(
+        "run: node scripts/release/vercel-release.mjs register-jobs",
+      ),
+    );
+    expect(step).toContain(
+      "VERCEL_ADMIN_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_ADMIN_AUTOMATION_BYPASS_SECRET }}",
+    );
+    expect(step.match(/\$\{\{ secrets\./g)).toHaveLength(1);
   });
 
   it("check calls the given request and waits with the given sleep", async () => {
@@ -393,9 +438,12 @@ describe("production release selection and registration under paths", () => {
   it("registers on the admin project under its prefix", async () => {
     const url = "https://admin.asymmetric.al/admin/api/inngest";
     const request = answersAt({ [url]: { status: 200, body: {} } });
-    await runCli(["register-jobs"], { CORE_SERVE_UNDER_PATHS: "1" }, silent, {
-      request: asFetch(request),
-    });
+    await runCli(
+      ["register-jobs"],
+      { CORE_SERVE_UNDER_PATHS: "1", ...RELEASE_PROOF_ENV },
+      silent,
+      { request: asFetch(request) },
+    );
     expect(urlsOf(request)).toEqual([url]);
     expect(request.mock.calls[0][1]?.method).toBe("PUT");
   });
@@ -475,9 +523,12 @@ describe("with the switch off the production steps read today's addresses", () =
         async (_input: URL | RequestInfo, _init?: RequestInit) =>
           new Response(null, { status: 200 }),
       );
-      await runCli(["register-jobs"], { ...switchEnv }, silent, {
-        request: asFetch(request),
-      });
+      await runCli(
+        ["register-jobs"],
+        { ...switchEnv, ...RELEASE_PROOF_ENV },
+        silent,
+        { request: asFetch(request) },
+      );
       expect(
         request.mock.calls.map(([input, init]) => [
           init?.method,
@@ -588,10 +639,21 @@ describe("each caller puts the prefix it is given between the host and the path"
     await registerJobFunctions({
       pathPrefix: "/admin",
       request: asFetch(request),
+      bypassSecret: "made-up-admin-proof",
     });
     expect(
-      request.mock.calls.map(([input, init]) => [init?.method, String(input)]),
-    ).toEqual([["PUT", "https://admin.asymmetric.al/admin/api/inngest"]]);
+      request.mock.calls.map(([input, init]) => [
+        init?.method,
+        String(input),
+        init?.headers,
+      ]),
+    ).toEqual([
+      [
+        "PUT",
+        "https://admin.asymmetric.al/admin/api/inngest",
+        { "x-vercel-protection-bypass": "made-up-admin-proof" },
+      ],
+    ]);
   });
 });
 

@@ -101,6 +101,10 @@ on:
       # screens over them and their journey (AL-2678, WP5 part 2-r2b1).
       - tests/unit/acceptance/issue-2678/worker-record.postgrest.acceptance.test.ts
       - packages/api/src/admin/workers/**
+      # An update under review through the routes on real tokens (AL-2680,
+      # WP7 pull request 1, fix round T7).
+      - tests/unit/acceptance/issue-2680/review-routes.postgrest.acceptance.test.ts
+      - packages/api/src/admin/posts/**
       # A signed-in person's own donor through account link and Party, by
       # every reader that found it by profile (AL-2678, WP5 rest).
       - tests/unit/acceptance/issue-2678/own-donor-reads.postgrest.acceptance.test.ts
@@ -415,6 +419,17 @@ jobs:
           WP5_IDENTITY_IT_SERVICE_KEY="$(jq -er '.SERVICE_ROLE_KEY | select(length > 0)' <<< "$status")"
           export WP5_IDENTITY_IT_ANON_KEY WP5_IDENTITY_IT_SERVICE_KEY
           bunx vitest run --maxWorkers=1 tests/unit/acceptance/issue-2678/worker-record.postgrest.acceptance.test.ts
+      - name: Verify an update under review through the routes on real tokens (AL-2680)
+        shell: bash
+        env:
+          WP5_IDENTITY_IT_URL: http://127.0.0.1:54321
+          WP5_IDENTITY_IT_DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:54322/postgres
+        run: |
+          status="$(bun run supabase -- status -o json)"
+          WP5_IDENTITY_IT_ANON_KEY="$(jq -er '.ANON_KEY | select(length > 0)' <<< "$status")"
+          WP5_IDENTITY_IT_SERVICE_KEY="$(jq -er '.SERVICE_ROLE_KEY | select(length > 0)' <<< "$status")"
+          export WP5_IDENTITY_IT_ANON_KEY WP5_IDENTITY_IT_SERVICE_KEY
+          bunx vitest run --maxWorkers=1 tests/unit/acceptance/issue-2680/review-routes.postgrest.acceptance.test.ts
       - name: Verify a signed-in person's own donor through account link and Party
         shell: bash
         env:

@@ -335,3 +335,24 @@ describe("the media library's thumbnails (invariant 5)", () => {
     ).toBe(`/api/media/${ASSET}?variant=w320`);
   });
 });
+
+describe("the delete dialog says what is true at each stage (WP7 item zero, #2839 10:03)", () => {
+  it.each([
+    "The image could not be deleted. Check your connection and try again.",
+    "The image was deleted but is still listed. Try again.",
+  ])(
+    "heads the failure “%s” with a heading true before and after the file is gone",
+    async (message) => {
+      adapter.remove.mockResolvedValueOnce({ ok: false, message });
+      render(
+        <MediaDeleteButton id={ASSET} label="A new well" onDeleted={vi.fn()} />,
+      );
+      fireEvent.click(screen.getByRole("button", { name: "Delete image" }));
+      fireEvent.click(await screen.findByRole("button", { name: "Delete" }));
+      const alert = await screen.findByRole("alert");
+      expect(alert.textContent).toContain("Image deletion could not finish");
+      expect(alert.textContent).toContain(message);
+      expect(alert.textContent).not.toContain("The image was not deleted");
+    },
+  );
+});

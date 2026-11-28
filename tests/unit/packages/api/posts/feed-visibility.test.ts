@@ -2,26 +2,72 @@ import { NextRequest } from "next/server";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { membershipsForRole } from "../../../../fixtures/auth-memberships";
 
-const { getAdminClientMock, getAuthContextMock, eqCalls, orCalls } = vi.hoisted(
-  () => ({
-    getAdminClientMock: vi.fn(),
-    getAuthContextMock: vi.fn(),
-    eqCalls: [] as Array<[string, unknown]>,
-    orCalls: [] as string[],
-  }),
+const s = vi.hoisted(() => ({
+  getAuthContext: vi.fn(),
+  sessionRows: [] as Record<string, unknown>[],
+  authorRows: [] as Record<string, unknown>[],
+  sessionCalls: [] as Array<[string, ...unknown[]]>,
+  adminCalls: [] as Array<[string, ...unknown[]]>,
+  interactionClients: [] as unknown[],
+  authorError: null as { message: string } | null,
+}));
+
+function recorder(
+  calls: Array<[string, ...unknown[]]>,
+  rows: () => Record<string, unknown>[],
+  error: () => { message: string } | null = () => null,
+) {
+  const query: Record<string, unknown> = {};
+  for (const name of ["select", "eq", "or", "in", "order", "range"])
+    query[name] = (...args: unknown[]) => {
+      calls.push([name, ...args]);
+      return query;
+    };
+  query.single = async () => ({ data: rows()[0] ?? null, error: error() });
+  query.then = (resolve: (value: unknown) => unknown) =>
+    resolve(
+      error() ? { data: null, error: error() } : { data: rows(), error: null },
+    );
+  return {
+    rpc: async (fn: string, args: unknown) => {
+      calls.push(["rpc", fn, args]);
+      return { data: "post-new", error: null };
+    },
+    from: (table: string) => {
+      calls.push(["from", table]);
+      return query;
+    },
+  };
+}
+
+const sessionClient = recorder(s.sessionCalls, () => s.sessionRows);
+const adminClient = recorder(
+  s.adminCalls,
+  () => s.authorRows,
+  () => s.authorError,
 );
 
 vi.mock("next/cache", () => ({ cacheLife: vi.fn(), cacheTag: vi.fn() }));
 vi.mock("@asym/auth/context", async (importOriginal) => ({
   ...(await importOriginal<typeof import("@asym/auth/context")>()),
-  getAuthContext: getAuthContextMock,
+  getAuthContext: s.getAuthContext,
   requireAuth: vi.fn(),
 }));
 vi.mock("@asym/database/supabase/admin", () => ({
-  getAdminClient: getAdminClientMock,
+  getAdminClient: () => ({ client: adminClient, error: null }),
 }));
+vi.mock(
+  "../../../../../packages/api/src/shared/request-session-client",
+  () => ({
+    createRequestSessionClient: async () => sessionClient,
+    requestCarriesSupabaseSession: () => true,
+  }),
+);
 vi.mock("@asym/database/supabase/post-interactions", () => ({
-  fetchUserPostInteractions: vi.fn(async () => []),
+  fetchUserPostInteractions: vi.fn(async (client: unknown) => {
+    s.interactionClients.push(client);
+    return [];
+  }),
   toUserPostInteractionSets: () => ({
     likedPostIds: new Set(),
     prayedPostIds: new Set(),
@@ -29,87 +75,179 @@ vi.mock("@asym/database/supabase/post-interactions", () => ({
   }),
 }));
 
-import { GET } from "../../../../../packages/api/src/posts/index";
-
-function postsClient() {
-  const query = {
-    select: vi.fn(),
-    eq: vi.fn((column: string, value: unknown) => {
-      eqCalls.push([column, value]);
-      return query;
-    }),
-    or: vi.fn((filter: string) => {
-      orCalls.push(filter);
-      return query;
-    }),
-    order: vi.fn(),
-    range: vi.fn(),
-    then: (resolve: (value: { data: unknown[]; error: null }) => unknown) =>
-      resolve({ data: [], error: null }),
-  };
-  query.select.mockReturnValue(query);
-  query.order.mockReturnValue(query);
-  query.range.mockReturnValue(query);
-  return { from: vi.fn(() => query) };
-}
+import { GET, POST } from "../../../../../packages/api/src/posts/index";
+import {
+  FEED_POST_AUTHOR_SELECT,
+  FEED_POST_SELECT,
+} from "../../../../../packages/api/src/posts/select";
 
 function request(search: string) {
   return new NextRequest(`https://donor.example.test/api/posts${search}`);
 }
 
-const PROFILE_ID = "00000000-0000-4000-8000-0000000000aa";
-
-beforeEach(() => {
-  eqCalls.length = 0;
-  orCalls.length = 0;
-  getAdminClientMock.mockReturnValue({ client: postsClient(), error: null });
-  getAuthContextMock.mockResolvedValue({
-    userId: "user-1",
-    profileId: PROFILE_ID,
-    tenantId: "tenant-1",
-    isAuthenticated: true,
-    // AL-2675: the class is read from the membership the request acts under.
-    memberships: membershipsForRole("donor", "tenant-1"),
-  });
+const signedIn = (role: "donor" | "missionary" | "staff") => ({
+  userId: "user-1",
+  profileId: "profile-1",
+  tenantId: "tenant-1",
+  assignmentId: "assignment-1",
+  role,
+  isAuthenticated: true,
+  memberships: membershipsForRole(role, "tenant-1"),
 });
 
-// GET /api/posts reads with the RLS-bypassing service-role client and has no
-// partner-audience check, so other missionaries' restricted posts must never
-// be returned -- with or without a missionary filter: only public posts plus
-// the caller's own posts (so missionaries can still manage partners-only ones).
-describe("GET /api/posts audience boundary", () => {
-  it("limits the unfiltered published feed to public and own posts", async () => {
+beforeEach(() => {
+  s.sessionCalls.length = 0;
+  s.adminCalls.length = 0;
+  s.interactionClients.length = 0;
+  s.sessionRows = [];
+  s.authorRows = [];
+  s.authorError = null;
+  s.getAuthContext.mockResolvedValue(signedIn("donor"));
+});
+
+describe("GET /api/posts reads on the caller's own token (AL-2680, WP7 pull request 1, invariants 2, 5 and 11)", () => {
+  it("selects the feed through the request's own client, so row security decides which updates come back, with no audience filter of its own", async () => {
     const response = await GET(request("?status=published&limit=5"));
 
     expect(response.status).toBe(200);
-    expect(eqCalls).toContainEqual(["tenant_id", "tenant-1"]);
-    expect(eqCalls).toContainEqual(["status", "published"]);
-    expect(orCalls).toEqual([
-      `visibility.eq.public,missionary_id.eq.${PROFILE_ID}`,
-    ]);
+    expect(s.sessionCalls).toContainEqual(["from", "posts"]);
+    expect(s.sessionCalls).toContainEqual(["select", FEED_POST_SELECT]);
+    expect(s.sessionCalls).toContainEqual(["eq", "tenant_id", "tenant-1"]);
+    expect(s.sessionCalls).toContainEqual(["eq", "status", "published"]);
+    expect(s.sessionCalls.some(([name]) => name === "or")).toBe(false);
+    expect(s.adminCalls).toEqual([]);
   });
 
-  it("applies the same audience rule to an explicit missionary filter", async () => {
-    await GET(request("?status=published&missionaryId=missionary-9"));
+  it("names the authors of the rows the caller read, and only those, through the service key's projection; a withheld worker's update carries no name or photo", async () => {
+    s.sessionRows = [
+      { id: "post-1", worker_withheld: false },
+      { id: "post-2", worker_withheld: true },
+    ];
+    s.authorRows = [
+      {
+        id: "post-1",
+        post_author_public_name: "Cedar",
+        author: { id: "profile-9", avatar_url: "https://img.test/a.png" },
+      },
+      {
+        id: "post-2",
+        post_author_public_name: "Hidden Name",
+        author: { id: "profile-8", avatar_url: "https://img.test/b.png" },
+      },
+    ];
+    const response = await GET(request("?status=published"));
+    const { posts } = (await response.json()) as {
+      posts: Record<string, unknown>[];
+    };
 
-    expect(eqCalls).toContainEqual(["missionary_id", "missionary-9"]);
-    expect(orCalls).toEqual([
-      `visibility.eq.public,missionary_id.eq.${PROFILE_ID}`,
+    expect(s.adminCalls).toEqual([
+      ["from", "posts"],
+      ["select", FEED_POST_AUTHOR_SELECT],
+      ["in", "id", ["post-1", "post-2"]],
     ]);
+    expect(posts).toEqual([
+      expect.objectContaining({
+        id: "post-1",
+        post_author_public_name: "Cedar",
+        author: { id: "profile-9", avatar_url: "https://img.test/a.png" },
+      }),
+      expect.objectContaining({
+        id: "post-2",
+        post_author_public_name: null,
+        author: null,
+      }),
+    ]);
+    expect(s.interactionClients).toEqual([sessionClient]);
   });
 
-  it("keeps drafts scoped to the author", async () => {
-    getAuthContextMock.mockResolvedValue({
-      userId: "user-1",
-      profileId: PROFILE_ID,
-      tenantId: "tenant-1",
-      isAuthenticated: true,
-      memberships: membershipsForRole("missionary", "tenant-1"),
-    });
-
+  it("reads a missionary's drafts as their own only, and refuses drafts to anyone else", async () => {
+    s.getAuthContext.mockResolvedValue(signedIn("missionary"));
     await GET(request("?status=draft"));
+    expect(s.sessionCalls).toContainEqual(["eq", "author_user_id", "user-1"]);
 
-    expect(eqCalls).toContainEqual(["missionary_id", PROFILE_ID]);
+    s.getAuthContext.mockResolvedValue(signedIn("donor"));
+    const refused = await GET(request("?status=draft"));
+    expect(refused.status).toBe(403);
+  });
+});
+
+describe("AL-2680 fix round S5: the feed names its columns, and a reviewer's reason and the author's login reach only the author here (a reviewer reads them in Mission Control)", () => {
+  it("selects named columns only, none of them the reviewer's identity", () => {
+    const columns = FEED_POST_SELECT.split(",").map((c) => c.trim());
+    expect(columns).not.toContain("*");
+    for (const hidden of ["reviewed_by", "reviewed_by_assignment_id"])
+      expect(columns).not.toContain(hidden);
+    for (const shown of ["id", "content", "review_state", "worker_withheld"])
+      expect(columns).toContain(shown);
+  });
+
+  it("keeps the reason and the author's login on the caller's own update, and drops them from another person's update for every other reader, staff included", async () => {
+    s.sessionRows = [
+      {
+        id: "post-1",
+        author_user_id: "user-1",
+        review_state: "rejected",
+        review_reason: "Names a village",
+        worker_withheld: false,
+      },
+      {
+        id: "post-2",
+        author_user_id: "user-2",
+        review_state: "approved",
+        review_reason: "automatic",
+        worker_withheld: false,
+      },
+    ];
+    s.getAuthContext.mockResolvedValue(signedIn("missionary"));
+    const own = (await (await GET(request("?status=published"))).json()) as {
+      posts: Record<string, unknown>[];
+    };
+    expect(own.posts[0]).toMatchObject({
+      author_user_id: "user-1",
+      review_reason: "Names a village",
+    });
+    expect(own.posts[1]).not.toHaveProperty("author_user_id");
+    expect(own.posts[1]?.review_reason).toBeNull();
+
+    s.getAuthContext.mockResolvedValue(signedIn("staff"));
+    const staff = (await (await GET(request("?status=published"))).json()) as {
+      posts: Record<string, unknown>[];
+    };
+    expect(staff.posts[1]).not.toHaveProperty("author_user_id");
+    expect(staff.posts[1]?.review_reason).toBeNull();
+  });
+});
+
+describe("AL-2680 fix round A1: a submitted update is created once the command returned its id", () => {
+  it("answers 201 with the update when naming its author fails, and logs the failure", async () => {
+    const log = vi.spyOn(console, "error").mockImplementation(() => undefined);
+    s.getAuthContext.mockResolvedValue(signedIn("missionary"));
+    s.sessionRows = [{ id: "post-new", worker_withheld: false }];
+    s.authorError = { message: "author lookup detail" };
+    const response = await POST(
+      new NextRequest("https://missionary.example.test/api/posts", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          content: JSON.stringify({
+            type: "doc",
+            content: [
+              { type: "paragraph", content: [{ type: "text", text: "Hi" }] },
+            ],
+          }),
+        }),
+      }),
+    );
+    expect(response.status).toBe(201);
+    expect(
+      ((await response.json()) as { post: Record<string, unknown> }).post,
+    ).toMatchObject({
+      id: "post-new",
+      author: null,
+      post_author_public_name: null,
+    });
+    expect(log).toHaveBeenCalled();
+    log.mockRestore();
   });
 });
 
@@ -119,16 +257,8 @@ describe("AL-2678 r2a (F5): no proxy or browser keeps the feed, so a restriction
     expect(empty.status).toBe(200);
     expect(empty.headers.get("cache-control")).toBe("private, no-store");
 
-    const client = postsClient();
-    const query = client.from() as unknown as { then: unknown };
-    query.then = (
-      resolve: (value: { data: unknown[]; error: null }) => unknown,
-    ) =>
-      resolve({
-        data: [{ id: "post-1", post_author_public_name: "Cedar" }],
-        error: null,
-      });
-    getAdminClientMock.mockReturnValue({ client, error: null });
+    s.sessionRows = [{ id: "post-1", worker_withheld: false }];
+    s.authorRows = [{ id: "post-1", post_author_public_name: "Cedar" }];
     const full = await GET(request("?status=published"));
     expect(full.status).toBe(200);
     expect(((await full.json()) as { posts: unknown[] }).posts).toHaveLength(1);

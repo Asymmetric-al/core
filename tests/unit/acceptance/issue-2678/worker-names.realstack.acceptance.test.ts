@@ -203,6 +203,10 @@ describe.skipIf(!ADMIN_URL)(
         [id.postW, id.postX, id.postOrg, id.TA, id.UM, id.UX],
       );
       await db.query(
+        "update public.posts set review_state = 'approved' where id = any($1::uuid[])",
+        [[id.postW, id.postX, id.postOrg]],
+      );
+      await db.query(
         "update public.profiles set display_name = 'Profile Xu', full_name = 'Profile Xu' where id = $1",
         [id.UX],
       );
@@ -479,6 +483,10 @@ describe.skipIf(!ADMIN_URL)(
             id.UM2,
           ],
         );
+        await db.query(
+          "update public.posts set review_state = 'approved' where id = any($1::uuid[])",
+          [[k.postBWinA, k.postBWinB, k.postMinB, k.postM2]],
+        );
         const workers = await queryAs(
           "service_role",
           {},
@@ -738,18 +746,13 @@ describe.skipIf(!ADMIN_URL)(
       }
     });
 
-    it("r2a test 1, guard (passes on the base): a member of another organization only gets every commenter's name and photo as NULL", async () => {
+    it("r2a test 1, guard, amended by the WP7 pull request 1 fix round (AL-2680, S7): a member of another organization only gets no commenter at all, not even their user ids", async () => {
       await db.query("savepoint s");
       try {
         await comment(id.postOrg, [id.UM, id.UM2, id.UX, id.UDA]);
         expect(
           await authorsAs(caller(id, "UBS", "mBS", "TB"), id.postOrg),
-        ).toEqual({
-          [id.UM]: [null, null],
-          [id.UM2]: [null, null],
-          [id.UX]: [null, null],
-          [id.UDA]: [null, null],
-        });
+        ).toEqual({});
       } finally {
         await db.query("rollback to savepoint s");
       }
@@ -1016,6 +1019,10 @@ describe.skipIf(!ADMIN_URL)(
           "insert into public.posts (id, tenant_id, missionary_id, content, visibility, status) values ($1, $2, null, 'In B', 'public', 'published')",
           [postS, id.TB],
         );
+        await db.query(
+          "update public.posts set review_state = 'approved' where id = $1",
+          [postS],
+        );
         await comment(postS, [id.UM]);
         const got = await authorsAs(caller(id, "UBS", "mBS", "TB"), postS);
         expect(got).toEqual({ [id.UM]: ["Missionary A in B", null] });
@@ -1025,7 +1032,7 @@ describe.skipIf(!ADMIN_URL)(
       }
     });
 
-    it("r2a test 1 (N3, G), guard (passes on the base): a published public post with no organization gives every commenter, a donor included, as NULL", async () => {
+    it("r2a test 1 (N3, G), guard, amended by WP7 pull request 1 (AL-2680): a published public post with no organization holds no comment, since a comment takes its post's tenant (23502), so it names no commenter", async () => {
       await db.query("savepoint s");
       try {
         const postG = randomUUID();
@@ -1033,10 +1040,14 @@ describe.skipIf(!ADMIN_URL)(
           "insert into public.posts (id, tenant_id, missionary_id, content, visibility, status) values ($1, null, null, 'Nowhere', 'public', 'published')",
           [postG],
         );
-        await comment(postG, [id.UDA]);
-        expect(await authorsAs(member, postG)).toEqual({
-          [id.UDA]: [null, null],
-        });
+        await db.query("savepoint g");
+        const refused = await comment(postG, [id.UDA]).then(
+          () => "inserted",
+          (e: { code?: string }) => e.code,
+        );
+        await db.query("rollback to savepoint g");
+        expect(refused).toBe("23502");
+        expect(await authorsAs(member, postG)).toEqual({});
       } finally {
         await db.query("rollback to savepoint s");
       }

@@ -4,7 +4,7 @@ import { preMembershipEntries } from "../../scripts/verify/command-entry-boundar
 
 const migrations = new URL("../../supabase/migrations/", import.meta.url);
 
-function latestBody(name: string) {
+export function latestBody(name: string) {
   const pattern = new RegExp(
     `CREATE (?:OR REPLACE )?FUNCTION ${name.replace(".", "\\.")}\\([\\s\\S]*?AS \\$\\$([\\s\\S]*?)\\$\\$;`,
     "g",
