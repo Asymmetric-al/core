@@ -167,7 +167,7 @@ describe("Mission Control's review queue (AL-2680, WP7 pull request 1)", () => {
     );
   });
 
-  it("asks for a reason before not approving, and sends it", async () => {
+  it("checks the reason when it is sent: a blank one gets a field error, aria-invalid, its description and focus, and nothing is sent; a reason is sent (WP7 1b, item 1)", async () => {
     const { sent } = stubServer();
     mount();
     await screen.findByText("Waiting update");
@@ -181,15 +181,24 @@ describe("Mission Control's review queue (AL-2680, WP7 pull request 1)", () => {
     const submit = within(dialog).getByRole("button", {
       name: "Don’t approve",
     }) as HTMLButtonElement;
-    expect(submit.disabled).toBe(true);
-    fireEvent.change(within(dialog).getByRole("textbox", { name: "Reason" }), {
-      target: { value: "  ​ " },
-    });
-    expect(submit.disabled).toBe(true);
-    fireEvent.change(within(dialog).getByRole("textbox", { name: "Reason" }), {
+    const reason = within(dialog).getByRole("textbox", { name: "Reason" });
+    for (const blank of ["", "  ​ "]) {
+      fireEvent.change(reason, { target: { value: blank } });
+      expect(submit.disabled).toBe(false);
+      fireEvent.click(submit);
+      const error = await within(dialog).findByText("Give a reason.");
+      expect(reason.getAttribute("aria-invalid")).toBe("true");
+      expect(reason.getAttribute("aria-describedby")?.split(" ")).toContain(
+        error.id,
+      );
+      expect(document.activeElement).toBe(reason);
+    }
+    expect(sent).toEqual([]);
+    fireEvent.change(reason, {
       target: { value: "Names a partner church" },
     });
-    expect(submit.disabled).toBe(false);
+    expect(within(dialog).queryByText("Give a reason.")).toBeNull();
+    expect(reason.getAttribute("aria-invalid")).toBeNull();
     fireEvent.click(submit);
     await waitFor(() =>
       expect(sent).toEqual([
@@ -303,6 +312,33 @@ describe("Mission Control's review queue (AL-2680, WP7 pull request 1)", () => {
         },
       ]),
     );
+  });
+
+  it("checks the reason of a withdrawal and of a publication policy the same way when it is sent (WP7 1b, item 1)", async () => {
+    identity.capabilities = ["updates.review", "safety.restrict_publication"];
+    const { sent } = stubServer();
+    mount();
+    await screen.findByText("Waiting update");
+    fireEvent.click(screen.getByRole("tab", { name: "All posts" }));
+    await screen.findByText("Live update");
+    for (const [open, send] of [
+      ["Withdraw Term two begins", "Withdraw update"],
+      ["Publication policy for Lee", "Save policy"],
+    ] as const) {
+      fireEvent.click(screen.getAllByRole("button", { name: open })[0]!);
+      const dialog = await screen.findByRole("dialog");
+      const reason = within(dialog).getByRole("textbox", { name: "Reason" });
+      fireEvent.click(within(dialog).getByRole("button", { name: send }));
+      const error = await within(dialog).findByText("Give a reason.");
+      expect(reason.getAttribute("aria-invalid")).toBe("true");
+      expect(reason.getAttribute("aria-describedby")?.split(" ")).toContain(
+        error.id,
+      );
+      expect(document.activeElement).toBe(reason);
+      fireEvent.click(within(dialog).getByRole("button", { name: "Cancel" }));
+      await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull());
+    }
+    expect(sent).toEqual([]);
   });
 
   it("shows the server's refusal beside the update, keeps it in the queue and reloads the queue, since the refusal means it changed (fix round A3)", async () => {
