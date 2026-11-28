@@ -6,6 +6,7 @@ import {
   OUTCOME_UNKNOWN_TEXT,
   SECURITY_LEVELS,
   inviteEnvelopeSchema,
+  legalEntitiesEnvelopeSchema,
   revealEnvelopeSchema,
   workerEnvelopeSchema,
   workerListEnvelopeSchema,
@@ -13,6 +14,7 @@ import {
   type SecurityLevel,
   type Worker,
   type WorkerInvitation,
+  type WorkerLegalEntity,
 } from "@asym/api/admin/workers/envelopes";
 import { ownApiFetch } from "@asym/database/own-api";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -26,6 +28,7 @@ export {
   type SecurityLevel,
   type Worker,
   type WorkerInvitation,
+  type WorkerLegalEntity,
 };
 
 export const LEVEL_LABELS: Record<SecurityLevel, string> = {
@@ -178,8 +181,24 @@ export type CreateWorkerBody = {
   preciseLocation?: string;
   level?: SecurityLevel;
   alias?: string;
+  legalEntityId?: string;
   reason: string;
 };
+
+export function useWorkerLegalEntities(enabled: boolean) {
+  return useQuery({
+    ...FRESH,
+    queryKey: ["admin", "worker-legal-entities"] as const,
+    enabled,
+    queryFn: async () =>
+      (
+        await getJson(
+          "/api/admin/workers/legal-entities",
+          legalEntitiesEnvelopeSchema,
+        )
+      ).legalEntities,
+  });
+}
 
 export function useCreateWorker() {
   const queryClient = useQueryClient();

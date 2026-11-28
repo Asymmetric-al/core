@@ -257,6 +257,7 @@ a 4,000,000-byte file and at most 65,536 more bytes for multipart framing.
 | admin      | `/api/admin/workers/[assignmentId]/lift`                       | Node.js (no `runtime` segment export) | Request-scoped worker safety command                       |
 | admin      | `/api/admin/workers/[assignmentId]/restrict`                   | Node.js (no `runtime` segment export) | Request-scoped worker safety command                       |
 | admin      | `/api/admin/workers/[assignmentId]/reveal`                     | Node.js (no `runtime` segment export) | Request-scoped audited legal-identity reveal               |
+| admin      | `/api/admin/workers/legal-entities`                            | Node.js (no `runtime` segment export) | Request-scoped legal entities for Add worker               |
 | admin      | `/api/admin/workers/unreviewed-count`                          | Node.js (no `runtime` segment export) | Request-scoped unreviewed worker count (staff)             |
 | admin      | `/api/admin/workflows/notification-policy`                     | Node.js (no `runtime` segment export) | Tenant notification overrides                              |
 | admin      | `/api/admin/workflows/summaries`                               | Node.js (no `runtime` segment export) | Workflow run summaries, notification policy                |

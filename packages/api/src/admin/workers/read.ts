@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 
 import {
+  WORKERS_CAPABILITY,
   assignmentIdOf,
   readWorkerRows,
   rpcClient,
@@ -9,6 +10,7 @@ import {
   workersFailure,
   type RpcError,
 } from "./contract";
+import { legalEntitySchema } from "./envelopes";
 import { withOperation } from "../../shared/with-operation";
 import { withNoStore } from "../sites/contract";
 
@@ -50,4 +52,22 @@ export const GET_RECORD = withNoStore(
     if (!row || read.rows.length !== 1) return workerError("NOT_FOUND");
     return NextResponse.json({ worker: toWorker(row) });
   }, STAFF),
+);
+
+export const GET_LEGAL_ENTITIES = withNoStore(
+  withOperation(
+    async ({ auth, sessionClient, requestId }) => {
+      const { data, error } = await sessionClient
+        .from("legal_entities")
+        .select("id, name")
+        .eq("tenant_id", auth.tenantId)
+        .order("name", { ascending: true })
+        .order("id", { ascending: true });
+      if (error) return workersFailure("entities", codeOf(error), requestId);
+      const parsed = legalEntitySchema.array().safeParse(data);
+      if (!parsed.success) return workersFailure("entities", null, requestId);
+      return NextResponse.json({ legalEntities: parsed.data });
+    },
+    { capability: WORKERS_CAPABILITY },
+  ),
 );

@@ -39,6 +39,7 @@ import {
   revealWorkerIdentity,
   useCreateWorker,
   useInviteWorker,
+  useWorkerLegalEntities,
   useWorkerCommand,
   type CreateWorkerBody,
   type RevealedIdentity,
@@ -46,6 +47,7 @@ import {
   type Worker,
   type WorkerCommand,
   type WorkerInvitation,
+  type WorkerLegalEntity,
 } from "./workers-api";
 import {
   formatInvitationAddress,
@@ -61,10 +63,21 @@ const DISPLAY_NAME_MISSING = "Give a display name.";
 const LEGAL_NAME_MISSING = "Give the worker's legal name.";
 const NAME_MAX = 200;
 const EMAIL_INVALID = "Give a valid e-mail address.";
+const ENTITY_MISSING = "Choose the legal entity this worker serves under.";
+const ENTITY_REFUSALS = new Set([
+  "LEGAL_ENTITY_REQUIRED",
+  "LEGAL_ENTITY_NOT_FOUND",
+]);
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 type FieldName =
-  "reason" | "alias" | "level" | "displayName" | "legalName" | "email";
+  | "reason"
+  | "alias"
+  | "level"
+  | "displayName"
+  | "legalName"
+  | "email"
+  | "legalEntity";
 type Problem = { field: FieldName; message: string; focus: string };
 
 function useFieldErrors() {
@@ -738,6 +751,53 @@ export function RevealDialog({ worker }: { worker: Worker }) {
   );
 }
 
+function EntityChoice({
+  id,
+  entities,
+  value,
+  onChange,
+  disabled,
+  error,
+}: {
+  id: string;
+  entities: readonly WorkerLegalEntity[];
+  value: string | null;
+  onChange: (entity: string) => void;
+  disabled: boolean;
+  error?: string;
+}) {
+  return (
+    <div className="flex flex-col gap-2">
+      <p id={`${id}-legend`} className="text-sm font-medium">
+        Legal entity
+      </p>
+      <RadioGroup
+        aria-labelledby={`${id}-legend`}
+        aria-invalid={error ? true : undefined}
+        aria-describedby={error ? `${id}-error` : undefined}
+        disabled={disabled}
+        value={value ?? ""}
+        onValueChange={(next) => {
+          const entity = entities.find((candidate) => candidate.id === next);
+          if (entity) onChange(entity.id);
+        }}
+      >
+        {entities.map((entity) => (
+          <Field key={entity.id} orientation="horizontal">
+            <RadioGroupItem id={`${id}-${entity.id}`} value={entity.id} />
+            <FieldContent>
+              <FieldLabel htmlFor={`${id}-${entity.id}`}>
+                {entity.name}
+              </FieldLabel>
+            </FieldContent>
+          </Field>
+        ))}
+      </RadioGroup>
+      {error ? <FieldError id={`${id}-error`}>{error}</FieldError> : null}
+    </div>
+  );
+}
+
 const NEW_WORKER = {
   displayName: "",
   legalName: "",
@@ -753,13 +813,22 @@ export function CreateWorkerDialog() {
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState(NEW_WORKER);
   const [level, setLevel] = useState<SecurityLevel | null>(null);
+  const [entity, setEntity] = useState<string | null>(null);
   const [reason, setReason] = useState("");
   const latch = useLatchedSubmit();
   const fields = useFieldErrors();
   const create = useCreateWorker();
+  const entitiesQuery = useWorkerLegalEntities(open);
+  const entities = entitiesQuery.data ?? [];
+  const choosesEntity = entities.length > 1;
+  const firstEntity = entities[0];
+  const entityFocus = firstEntity
+    ? `${id}-entity-${firstEntity.id}`
+    : `${id}-reason`;
   const reset = () => {
     setForm(NEW_WORKER);
     setLevel(null);
+    setEntity(null);
     setReason("");
     latch.setError(null);
     fields.reset();
@@ -815,6 +884,15 @@ export function CreateWorkerDialog() {
                 },
               ]
             : []),
+          ...(choosesEntity && entity === null
+            ? [
+                {
+                  field: "legalEntity" as const,
+                  message: ENTITY_MISSING,
+                  focus: entityFocus,
+                },
+              ]
+            : []),
           ...reasonProblem(reason, `${id}-reason`),
         ];
         if (!fields.check(problems)) return;
@@ -829,10 +907,32 @@ export function CreateWorkerDialog() {
             : {}),
           ...(level ? { level } : {}),
           ...(filled(form.alias) ? { alias: form.alias } : {}),
+          ...(choosesEntity && entity !== null
+            ? { legalEntityId: entity }
+            : {}),
           reason,
         };
         void latch.run(async () => {
-          await create.mutateAsync(body);
+          try {
+            await create.mutateAsync(body);
+          } catch (caught) {
+            if (
+              choosesEntity &&
+              caught instanceof WorkerRequestError &&
+              caught.code !== null &&
+              ENTITY_REFUSALS.has(caught.code)
+            ) {
+              fields.check([
+                {
+                  field: "legalEntity",
+                  message: caught.message,
+                  focus: entityFocus,
+                },
+              ]);
+              return;
+            }
+            throw caught;
+          }
           reset();
           setOpen(false);
         });
@@ -876,6 +976,19 @@ export function CreateWorkerDialog() {
           maxLength={REASON_MAX}
         />
       </div>
+      {choosesEntity ? (
+        <EntityChoice
+          id={`${id}-entity`}
+          entities={entities}
+          value={entity}
+          onChange={(next) => {
+            setEntity(next);
+            fields.clear("legalEntity");
+          }}
+          disabled={latch.pending}
+          error={fields.errors.legalEntity}
+        />
+      ) : null}
       <LevelChoice
         id={`${id}-level`}
         legend="Security level (optional)"

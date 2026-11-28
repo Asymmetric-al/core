@@ -240,7 +240,8 @@ export type WorkersOperation =
   | "confirm"
   | "reveal"
   | "create"
-  | "invite";
+  | "invite"
+  | "entities";
 
 async function reportWorkersFailure(
   operation: WorkersOperation,

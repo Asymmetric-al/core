@@ -62,3 +62,14 @@ export const inviteEnvelopeSchema = z.strictObject({
 });
 
 export type WorkerInvitation = z.infer<typeof inviteEnvelopeSchema>;
+
+export const legalEntitySchema = z.strictObject({
+  id: z.guid(),
+  name: z.string(),
+});
+
+export const legalEntitiesEnvelopeSchema = z.strictObject({
+  legalEntities: z.array(legalEntitySchema),
+});
+
+export type WorkerLegalEntity = z.infer<typeof legalEntitySchema>;
