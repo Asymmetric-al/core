@@ -915,4 +915,40 @@ describe("AL-2678 r2b1: a worker's record in Mission Control", () => {
     expect(link.getAttribute("data-sentry-mask")).toBe("true");
     expect(link.getAttribute("autocomplete")).toBe("off");
   });
+  it("W5 (fix round of 2869): an invite refused 403 shows the route's own sentence, which names the missing permission, not the Restrict publication line (red: every 403 reads as the Restrict publication line)", async () => {
+    state.mc = {
+      capabilities: ["safety.restrict_publication", "people.manage_members"],
+    };
+    current = worker({ hasLogin: false });
+    postReply = (path) =>
+      path.endsWith("/invite")
+        ? {
+            status: 403,
+            body: {
+              error:
+                "Inviting a worker to sign in needs the Manage members permission.",
+              code: "NOT_PERMITTED",
+            },
+          }
+        : { status: 200, body: { worker: current } };
+    show();
+    fireEvent.click(
+      await screen.findByRole("button", {
+        name: "Invite to sign in: Worker Kestrel",
+      }),
+    );
+    const dialog = await screen.findByRole("dialog");
+    fireEvent.change(within(dialog).getByLabelText("E-mail address"), {
+      target: { value: "heron@example.org" },
+    });
+    fireEvent.change(within(dialog).getByLabelText("Reason"), {
+      target: { value: "Sign in to your record" },
+    });
+    fireEvent.click(
+      within(dialog).getByRole("button", { name: "Create invitation" }),
+    );
+    expect((await within(dialog).findByRole("alert")).textContent).toBe(
+      "Inviting a worker to sign in needs the Manage members permission.",
+    );
+  });
 });

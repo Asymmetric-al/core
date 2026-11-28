@@ -38,12 +38,23 @@ const h = vi.hoisted(() => ({
   serviceKeyUsed: vi.fn(),
   captureError: vi.fn(),
   auditLog: vi.fn(),
+  capabilities: null as string[] | null,
 }));
 
-vi.mock("@asym/auth/context", async (importOriginal) => ({
-  ...(await importOriginal<typeof AuthModule>()),
-  getAuthContext: h.auth,
-}));
+vi.mock("@asym/auth/context", async (importOriginal) => {
+  const original = await importOriginal<typeof AuthModule>();
+  return {
+    ...original,
+    getAuthContext: h.auth,
+    hasContextCapability: (
+      context: Parameters<typeof original.hasContextCapability>[0],
+      capability: Parameters<typeof original.hasContextCapability>[1],
+    ) =>
+      h.capabilities
+        ? h.capabilities.includes(capability)
+        : original.hasContextCapability(context, capability),
+  };
+});
 
 vi.mock("@asym/database/supabase/admin", () => ({
   getAdminClient: () => ({
@@ -236,6 +247,7 @@ describe("AL-2678 WP5 part 2-r2b1: the workers' routes (contract, error map, ali
     h.serviceKeyUsed.mockReset();
     h.captureError.mockReset();
     h.auditLog.mockReset();
+    h.capabilities = null;
   });
 
   it("the directory answers every staff member the ten fields in camelCase with no-store, has_legal_identity passed as it came (null without the capability)", async () => {
@@ -1241,13 +1253,6 @@ describe("AL-2678 WP5 part 2-r2b1: the workers' routes (contract, error map, ali
       "This worker already has a login.",
     ],
     [
-      "tenant_guard: the selected assignment does not hold the capability this command requires",
-      "42501",
-      403,
-      "NOT_PERMITTED",
-      NOT_PERMITTED,
-    ],
-    [
       "A valid email address is required",
       "22023",
       400,
@@ -1310,6 +1315,70 @@ describe("AL-2678 WP5 part 2-r2b1: the workers' routes (contract, error map, ali
       expect(rpc).not.toHaveBeenCalled();
     },
   );
+
+  it.each([
+    [
+      ["safety.restrict_publication"],
+      "Inviting a worker to sign in needs the Manage members permission.",
+    ],
+    [
+      ["people.manage_members"],
+      "Inviting a worker to sign in needs the Restrict publication permission.",
+    ],
+    [
+      [],
+      "Inviting a worker to sign in needs the Manage members and Restrict publication permissions.",
+    ],
+  ])(
+    "W5 (fix round of 2869): the invite route asks for both capabilities before it reads the worker: holding %j, the answer is 403 naming only what is missing (proposed text), never 409 for a worker with a login, and nothing is read or called (red: it passes on Restrict publication alone and answers in that permission's words)",
+    async (held, text) => {
+      h.auth.mockResolvedValue(makeAuth("admin"));
+      h.capabilities = held;
+      const rpc = stubSession({
+        worker_records: { data: [row({ has_login: true })] },
+      });
+      const response = await POST_INVITE(
+        post(`/api/admin/workers/${WORKER}/invite`, {
+          email: "heron@example.org",
+          reason: "Sign in",
+        }),
+        params(),
+      );
+      expect(response.status).toBe(403);
+      expect(await read(response)).toEqual({
+        error: text,
+        code: "NOT_PERMITTED",
+      });
+      expect(rpc).not.toHaveBeenCalled();
+    },
+  );
+
+  it("W5 (fix round of 2869): when the session held both capabilities but the database refuses (42501, a capability removed meanwhile), the invite answers 403 saying the permissions changed, naming none the person may still hold (proposed text; red: the Restrict publication sentence)", async () => {
+    h.auth.mockResolvedValue(makeAuth("admin"));
+    stubSession({
+      worker_records: { data: [row()] },
+      invite_worker: {
+        error: {
+          code: "42501",
+          message:
+            "tenant_guard: the selected assignment does not hold the capability this command requires",
+        },
+      },
+    });
+    const response = await POST_INVITE(
+      post(`/api/admin/workers/${WORKER}/invite`, {
+        email: "heron@example.org",
+        reason: "Sign in",
+      }),
+      params(),
+    );
+    expect(response.status).toBe(403);
+    expect(await read(response)).toEqual({
+      error:
+        "Your permissions here have changed. Reload the page to see what you can do.",
+      code: "NOT_PERMITTED",
+    });
+  });
 
   it("W6 (fix round of 2869): create refuses a reason made only of invisible characters with 400 REASON_REQUIRED and calls nothing (red: it calls create_worker)", async () => {
     h.auth.mockResolvedValue(makeAuth("admin"));

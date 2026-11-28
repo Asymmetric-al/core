@@ -658,5 +658,39 @@ describe.skipIf(!ADMIN_URL)(
         },
       ]);
     });
+    it("W5 (fix round of 2869): an assignment crafted to hold Manage members without Restrict publication (no role grants that today; the capability function is replaced inside a transaction that is rolled back) passes invite_worker's preamble and is refused 42501 by its second check, writing nothing (guard: it shows the SQL check the route's sentence stands on)", async () => {
+      const by = await staff();
+      const { mail } = await login();
+      const w = await worker();
+      const before = await counts();
+      const c = new pg.Client({ connectionString: ADMIN_URL });
+      await c.connect();
+      let answer: Outcome;
+      try {
+        await c.query("begin");
+        await c.query(
+          "create or replace function authz.assignment_capabilities(p_assignment_id uuid) returns text[] language sql stable set search_path = '' as $$ select array['people.manage_members']::text[] $$",
+        );
+        await c.query(
+          `set local role authenticated;
+           select set_config('request.jwt.claims', '${JSON.stringify({ sub: by, role: "authenticated" })}', true),
+                  set_config('request.jwt.claim.sub', '', true),
+                  set_config('request.headers', '${JSON.stringify({ "x-asym-tenant": tenant })}', true);`,
+        );
+        answer = await inviteExisting(c, mail, w.party);
+      } finally {
+        await c.query("rollback").catch(() => undefined);
+        await c.end();
+      }
+      expect(answer).toMatchObject({ ok: false, code: "42501" });
+      expect(
+        (
+          await admin.query(
+            "select pg_get_functiondef('authz.assignment_capabilities(uuid)'::regprocedure) like '%tenant_administration%' as restored",
+          )
+        ).rows[0].restored,
+      ).toBe(true);
+      expect(await counts()).toEqual(before);
+    });
   },
 );
