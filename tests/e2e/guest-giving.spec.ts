@@ -185,11 +185,17 @@ async function answerIntake(
   });
 }
 
-async function planStripe(page: Page, plan: Record<string, unknown>) {
-  await page.context().addInitScript((value) => {
+async function planStripe(
+  page: Page,
+  plan: Record<string, unknown>,
+  thisPageOnly = false,
+) {
+  const install = (value: Record<string, unknown>) => {
     (window as Window & { __stripeStubPlan?: unknown }).__stripeStubPlan =
       value;
-  }, plan);
+  };
+  if (thisPageOnly) await page.addInitScript(install, plan);
+  else await page.context().addInitScript(install, plan);
 }
 
 type StubLog = {
@@ -599,13 +605,13 @@ test.describe("Guest giving with the switch on (Level 1: Stripe.js stubbed at th
     page,
   }) => {
     await answerIntake(page, world.accounts.A1, true);
-    await planStripe(page, { confirms: [LOST] });
     const url = checkoutUrl(
       world.hosts.siteA,
       `fund_id=${world.funds.A1}&amount=32`,
     );
     const email = `again-${Date.now()}@example.test`;
     const first = await page.context().newPage();
+    await planStripe(first, { confirms: [LOST] }, true);
     const firstPosts = donatePosts(first);
     await first.goto(url);
     await typeGuest(first, email);
