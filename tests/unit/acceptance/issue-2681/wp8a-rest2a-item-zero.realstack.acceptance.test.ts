@@ -27,6 +27,7 @@ import {
   type Outcome,
   type Side,
 } from "./wp8a-rest1-harness";
+import { TABLE_RULES } from "../../packages/api/admin/contribution-receipt-stub";
 
 it.runIf(IN_MIGRATE_JOB && !ADMIN_URL)(
   "migrate supplies TENANT_GUARD_IT_ADMIN_DATABASE_URL (fails, never skips)",
@@ -319,5 +320,56 @@ describe.skipIf(!ADMIN_URL)(
           ).rows,
         ).toEqual([]);
       }));
+  },
+);
+
+describe.skipIf(!ADMIN_URL)(
+  "AL-2681 A2, issue 2857 items 41, 42 and 45: the receipt stub's rules are the tables' rules (real stack)",
+  () => {
+    const db = new pg.Client({ connectionString: ADMIN_URL });
+    beforeAll(() => db.connect());
+    afterAll(() => db.end());
+
+    it("each table the stub writes has exactly the stub's NOT NULL columns, those of them without a default, and its unique keys; the send log's status is NOT NULL, so the stub's neq is the database's <>", async () => {
+      for (const [table, rules] of Object.entries(TABLE_RULES)) {
+        const columns = (
+          await db.query(
+            `SELECT column_name AS name,
+                    (column_default IS NOT NULL OR is_identity = 'YES' OR is_generated = 'ALWAYS') AS defaulted
+               FROM information_schema.columns
+              WHERE table_schema = 'public' AND table_name = $1 AND is_nullable = 'NO'`,
+            [table],
+          )
+        ).rows as Array<{ name: string; defaulted: boolean }>;
+        expect(columns.map((c) => c.name).sort(), table).toEqual(
+          [...rules.notNull].sort(),
+        );
+        expect(
+          columns
+            .filter((c) => !c.defaulted)
+            .map((c) => c.name)
+            .sort(),
+          table,
+        ).toEqual([...rules.required].sort());
+        const keys = (
+          await db.query(
+            `SELECT array(
+                      SELECT a.attname
+                        FROM unnest(i.indkey) WITH ORDINALITY AS k(attnum, n)
+                        JOIN pg_attribute AS a ON a.attrelid = i.indrelid AND a.attnum = k.attnum
+                       ORDER BY k.n
+                    )::text[] AS columns
+               FROM pg_index AS i
+              WHERE i.indrelid = ('public.' || $1)::regclass
+                AND i.indisunique AND NOT i.indisprimary`,
+            [table],
+          )
+        ).rows.map((row: { columns: string[] }) => row.columns.join(","));
+        expect(keys.sort(), table).toEqual(
+          rules.unique.map((key) => key.join(",")).sort(),
+        );
+      }
+      expect(TABLE_RULES.email_send_logs!.notNull).toContain("status");
+    });
   },
 );

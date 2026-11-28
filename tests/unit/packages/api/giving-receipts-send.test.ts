@@ -69,6 +69,7 @@ const cleanDonor = {
 function buildAdmin(options?: {
   donor?: Record<string, unknown> | null;
   suppressions?: Array<{ suppression_type: string }>;
+  sendLog?: Record<string, unknown> | null;
 }) {
   const donor = options?.donor === undefined ? cleanDonor : options.donor;
   const suppressions = options?.suppressions ?? [];
@@ -124,7 +125,14 @@ function buildAdmin(options?: {
       return chain;
     }
     if (table === "staged_gifts") return { update: stagedGiftsUpdate };
-    if (table === "email_send_logs") return { insert: sendLogInsert };
+    if (table === "email_send_logs") {
+      const read: Record<string, unknown> = {};
+      read.eq = vi.fn(() => read);
+      read.maybeSingle = vi.fn(() =>
+        Promise.resolve({ data: options?.sendLog ?? null, error: null }),
+      );
+      return { insert: sendLogInsert, select: vi.fn(() => read) };
+    }
     throw new Error(`Unexpected table: ${table}`);
   });
 
