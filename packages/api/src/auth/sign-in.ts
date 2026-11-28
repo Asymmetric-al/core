@@ -7,10 +7,10 @@ import {
   readEmail,
   readPassword,
   signInClientAddress,
+  signInAccountKey,
 } from "./sign-in-answers";
 import {
   recordSignInFailure,
-  signInAccountKey,
   takeSignInAttempt,
   type SignInLimitKey,
 } from "../identity/sign-in-limits";

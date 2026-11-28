@@ -12,10 +12,6 @@ export class SignInLimitsUnavailableError extends Error {
   }
 }
 
-export function signInAccountKey(email: string): string {
-  return email.trim().toLowerCase();
-}
-
 async function callLimits(
   name: "take_sign_in_attempt" | "record_sign_in_failure",
   key: SignInLimitKey,

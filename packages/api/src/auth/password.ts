@@ -1,4 +1,4 @@
-import { passwordRecoverySecondsLeft } from "@asym/auth/password-recovery";
+import { recoverySecondsLeft } from "@asym/auth/password-recovery-session";
 import {
   createAnonymousClient,
   createClient,
@@ -9,10 +9,10 @@ import {
   providerUnavailable,
   readPassword,
   signInClientAddress,
+  signInAccountKey,
 } from "./sign-in-answers";
 import {
   recordSignInFailure,
-  signInAccountKey,
   takeSignInAttempt,
 } from "../identity/sign-in-limits";
 import { ApiHttpError, ensureJsonBody } from "../shared/http-errors";
@@ -153,31 +153,34 @@ export async function POST(request: Request) {
   if ("status" in change) return refuse(change);
 
   let supabase;
-  let claims;
+  let person;
   try {
     supabase = await createClient(null);
-    const { data, error } = await supabase.auth.getClaims();
-    if (error)
+    const { data, error } = await supabase.auth.getUser();
+    if (error && error.name !== "AuthSessionMissingError")
       return refuse(
         providerUnavailable(error) ? REFUSALS.unavailable : REFUSALS.signedOut,
       );
-    claims = data?.claims;
+    person = data.user;
   } catch {
     return refuse(REFUSALS.unavailable);
   }
-  if (!claims?.sub) return refuse(REFUSALS.signedOut);
+  if (!person) return refuse(REFUSALS.signedOut);
 
   if (change.current === null) {
-    const nowSeconds = Math.floor(Date.now() / 1000);
-    if (passwordRecoverySecondsLeft(claims.amr, nowSeconds) === null)
-      return refuse(REFUSALS.currentRequired);
+    let secondsLeft: number | null;
+    try {
+      secondsLeft = await recoverySecondsLeft(supabase);
+    } catch {
+      return refuse(REFUSALS.unavailable);
+    }
+    if (secondsLeft === null) return refuse(REFUSALS.currentRequired);
   } else {
-    const email = typeof claims.email === "string" ? claims.email : "";
-    if (!email) return refuse(REFUSALS.signedOut);
+    if (!person.email) return refuse(REFUSALS.signedOut);
     const refusal = await checkCurrentPassword(
       request,
-      claims.sub,
-      email,
+      person.id,
+      person.email,
       change.current,
     );
     if (refusal) return refuse(refusal);

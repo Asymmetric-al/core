@@ -21,6 +21,7 @@
     "./auth-screen": "./auth-screen.ts",
     "./auth-email-request": "./auth-email-request.ts",
     "./password-recovery": "./password-recovery.ts",
+    "./password-recovery-session": "./password-recovery-session.ts",
     "./sign-up-confirmation": "./sign-up-confirmation.ts",
     "./capabilities": "./capabilities/index.ts",
     "./principal": "./principal/index.ts",

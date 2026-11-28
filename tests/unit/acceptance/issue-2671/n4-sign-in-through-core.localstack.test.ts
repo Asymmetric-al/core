@@ -68,7 +68,7 @@ describe.skipIf(!READY)(
       ({ POST: changePassword } =
         await import("../../../../packages/api/src/auth/password"));
       ({ signInAccountKey } =
-        await import("../../../../packages/api/src/identity/sign-in-limits"));
+        await import("../../../../packages/api/src/auth/sign-in-answers"));
       ({ createClient } =
         (await import("../../../../packages/database/supabase/server")) as unknown as {
           createClient: typeof createClient;

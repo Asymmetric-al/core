@@ -12,9 +12,9 @@ vi.mock("@asym/database/supabase/admin", () => ({
       : { client: null, error: "Admin client unavailable." },
 }));
 
+import { signInAccountKey } from "../../../packages/api/src/auth/sign-in-answers";
 import {
   recordSignInFailure,
-  signInAccountKey,
   SignInLimitsUnavailableError,
   takeSignInAttempt,
 } from "../../../packages/api/src/identity/sign-in-limits";

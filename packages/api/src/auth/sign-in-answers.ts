@@ -3,6 +3,10 @@ import { NextResponse } from "next/server";
 export const SIGN_IN_PASSWORD_MAX_LENGTH = 1024;
 export const SIGN_IN_EMAIL_MAX_LENGTH = 320;
 
+export function signInAccountKey(address: string): string {
+  return address.trim().toLowerCase();
+}
+
 export function signInClientAddress(request: Request): string | null {
   const first = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim();
   return first ? first : null;
