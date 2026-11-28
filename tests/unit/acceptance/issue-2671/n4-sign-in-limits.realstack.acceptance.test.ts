@@ -228,6 +228,30 @@ describe.skipIf(!ADMIN_URL)(
       }
     });
 
+    it("the scheduled trim removes every row of an ended window, whether or not anyone signs in again, and keeps the current window", () =>
+      inTx(async () => {
+        for (const [kind, key] of [
+          ["account", "old-a@example.test"],
+          ["address", "198.51.104.1"],
+        ] as const)
+          await db.query(
+            "INSERT INTO private.sign_in_windows (kind, key_digest, window_start, hits) VALUES ($1, $2, now() - interval '20 minutes', 3)",
+            [kind, digest(key)],
+          );
+        await take("current@example.test", "198.51.104.2");
+        const removed = await asService(
+          async () =>
+            (await db.query("SELECT public.trim_sign_in_windows() AS n"))
+              .rows[0].n as number,
+        );
+        expect(removed).toBeGreaterThanOrEqual(2);
+        const { rows } = await db.query(
+          "SELECT count(*)::int AS n FROM private.sign_in_windows WHERE window_start < now() - interval '15 minutes'",
+        );
+        expect(rows[0].n).toBe(0);
+        expect(await hits("account", "current@example.test")).toBe(1);
+      }));
+
     it("stores digests only: no account address or client address in any row", () =>
       inTx(async () => {
         const account = "stored@example.test";
@@ -251,14 +275,27 @@ describe.skipIf(!ADMIN_URL)(
             `SELECT r,
                     has_function_privilege(r, 'public.take_sign_in_attempt(text, text)', 'EXECUTE') AS take,
                     has_function_privilege(r, 'public.release_sign_in_attempt(text, text, boolean)', 'EXECUTE') AS release,
-                    has_function_privilege(r, 'public.clear_sign_in_account(text)', 'EXECUTE') AS clear
+                    has_function_privilege(r, 'public.clear_sign_in_account(text)', 'EXECUTE') AS clear,
+                    has_function_privilege(r, 'public.trim_sign_in_windows()', 'EXECUTE') AS trim
                FROM unnest(ARRAY['anon', 'authenticated', 'service_role']) AS r ORDER BY r`,
           )
         ).rows;
         expect(grants).toEqual([
-          { r: "anon", take: false, release: false, clear: false },
-          { r: "authenticated", take: false, release: false, clear: false },
-          { r: "service_role", take: true, release: true, clear: true },
+          { r: "anon", take: false, release: false, clear: false, trim: false },
+          {
+            r: "authenticated",
+            take: false,
+            release: false,
+            clear: false,
+            trim: false,
+          },
+          {
+            r: "service_role",
+            take: true,
+            release: true,
+            clear: true,
+            trim: true,
+          },
         ]);
         const table = (
           await db.query(

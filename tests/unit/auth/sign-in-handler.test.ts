@@ -247,6 +247,26 @@ describe("Core's sign-in route (AL-2671 N4 PR 1)", () => {
     expect(body).not.toContain("fetch failed");
   });
 
+  it.each([
+    ["2001:db8:1:2:aaaa::1", "2001:db8:1:2::/64"],
+    ["2001:DB8:1:2:bbbb:cccc:dddd:2", "2001:db8:1:2::/64"],
+    ["2001:db8::7", "2001:db8:0:0::/64"],
+    ["::ffff:198.51.100.7", "198.51.100.7"],
+    ["198.51.100.8", "198.51.100.8"],
+  ])(
+    "counts the client address %s as %s (an IPv6 client by its /64)",
+    async (from, counted) => {
+      await signIn(
+        { email: USER.email, password: WRONG },
+        { "x-forwarded-for": `${from}, 10.0.0.1` },
+      );
+      expect(fixture.take).toHaveBeenLastCalledWith({
+        account: USER.email,
+        address: counted,
+      });
+    },
+  );
+
   it("refuses an address with a letter outside ASCII exactly as an unknown one, before the limits and the provider", async () => {
     const unknown = await answer(
       await signIn({ email: "nobody@example.test", password: WRONG }),
