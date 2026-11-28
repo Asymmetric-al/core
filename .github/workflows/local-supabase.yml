@@ -145,6 +145,7 @@ on:
       # The round trips themselves.
       - playwright.auth-mail.config.ts
       - tests/e2e/auth-password-recovery.spec.ts
+      - tests/e2e/auth-sign-in-through-core.spec.ts
       - tests/e2e/auth-signup-confirmation.spec.ts
       - tests/e2e/auth-two-organizations.spec.ts
       - tests/e2e/helpers/auth-mail.ts
@@ -159,6 +160,9 @@ on:
       - scripts/cms/lib/postgres.mjs
       - scripts/release/release-database.mjs
       - tests/unit/acceptance/issue-2675/operator-mfa.localstack.test.ts
+      # Sign-in through Core against the installed provider (AL-2671 N4).
+      - packages/api/src/identity/sign-in-limits.ts
+      - tests/unit/acceptance/issue-2671/n4-sign-in-through-core.localstack.test.ts
       # The first release's reads against the second release's policies
       # (AL-2675): the journeys, and the request scope they prove.
       - tests/e2e/auth-crm-reads.spec.ts
@@ -619,6 +623,21 @@ jobs:
           OPERATOR_MFA_SERVICE_KEY="$(jq -er '.SERVICE_ROLE_KEY | select(length > 0)' <<< "$status")"
           export OPERATOR_MFA_ANON_KEY OPERATOR_MFA_SERVICE_KEY
           bunx vitest run --maxWorkers=1 tests/unit/acceptance/issue-2676/tenant-provisioning.localstack.test.ts
+      - name: Prove sign-in through Core against the installed provider (AL-2671 N4)
+        if: ${{ !cancelled() && steps.stack.outcome == 'success' }}
+        timeout-minutes: 10
+        shell: bash
+        env:
+          N4_SIGN_IN_IT_REQUIRED: "1"
+          N4_SIGN_IN_IT_URL: http://127.0.0.1:54321
+          N4_SIGN_IN_IT_DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:54322/postgres
+          N4_SIGN_IN_IT_MAIL_URL: http://127.0.0.1:54324
+        run: |
+          status="$(bun run supabase -- status -o json)"
+          N4_SIGN_IN_IT_ANON_KEY="$(jq -er '.ANON_KEY | select(length > 0)' <<< "$status")"
+          N4_SIGN_IN_IT_SERVICE_KEY="$(jq -er '.SERVICE_ROLE_KEY | select(length > 0)' <<< "$status")"
+          export N4_SIGN_IN_IT_ANON_KEY N4_SIGN_IN_IT_SERVICE_KEY
+          bunx vitest run --maxWorkers=1 tests/unit/acceptance/issue-2671/n4-sign-in-through-core.localstack.test.ts
       - name: Show Auth logs on failure
         if: failure()
         run: docker logs --tail 200 "$(docker ps --filter name=supabase_auth_ --format '{{.Names}}' | head -n 1)" || true

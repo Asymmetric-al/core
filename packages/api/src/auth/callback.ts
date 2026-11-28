@@ -94,13 +94,16 @@ async function homeMembershipClass(
  * - Sanitizes `next` to prevent open redirects; every redirect is a relative
  *   path, so it stays on the host the browser used.
  * - Redirects to the home route of a live membership class the person holds,
- *   the app's own class first; that route takes precedence over `next`.
- *   Since AL-2675 it reads memberships, never `profiles.role`.
+ *   the app's own class first. When that class is the app's own, a safe
+ *   `next` lies within its home and is honoured (AL-2671 N4); otherwise the
+ *   class route wins. Since AL-2675 it reads memberships, never
+ *   `profiles.role`.
  */
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const code = searchParams.get("code");
-  const next = safeNextParam(searchParams.get("next")) ?? "/";
+  const requestedNext = safeNextParam(searchParams.get("next"));
+  const next = requestedNext ?? "/";
 
   if (code) {
     // Auth and the person's own rows in every tenant: no tenant is chosen yet.
@@ -120,6 +123,10 @@ export async function GET(request: Request) {
       if (user) {
         const role = await homeMembershipClass(supabase, request);
         const roleRoute = routeForRole(role);
+        const surface = parseRoleClass(request.headers.get(ROLE_CLASS_HEADER));
+        if (role && role === surface && requestedNext) {
+          return markSharedOriginSessionChange(callbackRedirect(requestedNext));
+        }
         if (role && roleRoute) {
           if (isServeUnderPathsEnabled()) {
             const app = role === "staff" ? "admin" : role;

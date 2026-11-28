@@ -44,7 +44,72 @@ function createProfileClient(profile: unknown) {
   return { from, select, eq, single };
 }
 
+function browserClientWithoutProviderReads(rest: Record<string, unknown> = {}) {
+  const providerRead = vi.fn(() => {
+    throw new Error("The browser read the session from the provider.");
+  });
+  return {
+    providerRead,
+    supabase: {
+      ...rest,
+      auth: {
+        getUser: providerRead,
+        getSession: providerRead,
+        ...((rest.auth as object | undefined) ?? {}),
+      },
+    },
+  };
+}
+
 describe("client session auth state", () => {
+  it("reads the signed-in user from Core's session route, never from the provider", async () => {
+    const user = { id: "user-1", email: "donor@example.com" } as User;
+    const route = vi.fn(async () => Response.json({ user }));
+    vi.stubGlobal("fetch", route);
+    try {
+      const { providerRead, supabase } = browserClientWithoutProviderReads({
+        from: createProfileClient(null).from,
+      });
+      const { loadClientAuthState } =
+        await import("../../../packages/auth/client-session");
+
+      const state = await loadClientAuthState(supabase as never, {
+        includeProfile: false,
+      });
+
+      expect(state).toEqual({ user, profile: null, loading: false });
+      expect(route).toHaveBeenCalledWith(
+        "/api/auth/session",
+        expect.objectContaining({ cache: "no-store" }),
+      );
+      expect(providerRead).not.toHaveBeenCalled();
+    } finally {
+      vi.unstubAllGlobals();
+    }
+  });
+
+  it("reads a refused or unreachable session route as signed out", async () => {
+    const { supabase } = browserClientWithoutProviderReads();
+    const { loadClientAuthState } =
+      await import("../../../packages/auth/client-session");
+    for (const answer of [
+      async () => Response.json({ user: null }, { status: 503 }),
+      async () => {
+        throw new TypeError("Failed to fetch");
+      },
+      async () => new Response("not json", { status: 200 }),
+    ]) {
+      vi.stubGlobal("fetch", vi.fn(answer));
+      try {
+        await expect(
+          loadClientAuthState(supabase as never, { includeProfile: false }),
+        ).resolves.toEqual({ user: null, profile: null, loading: false });
+      } finally {
+        vi.unstubAllGlobals();
+      }
+    }
+  });
+
   it("drops the old owner before a new user profile load resolves, but not on same-user refresh", async () => {
     const firstUser = { id: "first" } as User;
     const secondUser = { id: "second" } as User;
@@ -53,10 +118,6 @@ describe("client session auth state", () => {
     let authCallback!: (event: string, session: { user: User }) => void;
     const supabase = {
       auth: {
-        getUser: vi.fn(async () => ({
-          data: { user: firstUser },
-          error: null,
-        })),
         onAuthStateChange: vi.fn((callback) => {
           authCallback = callback;
           return { data: { subscription: { unsubscribe: vi.fn() } } };
@@ -69,6 +130,7 @@ describe("client session auth state", () => {
       await import("../../../packages/auth/client-session");
     const stop = subscribeToClientAuthState(states, {
       supabase: supabase as never,
+      readUser: async () => firstUser,
     });
     await vi.waitFor(() => expect(states).toHaveBeenCalled());
     states.mockClear();
@@ -94,19 +156,13 @@ describe("client session auth state", () => {
     const user = { id: "user-1", email: "donor@example.com" } as User;
     const profile = { id: "profile-1", user_id: "user-1", role: "donor" };
     const profileClient = createProfileClient(profile);
-    const supabase = {
-      auth: {
-        getUser: vi.fn(async () => ({
-          data: { user },
-          error: null,
-        })),
-      },
-      from: profileClient.from,
-    };
+    const supabase = { auth: {}, from: profileClient.from };
     const { loadClientAuthState } =
       await import("../../../packages/auth/client-session");
 
-    const state = await loadClientAuthState(supabase as never);
+    const state = await loadClientAuthState(supabase as never, {
+      readUser: async () => user,
+    });
 
     expect(state).toEqual({ user, profile, loading: false });
     expect(profileClient.from).toHaveBeenCalledWith("profiles");
@@ -116,19 +172,13 @@ describe("client session auth state", () => {
 
   it("does not query profiles when there is no current user", async () => {
     const from = vi.fn();
-    const supabase = {
-      auth: {
-        getUser: vi.fn(async () => ({
-          data: { user: null },
-          error: null,
-        })),
-      },
-      from,
-    };
+    const supabase = { auth: {}, from };
     const { loadClientAuthState } =
       await import("../../../packages/auth/client-session");
 
-    const state = await loadClientAuthState(supabase as never);
+    const state = await loadClientAuthState(supabase as never, {
+      readUser: async () => null,
+    });
 
     expect(state).toEqual({ user: null, profile: null, loading: false });
     expect(from).not.toHaveBeenCalled();
@@ -136,13 +186,12 @@ describe("client session auth state", () => {
 
   it("ignores a stale initial profile load after a later signed-out event", async () => {
     const user = { id: "old-user" } as User;
-    const initialUser = deferred<{ data: { user: User }; error: null }>();
+    const initialUser = deferred<User>();
     const profileClient = createProfileClient({ id: "old-profile" });
     const unsubscribe = vi.fn();
     let authCallback: ((event: string, session: null) => void) | null = null;
     const supabase = {
       auth: {
-        getUser: vi.fn(() => initialUser.promise),
         onAuthStateChange: vi.fn((callback) => {
           authCallback = callback;
           return { data: { subscription: { unsubscribe } } };
@@ -158,11 +207,11 @@ describe("client session auth state", () => {
       (state) => {
         states.push(state);
       },
-      { supabase: supabase as never },
+      { supabase: supabase as never, readUser: () => initialUser.promise },
     );
 
     authCallback?.("SIGNED_OUT", null);
-    initialUser.resolve({ data: { user }, error: null });
+    initialUser.resolve(user);
     await flushPromises();
     stop();
 
@@ -179,10 +228,6 @@ describe("client session auth state", () => {
       ((event: string, session: { user: User } | null) => void) | null = null;
     const supabase = {
       auth: {
-        getUser: vi.fn(async () => ({
-          data: { user: firstUser },
-          error: null,
-        })),
         onAuthStateChange: vi.fn((callback) => {
           authCallback = callback;
           return {
@@ -198,6 +243,7 @@ describe("client session auth state", () => {
     const stop = subscribeToClientAuthState(vi.fn(), {
       includeProfile: false,
       supabase: supabase as never,
+      readUser: async () => firstUser,
     });
     await flushPromises();
 

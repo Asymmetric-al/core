@@ -68,7 +68,7 @@ describe("installDemoSessionInBrowser hermetic client identity", () => {
       ).toString(),
     );
     expect(session.user).toMatchObject({ id: "e2e-donor-user" });
-    expect(fixture.route).toHaveBeenCalledTimes(2);
+    expect(fixture.route).toHaveBeenCalledTimes(3);
   });
 
   it.each([
@@ -113,14 +113,15 @@ describe("installDemoSessionInBrowser hermetic client identity", () => {
     expect(fixture.route).not.toHaveBeenCalled();
   });
 
-  it("serves only the expected browser user and exact donor profile read", async () => {
+  it("serves only the expected browser user, Core's session read of that user, and the exact donor profile read", async () => {
     vi.stubEnv("ASYM_E2E_REQUIRE_HERMETIC_SUPABASE", "1");
     vi.stubEnv("E2E_AUTH_BYPASS", "true");
     vi.stubEnv("NEXT_PUBLIC_SUPABASE_URL", "https://example.supabase.co");
     const fixture = browserPage();
     await installDemoSessionInBrowser(fixture.page, "donor");
     const userRoute = fixture.route.mock.calls[0]![1];
-    const profileRoute = fixture.route.mock.calls[1]![1];
+    const sessionRoute = fixture.route.mock.calls[1]![1];
+    const profileRoute = fixture.route.mock.calls[2]![1];
     const fulfill = vi.fn().mockResolvedValue(undefined);
     const abort = vi.fn().mockResolvedValue(undefined);
     const request = vi.fn(() => ({
@@ -135,6 +136,17 @@ describe("installDemoSessionInBrowser hermetic client identity", () => {
         json: expect.objectContaining({ id: "e2e-donor-user" }),
       }),
     );
+    await sessionRoute({
+      request: () => ({
+        method: () => "GET",
+        url: () => "http://localhost:3000/api/auth/session",
+      }),
+      fulfill,
+      abort,
+    });
+    expect(fulfill).toHaveBeenLastCalledWith({
+      json: { user: expect.objectContaining({ id: "e2e-donor-user" }) },
+    });
     await profileRoute({ request, fulfill, abort });
     expect(fulfill).toHaveBeenLastCalledWith(
       expect.objectContaining({
@@ -157,7 +169,15 @@ describe("installDemoSessionInBrowser hermetic client identity", () => {
       url: () => "https://example.supabase.co/auth/v1/user",
     });
     await userRoute({ request, fulfill, abort });
-    expect(abort).toHaveBeenCalledTimes(2);
-    expect(fulfill).toHaveBeenCalledTimes(2);
+    await sessionRoute({
+      request: () => ({
+        method: () => "POST",
+        url: () => "http://localhost:3000/api/auth/session",
+      }),
+      fulfill,
+      abort,
+    });
+    expect(abort).toHaveBeenCalledTimes(3);
+    expect(fulfill).toHaveBeenCalledTimes(3);
   });
 });

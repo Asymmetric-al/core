@@ -1,6 +1,9 @@
 "use client";
 
-import { runSessionChangeCleanups } from "@asym/auth/client-session";
+import {
+  readSessionUser,
+  runSessionChangeCleanups,
+} from "@asym/auth/client-session";
 import {
   getDefaultPostLoginPathForApp,
   getDemoRoleForApp,
@@ -9,7 +12,6 @@ import {
 } from "@asym/auth/demo-login";
 import { useTenantRouter } from "@asym/auth/tenant-navigation";
 import { ownApiFetch } from "@asym/database/own-api";
-import { createBrowserClient } from "@asym/database/supabase";
 import { readJsonBody } from "@asym/lib/http/fetch-result";
 import { useQuery } from "@tanstack/react-query";
 import * as React from "react";
@@ -48,11 +50,36 @@ function resolveDemoAvailability(
   return Boolean(roles[role]);
 }
 
+const SIGN_IN_FALLBACK = "Unable to sign in.";
+
 function toSafeUiError(error: unknown, fallback: string) {
   if (error instanceof Error && error.message.trim()) {
     return error.message;
   }
   return fallback;
+}
+
+async function signInThroughCore(
+  email: string,
+  password: string,
+): Promise<string | null> {
+  try {
+    const response = await ownApiFetch("/api/auth/sign-in", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, password }),
+    });
+    const { ok, body } = await readJsonBody<{
+      ok?: boolean;
+      error?: unknown;
+    }>(response);
+    if (ok && body?.ok === true) return null;
+    return typeof body?.error === "string" && body.error.trim()
+      ? body.error
+      : SIGN_IN_FALLBACK;
+  } catch {
+    return SIGN_IN_FALLBACK;
+  }
 }
 
 export function LoginScreen({
@@ -101,13 +128,7 @@ export function LoginScreen({
   const existingSessionQuery = useQuery({
     queryKey: ["auth", "session-existing"],
     staleTime: 0,
-    queryFn: async () => {
-      const supabase = createBrowserClient();
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      return user ?? null;
-    },
+    queryFn: () => readSessionUser().catch(() => null),
   });
   const existingUser = existingSessionQuery.data;
 
@@ -156,21 +177,14 @@ export function LoginScreen({
       setIsSubmitting(true);
 
       try {
-        const supabase = createBrowserClient();
-        const { error: signInError } = await supabase.auth.signInWithPassword({
-          email,
-          password,
-        });
-
-        if (signInError) {
-          throw new Error(signInError.message);
+        const refusal = await signInThroughCore(email, password);
+        if (refusal === null) {
+          runSessionChangeCleanups();
+          replace(targetPath);
+          refresh();
+        } else {
+          setError(refusal);
         }
-
-        runSessionChangeCleanups();
-        replace(targetPath);
-        refresh();
-      } catch (cause) {
-        setError(toSafeUiError(cause, "Unable to sign in."));
       } finally {
         submissionInFlight.current = false;
         setIsSubmitting(false);

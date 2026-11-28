@@ -18,9 +18,9 @@ describe("auth/demo-login", () => {
     expect(getDefaultPostLoginPathForApp("donor")).toBe("/donor-dashboard");
   });
 
-  it("accepts safe relative paths and preserves query/hash", () => {
+  it("accepts safe relative paths, keeps the query and drops any fragment", () => {
     expect(safeNextParam("/donor-dashboard")).toBe("/donor-dashboard");
-    expect(safeNextParam("/mc?tab=users#top")).toBe("/mc?tab=users#top");
+    expect(safeNextParam("/mc?tab=users#top")).toBe("/mc?tab=users");
     expect(safeNextParam("   /tasks?filter=open   ")).toBe(
       "/tasks?filter=open",
     );
@@ -38,6 +38,42 @@ describe("auth/demo-login", () => {
     expect(safeNextParam("/auth/callback")).toBeNull();
     expect(safeNextParam("/api/auth/demo-account")).toBeNull();
   });
+
+  it.each([
+    "/forgot-password",
+    "/forgot-password/reset",
+    "/admin/login",
+    "/missionary/login",
+    "/admin/register",
+    "/missionary/register",
+    "/api/x",
+    "/API/x",
+    "/admin/api/x",
+    "/missionary/api/x",
+    "/%61pi/x",
+  ])(
+    "refuses %s, which is no page to land on (N4: the default instead)",
+    (next) => {
+      expect(safeNextParam(next)).toBeNull();
+    },
+  );
+
+  it("accepts a selector-only doorway path, without its fragment or query", () => {
+    expect(safeNextParam("/invite/sel_ABC123")).toBe("/invite/sel_ABC123");
+    expect(safeNextParam("/invite/sel_ABC123#verifier")).toBe(
+      "/invite/sel_ABC123",
+    );
+    expect(safeNextParam("/invite/sel_ABC123?v=secret#verifier")).toBe(
+      "/invite/sel_ABC123",
+    );
+  });
+
+  it.each(["/apiary", "/workers/api", "/admin-notes", "/forgot-passwords"])(
+    "keeps %s, which only looks like a refused path (guard)",
+    (next) => {
+      expect(safeNextParam(next)).toBe(next);
+    },
+  );
 });
 
 describe("auth/demo-login: next stays a same-app path", () => {
@@ -82,6 +118,14 @@ describe("auth/demo-login: next stays a same-app path", () => {
     },
   );
 
+  it.each(["/workers/a%2520b", "/workers/a%09b", "/x%0Ay", "/x%0dy"])(
+    "on, the donor app refuses %s, which still holds a percent sign, a tab or a line break after decoding (issue 2845 item 12)",
+    (next) => {
+      onTheDonorApp();
+      expect(safeNextParam(next)).toBeNull();
+    },
+  );
+
   it.each([
     "/administration",
     "/admins/x",
@@ -89,10 +133,14 @@ describe("auth/demo-login: next stays a same-app path", () => {
     "/donor-dashboard/x",
     "/workers/admin",
     "/workers/jos%C3%A9",
-    "/checkout?gift=1#pay",
   ])("on, the donor app keeps %s (guard)", (next) => {
     onTheDonorApp();
     expect(safeNextParam(next)).toBe(next);
+  });
+
+  it("on, the donor app keeps a page with its query and drops its fragment (guard)", () => {
+    onTheDonorApp();
+    expect(safeNextParam("/checkout?gift=1#pay")).toBe("/checkout?gift=1");
   });
 
   it.each([undefined, "0"])(
@@ -104,6 +152,8 @@ describe("auth/demo-login: next stays a same-app path", () => {
       expect(safeNextParam("/%61dmin/donors")).toBe("/%61dmin/donors");
       expect(safeNextParam("/admin%2fdonors")).toBe("/admin%2fdonors");
       expect(safeNextParam("/admin%3fx")).toBe("/admin%3fx");
+      expect(safeNextParam("/workers/a%2520b")).toBe("/workers/a%2520b");
+      expect(safeNextParam("/workers/a%09b")).toBe("/workers/a%09b");
       expect(safeNextParam("/x/..%2fadmin/donors")).toBe(
         "/x/..%2fadmin/donors",
       );
@@ -119,4 +169,60 @@ describe("auth/demo-login: next stays a same-app path", () => {
       expect(safeNextParam("/admin/x")).toBe("/admin/x");
     },
   );
+});
+
+describe("auth/demo-login: next is checked on the path it would be served at (N4 fix round, Y2)", () => {
+  const T = "00000000-0000-0000-0000-000000000001";
+
+  it.each([
+    `/${T}/forgot-password`,
+    `/${T}/forgot-password/reset`,
+    `/${T}/login`,
+    `/${T}/register`,
+    `/${T}/auth/callback?code=x`,
+    `/${T}/invite/sel?v=secret`,
+    `/${T}~finance/login`,
+    `/${T}/%6Cogin`,
+    "/invite",
+    "/invite/",
+    "/invite/sel/extra",
+    "/invite/sel%2fextra",
+    "/FORGOT-PASSWORD",
+    "/Login",
+    "/AUTH/CALLBACK?code=x",
+    "/Admin/Login",
+    "/admin/forgot-password",
+    "/missionary/forgot-password",
+    "/admin/auth/callback",
+    "/missionary/auth/callback",
+    `/admin/${T}/forgot-password`,
+  ])(
+    "refuses %s, which is served as a sign-in, recovery or doorway page",
+    (next) => {
+      expect(safeNextParam(next)).toBeNull();
+    },
+  );
+
+  it.each([
+    ["/Invite/sel?v=secret", "/invite/sel"],
+    ["/%69nvite/sel?v=secret", "/invite/sel"],
+    ["/invite/sel#verifier", "/invite/sel"],
+    ["/INVITE/Sel_A-1", "/invite/Sel_A-1"],
+  ])(
+    "takes the doorway %s as its canonical selector-only path %s",
+    (next, landing) => {
+      expect(safeNextParam(next)).toBe(landing);
+    },
+  );
+
+  it.each([
+    `/${T}/donors?tab=all`,
+    `/${T}~finance/contributions`,
+    `/${T}/reset`,
+    "/donors/x?y=1",
+    "/invitations",
+    "/admin-notes",
+  ])("still accepts %s (its twin: a real page)", (next) => {
+    expect(safeNextParam(next)).toBe(next);
+  });
 });

@@ -250,9 +250,9 @@ describe("Mission Control composed navigation names", () => {
   });
 
   it.each([
-    ["admin", ["Administration", "Members", "About"]],
-    ["finance", ["Administration", "Members", "About"]],
-    ["staff", ["About"]],
+    ["admin", ["Account", "Administration", "Members", "About"]],
+    ["finance", ["Account", "Administration", "Members", "About"]],
+    ["staff", ["Account", "About"]],
   ])(
     "offers %s only the profile shortcuts their sidebar shows",
     async (role, expected) => {
@@ -269,6 +269,21 @@ describe("Mission Control composed navigation names", () => {
         .filter((item) => item.hasAttribute("href"))
         .map((item) => item.textContent?.trim());
       expect(names).toEqual(expected);
+    },
+  );
+
+  it.each(["admin", "finance", "staff"] as const)(
+    "offers %s their own account, outside the administration pages (N4)",
+    async (role) => {
+      shellState.role = role;
+      const view = render(
+        <MCShell>
+          <h1>Content</h1>
+        </MCShell>,
+      );
+      fireEvent.click(view.getByRole("button", { name: "Open profile menu" }));
+      const account = await view.findByRole("menuitem", { name: "Account" });
+      expect(account.getAttribute("href")).toBe("/account");
     },
   );
 
@@ -361,6 +376,17 @@ describe("Mission Control composed navigation names", () => {
     );
     const trail = view.getByRole("navigation", { name: /breadcrumb/i });
     expect(within(trail).getByText("About")).toBeTruthy();
+  });
+
+  it("names the account page in the breadcrumb (N4)", () => {
+    shellState.pathname = "/account";
+    const view = render(
+      <MCShell>
+        <h1>Content</h1>
+      </MCShell>,
+    );
+    const trail = view.getByRole("navigation", { name: /breadcrumb/i });
+    expect(within(trail).getByText("Your account")).toBeTruthy();
   });
 
   it("marks the current page in the sidebar", () => {

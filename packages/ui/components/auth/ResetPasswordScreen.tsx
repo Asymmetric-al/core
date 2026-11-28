@@ -10,7 +10,8 @@ import {
   TenantLink as Link,
   useTenantRouter,
 } from "@asym/auth/tenant-navigation";
-import { createBrowserClient } from "@asym/database/supabase";
+import { ownApiFetch } from "@asym/database/own-api";
+import { readJsonBody } from "@asym/lib/http/fetch-result";
 import { KeyRound, LinkIcon } from "lucide-react";
 import * as React from "react";
 
@@ -71,11 +72,29 @@ function validate(password: string, confirmation: string): Problem | null {
   return null;
 }
 
-function toSaveErrorMessage(error: unknown): string {
-  if (error instanceof Error && error.message.trim()) {
-    return error.message;
+const SAVE_FALLBACK =
+  "We couldn’t confirm whether your new password was saved. Sign in with it; if that doesn’t work, ask for a new link.";
+
+async function saveRecoveredPassword(
+  newPassword: string,
+): Promise<string | null> {
+  try {
+    const response = await ownApiFetch("/api/auth/password", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ newPassword }),
+    });
+    const { ok, body } = await readJsonBody<{
+      ok?: boolean;
+      error?: unknown;
+    }>(response);
+    if (ok && body?.ok === true) return null;
+    return typeof body?.error === "string" && body.error.trim()
+      ? body.error
+      : SAVE_FALLBACK;
+  } catch {
+    return SAVE_FALLBACK;
   }
-  return "Your new password couldn’t be saved. Try again.";
 }
 
 /**
@@ -201,16 +220,14 @@ function NewPasswordForm({
     submissionInFlight.current = true;
     setIsSaving(true);
     try {
-      const supabase = createBrowserClient();
-      const { error: saveError } = await supabase.auth.updateUser({
-        password,
-      });
-      if (saveError) throw saveError;
-      runSessionChangeCleanups();
-      replace(getDefaultPostLoginPathForApp(appId));
-      refresh();
-    } catch (cause) {
-      setProblem({ kind: "save", message: toSaveErrorMessage(cause) });
+      const refusal = await saveRecoveredPassword(password);
+      if (refusal === null) {
+        runSessionChangeCleanups();
+        replace(getDefaultPostLoginPathForApp(appId));
+        refresh();
+      } else {
+        setProblem({ kind: "save", message: refusal });
+      }
     } finally {
       submissionInFlight.current = false;
       setIsSaving(false);
@@ -231,8 +248,8 @@ function NewPasswordForm({
           <AuthCardTitle>Choose a new password</AuthCardTitle>
           <AuthCardDescription>
             {email
-              ? `For ${email}. You’ll stay signed in after you save it.`
-              : "You’ll stay signed in after you save it."}
+              ? `For ${email}. You’ll stay signed in here, and your other devices will be signed out.`
+              : "You’ll stay signed in here, and your other devices will be signed out."}
           </AuthCardDescription>
         </AuthCardHeader>
         <AuthCardContent>

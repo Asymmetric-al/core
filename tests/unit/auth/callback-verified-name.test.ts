@@ -141,6 +141,32 @@ describe("on: the staff callback picks the home among the name's organization's 
     expect(response.headers.get("location")).toBe("/donor-dashboard");
   });
 
+  it("lands Q, staff in A, signing in with next=/donors/<id>, there: a safe next within the home of the class it picks (N4)", async () => {
+    fixture.rows = Q;
+    const response = await callback(
+      { "x-asym-name-tenant": TA },
+      "/donors/7a1c0f3e-5b1d-4c43-9a51-2a4b7d0e8c11",
+    );
+    expect(response.headers.get("location")).toBe(
+      "/admin/donors/7a1c0f3e-5b1d-4c43-9a51-2a4b7d0e8c11",
+    );
+  });
+
+  it("lands D, a donor in A and staff only in B, on the donor dashboard whatever next says: next is a staff page, outside the donor class's home (guard)", async () => {
+    fixture.rows = D;
+    const response = await callback({ "x-asym-name-tenant": TA }, "/donors");
+    expect(response.headers.get("location")).toBe("/donor-dashboard");
+  });
+
+  it("lands Q on the class home when next is refused (guard)", async () => {
+    fixture.rows = Q;
+    const response = await callback(
+      { "x-asym-name-tenant": TA },
+      "/forgot-password",
+    );
+    expect(response.headers.get("location")).toBe("/admin");
+  });
+
   it("lands Q, staff in A, on /admin (guard)", async () => {
     fixture.rows = Q;
     const response = await callback({ "x-asym-name-tenant": TA });
@@ -210,13 +236,13 @@ describe("on: the callback on an operations address", () => {
     expect(fixture.rowReads).toBe(0);
   });
 
-  it("lands a request that carries the name by class, as today (guard)", async () => {
+  it("lands a request that carries the name by class in the class home, at its safe next (N4; guard against the operations landing)", async () => {
     fixture.rows = Q;
     const response = await operationsCallback("/donors", {
       "x-asym-name-tenant": TA,
       "x-asym-role-class": "staff",
     });
-    expect(response.headers.get("location")).toBe("/admin");
+    expect(response.headers.get("location")).toBe("/admin/donors");
   });
 
   it("keeps next on another host, as today (guard)", async () => {
@@ -275,6 +301,22 @@ describe.each([
       vi.stubGlobal("fetch", fakeAuthFetch("no user"));
       const response = await operationsCallback("/donors");
       expect(response.headers.get("location")).toBe("/donors");
+    });
+  },
+);
+
+describe.each([
+  ["unset", undefined],
+  ["0", "0"],
+] as const)(
+  "off (switch %s): the callback honours a safe next within the class home",
+  (_label, value) => {
+    it("lands Q, staff, signing in on the staff app with next=/donors/<id>, there (N4; base: /)", async () => {
+      vi.stubEnv("CORE_SERVE_UNDER_PATHS", value);
+      vi.stubEnv("CORE_APP_BASE_PATH", "");
+      fixture.rows = Q;
+      const response = await callback({}, "/donors/abc");
+      expect(response.headers.get("location")).toBe("/donors/abc");
     });
   },
 );

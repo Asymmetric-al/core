@@ -126,9 +126,17 @@ describe("a change of person or organization runs the session-change cleanups wh
   });
 
   it("does not run them when the password sign-in is refused", async () => {
-    auth.signInWithPassword.mockResolvedValueOnce({
-      error: { message: "Invalid login credentials" },
-    });
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async (input: RequestInfo | URL) =>
+        String(input).endsWith("/api/auth/sign-in")
+          ? Response.json(
+              { ok: false, code: "SIGN_IN_REFUSED", error: "Refused." },
+              { status: 401 },
+            )
+          : Response.json({ user: null, roles: {} }),
+      ),
+    );
     watchCleanups();
     renderLogin(false);
     signInWithPassword();

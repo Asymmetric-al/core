@@ -622,7 +622,8 @@ switch state even on the donor project, whose health URL never changes.
 4. On the shared origin verify that a sign-in or sign-out in each app clears the prior person's Web Studio clipboard when admin opens.
 5. No operator is on the list without a verified factor when the switch goes on: list the operators (`scripts/platform/operators.mjs list`) and check each one's verified TOTP factor in the project's Auth users ([platform operators](platform-operators.md#owner-steps-for-a-hosted-project), steps 2 and 3).
 6. Record hosted observations 0–13, including upload, provider paths and the rollback floor, as passed or unobserved. The N3 implementation has no hosted observations from this window.
-7. The switch-on release, and any later switch-off, is dispatched by hand by the coordinator and watched to its end: after a stop or a cancelled run, dispatch again until `plan` logs every app in the release's state and the run passes. Follow [Release job](release-job.md#if-a-promotion-fails-part-way).
+7. Core's sign-in limits count by the first `x-forwarded-for` entry. With the switch on, the front's rewrite to the two dashboards does not carry the visitor's address, so every staff and missionary sign-in would share one address bucket ([ADR 0019](../../packages/auth/docs/adr/0019-sign-in-through-core.md)). Do not switch on until the front's signed stamp carries the visitor's address (the first item of N4's second pull request) and a dashboard counts by it.
+8. The switch-on release, and any later switch-off, is dispatched by hand by the coordinator and watched to its end: after a stop or a cancelled run, dispatch again until `plan` logs every app in the release's state and the run passes. Follow [Release job](release-job.md#if-a-promotion-fails-part-way).
 
 ### 5.9 The operator area's operations address (`OPERATIONS_NAMES`)
 

@@ -178,6 +178,47 @@ describe("on: an operations address admits sign-in, and nothing else, unstamped"
     expect(crossOrigin.headers.get("x-middleware-next")).toBeNull();
   });
 
+  it("passes a same-origin POST /admin/api/auth/sign-in, stripped, and refuses a cross-origin one through the mutation admission (N4: Core's sign-in; base: 403)", async () => {
+    expectPassed(
+      await proxy(
+        onRequest("/api/auth/sign-in", {
+          method: "POST",
+          headers: {
+            ...FORGED,
+            origin: ORIGIN,
+            "content-type": "application/json",
+          },
+        }),
+      ),
+      "same-origin sign-in",
+    );
+    const crossOrigin = await proxy(
+      onRequest("/api/auth/sign-in", {
+        method: "POST",
+        headers: { origin: "https://evil.test" },
+      }),
+    );
+    expect(crossOrigin.status).toBe(403);
+    expect(crossOrigin.headers.get("x-middleware-next")).toBeNull();
+    expect(state.rpcCalls).toEqual([]);
+    expect(state.lookups).toBe(0);
+  });
+
+  it.each(["GET", "HEAD"])(
+    "passes %s /admin/api/auth/session, stripped, reading nothing (N4: Core's session state; base: 403)",
+    async (method) => {
+      expectPassed(
+        await proxy(
+          onRequest("/api/auth/session", { method, headers: FORGED }),
+        ),
+        `${method} /api/auth/session`,
+      );
+      expect(state.getUserCalls).toBe(0);
+      expect(state.rpcCalls).toEqual([]);
+      expect(state.lookups).toBe(0);
+    },
+  );
+
   it("admits a host spelled with ASCII spaces, tabs and capitals (base: 403)", async () => {
     expectPassed(
       await proxy(onRequest("/login", { host: " OPS.test\t" })),
@@ -199,6 +240,10 @@ describe("on: an operations address admits sign-in, and nothing else, unstamped"
     ["/login/", "GET"],
     ["/auth/callback", "POST"],
     ["/api/auth/signout", "GET"],
+    ["/api/auth/sign-in", "GET"],
+    ["/api/auth/session", "POST"],
+    ["/api/auth/password", "POST"],
+    ["/api/auth/sign-in/", "POST"],
   ])("refuses %s (%s) with 403 no-store (guard)", async (path, method) => {
     expectRefused(
       await proxy(

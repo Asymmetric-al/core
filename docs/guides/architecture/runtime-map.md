@@ -265,6 +265,9 @@ a 4,000,000-byte file and at most 65,536 more bytes for multipart framing.
 | admin      | `/api/admin/workflows/summaries`                               | Node.js (no `runtime` segment export) | Workflow run summaries, notification policy                |
 | admin      | `/api/admin/users`                                             | Node.js (no `runtime` segment export) | Request-scoped member directory RPC                        |
 | admin      | `/api/auth/demo-account`                                       | Node.js (no `runtime` segment export) | Demo auth server action                                    |
+| admin      | `/api/auth/password`                                           | Node.js (no `runtime` segment export) | Core's password change and recovery save                   |
+| admin      | `/api/auth/session`                                            | Node.js (no `runtime` segment export) | Signed-in user for the browser, no token                   |
+| admin      | `/api/auth/sign-in`                                            | Node.js (no `runtime` segment export) | Core's sign-in, with its limits                            |
 | admin      | `/api/auth/signout`                                            | Node.js (no `runtime` segment export) | Auth/session cleanup                                       |
 | admin      | `/api/cms/media/delete`                                        | Node.js (no `runtime` segment export) | Staff media asset tombstone command                        |
 | admin      | `/api/cms/media/finalize`                                      | Node.js (no `runtime` segment export) | Staff media sanitization and custody finalize              |
@@ -302,6 +305,9 @@ a 4,000,000-byte file and at most 65,536 more bytes for multipart framing.
 | donor      | `/api/[...slug]`                                               | Node.js (no `runtime` segment export) | Reserved-address miss: `404`, `no-store`, reads nothing    |
 | donor      | `/api/auth/cleanup-demo-users`                                 | Node.js (no `runtime` segment export) | Admin client                                               |
 | donor      | `/api/auth/demo-account`                                       | Node.js (no `runtime` segment export) | Demo auth server action                                    |
+| donor      | `/api/auth/password`                                           | Node.js (no `runtime` segment export) | Core's password change and recovery save                   |
+| donor      | `/api/auth/session`                                            | Node.js (no `runtime` segment export) | Signed-in user for the browser, no token                   |
+| donor      | `/api/auth/sign-in`                                            | Node.js (no `runtime` segment export) | Core's sign-in, with its limits                            |
 | donor      | `/api/auth/signout`                                            | Node.js (no `runtime` segment export) | Auth/session cleanup                                       |
 | donor      | `/api/checkout/config`                                         | Node.js (no `runtime` segment export) | Anonymous giving config read (`W8-R18`), anon client       |
 | donor      | `/api/donate`                                                  | Node.js (no `runtime` segment export) | Stripe SDK, admin client                                   |
@@ -326,6 +332,9 @@ a 4,000,000-byte file and at most 65,536 more bytes for multipart framing.
 | donor      | `/api/upload/image`                                            | Node.js (no `runtime` segment export) | Shared profile-photo upload, request-scoped client         |
 | donor      | `/api/webhooks/stripe`                                         | Node.js (no `runtime` segment export) | Stripe SDK, admin client                                   |
 | missionary | `/api/auth/demo-account`                                       | Node.js (no `runtime` segment export) | Demo auth server action                                    |
+| missionary | `/api/auth/password`                                           | Node.js (no `runtime` segment export) | Core's password change and recovery save                   |
+| missionary | `/api/auth/session`                                            | Node.js (no `runtime` segment export) | Signed-in user for the browser, no token                   |
+| missionary | `/api/auth/sign-in`                                            | Node.js (no `runtime` segment export) | Core's sign-in, with its limits                            |
 | missionary | `/api/auth/signout`                                            | Node.js (no `runtime` segment export) | Auth/session cleanup                                       |
 | missionary | `/api/follower-requests`                                       | Node.js (no `runtime` segment export) | Selected missionary RPC, service-role client               |
 | missionary | `/api/follower-requests/[requestId]`                           | Node.js (no `runtime` segment export) | Selected missionary RPC, service-role client               |

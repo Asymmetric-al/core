@@ -114,6 +114,7 @@ export default defineConfig({
   testDir: "./tests/e2e",
   testMatch: [
     "**/auth-password-recovery.spec.ts",
+    "**/auth-sign-in-through-core.spec.ts",
     "**/auth-signup-confirmation.spec.ts",
     "**/auth-two-organizations.spec.ts",
     "**/auth-request-scope-reads.spec.ts",

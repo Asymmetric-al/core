@@ -1,3 +1,4 @@
+import { trimSignInWindows } from "../../identity/sign-in-limits";
 import { requireWorkflowAdminClient } from "../admin-client";
 import { inngest } from "../inngest/client";
 import { runDispatchRecoveryScan } from "../recovery";
@@ -21,7 +22,13 @@ export const dispatchRecoveryScan = inngest.createFunction(
     return await step.run("scan-dispatch-ledger", async () => {
       const client = requireWorkflowAdminClient("workflow_recovery");
 
-      return await runDispatchRecoveryScan({ client });
+      const scanned = await runDispatchRecoveryScan({ client });
+      try {
+        await trimSignInWindows();
+      } catch {
+        console.error("[auth] sign_in_windows_trim_failed");
+      }
+      return scanned;
     });
   },
 );
