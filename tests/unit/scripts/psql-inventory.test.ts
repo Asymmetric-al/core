@@ -113,6 +113,11 @@ const PSQL_NAMERS: Record<string, { reason: string; lines: string[] }> = {
       "return runPsqlQuery({",
     ],
   },
+  "scripts/e2e/run-giving-stripe-test-proof.mts": {
+    reason:
+      "AL-2681 PR 2b: the opt-in Level 2 runner names the psql binary the disposable-database check runs before the proof writes its fixture; it starts no database client of its own",
+    lines: ['psqlBin: "psql",'],
+  },
   "scripts/cms/lib/migration-target.mjs": {
     reason:
       "comments and two messages that name the CMS runner's psql and the CA file it reads",

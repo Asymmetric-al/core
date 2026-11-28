@@ -7,20 +7,26 @@ type Row = Record<string, unknown>;
 /** Answers each table's query, honoring `.limit()` like PostgREST. */
 function fakeAdmin(donations: Row[], pledges: Row[] = []) {
   const limits: number[] = [];
+  const rpcs: Array<{ fn: string; args: Row }> = [];
   const client = {
-    rpc: (fn: string) =>
-      Promise.resolve({
+    rpc: (fn: string, args: Row) => {
+      rpcs.push({ fn, args });
+      return Promise.resolve({
         data:
-          fn === "donor_portal_lifetime"
+          fn === "donor_portal_lifetime" || fn === "donor_portal_login_lifetime"
             ? [{ given_cents: 0, gift_count: 0 }]
             : [],
         error: null,
-      }),
+      });
+    },
     from(table: string) {
       let limit: number | null = null;
       const answer = () => {
         if (table === "profiles") {
-          return { data: { id: "p-1", display_name: "Dana" }, error: null };
+          return {
+            data: { id: "p-1", display_name: "Dana", user_id: "u-1" },
+            error: null,
+          };
         }
         if (table === "account_links") {
           return { data: { party_id: "party-1" }, error: null };
@@ -60,7 +66,7 @@ function fakeAdmin(donations: Row[], pledges: Row[] = []) {
       return query;
     },
   };
-  return { client: client as never, limits };
+  return { client: client as never, limits, rpcs };
 }
 
 function gifts(count: number): Row[] {
@@ -150,5 +156,23 @@ describe("donor portal snapshot refunds (D-18, AL-2681: the fake answers .or, th
       refundedAmountCents: 4000,
       refundedAmount: 40,
     });
+  });
+});
+
+describe("AL-2681 PR 2b, issue 2857 item 36: the lifetime figures are read by login, with no capped list", () => {
+  it("the snapshot reads donor_portal_login_lifetime with the tenant, the donor and the login, and passes no gift list", async () => {
+    const { client, rpcs } = fakeAdmin(gifts(3));
+    await getDonorPortalSnapshot({
+      supabaseAdmin: client,
+      profileId: "p-1",
+      tenantId: "t-1",
+    });
+    const lifetime = rpcs.filter((r) => /lifetime/.test(r.fn));
+    expect(lifetime).toEqual([
+      {
+        fn: "donor_portal_login_lifetime",
+        args: { p_tenant_id: "t-1", p_donor_id: "d-1", p_login_id: "u-1" },
+      },
+    ]);
   });
 });

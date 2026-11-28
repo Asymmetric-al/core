@@ -24,6 +24,7 @@ vi.mock("../../../../../packages/api/src/workflows/admin-client", () => ({
 import {
   MONEY_SCHEDULE_PARTS,
   runMoneySchedule,
+  sendOneOperation,
   type MoneyScheduleDeps,
 } from "../../../../../packages/api/src/donate/money-schedule";
 import {
@@ -97,7 +98,7 @@ function deps(
   };
 }
 
-describe("AL-2681 PR 2a: the money schedule, one step-free function on the */30 cadence", () => {
+describe("AL-2681 PR 2a: the money schedule, one step-free function on the */30 cadence (D-18, AL-2681 PR 2b: every tick first purges the limit's expired attempts)", () => {
   it("has four parts in a fixed order", () => {
     expect(MONEY_SCHEDULE_PARTS).toEqual([
       "worker",
@@ -111,7 +112,10 @@ describe("AL-2681 PR 2a: the money schedule, one step-free function on the */30 
     const { rpc, calls } = fakeRpc([]);
     const d = deps({}, rpc);
     const result = await runMoneySchedule(d);
-    expect(calls.map((c) => c.fn)).toEqual(["money_due_work"]);
+    expect(calls.map((c) => c.fn)).toEqual([
+      "purge_intake_attempts",
+      "money_due_work",
+    ]);
     expect(result.parts.map((p) => [p.part, p.status, p.handled])).toEqual([
       ["worker", "idle", 0],
       ["sweep", "idle", 0],
@@ -160,6 +164,7 @@ describe("AL-2681 PR 2a: the money schedule, one step-free function on the */30 
       handled: 1,
     });
     expect(calls.map((c) => c.fn)).toEqual([
+      "purge_intake_attempts",
       "money_due_work",
       "abandon_unpaid_intake",
       "claim_provider_event",
@@ -178,10 +183,11 @@ describe("AL-2681 PR 2a: the money schedule, one step-free function on the */30 
     ]);
     const result = await runMoneySchedule(deps({}, rpc));
     expect(calls.map((c) => c.fn)).toEqual([
+      "purge_intake_attempts",
       "money_due_work",
       "claim_provider_operation",
     ]);
-    expect(calls[1]!.args).toMatchObject({ p_operation_id: OP });
+    expect(calls[2]!.args).toMatchObject({ p_operation_id: OP });
     expect(result.parts[0]).toMatchObject({
       part: "worker",
       status: "done",
@@ -214,6 +220,7 @@ describe("AL-2681 PR 2a: the money schedule, one step-free function on the */30 
     );
     const result = await runMoneySchedule(deps({}, rpc));
     expect(calls.map((c) => c.fn)).toEqual([
+      "purge_intake_attempts",
       "money_due_work",
       "claim_provider_event",
       "defer_payment_event",
@@ -221,7 +228,7 @@ describe("AL-2681 PR 2a: the money schedule, one step-free function on the */30 
       "apply_payment_outcome",
       "record_provider_event_failure",
     ]);
-    expect(calls[2]!.args).toEqual({ p_event_id: EVENT, p_attempt: 2 });
+    expect(calls[3]!.args).toEqual({ p_event_id: EVENT, p_attempt: 2 });
     expect(result.parts.find((p) => p.part === "events")).toMatchObject({
       handled: 1,
       failures: 1,
@@ -241,11 +248,12 @@ describe("AL-2681 PR 2a: the money schedule, one step-free function on the */30 
     await runMoneySchedule(deps({ accountReader: () => ({ retrieve }) }, rpc));
     expect(retrieve).toHaveBeenCalledWith("acct_alpha1");
     expect(calls.map((c) => c.fn)).toEqual([
+      "purge_intake_attempts",
       "money_due_work",
       "claim_provider_event",
       "apply_account_event",
     ]);
-    expect(calls[2]!.args).toEqual({
+    expect(calls[3]!.args).toEqual({
       p_event_id: ACCOUNT_EVENT,
       p_attempt: 2,
       p_snapshot: { id: "acct_alpha1", livemode: false },
@@ -270,10 +278,11 @@ describe("AL-2681 PR 2a: the money schedule, one step-free function on the */30 
       deps({ accountReader: () => ({ retrieve }) }, rpc),
     );
     expect(calls.map((c) => c.fn)).toEqual([
+      "purge_intake_attempts",
       "money_due_work",
       "reconcile_payment_account",
     ]);
-    expect(calls[1]!.args).toEqual({
+    expect(calls[2]!.args).toEqual({
       p_account_id: ACCOUNT_ROW,
       p_snapshot: { id: "acct_alpha1", livemode: false, closed: true },
     });
@@ -331,7 +340,7 @@ describe("AL-2681 PR 2a: the money schedule, one step-free function on the */30 
     expect(run).toHaveBeenCalledTimes(1);
   });
 
-  it("its default runner holds an RPC-only client: one call of money_due_work and no table read (W8-R40)", async () => {
+  it("its default runner holds an RPC-only client: one call of money_due_work and no table read (W8-R40; D-18, AL-2681 PR 2b: the purge of expired gift attempts comes first)", async () => {
     adminClient.rpc.mockClear();
     adminClient.from.mockClear();
     const step = new Proxy(
@@ -346,6 +355,7 @@ describe("AL-2681 PR 2a: the money schedule, one step-free function on the */30 
       parts: Array<{ status: string }>;
     };
     expect(adminClient.rpc.mock.calls.map((c) => c[0])).toEqual([
+      "purge_intake_attempts",
       "money_due_work",
     ]);
     expect(adminClient.from).not.toHaveBeenCalled();
@@ -353,7 +363,7 @@ describe("AL-2681 PR 2a: the money schedule, one step-free function on the */30 
   });
 });
 
-describe("AL-2681 part 2a fix round: the schedule tells the truth and keeps its time", () => {
+describe("AL-2681 part 2a fix round: the schedule tells the truth and keeps its time (D-18, AL-2681 PR 2b: every tick first purges the limit's expired attempts)", () => {
   it("F7 (a): a provider operation whose claim or whose result report came back as an RPC error is a failure, not handled; a benign skip is handled; each runs once", async () => {
     const { rpc } = fakeRpc(
       [OP, OP2, OP3].map((id) => ({
@@ -429,7 +439,10 @@ describe("AL-2681 part 2a fix round: the schedule tells the truth and keeps its 
       ),
     );
     expect(retrieve).not.toHaveBeenCalled();
-    expect(calls.map((c) => c.fn)).toEqual(["money_due_work"]);
+    expect(calls.map((c) => c.fn)).toEqual([
+      "purge_intake_attempts",
+      "money_due_work",
+    ]);
     expect(result.parts.find((p) => p.part === "events")).toMatchObject({
       handled: 0,
       deferred: 1,
@@ -467,10 +480,11 @@ describe("AL-2681 part 2a fix round: the schedule tells the truth and keeps its 
       deps({ accountReader: () => ({ retrieve }) }, rpc),
     );
     expect(calls.map((c) => c.fn)).toEqual([
+      "purge_intake_attempts",
       "money_due_work",
       "reconcile_payment_account",
     ]);
-    expect(calls[1]!.args).toEqual({
+    expect(calls[2]!.args).toEqual({
       p_account_id: ACCOUNT_ROW,
       p_snapshot: { id: "acct_alpha1", livemode: false, read_failed: true },
     });
@@ -480,5 +494,87 @@ describe("AL-2681 part 2a fix round: the schedule tells the truth and keeps its 
         failures: 1,
       },
     );
+  });
+});
+
+describe("AL-2681 PR 2b: the schedule purges the limit's expired rows and keeps a send inside its budget", () => {
+  it("each tick removes the limit's expired attempts first, also when nothing is due", async () => {
+    const { rpc, calls } = fakeRpc([]);
+    await runMoneySchedule(deps({}, rpc));
+    expect(calls.map((c) => c.fn)).toEqual([
+      "purge_intake_attempts",
+      "money_due_work",
+    ]);
+  });
+
+  it("guard (passes on the base): a failed purge does not stop the tick", async () => {
+    const { rpc, calls } = fakeRpc([], {
+      purge_intake_attempts: { data: null, error: { message: "purge failed" } },
+    });
+    const result = await runMoneySchedule(deps({}, rpc));
+    expect(calls.map((c) => c.fn)).toContain("money_due_work");
+    expect(result.parts.every((p) => p.status === "idle")).toBe(true);
+  });
+
+  it("item 34: an operation is handed the time left of the budget, and none starts with less than a send and its report left", async () => {
+    const { rpc } = fakeRpc(
+      [OP, OP2].map((id) => ({
+        kind: "operation",
+        id,
+        tenant_id: TENANT,
+        detail: null,
+      })),
+    );
+    let now = 0;
+    const budgets: Array<number | undefined> = [];
+    const runOperation = vi.fn(async (input: { budgetMs?: number }) => {
+      budgets.push(input.budgetMs);
+      now += 31_000;
+      return {
+        sent: true,
+        claim: { data: { outcome: "claimed" }, error: null },
+      } as never;
+    });
+    const result = await runMoneySchedule(
+      deps(
+        {
+          clock: () => now,
+          budgetMs: 45_000,
+          runOperation: runOperation as never,
+        },
+        rpc,
+      ),
+    );
+    expect(runOperation).toHaveBeenCalledTimes(1);
+    expect(budgets).toEqual([45_000]);
+    expect(result.parts.find((p) => p.part === "worker")).toMatchObject({
+      handled: 1,
+      deferred: 1,
+    });
+  });
+});
+
+describe("AL-2681 PR 2b: one operation sent inline for the intake route", () => {
+  it("runs the operation through the runner with a 25-second budget and answers its PaymentIntent only when it succeeded", async () => {
+    const budgets: Array<number | undefined> = [];
+    const answers = [
+      { result: "succeeded", providerObjectId: "pi_inline1" },
+      { result: "unknown", errorCode: "stripe_timeout" },
+    ];
+    const runOperation = vi.fn(async (input: { budgetMs?: number }) => {
+      budgets.push(input.budgetMs);
+      return {
+        sent: true,
+        claim: { data: { outcome: "claimed" }, error: null },
+        answer: answers.shift(),
+      } as never;
+    });
+    const { rpc } = fakeRpc([]);
+    const base = deps({ runOperation: runOperation as never }, rpc);
+    expect(await sendOneOperation(base, OP)).toEqual({
+      paymentIntentId: "pi_inline1",
+    });
+    expect(await sendOneOperation(base, OP)).toBeNull();
+    expect(budgets).toEqual([25_000, 25_000]);
   });
 });

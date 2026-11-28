@@ -1,52 +1,31 @@
+import { Card } from "@asym/ui/components/shadcn/card";
 import { Skeleton } from "@asym/ui/components/shadcn/skeleton";
 
-/**
- * Boundary for `page.tsx`'s `await searchParams`. The root layout has no
- * Suspense boundary, so this skeleton is what fills the content region on
- * every navigation while that await resolves.
- *
- * The geometry is copied from the real frame in `checkout-client.tsx` (the
- * `min-h-dvh … pb-24 pt-24` wrapper, `container … max-w-7xl`, and the
- * `lg:grid-cols-12` 7/5 split) so the skeleton occupies the same box at every
- * breakpoint and the swap does not shift layout.
- */
 export default function CheckoutLoading() {
   return (
     <div
-      className="min-h-dvh bg-background font-sans pb-24 pt-24"
+      className="min-h-dvh bg-background pb-24 pt-24 font-sans"
       role="status"
       aria-busy="true"
       aria-label="Loading your gift"
     >
-      <div className="container mx-auto px-6 max-w-7xl">
-        {/* StepIndicator */}
-        <div className="flex items-center justify-center gap-4 mb-16">
-          {[0, 1, 2].map((i) => (
-            <div key={i} className="flex items-center gap-3">
-              <Skeleton className="size-8 rounded-full" />
-              <Skeleton className="h-3 w-20 hidden sm:block" />
-            </div>
-          ))}
-        </div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-16 items-start">
-          <div className="lg:col-span-7 space-y-8">
-            <Skeleton className="h-4 w-40" />
-            <Skeleton className="h-12 w-3/4" />
-            <Skeleton className="h-4 w-2/3" />
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 pt-4">
-              {[0, 1, 2, 3, 4, 5].map((i) => (
-                <Skeleton key={i} className="h-16 rounded-xl" />
-              ))}
-            </div>
-            <Skeleton className="h-14 w-full rounded-xl" />
+      <div className="container mx-auto max-w-2xl px-4">
+        <Card className="flex flex-col gap-6 p-6">
+          <Skeleton className="h-8 w-24" />
+          <Skeleton className="h-4 w-full" />
+          <div className="flex flex-col gap-2">
+            <Skeleton className="h-4 w-28" />
+            <Skeleton className="h-9 w-full" />
           </div>
-
-          <div className="lg:col-span-5 space-y-6">
-            <Skeleton className="h-64 w-full rounded-2xl" />
-            <Skeleton className="h-12 w-full rounded-xl" />
+          <Skeleton className="h-4 w-3/4" />
+          <div className="grid gap-4 sm:grid-cols-2">
+            <Skeleton className="h-9 sm:col-span-2" />
+            <Skeleton className="h-9" />
+            <Skeleton className="h-9" />
           </div>
-        </div>
+          <Skeleton className="h-32 w-full" />
+          <Skeleton className="h-9 w-full" />
+        </Card>
       </div>
     </div>
   );

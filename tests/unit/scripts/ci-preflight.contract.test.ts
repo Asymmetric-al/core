@@ -143,7 +143,7 @@ const STAGE_INPUT_SAMPLES: Record<string, string[]> = {
   ],
   "verify-service-role-clients": [
     "apps/admin/lib/admin-access.ts",
-    "packages/api/src/donate/index.ts",
+    "packages/api/src/donate/guest/intake-route.ts",
     "scripts/verify/service-role-client-gate.mjs",
     "tooling/eslint-config/no-comments.mjs",
     "docs/security/service-role-client-allowlist.json",

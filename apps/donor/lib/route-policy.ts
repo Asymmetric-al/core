@@ -1,3 +1,4 @@
+import { isGuestGivingOpen } from "@asym/api/donate/guest/giving-open";
 import {
   hasDotOrBackslashSegment,
   matchesDashboardPrefix,
@@ -61,7 +62,13 @@ export const DONOR_BOTH_ROOTS = [
   "/help/about",
 ] as const;
 
-export type DonorPathClass = "account" | "both" | "website";
+export const DONOR_GIVING_PATHS = [
+  "/checkout",
+  "/api/checkout/config",
+  "/api/donate",
+] as const;
+
+export type DonorPathClass = "account" | "both" | "giving" | "website";
 
 export type DonorPathTransport = "none" | "rsc" | "segment";
 
@@ -185,7 +192,21 @@ export function isDonorExemptPath(normalizedPathname: string): boolean {
   return (DONOR_EXEMPT_PATHS as readonly string[]).includes(normalizedPathname);
 }
 
-export function classifyDonorPath(normalizedPathname: string): DonorPathClass {
+export { isGuestGivingOpen };
+
+export function isGivingPath(normalizedPathname: string): boolean {
+  return (
+    normalizedPathname === "/api/checkout/config" ||
+    normalizedPathname === "/api/donate" ||
+    matchesRoot(normalizedPathname, "/checkout")
+  );
+}
+
+export function classifyDonorPath(
+  normalizedPathname: string,
+  givingOpen = isGuestGivingOpen(),
+): DonorPathClass {
+  if (givingOpen && isGivingPath(normalizedPathname)) return "giving";
   if (
     DONOR_ACCOUNT_ROOTS.some((root) => matchesRoot(normalizedPathname, root))
   ) {

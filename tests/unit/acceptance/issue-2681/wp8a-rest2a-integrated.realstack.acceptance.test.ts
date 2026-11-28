@@ -5,6 +5,7 @@ import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
 import { runWorker } from "./wp8a-p2r2a-worker";
 import {
+  committedWorld,
   ADMIN_URL,
   HOSTED_SERVICE_GRANTS,
   IN_MIGRATE_JOB,
@@ -171,6 +172,11 @@ describe.skipIf(!ADMIN_URL)(
         await feeFund(db, fx.A);
         const fake = createStripeProviderFake();
         const legacyBefore = await legacyGift(db, fx.A);
+        await role(db, null);
+        const legacyFirst = (await legacyRows(db, fx.A.tenant)).find(
+          (row) => row.id === legacyBefore.donation_id,
+        );
+        expect(legacyFirst).toBeDefined();
 
         const request: GiftRequest = {
           host: hosts.site,
@@ -209,6 +215,7 @@ describe.skipIf(!ADMIN_URL)(
           sent: true,
           answer: { result: "succeeded" },
         });
+        expect("report" in recorded && recorded.report.error).toBeNull();
         expect(fake.objects()).toHaveLength(1);
         const pi = fake.objects()[0]!.id;
         const sentCreates = fake
@@ -296,6 +303,9 @@ describe.skipIf(!ADMIN_URL)(
         );
         expect(legacy).toEqual(legacyWritten);
         expect(
+          legacy.find((row) => row.id === legacyBefore.donation_id),
+        ).toEqual(legacyFirst);
+        expect(
           legacy.every(
             (r) =>
               r.intake_format === "legacy_header" && r.status === "processing",
@@ -341,8 +351,9 @@ describe.skipIf(!ADMIN_URL)(
           await s2.connect();
           opened.push(s2);
           for (const s of opened) await s.query("SET ROLE service_role");
-          fx = await seedTwoTenants(db);
-          const hosts = await admitHosts(db, fx.A);
+          const world = await committedWorld(db);
+          fx = world.fx;
+          const hosts = world.hosts;
           await db.query("BEGIN");
           const r = begun(
             await begin(db, {
@@ -374,6 +385,7 @@ describe.skipIf(!ADMIN_URL)(
           expect("answer" in done && done.answer).toMatchObject({
             result: "succeeded",
           });
+          expect("report" in done && done.report.error).toBeNull();
           expect(fake.objects()).toHaveLength(1);
 
           const pi = fake.objects()[0]!.id;

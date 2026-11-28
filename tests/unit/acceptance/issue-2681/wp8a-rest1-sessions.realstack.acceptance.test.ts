@@ -665,7 +665,7 @@ describe.skipIf(!ADMIN_URL)(
         expect(await giftOf(db, intake.donationId)).toBeDefined();
       }));
 
-    it("F3: a worker's claim landing between the disconnect's read of its waiting requests and its parking of them: the disconnect parks only the requests it locked and commits (23514 provider_request_bad_move before)", () =>
+    it("F3: a worker's claim landing between the disconnect's read of its waiting requests and its parking of them: the disconnect parks only the requests it locked and commits (23514 provider_request_bad_move before) (D-18, AL-2681 PR 2b, issue 2857 item 18: the claim takes the binding FOR SHARE, so it waits for the disconnect and is refused binding_inactive; the disconnect parks the request it locked, and the claimed one, reported after the disconnect read, stays retry_wait and is never sent on the closed account)", () =>
       committed(async (fx) => {
         const { queued, known, eventId } = await commit(async () => {
           const x = await giftIntake(db, fx.A);
@@ -700,27 +700,29 @@ describe.skipIf(!ADMIN_URL)(
           await makeDue(db, known);
         });
         await claimer.query("BEGIN");
-        expect(await claim(claimer, known)).toMatchObject({
-          outcome: "claimed",
-          attempt: 2,
-        });
+        const claiming = settle(claim(claimer, known));
+        await waitsOn(pidOf(claimer), pidOf(closer));
         await holder.query("ROLLBACK");
-        await settledOrWaiting(closing, pidOf(closer));
-        await claimer.query("COMMIT");
         const done = await closing;
         await finish(closer, done);
+        const claimed = await claiming;
+        await claimer.query("COMMIT");
         expect(done).toEqual({
           value: expect.objectContaining({
             outcome: "applied",
             status: "disconnected",
           }),
         });
+        expect(claimed).toEqual({
+          value: expect.objectContaining({ outcome: "binding_inactive" }),
+        });
         expect(await requestRow(db, queued)).toMatchObject({
           status: "parked",
           park_reason: "binding_disconnected",
         });
         expect(await requestRow(db, known)).toMatchObject({
-          status: "sending",
+          status: "retry_wait",
+          park_reason: null,
         });
       }));
 

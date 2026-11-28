@@ -2,7 +2,12 @@ import { z } from "zod";
 
 export type GivingConfigRpc = (
   fn: "checkout_giving_config",
-  args: { p_host: string; p_targets: Array<Record<string, string>> },
+  args: {
+    p_host: string;
+    p_targets: Array<Record<string, string>>;
+    p_surface: "website" | "donor_account";
+    p_source_site: string | null;
+  },
 ) => Promise<{
   data: unknown;
   error: { code?: string; message: string } | null;
@@ -32,12 +37,15 @@ const bodySchema = z.object({
     )
     .min(1)
     .max(99),
+  surface: z.enum(["website", "donor_account"]).default("website"),
+  sourceSiteId: z.string().max(100).nullish(),
 });
 
 const rowsSchema = z
   .array(
     z.object({
       connected_account_id: z.string().regex(/^acct_[A-Za-z0-9]+$/),
+      way_back_host: z.string().min(1).max(300).nullable(),
     }),
   )
   .length(1);
@@ -82,6 +90,11 @@ export function createGivingConfigHandler(deps: GivingConfigDeps) {
             ? { fund_id: target.fundId }
             : { missionary_id: target.missionaryId ?? "" },
         ),
+        p_surface: parsed.data.surface,
+        p_source_site:
+          parsed.data.sourceSiteId && UUID.test(parsed.data.sourceSiteId)
+            ? parsed.data.sourceSiteId
+            : null,
       });
     } catch {
       return unavailable();
@@ -93,6 +106,7 @@ export function createGivingConfigHandler(deps: GivingConfigDeps) {
     return Response.json({
       publishableKey,
       connectedAccountId: rows.data[0]!.connected_account_id,
+      wayBackHost: rows.data[0]!.way_back_host,
     });
   };
 }

@@ -640,3 +640,38 @@ commands owned by `tenant_guard`. `tenant_guard.redeem_account_claim`
 `public.member_care_directory_rows`
 (`20261127090400_wp5_rest2b_care_worker_names.sql`) are replaced, each with
 its owner, security and grantees unchanged.
+
+## Functions added by AL-2681 (WP8a part 2 rest, pull request 2b)
+
+| Function                                                   | Security | EXECUTE grantees (exact)                    |
+| ---------------------------------------------------------- | -------- | ------------------------------------------- |
+| `public.take_intake_attempt(text, text, text, text, uuid)` | DEFINER  | `postgres` (owner), `service_role`          |
+| `public.purge_intake_attempts()`                           | DEFINER  | `postgres` (owner), `service_role`          |
+| `public.checkout_giving_config(text, jsonb, text, uuid)`   | DEFINER  | `postgres` (owner), `anon`, `authenticated` |
+| `public.donor_portal_login_lifetime(uuid, uuid, uuid)`     | DEFINER  | `postgres` (owner), `service_role`          |
+
+`20261128080100_wp8a2_rest2b_limit_and_config.sql` drops
+`public.take_intake_rate_token(text)`, `private.intake_rate_windows` and
+`public.checkout_giving_config(text, jsonb)`, and creates the three forms above
+it names. `public.take_intake_attempt` is the limit of gift attempts: two
+buckets over a rolling ten minutes (the Site with the client address, or the
+organization with it for an account-area gift: fewer than 30 unpaid and 250 in
+all; for a signed-in gift also the session's user: fewer than 6 unpaid and 15
+in all; the person bucket counts the person's gifts in every organization),
+kept in `private.intake_rate_attempts`, one row for each bucket and gift (an
+organization and a client key), which stores only SHA-256 digests of the
+bucket and the client key, holds no grant for any API role, and
+restricts its organization's deletion. `public.purge_intake_attempts` removes
+every row older than the window that no running attempt holds; the money
+schedule calls it on each tick.
+`public.checkout_giving_config` is told which surface asks and, given a source
+Site, answers its primary domain when it is a current Site of the host's
+organization (the way back); the allowlist still lists three functions.
+`public.donor_portal_login_lifetime` counts a login's donorless line-based
+gifts by its own intake contacts, with no capped list
+(`20261128080000_wp8a2_rest2b_item_zero.sql`, which also replaces
+`tenant_guard.claim_provider_operation`, `tenant_guard.apply_account_event` and
+`tenant_guard.begin_line_gift` as their owner with the same security and
+grantees, and `public.money_due_work` with the same security and grantees; it
+now leaves out a provider request the claim would refuse for an inactive
+organization or binding, unless its attempts or send window have run out).

@@ -1,5 +1,7 @@
 import { randomUUID } from "node:crypto";
 
+import pg from "pg";
+
 import {
   attempt,
   feeFund,
@@ -11,8 +13,6 @@ import {
   type Fixture,
   type Side,
 } from "./wp8a-rest1-harness";
-
-import type pg from "pg";
 
 export * from "./wp8a-rest1-harness";
 
@@ -227,10 +227,12 @@ export async function intakeCounts(db: pg.Client, tenant: string) {
   ).rows[0] as Record<string, number>;
 }
 
-export async function configFor(
+export async function configRead(
   db: pg.Client,
   host: string,
   targets: Array<{ fund?: string; missionary?: string }>,
+  surface = "website",
+  sourceSite: string | null = null,
 ) {
   await role(db, null);
   await db.query("SAVEPOINT rest2a_config");
@@ -238,7 +240,7 @@ export async function configFor(
     await db.query("SET LOCAL ROLE anon");
     return (
       await db.query(
-        "SELECT * FROM public.checkout_giving_config($1, $2::jsonb)",
+        "SELECT * FROM public.checkout_giving_config($1, $2::jsonb, $3, $4::uuid)",
         [
           host,
           JSON.stringify(
@@ -249,6 +251,8 @@ export async function configFor(
                 : { missionary_id: t.missionary }),
             })),
           ),
+          surface,
+          sourceSite,
         ],
       )
     ).rows as Record<string, unknown>[];
@@ -257,13 +261,124 @@ export async function configFor(
   }
 }
 
-export async function rateToken(db: pg.Client, address: string) {
+export async function configFor(
+  db: pg.Client,
+  host: string,
+  targets: Array<{ fund?: string; missionary?: string }>,
+  surface = "website",
+) {
+  return (await configRead(db, host, targets, surface)).map((row) => ({
+    connected_account_id: row.connected_account_id,
+  }));
+}
+
+export type AttemptRequest = {
+  host: string;
+  surface?: string;
+  address: string;
+  key?: string;
+  user?: string | null;
+};
+
+export type AttemptAnswer = {
+  admitted: boolean;
+  retry_after_seconds: number | null;
+};
+
+export const ATTEMPT_SQL =
+  "SELECT public.take_intake_attempt($1, $2, $3, $4, $5::uuid) AS r";
+
+export const attemptArgs = (r: AttemptRequest) => [
+  r.host,
+  r.surface ?? "website",
+  r.address,
+  r.key ?? randomUUID(),
+  r.user ?? null,
+];
+
+export async function attemptGift(
+  db: pg.Client,
+  r: AttemptRequest,
+): Promise<AttemptAnswer> {
   await role(db, "service_role");
-  const allowed = (
-    await db.query("SELECT public.take_intake_rate_token($1) AS ok", [address])
-  ).rows[0].ok as boolean;
+  const answer = (await db.query(ATTEMPT_SQL, attemptArgs(r))).rows[0]
+    .r as AttemptAnswer;
   await role(db, null);
-  return allowed;
+  return answer;
+}
+
+type Answer =
+  | { ok: true; rows: Array<Record<string, unknown>> }
+  | { ok: false; code?: string; message?: string };
+
+export function launch(
+  client: pg.Client,
+  sql: string,
+  params: unknown[] = [],
+): Promise<Answer> {
+  return client.query(sql, params).then(
+    (res) => ({ ok: true as const, rows: res.rows }),
+    (e: { code?: string; message?: string }) => ({
+      ok: false as const,
+      code: e.code,
+      message: e.message,
+    }),
+  );
+}
+
+export const said = (a: Answer) =>
+  a.ok ? "committed" : `${a.code} ${a.message}`;
+
+export async function blockedBy(db: pg.Client, pid: number) {
+  for (let i = 0; i < 100; i += 1) {
+    const blockers = (await db.query("SELECT pg_blocking_pids($1) AS b", [pid]))
+      .rows[0].b as number[];
+    if (blockers.length > 0) return true;
+    await new Promise((r) => setTimeout(r, 50));
+  }
+  return false;
+}
+
+export const pidOf = async (client: pg.Client) =>
+  (await client.query("SELECT pg_backend_pid() AS p")).rows[0].p as number;
+
+export async function committedWorld(db: pg.Client) {
+  await db.query("BEGIN");
+  try {
+    const fx = await seedTwoTenants(db);
+    const hosts = await admitHosts(db, fx.A);
+    await db.query("COMMIT");
+    return { fx, hosts };
+  } catch (error) {
+    await db.query("ROLLBACK");
+    throw error;
+  }
+}
+
+export async function twoSessions<T>(
+  db: pg.Client,
+  url: string,
+  fn: (s1: pg.Client, s2: pg.Client, fx: Fixture, hosts: Hosts) => Promise<T>,
+): Promise<T> {
+  const s1 = new pg.Client({ connectionString: url });
+  const s2 = new pg.Client({ connectionString: url });
+  const opened: pg.Client[] = [];
+  let fx: Fixture | undefined;
+  try {
+    await s1.connect();
+    opened.push(s1);
+    await s2.connect();
+    opened.push(s2);
+    const world = await committedWorld(db);
+    fx = world.fx;
+    return await fn(s1, s2, world.fx, world.hosts);
+  } finally {
+    await Promise.all(
+      opened.map((client) => client.end().catch(() => undefined)),
+    );
+    await db.query("ROLLBACK").catch(() => undefined);
+    if (fx) await removeRest2aTenants(db, fx);
+  }
 }
 
 export async function removeRest2aTenants(db: pg.Client, fx: Fixture) {

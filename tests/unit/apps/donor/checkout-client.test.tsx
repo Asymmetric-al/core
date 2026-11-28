@@ -1,7 +1,6 @@
 // @vitest-environment jsdom
 
 import {
-  act,
   cleanup,
   fireEvent,
   render,
@@ -10,1870 +9,1181 @@ import {
   within,
 } from "@testing-library/react";
 import React from "react";
-import { flushSync } from "react-dom";
-import {
-  afterEach,
-  beforeAll,
-  beforeEach,
-  describe,
-  expect,
-  it,
-  vi,
-} from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-// WP2b, AL-2675: these calls go through the own-API wrapper, whose own suite
-// (tests/unit/packages/database/own-api.test.ts) proves what it adds: the
-// document's tenant and assignment, and no HTTP cache. Here it passes each
-// call through unchanged, so the assertions below still read exactly the
-// request the caller sends.
+import type * as OwnApi from "@asym/database/own-api";
+
 vi.mock("@asym/database/own-api", async (importOriginal) => ({
-  ...(await importOriginal<typeof import("@asym/database/own-api")>()),
+  ...(await importOriginal<typeof OwnApi>()),
   ownApiFetch: (path: string, init?: RequestInit) =>
     globalThis.fetch(path, init),
 }));
 
-type CheckoutPageClientComponent =
-  (typeof import("../../../../apps/donor/app/(public)/(solid)/checkout/checkout-client"))["CheckoutPageClient"]; // eslint-disable-line @typescript-eslint/consistent-type-imports -- Keep the component import deferred until after mocks are registered.
-type CheckoutSearchParams =
-  React.ComponentProps<CheckoutPageClientComponent>["searchParams"];
-
-const stripeState = vi.hoisted(() => ({
-  cardElement: {},
-  elements: {
-    getElement: vi.fn(),
-  },
-  stripe: {
-    confirmCardPayment: vi.fn(),
-  },
-}));
-
-const stripeJsState = vi.hoisted(() => ({
-  loadStripe: vi.fn(() => Promise.resolve({})),
-}));
-
-const omitMotionProps = (props: Record<string, unknown>) => {
-  const {
-    animate,
-    exit,
-    initial,
-    transition,
-    whileHover,
-    whileTap,
-    ...domProps
-  } = props;
-  void animate;
-  void exit;
-  void initial;
-  void transition;
-  void whileHover;
-  void whileTap;
-  return domProps;
+type Intent = {
+  status: string;
+  last_payment_error?: { code: string; type: string } | null;
 };
+type Outcome =
+  | "succeed"
+  | "decline"
+  | "authentication_failure"
+  | "lost"
+  | "lost_after_success";
 
-vi.mock("@asym/lib/motion", () => {
-  // Motion preserves each tag's component identity across parent renders.
-  const components = new Map<
-    string,
-    (
-      props: React.PropsWithChildren<Record<string, unknown>>,
-    ) => React.ReactElement
-  >();
+const stripe = vi.hoisted(() => ({
+  loads: [] as Array<{ key: string; options: { stripeAccount?: string } }>,
+  submit: vi.fn(async () => ({})),
+  confirms: [] as Array<Record<string, unknown>>,
+  refused: [] as string[],
+  outcomes: [] as Outcome[],
+  intents: new Map<string, Intent>(),
+  retrieved: [] as Array<{ secret: string; key: string; account?: string }>,
+  elementsOptions: [] as unknown[],
+  paymentElementOptions: [] as Array<Record<string, unknown>>,
+  failLoad: false,
+  retrieveGate: null as Promise<void> | null,
+}));
 
+const turnstile = vi.hoisted(() => ({ resets: 0, issued: 0 }));
+
+function instance(key: string, options: { stripeAccount?: string }) {
   return {
-    AnimatePresence: ({ children }: { children: React.ReactNode }) => (
-      <>{children}</>
-    ),
-    motion: new Proxy(
-      {},
-      {
-        get: (_target, tag: string) => {
-          let component = components.get(tag);
-          if (!component) {
-            component = ({ children, ...props }) =>
-              React.createElement(tag, omitMotionProps(props), children);
-            components.set(tag, component);
-          }
-          return component;
+    key,
+    account: options.stripeAccount,
+    async confirmPayment(params: {
+      clientSecret: string;
+      confirmParams: {
+        payment_method_data?: { billing_details?: Record<string, unknown> };
+      };
+    }) {
+      stripe.confirms.push({ ...params, key, account: options.stripeAccount });
+      const fields =
+        (
+          stripe.paymentElementOptions.at(-1)?.fields as
+            { billingDetails?: Record<string, string> } | undefined
+        )?.billingDetails ?? {};
+      const details =
+        params.confirmParams.payment_method_data?.billing_details ?? {};
+      for (const [field, rule] of Object.entries(fields)) {
+        const given = details[field];
+        if (rule === "never" && !(typeof given === "string" && given !== "")) {
+          stripe.refused.push(field);
+          throw new Error(
+            `IntegrationError: billing_details.${field} is required when fields.billingDetails.${field} is never`,
+          );
+        }
+      }
+      const outcome = stripe.outcomes.shift() ?? "succeed";
+      const secret = params.clientSecret;
+      if (outcome === "decline") {
+        stripe.intents.set(secret, {
+          status: "requires_payment_method",
+          last_payment_error: { code: "card_declined", type: "card_error" },
+        });
+        return {
+          error: { type: "card_error", code: "card_declined", message: "x" },
+        };
+      }
+      if (outcome === "authentication_failure") {
+        stripe.intents.set(secret, {
+          status: "requires_payment_method",
+          last_payment_error: {
+            code: "payment_intent_authentication_failure",
+            type: "card_error",
+          },
+        });
+        return {
+          error: {
+            type: "card_error",
+            code: "payment_intent_authentication_failure",
+          },
+        };
+      }
+      if (outcome === "lost")
+        return { error: { type: "api_connection_error" } };
+      stripe.intents.set(secret, { status: "succeeded" });
+      if (outcome === "lost_after_success")
+        return { error: { type: "api_connection_error" } };
+      return { paymentIntent: { status: "succeeded" } };
+    },
+    async retrievePaymentIntent(secret: string) {
+      if (stripe.retrieveGate) await stripe.retrieveGate;
+      stripe.retrieved.push({ secret, key, account: options.stripeAccount });
+      return {
+        paymentIntent: stripe.intents.get(secret) ?? {
+          status: "requires_payment_method",
+          last_payment_error: null,
         },
-      },
-    ),
+      };
+    },
   };
-});
-
-vi.mock("@asym/lib/utils", () => ({
-  formatCurrency: (amount: number) => `$${amount.toFixed(2)}`,
-}));
-
-vi.mock("@asym/ui/lib/utils", () => ({
-  cn: (...values: Array<string | false | null | undefined>) =>
-    values.filter(Boolean).join(" "),
-}));
-
-vi.mock("@asym/ui/components/shadcn/avatar", () => ({
-  Avatar: ({ children, ...props }: React.PropsWithChildren) => (
-    <div {...props}>{children}</div>
-  ),
-  AvatarFallback: ({ children, ...props }: React.PropsWithChildren) => (
-    <div {...props}>{children}</div>
-  ),
-  AvatarImage: (props: React.ImgHTMLAttributes<HTMLImageElement>) => (
-    <img alt="" {...props} />
-  ),
-}));
-
-vi.mock("@asym/ui/components/shadcn/badge", () => ({
-  Badge: ({ children, ...props }: React.PropsWithChildren) => (
-    <span {...props}>{children}</span>
-  ),
-}));
-
-vi.mock("@asym/ui/components/shadcn/input", () => ({
-  Input: (props: React.InputHTMLAttributes<HTMLInputElement>) => (
-    <input {...props} />
-  ),
-}));
-
-vi.mock("@asym/ui/components/shadcn/label", () => ({
-  Label: ({
-    children,
-    ...props
-  }: React.PropsWithChildren<React.LabelHTMLAttributes<HTMLLabelElement>>) => (
-    <label {...props}>{children}</label>
-  ),
-}));
-
-vi.mock("@asym/ui/components/shadcn/separator", () => ({
-  Separator: (props: React.HTMLAttributes<HTMLDivElement>) => (
-    <div {...props} />
-  ),
-}));
-
-vi.mock("@asym/ui/components/shadcn/switch", () => ({
-  Switch: ({
-    checked,
-    onCheckedChange,
-    ...props
-  }: {
-    checked?: boolean;
-    onCheckedChange?: (checked: boolean) => void;
-  }) => (
-    <input
-      {...props}
-      type="checkbox"
-      checked={checked}
-      onChange={(event) => onCheckedChange?.(event.currentTarget.checked)}
-    />
-  ),
-}));
-
-vi.mock("@stripe/react-stripe-js", () => {
-  const CardElement = () => <div data-testid="stripe-card-element" />;
-  return {
-    CardElement,
-    Elements: ({ children }: { children: React.ReactNode }) => <>{children}</>,
-    useElements: () => stripeState.elements,
-    useStripe: () => stripeState.stripe,
-  };
-});
+}
 
 vi.mock("@stripe/stripe-js", () => ({
-  loadStripe: stripeJsState.loadStripe,
+  loadStripe: async (key: string, options: { stripeAccount?: string }) => {
+    stripe.loads.push({ key, options });
+    if (stripe.failLoad) throw new Error("Stripe.js failed to load");
+    return instance(key, options);
+  },
 }));
 
-vi.mock("next/link", () => ({
-  default: ({
-    children,
-    href,
-    ...props
-  }: React.PropsWithChildren<{ href: string }>) => (
-    <a href={href} {...props}>
-      {children}
-    </a>
-  ),
-}));
-
-vi.mock("../../../../apps/donor/lib/mock-data", () => ({
-  getFieldWorkerById: (id: string) => ({
-    id,
-    image: undefined,
-    title: "Unit Test Worker",
-  }),
-}));
-
-let CheckoutPageClient: CheckoutPageClientComponent;
-
-const TEST_FUND_ID = "40000000-0000-0000-0000-000000000001";
-const TEST_OTHER_FUND_ID = "40000000-0000-0000-0000-000000000003";
-const TEST_MISSIONARY_ID = "20000000-0000-0000-0000-000000000001";
-const TEST_WORKER_ID = "worker_1";
-
-beforeAll(async () => {
-  const module =
-    await import("../../../../apps/donor/app/(public)/(solid)/checkout/checkout-client");
-  CheckoutPageClient = module.CheckoutPageClient;
+vi.mock("@stripe/react-stripe-js", async () => {
+  const { createContext, useContext, useEffect, useState } =
+    await import("react");
+  const Ctx = createContext<unknown>(null);
+  return {
+    Elements: ({
+      stripe: promise,
+      options,
+      children,
+    }: {
+      stripe: Promise<unknown> | null;
+      options: unknown;
+      children: React.ReactNode;
+    }) => {
+      const [ready, setReady] = useState<unknown>(null);
+      useEffect(() => {
+        void promise?.then(setReady);
+      }, [promise]);
+      stripe.elementsOptions.push(options);
+      return (
+        <Ctx.Provider value={ready}>
+          <div data-testid="elements">{children}</div>
+        </Ctx.Provider>
+      );
+    },
+    PaymentElement: ({ options }: { options: Record<string, unknown> }) => {
+      stripe.paymentElementOptions.push(options);
+      return <div data-testid="payment-element" />;
+    },
+    useStripe: () => useContext(Ctx),
+    useElements: () => ({ submit: stripe.submit }),
+  };
 });
 
-beforeEach(() => {
-  let uuidCounter = 0;
-  Object.defineProperty(globalThis, "crypto", {
-    configurable: true,
-    value: {
-      randomUUID: vi.fn(() => {
-        uuidCounter += 1;
-        return `idem-${uuidCounter}`;
-      }),
+vi.mock(
+  "../../../../apps/donor/app/(public)/(solid)/checkout/checkout-turnstile",
+  () => ({
+    CheckoutTurnstile: ({
+      onToken,
+      resetSignal,
+    }: {
+      onToken: (token: string | null) => void;
+      resetSignal: number;
+    }) => {
+      React.useEffect(() => {
+        if (resetSignal > 0) turnstile.resets += 1;
+        onToken(`token-${turnstile.issued}`);
+        turnstile.issued += 1;
+      }, [resetSignal, onToken]);
+      return <div data-testid="turnstile" />;
     },
+  }),
+);
+
+const { CheckoutPageClient } =
+  await import("../../../../apps/donor/app/(public)/(solid)/checkout/checkout-client");
+const { GIFT_KEY_STORAGE, GIFT_PAYMENT_STORAGE } =
+  await import("../../../../apps/donor/app/(public)/(solid)/checkout/checkout-gift-key");
+
+const FUND = "11111111-1111-4111-8111-111111111111";
+const OTHER_FUND = "22222222-2222-4222-8222-222222222222";
+const SITE = "33333333-3333-4333-8333-333333333333";
+const SECRET = "pi_1_secret_abc";
+
+type Call = { url: string; body: Record<string, unknown> };
+type Answer = { status: number; body: unknown };
+let calls: Call[] = [];
+let donateAnswers: Answer[] = [];
+let configAnswer: Answer;
+let verified: Set<string>;
+let completedKeys: Set<string>;
+let completeNextKey: boolean;
+
+const created = (secret = SECRET, account = "acct_1"): Answer => ({
+  status: 200,
+  body: {
+    intakeId: "i-1",
+    clientSecret: secret,
+    connectedAccountId: account,
+    amountCents: 2500,
+  },
+});
+
+function props(
+  over: Partial<React.ComponentProps<typeof CheckoutPageClient>> = {},
+) {
+  return {
+    link: {
+      target: { kind: "fund" as const, id: FUND },
+      amountCents: 2500,
+      monthly: false,
+      coverFees: false,
+      sourceSiteId: null,
+    },
+    surface: "website" as const,
+    isHome: false,
+    homeHost: null,
+    siteId: null,
+    turnstileSiteKey: "1x00000000000000000000AA",
+    ...over,
+  };
+}
+
+const giveButton = () =>
+  screen.getByRole("button", { name: /^Give( \$\S+)?$/ });
+
+async function fill(
+  email = "gail@example.test",
+  first = "Gail",
+  last = "Guest",
+) {
+  fireEvent.change(await screen.findByLabelText("Email"), {
+    target: { value: email },
   });
-  Object.defineProperty(window, "scrollTo", {
-    configurable: true,
-    value: vi.fn(),
+  fireEvent.change(screen.getByLabelText("First name"), {
+    target: { value: first },
   });
-  globalThis.fetch = vi.fn();
-  stripeState.cardElement = {};
-  stripeState.elements.getElement.mockReturnValue(stripeState.cardElement);
-  stripeState.stripe.confirmCardPayment.mockReset();
-  stripeJsState.loadStripe.mockClear();
-  stripeJsState.loadStripe.mockImplementation(() => Promise.resolve({}));
+  fireEvent.change(screen.getByLabelText("Last name"), {
+    target: { value: last },
+  });
+  await screen.findByTestId("payment-element");
+  await waitFor(() =>
+    expect(giveButton()).not.toHaveProperty("disabled", true),
+  );
+}
+
+async function fillAndGive(email?: string, first?: string, last?: string) {
+  await fill(email, first, last);
+  fireEvent.click(giveButton());
+}
+
+function typeInto(input: HTMLElement, text: string) {
+  const field = input as HTMLInputElement;
+  fireEvent.change(field, { target: { value: "" } });
+  for (const ch of text)
+    fireEvent.change(field, { target: { value: field.value + ch } });
+}
+
+const donates = () => calls.filter((c) => c.url === "/api/donate");
+
+beforeEach(() => {
+  calls = [];
+  verified = new Set();
+  completedKeys = new Set();
+  completeNextKey = false;
+  donateAnswers = [created()];
+  configAnswer = {
+    status: 200,
+    body: {
+      publishableKey: "pk_test_1",
+      connectedAccountId: "acct_1",
+      wayBackHost: null,
+    },
+  };
+  stripe.loads = [];
+  stripe.confirms = [];
+  stripe.refused = [];
+  stripe.outcomes = [];
+  stripe.intents = new Map();
+  stripe.retrieved = [];
+  stripe.elementsOptions = [];
+  stripe.paymentElementOptions = [];
+  stripe.failLoad = false;
+  stripe.retrieveGate = null;
+  stripe.submit.mockClear();
+  turnstile.resets = 0;
+  turnstile.issued = 0;
+  window.localStorage.clear();
+  window.sessionStorage.clear();
+  window.history.replaceState({}, "", "/checkout");
+  vi.stubGlobal(
+    "fetch",
+    vi.fn(async (url: string, init?: RequestInit) => {
+      const body = JSON.parse(String(init?.body ?? "{}")) as Record<
+        string,
+        unknown
+      >;
+      calls.push({ url, body });
+      if (url === "/api/checkout/config") {
+        if (configAnswer.status === 0) throw new TypeError("Failed to fetch");
+        return new Response(JSON.stringify(configAnswer.body), {
+          status: configAnswer.status,
+        });
+      }
+      const token = String(body.challengeToken ?? "");
+      if (!token || verified.has(token))
+        return new Response(JSON.stringify({ error: "challenge_failed" }), {
+          status: 400,
+        });
+      verified.add(token);
+      const key = String(body.key);
+      if (completeNextKey) {
+        completeNextKey = false;
+        completedKeys.add(key);
+      }
+      if (completedKeys.has(key))
+        return new Response(
+          JSON.stringify({ error: "gift_already_completed" }),
+          { status: 409 },
+        );
+      const answer = donateAnswers.shift() ?? created();
+      return new Response(JSON.stringify(answer.body), {
+        status: answer.status,
+        headers: answer.status === 429 ? { "retry-after": "40" } : {},
+      });
+    }),
+  );
 });
 
 afterEach(() => {
   cleanup();
-  vi.restoreAllMocks();
+  vi.unstubAllGlobals();
 });
 
-const initializedDonationResponse = (
-  publishableKey: unknown = "pk_test_unit",
-) => {
-  const effectivePublishableKey =
-    publishableKey === null ||
-    (typeof publishableKey === "string" &&
-      (publishableKey.startsWith("pk_") || publishableKey.trim().length === 0))
-      ? publishableKey
-      : "pk_test_unit";
+describe("AL-2681 PR 2b: the guest checkout page", () => {
+  it("asks only for email, name, the card in Stripe's element and an unticked anonymity choice; says one gift covers one legal entity; shows no country, postal code, bank or wallet field of its own", async () => {
+    render(<CheckoutPageClient {...props()} />);
+    expect(await screen.findByLabelText("Email")).toBeTruthy();
+    expect(screen.getByLabelText("First name")).toBeTruthy();
+    expect(screen.getByLabelText("Last name")).toBeTruthy();
+    expect(
+      (
+        screen.getByRole("checkbox", {
+          name: /anonymously/i,
+        }) as HTMLInputElement
+      ).getAttribute("aria-checked") ?? "false",
+    ).toBe("false");
+    expect(
+      screen.getByText(
+        "Each gift goes to one legal entity of this ministry. Designations of different entities need separate gifts.",
+      ),
+    ).toBeTruthy();
+    expect(screen.queryByLabelText(/country|postal|zip/i)).toBeNull();
+    expect(screen.queryByText(/bank|apple pay|google pay/i)).toBeNull();
+    expect(await screen.findByTestId("payment-element")).toBeTruthy();
+    expect(screen.queryByText(/receipt/i)).toBeNull();
+  });
 
-  return Promise.resolve(
-    new Response(
-      JSON.stringify({
-        clientSecret: "cs_test_123",
-        donationId: "don_123",
-        paymentIntentId: "pi_123",
-        publishableKey: effectivePublishableKey,
-      }),
-      {
-        headers: { "Content-Type": "application/json" },
-        status: 200,
+  it("reads the config for its target and surface, and loads Stripe on the connected account with cards only", async () => {
+    render(<CheckoutPageClient {...props()} />);
+    await screen.findByTestId("payment-element");
+    expect(calls[0]).toEqual({
+      url: "/api/checkout/config",
+      body: { targets: [{ fundId: FUND }], surface: "website" },
+    });
+    expect(stripe.loads).toEqual([
+      { key: "pk_test_1", options: { stripeAccount: "acct_1" } },
+    ]);
+    expect(stripe.elementsOptions.at(-1)).toMatchObject({
+      mode: "payment",
+      amount: 2500,
+      currency: "usd",
+      allowedPaymentMethodTypes: ["card"],
+    });
+  });
+
+  it("creates the gift only on Give, with a gift key, and confirms on the same page with the e-mail and name typed", async () => {
+    render(<CheckoutPageClient {...props()} />);
+    await screen.findByTestId("payment-element");
+    expect(donates()).toEqual([]);
+    await fillAndGive();
+    await screen.findByText("Your gift was received.");
+    expect(donates()[0]!.body).toMatchObject({
+      mode: "guest",
+      surface: "website",
+      lines: [{ fundId: FUND, amountCents: 2500 }],
+      paymentMethod: "card",
+      isAnonymous: false,
+      contact: {
+        email: "gail@example.test",
+        firstName: "Gail",
+        lastName: "Guest",
       },
-    ),
-  );
-};
-
-const checkoutConfigResponse = (publishableKey: string | null) =>
-  Promise.resolve(
-    new Response(JSON.stringify({ publishableKey }), {
-      headers: { "Content-Type": "application/json" },
-      status: 200,
-    }),
-  );
-
-const processingDonationResponse = () =>
-  Promise.resolve(
-    new Response(JSON.stringify({ donationId: "don_processing" }), {
-      headers: { "Content-Type": "application/json" },
-      status: 202,
-    }),
-  );
-
-const serverErrorResponse = (message = "Server rejected the donation") =>
-  Promise.resolve(
-    new Response(JSON.stringify({ error: message }), {
-      headers: { "Content-Type": "application/json" },
-      status: 500,
-    }),
-  );
-
-const checkoutWithOverride = (searchParams: CheckoutSearchParams) => (
-  <CheckoutPageClient
-    searchParams={searchParams}
-    stripeOverride={{
-      cardElement: <div data-testid="stripe-card-element" />,
-      elements: stripeState.elements,
-      mode: "live",
-      publishableKey: "pk_test_unit",
-      stripe: stripeState.stripe,
-    }}
-  />
-);
-
-const renderCheckout = (
-  searchParams: CheckoutSearchParams = {
-    amount: "100",
-    missionary_id: TEST_MISSIONARY_ID,
-    workerId: TEST_WORKER_ID,
-  },
-) => render(checkoutWithOverride(searchParams));
-
-const renderCheckoutInStrictMode = (
-  searchParams: CheckoutSearchParams = {
-    amount: "100",
-    missionary_id: TEST_MISSIONARY_ID,
-    workerId: TEST_WORKER_ID,
-  },
-) => {
-  const strictCheckout = (params: CheckoutSearchParams) => (
-    <React.StrictMode>{checkoutWithOverride(params)}</React.StrictMode>
-  );
-  const view = render(strictCheckout(searchParams));
-
-  return {
-    ...view,
-    rerenderCheckout: (params: CheckoutSearchParams) =>
-      view.rerender(strictCheckout(params)),
-  };
-};
-
-const renderCheckoutWithRuntimeConfig = (
-  searchParams: React.ComponentProps<CheckoutPageClientComponent>["searchParams"] = {
-    amount: "100",
-    missionary_id: TEST_MISSIONARY_ID,
-    workerId: TEST_WORKER_ID,
-  },
-) => render(<CheckoutPageClient searchParams={searchParams} />);
-
-const advanceToPayment = () => {
-  fireEvent.click(screen.getByRole("button", { name: /next step/i }));
-  fireEvent.change(screen.getByLabelText(/first name/i), {
-    target: { value: "Ada" },
-  });
-  fireEvent.change(screen.getByLabelText(/last name/i), {
-    target: { value: "Lovelace" },
-  });
-  fireEvent.change(screen.getByLabelText(/email address/i), {
-    target: { value: "ada@example.com" },
-  });
-  fireEvent.click(screen.getByRole("button", { name: /continue to payment/i }));
-};
-
-const fillPostalCode = (value: string) => {
-  fireEvent.change(screen.getByLabelText(/postal code/i), {
-    target: { value },
-  });
-};
-
-const confirmPayment = () => {
-  fireEvent.click(screen.getByRole("button", { name: /confirm/i }));
-};
-
-const toggleCoverProcessingFees = () => {
-  fireEvent.click(
-    screen.getByRole("switch", { name: /cover processing fees/i }),
-  );
-};
-
-it("keeps a named contribution summary bound to the recipient, gift and fee quote through checkout steps", () => {
-  renderCheckout();
-  const summary = screen.getByRole("complementary", {
-    name: "Contribution summary",
-  });
-  expect(within(summary).getByText("Unit Test Worker")).toBeTruthy();
-  expect(within(summary).getAllByText("$100.00")).toHaveLength(2);
-  fireEvent.change(screen.getByLabelText("Custom amount"), {
-    target: { value: "125.50" },
-  });
-  expect(within(summary).getAllByText("$125.50")).toHaveLength(2);
-  toggleCoverProcessingFees();
-  expect(within(summary).getByText("$4.06")).toBeTruthy();
-  expect(within(summary).getByText("$129.56")).toBeTruthy();
-  fireEvent.click(screen.getByRole("button", { name: /next step/i }));
-  expect(within(summary).getByText("Unit Test Worker")).toBeTruthy();
-  expect(within(summary).getByText("$129.56")).toBeTruthy();
-  const progress = screen.getByRole("navigation", {
-    name: "Checkout progress",
-  });
-  expect(
-    within(progress).getByText("DETAILS").getAttribute("aria-current"),
-  ).toBe("step");
-  expect(fetchMock()).not.toHaveBeenCalled();
-});
-
-// Worker profiles are sample content; a gift from one goes to the
-// missionary account its link designates, so the summary says so instead of
-// implying the sample is the recipient.
-it("says when the profile a gift came from is a sample", () => {
-  renderCheckout();
-  const summary = screen.getByRole("complementary", {
-    name: "Contribution summary",
-  });
-  expect(within(summary).getByText("Unit Test Worker")).toBeTruthy();
-  expect(
-    within(summary).getByText(
-      "Unit Test Worker is a sample profile. Your gift goes to the missionary account it’s linked to in this demo organization.",
-    ),
-  ).toBeTruthy();
-});
-
-// "Give again" from the dashboard opens checkout with only the missionary
-// account; the donor’s already-loaded portal data names them.
-it("names a missionary the signed-in donor already supports", async () => {
-  const { getQueryClient } =
-    await import("../../../../packages/database/providers/query-client");
-  getQueryClient().setQueryData(["donor", "portal"], {
-    donations: [
-      {
-        missionary: {
-          id: TEST_MISSIONARY_ID,
-          name: "Jordan Hale",
-          avatarUrl: null,
+      challengeToken: "token-0",
+    });
+    expect(String(donates()[0]!.body.key)).toMatch(/^[0-9a-f-]{36}$/);
+    expect(stripe.submit).toHaveBeenCalledTimes(1);
+    expect(stripe.confirms[0]).toMatchObject({
+      clientSecret: SECRET,
+      redirect: "if_required",
+      confirmParams: {
+        payment_method_data: {
+          billing_details: { email: "gail@example.test", name: "Gail Guest" },
         },
       },
-    ],
-    recurringGifts: [],
-  });
-  renderCheckout({ amount: "100", missionary_id: TEST_MISSIONARY_ID });
-  const summary = screen.getByRole("complementary", {
-    name: "Contribution summary",
-  });
-  expect(within(summary).getByText("Jordan Hale")).toBeTruthy();
-  getQueryClient().clear();
-});
-
-it("adds no sample note to a fund gift", () => {
-  renderCheckout({ amount: "100", fund_id: TEST_OTHER_FUND_ID });
-  const summary = screen.getByRole("complementary", {
-    name: "Contribution summary",
-  });
-  expect(within(summary).queryByText(/sample profile/)).toBeNull();
-});
-
-const guestGivingDefaultFeeFlags = {
-  cover_fees: false,
-  payment_method: "card",
-} as const;
-
-const fetchMock = () => vi.mocked(globalThis.fetch);
-
-const requestAt = (index: number) => {
-  const request = fetchMock().mock.calls[index];
-  if (!request) {
-    throw new Error(`Missing fetch call at index ${index}`);
-  }
-  return {
-    body: JSON.parse(String(request[1]?.body)),
-    headers: request[1]?.headers as Record<string, string>,
-  };
-};
-
-const fetchCallsByMethod = (method: string) =>
-  fetchMock().mock.calls.filter(([, init]) => init?.method === method);
-
-describe("CheckoutPageClient donation designations", () => {
-  it("does not expose the payment flow for a worker-only legacy checkout URL", () => {
-    renderCheckout({
-      amount: "100",
-      workerId: TEST_WORKER_ID,
-    });
-
-    // Plain words and one way forward, instead of "Target Unspecified".
-    expect(
-      screen.getByRole("heading", { name: "Choose who you’d like to support" }),
-    ).toBeTruthy();
-    expect(
-      screen
-        .getByRole("link", { name: "Find a missionary" })
-        .getAttribute("href"),
-    ).toBe("/workers");
-    expect(screen.queryByRole("button", { name: /next step/i })).toBeNull();
-    expect(screen.queryByTestId("stripe-card-element")).toBeNull();
-    expect(fetchMock()).not.toHaveBeenCalled();
-  });
-
-  it("posts no designation fields for the semantic general fund alias", async () => {
-    fetchMock().mockImplementation(initializedDonationResponse);
-    stripeState.stripe.confirmCardPayment.mockResolvedValue({
-      paymentIntent: { status: "succeeded" },
-    });
-
-    renderCheckout({
-      amount: "100",
-      fund: "general",
-    });
-    advanceToPayment();
-    confirmPayment();
-
-    await waitFor(() => expect(fetchMock()).toHaveBeenCalledTimes(1));
-    expect(requestAt(0).body).toEqual({
-      amount: 100,
-      currency: "usd",
-      ...guestGivingDefaultFeeFlags,
-    });
-    expect(
-      screen.queryByRole("heading", { name: /target unspecified/i }),
-    ).toBeNull();
-  });
-
-  it("posts canonical fund UUID designations unchanged", async () => {
-    fetchMock().mockImplementation(initializedDonationResponse);
-    stripeState.stripe.confirmCardPayment.mockResolvedValue({
-      paymentIntent: { status: "succeeded" },
-    });
-
-    renderCheckout({
-      amount: "100",
-      fund_id: TEST_FUND_ID,
-    });
-    advanceToPayment();
-    confirmPayment();
-
-    await waitFor(() => expect(fetchMock()).toHaveBeenCalledTimes(1));
-    expect(requestAt(0).body).toEqual({
-      amount: 100,
-      currency: "usd",
-      fund_id: TEST_FUND_ID,
-      ...guestGivingDefaultFeeFlags,
     });
   });
-});
 
-describe("CheckoutPageClient live card confirmation", () => {
-  it("loads checkout configuration from the tenant publishable key when no bundled env key exists", async () => {
-    delete process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY;
-    fetchMock().mockImplementation((_input, init) => {
-      return init?.method === "POST"
-        ? initializedDonationResponse("pk_live_tenant")
-        : checkoutConfigResponse("pk_live_tenant");
-    });
-
-    renderCheckoutWithRuntimeConfig();
-    advanceToPayment();
-
-    expect(await screen.findByTestId("stripe-card-panel")).toBeTruthy();
-    expect(fetchMock()).toHaveBeenCalledTimes(1);
-    expect(fetchMock().mock.calls[0]?.[1]?.method).toBe("GET");
-    expect(screen.queryByText(/test mode/i)).toBeNull();
-  });
-
-  it("shows a configuration error when runtime config returns no publishable key", async () => {
-    fetchMock().mockImplementation((_input, init) => {
-      return init?.method === "POST"
-        ? initializedDonationResponse("pk_live_tenant")
-        : checkoutConfigResponse(null);
-    });
-
-    renderCheckoutWithRuntimeConfig();
-    advanceToPayment();
-
-    const configurationError = await screen.findByRole("alert");
-    expect(configurationError.textContent).toMatch(/checkout configuration/i);
-    expect(
-      screen.getByRole("heading", { name: /secure payment/i }),
-    ).toBeTruthy();
-    expect(fetchCallsByMethod("POST")).toHaveLength(0);
-    expect(stripeState.stripe.confirmCardPayment).not.toHaveBeenCalled();
-    expect(
-      screen.queryByRole("heading", { name: /contribution confirmed/i }),
-    ).toBeNull();
-  });
-
-  it("recovers the runtime config fetch after an effect cleanup aborts it (StrictMode remount)", async () => {
-    fetchMock().mockImplementation((_input, init) => {
-      return init?.method === "POST"
-        ? initializedDonationResponse("pk_live_tenant")
-        : checkoutConfigResponse(null);
-    });
-
-    render(
-      <React.StrictMode>
-        <CheckoutPageClient
-          searchParams={{
-            amount: "100",
-            missionary_id: TEST_MISSIONARY_ID,
-            workerId: TEST_WORKER_ID,
-          }}
-        />
-      </React.StrictMode>,
+  it("a 429 shows the bucket's sentence, keeps what was typed and asks for a fresh challenge", async () => {
+    donateAnswers = [
+      {
+        status: 429,
+        body: {
+          error: "too_many_requests",
+          retryAfterSeconds: 40,
+          bucket: "address",
+        },
+      },
+    ];
+    render(<CheckoutPageClient {...props()} />);
+    await fillAndGive();
+    await screen.findByText(/Many people are giving from this network/);
+    expect((screen.getByLabelText("Email") as HTMLInputElement).value).toBe(
+      "gail@example.test",
     );
-    advanceToPayment();
-
-    // The double-invoked mount effect aborts the first fetch; the payment step
-    // must still resolve instead of hanging on "Preparing secure checkout".
-    const configurationError = await screen.findByRole("alert");
-    expect(configurationError.textContent).toMatch(/checkout configuration/i);
-    expect(
-      screen.getByRole("heading", { name: /secure payment/i }),
-    ).toBeTruthy();
-    expect(screen.queryByText(/preparing secure checkout/i)).toBeNull();
+    await waitFor(() => expect(turnstile.resets).toBe(1));
+    expect(stripe.confirms).toEqual([]);
   });
 
-  it("rejects confirmation when the returned publishable key differs from the override", async () => {
-    fetchMock().mockImplementation(() =>
-      initializedDonationResponse("pk_test_rotated"),
-    );
-
+  it("a monthly link says monthly is unavailable and gives once only after the explicit switch", async () => {
     render(
       <CheckoutPageClient
-        searchParams={{
-          amount: "100",
-          missionary_id: TEST_MISSIONARY_ID,
-          workerId: TEST_WORKER_ID,
-        }}
-        stripeOverride={{
-          cardElement: <div data-testid="stripe-card-element" />,
-          elements: stripeState.elements,
-          mode: "live",
-          publishableKey: "pk_test_initial",
-          stripe: stripeState.stripe,
-        }}
+        {...props({
+          link: {
+            target: { kind: "fund", id: FUND },
+            amountCents: 2500,
+            monthly: true,
+            coverFees: false,
+            sourceSiteId: null,
+          },
+        })}
       />,
     );
-    advanceToPayment();
-    confirmPayment();
-
-    await waitFor(() => expect(fetchMock()).toHaveBeenCalledTimes(1));
-    expect(stripeState.stripe.confirmCardPayment).not.toHaveBeenCalled();
-
-    const retryableError = await screen.findByRole("alert");
-    expect(retryableError.textContent).toMatch(/configuration changed/i);
-    expect(retryableError.textContent).toMatch(/try again/i);
-  });
-
-  it("remounts the real Elements subtree for a returned key and requires an idempotent explicit retry", async () => {
-    const donationResponses: Array<(response: Response) => void> = [];
-    let completeConfirmation:
-      ((result: { paymentIntent: { status: string } }) => void) | undefined;
-    const confirmation = new Promise<{ paymentIntent: { status: string } }>(
-      (resolve) => {
-        completeConfirmation = resolve;
-      },
-    );
-    stripeState.stripe.confirmCardPayment.mockReturnValue(confirmation);
-    fetchMock().mockImplementation((_input, init) =>
-      init?.method === "POST"
-        ? new Promise<Response>((resolve) => donationResponses.push(resolve))
-        : checkoutConfigResponse("pk_live_initial"),
-    );
-    const responseWithRotatedKey = (clientSecret: string) =>
-      new Response(
-        JSON.stringify({
-          clientSecret,
-          donationId: "don_rotated",
-          paymentIntentId: "pi_rotated",
-          publishableKey: "pk_live_rotated",
-        }),
-        { status: 200, headers: { "Content-Type": "application/json" } },
-      );
-
-    // No stripeOverride: this exercises the production Elements key owner.
-    renderCheckoutWithRuntimeConfig();
-    advanceToPayment();
-    await screen.findByTestId("stripe-card-panel");
-    const originalButton = screen.getByRole("button", { name: /confirm/i });
-    fireEvent.click(originalButton);
-    await waitFor(() => expect(fetchCallsByMethod("POST")).toHaveLength(1));
-    expect(originalButton.getAttribute("aria-disabled")).toBe("true");
-    expect(originalButton).toHaveProperty("disabled", false);
-    fireEvent.click(originalButton);
-    expect(fetchCallsByMethod("POST")).toHaveLength(1);
-    expect(stripeState.stripe.confirmCardPayment).not.toHaveBeenCalled();
-
-    await act(async () => {
-      donationResponses[0]?.(responseWithRotatedKey("cs_first_unconfirmed"));
-    });
-    expect((await screen.findByRole("alert")).textContent).toMatch(
-      /configuration changed.*try again/i,
-    );
-    const retryButton = screen.getByRole("button", { name: /confirm/i });
-    // Changing the actual Elements key must replace its complete subtree.
-    expect(retryButton).not.toBe(originalButton);
-    expect(originalButton.isConnected).toBe(false);
-    expect(retryButton).toHaveProperty("disabled", false);
-    expect(stripeJsState.loadStripe).toHaveBeenCalledWith("pk_live_rotated");
-    expect(fetchCallsByMethod("POST")).toHaveLength(1);
-    expect(stripeState.stripe.confirmCardPayment).not.toHaveBeenCalled();
     expect(
-      screen.queryByRole("heading", { name: /contribution confirmed/i }),
-    ).toBeNull();
-
-    // Key recovery requires an explicit retry with the unchanged request identity.
-    fireEvent.click(retryButton);
-    await waitFor(() => expect(fetchCallsByMethod("POST")).toHaveLength(2));
-    expect(retryButton.getAttribute("aria-disabled")).toBe("true");
-    expect(retryButton).toHaveProperty("disabled", false);
-    fireEvent.click(retryButton);
-    expect(fetchCallsByMethod("POST")).toHaveLength(2);
-    const [firstRequest, retryRequest] = fetchCallsByMethod("POST");
-    expect(firstRequest?.[0]).toBe("/api/donate");
-    expect(retryRequest?.[0]).toBe("/api/donate");
-    const initialIdempotencyKey = new Headers(firstRequest?.[1]?.headers).get(
-      "Idempotency-Key",
-    );
-    expect(initialIdempotencyKey).toBe("idem-1");
-    expect(new Headers(retryRequest?.[1]?.headers).get("Idempotency-Key")).toBe(
-      initialIdempotencyKey,
-    );
-    expect(retryRequest?.[1]?.body).toBe(firstRequest?.[1]?.body);
-    expect(JSON.parse(String(retryRequest?.[1]?.body))).toEqual({
-      amount: 100,
-      currency: "usd",
-      missionary_id: TEST_MISSIONARY_ID,
-      ...guestGivingDefaultFeeFlags,
-    });
-    await act(async () => {
-      donationResponses[1]?.(responseWithRotatedKey("cs_retry_confirmed"));
-    });
-    await waitFor(() =>
-      expect(stripeState.stripe.confirmCardPayment).toHaveBeenCalledTimes(1),
-    );
-    expect(stripeState.stripe.confirmCardPayment).toHaveBeenCalledWith(
-      "cs_retry_confirmed",
-      {
-        payment_method: {
-          card: stripeState.cardElement,
-          billing_details: { email: "ada@example.com", name: "Ada Lovelace" },
-        },
-      },
-    );
-    expect(
-      screen.queryByRole("heading", { name: /contribution confirmed/i }),
-    ).toBeNull();
-    await act(async () => {
-      completeConfirmation?.({ paymentIntent: { status: "succeeded" } });
-      await confirmation;
-    });
-    expect(
-      await screen.findByRole("heading", { name: /contribution confirmed/i }),
+      await screen.findByText(
+        "Monthly giving isn't available online yet. You can give once now instead.",
+      ),
     ).toBeTruthy();
-    expect(screen.getByText("$100.00")).toBeTruthy();
-    expect(screen.getByText("ada@example.com")).toBeTruthy();
-    expect(screen.getByText("Unit Test Worker")).toBeTruthy();
-    expect(fetchCallsByMethod("POST")).toHaveLength(2);
-    expect(stripeState.stripe.confirmCardPayment).toHaveBeenCalledTimes(1);
+    expect(screen.queryByRole("button", { name: /^Give \$/ })).toBeNull();
+    fireEvent.click(screen.getByRole("button", { name: "Give once instead" }));
+    expect(
+      await screen.findByRole("button", { name: /^Give \$/ }),
+    ).toBeTruthy();
   });
 
-  it.each([null, "   "])(
-    "does not confirm or show success when POST returns unusable publishable key %s",
-    async (publishableKey) => {
-      fetchMock().mockImplementation((_input, init) => {
-        return init?.method === "POST"
-          ? initializedDonationResponse(publishableKey)
-          : checkoutConfigResponse("pk_live_tenant");
-      });
+  it("with no designation it asks the donor to choose one and shows no payment", async () => {
+    render(
+      <CheckoutPageClient
+        {...props({
+          link: {
+            target: null,
+            amountCents: null,
+            monthly: false,
+            coverFees: false,
+            sourceSiteId: null,
+          },
+        })}
+      />,
+    );
+    expect(
+      await screen.findByText(
+        "Choose a missionary or project to give to, then come back to give.",
+      ),
+    ).toBeTruthy();
+    expect(screen.queryByTestId("payment-element")).toBeNull();
+    expect(calls).toEqual([]);
+  });
 
-      renderCheckoutWithRuntimeConfig();
-      advanceToPayment();
+  it("a config read that is unavailable says so for the designation as well, and offers no payment", async () => {
+    configAnswer = { status: 503, body: { error: "giving_unavailable" } };
+    render(<CheckoutPageClient {...props()} />);
+    expect(
+      await screen.findByText(
+        "Giving here is unavailable right now. Nothing was charged.",
+      ),
+    ).toBeTruthy();
+    expect(screen.queryByTestId("payment-element")).toBeNull();
+  });
+});
 
-      await screen.findByTestId("stripe-card-panel");
-      confirmPayment();
+describe("AL-2681 B fix round X2: a fresh challenge after every answer, and a second card on the same open payment", () => {
+  it("a declined card, then a second card: Stripe confirms the same open payment directly, with no second request, challenge or key", async () => {
+    stripe.outcomes = ["decline", "succeed"];
+    render(<CheckoutPageClient {...props()} />);
+    await fillAndGive();
+    await screen.findByText(
+      /Your card was declined, and you haven't been charged/,
+    );
+    fireEvent.click(giveButton());
+    await screen.findByText("Your gift was received.");
+    expect(donates()).toHaveLength(1);
+    expect(stripe.confirms.map((c) => c.clientSecret)).toEqual([
+      SECRET,
+      SECRET,
+    ]);
+  });
 
-      await waitFor(() => expect(fetchCallsByMethod("POST")).toHaveLength(1));
-      expect(stripeState.stripe.confirmCardPayment).not.toHaveBeenCalled();
-      expect(
-        screen.queryByRole("heading", { name: /contribution confirmed/i }),
-      ).toBeNull();
-
-      const configurationError = await screen.findByRole("alert");
-      expect(configurationError.textContent).toMatch(/configuration/i);
+  it.each([
+    [401, { error: "sign_in_required" }],
+    [409, { error: "idempotency_key_reused" }],
+    [503, { error: "giving_unavailable" }],
+  ])(
+    "after a %s answer the next Give carries a new challenge token, never the spent one",
+    async (status, body) => {
+      donateAnswers = [{ status, body }, created()];
+      render(
+        <CheckoutPageClient
+          {...props(
+            status === 401
+              ? { isHome: true, signedInEmail: "dana@example.test" }
+              : {},
+          )}
+        />,
+      );
+      if (status === 401) {
+        await screen.findByTestId("payment-element");
+        await waitFor(() =>
+          expect(giveButton()).not.toHaveProperty("disabled", true),
+        );
+        fireEvent.click(giveButton());
+      } else await fillAndGive();
+      await waitFor(() => expect(donates()).toHaveLength(1));
+      await waitFor(() => expect(turnstile.resets).toBe(1));
+      fireEvent.click(giveButton());
+      await waitFor(() => expect(donates()).toHaveLength(2));
+      expect(donates().map((c) => c.body.challengeToken)).toEqual([
+        "token-0",
+        "token-1",
+      ]);
     },
   );
+});
 
-  it("uses an updated override key mid-flight without remounting when the returned key matches", async () => {
-    let resolveDonation: ((value: Response) => void) | null = null;
-    const donationPromise = new Promise<Response>((resolve) => {
-      resolveDonation = resolve;
+describe("AL-2681 B fix round X3: what the element is told never to collect, the page always sends", () => {
+  it("the element collects neither the e-mail nor a wallet, and Link is off", async () => {
+    render(<CheckoutPageClient {...props()} />);
+    await screen.findByTestId("payment-element");
+    expect(stripe.paymentElementOptions.at(-1)).toEqual({
+      wallets: { applePay: "never", googlePay: "never", link: "never" },
+      fields: { billingDetails: { email: "never" } },
     });
-    fetchMock().mockReturnValue(donationPromise);
-    stripeState.stripe.confirmCardPayment.mockResolvedValue({
-      paymentIntent: { status: "succeeded" },
-    });
-
-    const searchParams = {
-      amount: "100",
-      missionary_id: TEST_MISSIONARY_ID,
-      workerId: TEST_WORKER_ID,
-    };
-    const view = render(
-      <CheckoutPageClient
-        searchParams={searchParams}
-        stripeOverride={{
-          cardElement: <div data-testid="stripe-card-element" />,
-          elements: stripeState.elements,
-          mode: "live",
-          publishableKey: "pk_test_initial",
-          stripe: stripeState.stripe,
-        }}
-      />,
-    );
-    advanceToPayment();
-    confirmPayment();
-
-    await waitFor(() => expect(fetchMock()).toHaveBeenCalledTimes(1));
-    const processingButton = screen.getByRole("button", {
-      name: /processing payment/i,
-    });
-    expect(processingButton.getAttribute("aria-disabled")).toBe("true");
-    expect(processingButton).toHaveProperty("disabled", false);
-
-    flushSync(() => {
-      view.rerender(
-        <CheckoutPageClient
-          searchParams={searchParams}
-          stripeOverride={{
-            cardElement: <div data-testid="stripe-card-element" />,
-            elements: stripeState.elements,
-            mode: "live",
-            publishableKey: "pk_test_rotated",
-            stripe: stripeState.stripe,
-          }}
-        />,
-      );
-    });
-
-    // stripeOverride updates the key ref but bypasses the keyed Elements branch.
-    expect(screen.getByRole("button", { name: /processing payment/i })).toBe(
-      processingButton,
-    );
-    expect(processingButton.getAttribute("aria-disabled")).toBe("true");
-    expect(processingButton).toHaveProperty("disabled", false);
-
-    await act(async () => {
-      resolveDonation?.(
-        new Response(
-          JSON.stringify({
-            clientSecret: "cs_test_123",
-            donationId: "don_123",
-            paymentIntentId: "pi_123",
-            publishableKey: "pk_test_rotated",
-          }),
-          {
-            headers: { "Content-Type": "application/json" },
-            status: 200,
-          },
-        ),
-      );
-      await donationPromise;
-    });
-
-    expect(stripeState.stripe.confirmCardPayment).toHaveBeenCalledTimes(1);
-    expect(
-      await screen.findByRole("heading", { name: /contribution confirmed/i }),
-    ).toBeTruthy();
-    expect(screen.queryByText(/configuration changed/i)).toBeNull();
   });
 
-  it("does not show success for /api/donate initialization until Stripe confirms the PaymentIntent", async () => {
-    let resolveConfirmation:
-      ((value: { paymentIntent: { status: string } }) => void) | null = null;
-    const confirmationPromise = new Promise<{
-      paymentIntent: { status: string };
-    }>((resolve) => {
-      resolveConfirmation = resolve;
-    });
-    fetchMock().mockImplementation(initializedDonationResponse);
-    stripeState.stripe.confirmCardPayment.mockReturnValue(confirmationPromise);
-
-    renderCheckout();
-    advanceToPayment();
-    const paymentButton = screen.getByRole("button", { name: /confirm/i });
-    paymentButton.focus();
-    confirmPayment();
-
-    await waitFor(() => expect(fetchMock()).toHaveBeenCalledTimes(1));
+  it("a signed-in gift confirms with the e-mail the page shows, and is received", async () => {
+    render(
+      <CheckoutPageClient
+        {...props({ isHome: true, signedInEmail: "dana@example.test" })}
+      />,
+    );
+    expect(await screen.findByText("Giving as dana@example.test")).toBeTruthy();
+    await screen.findByTestId("payment-element");
     await waitFor(() =>
-      expect(stripeState.stripe.confirmCardPayment).toHaveBeenCalledTimes(1),
+      expect(giveButton()).not.toHaveProperty("disabled", true),
     );
-    expect(
-      screen.queryByRole("heading", { name: /contribution confirmed/i }),
-    ).toBeNull();
+    fireEvent.click(giveButton());
+    await screen.findByText("Your gift was received.");
+    expect(stripe.refused).toEqual([]);
+    expect(donates()[0]!.body).toMatchObject({
+      mode: "signed_in",
+      contact: { email: "dana@example.test" },
+    });
+  });
 
-    expect(document.activeElement).toBe(paymentButton);
-    expect(paymentButton.getAttribute("aria-disabled")).toBe("true");
-    expect(paymentButton).toHaveProperty("disabled", false);
-    expect(screen.getByRole("button", { name: "Processing payment" })).toBe(
-      paymentButton,
+  it("a guest who leaves both names empty can give", async () => {
+    render(<CheckoutPageClient {...props()} />);
+    await fillAndGive("gail@example.test", "", "");
+    await screen.findByText("Your gift was received.");
+    expect(stripe.refused).toEqual([]);
+  });
+});
+
+describe("AL-2681 B fix round X4: one gift, one key", () => {
+  it("a decline, then a corrected e-mail, then a second card: the card is tried under a new key", async () => {
+    stripe.outcomes = ["decline", "succeed"];
+    donateAnswers = [created(SECRET), created("pi_2_secret_def")];
+    render(<CheckoutPageClient {...props()} />);
+    await fillAndGive("gail@exmaple.test");
+    await screen.findByText(/Your card was declined/);
+    fireEvent.change(screen.getByLabelText("Email"), {
+      target: { value: "gail@example.test" },
+    });
+    await waitFor(() => expect(turnstile.resets).toBe(1));
+    fireEvent.click(giveButton());
+    await screen.findByText("Your gift was received.");
+    expect(donates()).toHaveLength(2);
+    expect(donates()[1]!.body.key).not.toBe(donates()[0]!.body.key);
+    expect(stripe.confirms.at(-1)?.clientSecret).toBe("pi_2_secret_def");
+  });
+
+  it("two pages in one browser with two different gifts, then Give again in the first: the first gift's key is sent again", async () => {
+    stripe.outcomes = ["lost", "lost", "succeed"];
+    donateAnswers = [
+      created(SECRET),
+      created("pi_2_secret_def"),
+      { status: 409, body: { error: "idempotency_key_reused" } },
+    ];
+    const first = render(<CheckoutPageClient {...props()} />);
+    await fillAndGive();
+    await screen.findByText(/We lost the connection/);
+    const firstKey = donates()[0]!.body.key;
+    first.unmount();
+    window.sessionStorage.clear();
+    const second = render(
+      <CheckoutPageClient
+        {...props({
+          link: {
+            target: { kind: "fund", id: OTHER_FUND },
+            amountCents: 2500,
+            monthly: false,
+            coverFees: false,
+            sourceSiteId: null,
+          },
+        })}
+      />,
     );
-    expect(screen.getAllByLabelText("Processing payment")).toEqual([
-      paymentButton,
+    await fillAndGive();
+    await screen.findByText(/We lost the connection/);
+    second.unmount();
+    window.sessionStorage.clear();
+    render(<CheckoutPageClient {...props()} />);
+    await fillAndGive();
+    await waitFor(() => expect(donates()).toHaveLength(3));
+    expect(donates()[2]!.body.key).toBe(firstKey);
+  });
+
+  it.each([
+    ["succeeded", "Your gift was received."],
+    [
+      "processing",
+      "Your payment is processing. You don't need to keep this page open.",
+    ],
+  ])(
+    "a 409 for a key whose payment this tab holds in a final state (%s) shows that state",
+    async (status, sentence) => {
+      stripe.outcomes = ["lost"];
+      donateAnswers = [
+        created(),
+        { status: 409, body: { error: "idempotency_key_reused" } },
+      ];
+      render(<CheckoutPageClient {...props()} />);
+      await fillAndGive();
+      await screen.findByText(/We lost the connection/);
+      stripe.intents.set(SECRET, { status });
+      fireEvent.click(giveButton());
+      expect(await screen.findByText(sentence)).toBeTruthy();
+      expect(
+        screen.queryByText(/already started with different details/),
+      ).toBeNull();
+    },
+  );
+});
+
+describe("AL-2681 B fix round X5: the amount can be typed", () => {
+  it("select, type, clear, type again, tab away: the typed amount is the gift, the form stays while the field is empty, and Give waits for a valid amount", async () => {
+    render(<CheckoutPageClient {...props()} />);
+    await fill();
+    const amount = screen.getByLabelText("Amount (USD)");
+    typeInto(amount, "50");
+    expect(giveButton().textContent).toBe("Give $50.00");
+    typeInto(amount, "");
+    expect(screen.getByLabelText("Email")).toBeTruthy();
+    expect(screen.getByTestId("payment-element")).toBeTruthy();
+    expect(giveButton()).toHaveProperty("disabled", true);
+    typeInto(amount, "7.5");
+    expect(giveButton().textContent).toBe("Give $7.50");
+    fireEvent.blur(amount);
+    expect((amount as HTMLInputElement).value).toBe("7.50");
+    fireEvent.click(giveButton());
+    await screen.findByText("Your gift was received.");
+    expect(donates()[0]!.body.lines).toEqual([
+      { fundId: FUND, amountCents: 750 },
     ]);
-    fireEvent.click(paymentButton);
-    expect(stripeState.stripe.confirmCardPayment).toHaveBeenCalledTimes(1);
-    expect(fetchMock()).toHaveBeenCalledTimes(1);
-
-    resolveConfirmation?.({ paymentIntent: { status: "succeeded" } });
-
-    expect(
-      await screen.findByRole("heading", { name: /contribution confirmed/i }),
-    ).toBeTruthy();
-    expect(screen.getByText("$100.00")).toBeTruthy();
-    expect(screen.getByText(/ada@example\.com/i)).toBeTruthy();
-    expect(screen.getByText(/unit test worker/i)).toBeTruthy();
   });
+});
 
-  it("passes the entered postal code to Stripe billing details", async () => {
-    fetchMock().mockImplementation(initializedDonationResponse);
-    stripeState.stripe.confirmCardPayment.mockResolvedValue({
-      paymentIntent: { status: "succeeded" },
-    });
-
-    renderCheckout();
-    advanceToPayment();
-    fillPostalCode(" 94103 ");
-    confirmPayment();
-
-    await waitFor(() => expect(fetchMock()).toHaveBeenCalledTimes(1));
-    await waitFor(() =>
-      expect(stripeState.stripe.confirmCardPayment).toHaveBeenCalledTimes(1),
-    );
-    expect(stripeState.stripe.confirmCardPayment).toHaveBeenCalledWith(
-      "cs_test_123",
-      {
-        payment_method: {
-          billing_details: {
-            address: {
-              postal_code: "94103",
-            },
-            email: "ada@example.com",
-            name: "Ada Lovelace",
+describe("AL-2681 B fix round X6: the hand-off and the sign-in keep the gift", () => {
+  it("on the website surface a source Site in the address is not sent", async () => {
+    render(
+      <CheckoutPageClient
+        {...props({
+          link: {
+            target: { kind: "fund", id: FUND },
+            amountCents: 2500,
+            monthly: false,
+            coverFees: false,
+            sourceSiteId: SITE,
           },
-          card: stripeState.cardElement,
-        },
+        })}
+      />,
+    );
+    await fillAndGive();
+    await screen.findByText("Your gift was received.");
+    expect(calls[0]!.body).not.toHaveProperty("sourceSiteId");
+    expect(donates()[0]!.body).not.toHaveProperty("sourceSiteId");
+  });
+
+  it("signed out on the account surface, the sign-in link keeps the designation, amount, fee choice and source Site", async () => {
+    render(
+      <CheckoutPageClient
+        {...props({
+          surface: "donor_account",
+          isHome: true,
+          link: {
+            target: { kind: "fund", id: FUND },
+            amountCents: 4000,
+            monthly: false,
+            coverFees: true,
+            sourceSiteId: SITE,
+          },
+        })}
+      />,
+    );
+    const link = await screen.findByRole("link", {
+      name: "Sign in to give from your account",
+    });
+    const next = new URL(
+      link.getAttribute("href")!,
+      "https://home.example.test",
+    ).searchParams.get("next")!;
+    const query = new URL(next, "https://home.example.test").searchParams;
+    expect(Object.fromEntries(query)).toEqual({
+      fund_id: FUND,
+      amount: "40.00",
+      coverFees: "1",
+      sourceSiteId: SITE,
+    });
+  });
+
+  it("on the account surface 'Give as a guest instead' goes to the Site the donor came from, with the gift's details; with no way back it is not offered", async () => {
+    configAnswer = {
+      status: 200,
+      body: {
+        publishableKey: "pk_test_1",
+        connectedAccountId: "acct_1",
+        wayBackHost: "site.example.test",
       },
+    };
+    const accountProps = props({
+      surface: "donor_account",
+      isHome: true,
+      signedInEmail: "dana@example.test",
+      link: {
+        target: { kind: "fund", id: FUND },
+        amountCents: 2500,
+        monthly: false,
+        coverFees: false,
+        sourceSiteId: SITE,
+      },
+    });
+    const view = render(<CheckoutPageClient {...accountProps} />);
+    const guest = await screen.findByRole("link", {
+      name: "Give as a guest instead",
+    });
+    expect(guest.getAttribute("href")).toBe(
+      `https://site.example.test/checkout?fund_id=${FUND}&amount=25.00&coverFees=0`,
     );
+    view.unmount();
+    configAnswer = {
+      status: 200,
+      body: {
+        publishableKey: "pk_test_1",
+        connectedAccountId: "acct_1",
+        wayBackHost: null,
+      },
+    };
+    render(<CheckoutPageClient {...accountProps} />);
+    await screen.findByTestId("payment-element");
+    expect(screen.queryByText("Give as a guest instead")).toBeNull();
   });
 
-  it("renders the original attempt snapshot after checkout params rerender", async () => {
-    let resolveConfirmation:
-      ((value: { paymentIntent: { status: string } }) => void) | null = null;
-    const confirmationPromise = new Promise<{
-      paymentIntent: { status: string };
-    }>((resolve) => {
-      resolveConfirmation = resolve;
-    });
-    fetchMock().mockImplementation(initializedDonationResponse);
-    stripeState.stripe.confirmCardPayment.mockReturnValue(confirmationPromise);
-
-    const view = renderCheckout({
-      amount: "100",
-      fund_id: TEST_FUND_ID,
-    });
-    advanceToPayment();
-    confirmPayment();
-
-    await waitFor(() =>
-      expect(stripeState.stripe.confirmCardPayment).toHaveBeenCalledTimes(1),
-    );
-
-    const backButton = screen.getByRole("button", { name: /^back$/i });
-    expect((backButton as HTMLButtonElement).disabled).toBe(true);
-
-    fireEvent.click(backButton);
-
-    expect(
-      screen.getByRole("heading", { name: /secure payment/i }),
-    ).toBeTruthy();
-    expect(screen.queryByLabelText(/first name/i)).toBeNull();
-
-    view.rerender(
+  it("the fee choice the hand-off carries is taken", async () => {
+    render(
       <CheckoutPageClient
-        searchParams={{
-          amount: "250",
-          missionary_id: TEST_MISSIONARY_ID,
-          workerId: TEST_WORKER_ID,
-        }}
-        stripeOverride={{
-          cardElement: <div data-testid="stripe-card-element" />,
-          elements: stripeState.elements,
-          mode: "live",
-          publishableKey: "pk_test_unit",
-          stripe: stripeState.stripe,
-        }}
+        {...props({
+          link: {
+            target: { kind: "fund", id: FUND },
+            amountCents: 2500,
+            monthly: false,
+            coverFees: true,
+            sourceSiteId: null,
+          },
+        })}
       />,
     );
-
-    await act(async () => {
-      resolveConfirmation?.({ paymentIntent: { status: "succeeded" } });
-      await confirmationPromise;
-    });
-
     expect(
-      await screen.findByRole("heading", { name: /contribution confirmed/i }),
-    ).toBeTruthy();
-    expect(screen.getByText("$100.00")).toBeTruthy();
-    expect(screen.queryByText("$250.00")).toBeNull();
-    expect(screen.getByText(/our global mission/i)).toBeTruthy();
-    expect(screen.queryByText(/unit test worker/i)).toBeNull();
-    expect(screen.queryByRole("alert")).toBeNull();
-    expect(fetchMock()).toHaveBeenCalledTimes(1);
+      (
+        await screen.findByRole("checkbox", { name: /Add the card fee/ })
+      ).getAttribute("aria-checked"),
+    ).toBe("true");
   });
 
-  it("keeps a stale non-success Stripe confirmation retryable after checkout params rerender", async () => {
-    let resolveConfirmation:
-      ((value: { paymentIntent: { status: string } }) => void) | null = null;
-    const confirmationPromise = new Promise<{
-      paymentIntent: { status: string };
-    }>((resolve) => {
-      resolveConfirmation = resolve;
-    });
-    fetchMock().mockImplementation(initializedDonationResponse);
-    stripeState.stripe.confirmCardPayment.mockReturnValue(confirmationPromise);
-
-    const view = renderCheckout({
-      amount: "100",
-      fund_id: TEST_FUND_ID,
-    });
-    advanceToPayment();
-    confirmPayment();
-
-    await waitFor(() =>
-      expect(stripeState.stripe.confirmCardPayment).toHaveBeenCalledTimes(1),
-    );
-
-    view.rerender(
+  it("'Sign in again' after a 401 keeps the typed amount and the fee choice", async () => {
+    donateAnswers = [{ status: 401, body: { error: "sign_in_required" } }];
+    render(
       <CheckoutPageClient
-        searchParams={{ amount: "100", fund_id: TEST_OTHER_FUND_ID }}
-        stripeOverride={{
-          cardElement: <div data-testid="stripe-card-element" />,
-          elements: stripeState.elements,
-          mode: "live",
-          publishableKey: "pk_test_unit",
-          stripe: stripeState.stripe,
-        }}
+        {...props({ isHome: true, signedInEmail: "dana@example.test" })}
       />,
     );
-
-    await act(async () => {
-      resolveConfirmation?.({
-        paymentIntent: { status: "requires_payment_method" },
-      });
-      await confirmationPromise;
-    });
-
-    expect(
-      screen.queryByRole("heading", { name: /contribution confirmed/i }),
-    ).toBeNull();
-    expect(
-      screen.getByRole("heading", { name: /secure payment/i }),
-    ).toBeTruthy();
-
-    const retryableError = await screen.findByRole("alert");
-    expect(retryableError.textContent).toMatch(/checkout details changed/i);
-    expect(retryableError.textContent).toMatch(/try again/i);
-    expect(fetchMock()).toHaveBeenCalledTimes(1);
-
-    const unlockedBackButton = screen.getByRole("button", { name: /^back$/i });
-    const unlockedConfirmButton = screen.getByRole("button", {
-      name: /confirm/i,
-    });
-    expect((unlockedBackButton as HTMLButtonElement).disabled).toBe(false);
-    expect((unlockedConfirmButton as HTMLButtonElement).disabled).toBe(false);
-  });
-
-  it("unlocks a stale failed request after checkout params rerender", async () => {
-    let rejectDonationRequest: ((reason?: unknown) => void) | null = null;
-    const donationRequestPromise = new Promise<Response>((_resolve, reject) => {
-      rejectDonationRequest = reject;
-    });
-    fetchMock().mockReturnValue(donationRequestPromise);
-
-    const view = renderCheckout({
-      amount: "100",
-      fund_id: TEST_FUND_ID,
-    });
-    advanceToPayment();
-    confirmPayment();
-
-    await waitFor(() => expect(fetchMock()).toHaveBeenCalledTimes(1));
-
-    await act(async () => {
-      view.rerender(
-        <CheckoutPageClient
-          searchParams={{ amount: "100", fund_id: TEST_OTHER_FUND_ID }}
-          stripeOverride={{
-            cardElement: <div data-testid="stripe-card-element" />,
-            elements: stripeState.elements,
-            mode: "live",
-            publishableKey: "pk_test_unit",
-            stripe: stripeState.stripe,
-          }}
-        />,
-      );
-    });
-
-    await act(async () => {
-      rejectDonationRequest?.(new Error("Network unavailable"));
-      await donationRequestPromise.catch(() => null);
-    });
-
-    const retryableError = await screen.findByRole("alert");
-    expect(retryableError.textContent).toMatch(/checkout details changed/i);
-    expect(retryableError.textContent).toMatch(/try again/i);
-    expect(stripeState.stripe.confirmCardPayment).not.toHaveBeenCalled();
-
-    const unlockedBackButton = screen.getByRole("button", { name: /^back$/i });
-    const unlockedConfirmButton = screen.getByRole("button", {
-      name: /confirm/i,
-    });
-    expect((unlockedBackButton as HTMLButtonElement).disabled).toBe(false);
-    expect((unlockedConfirmButton as HTMLButtonElement).disabled).toBe(false);
-  });
-
-  it("keeps the donor on payment with a visible error when Stripe confirmation fails", async () => {
-    fetchMock().mockImplementation(initializedDonationResponse);
-    stripeState.stripe.confirmCardPayment.mockResolvedValue({
-      error: { message: "Your card was declined." },
-    });
-
-    renderCheckout();
-    advanceToPayment();
-    confirmPayment();
-
-    expect((await screen.findByRole("alert")).textContent).toContain(
-      "Your card was declined.",
+    await screen.findByTestId("payment-element");
+    typeInto(screen.getByLabelText("Amount (USD)"), "60");
+    fireEvent.click(screen.getByRole("checkbox", { name: /Add the card fee/ }));
+    await waitFor(() =>
+      expect(giveButton()).not.toHaveProperty("disabled", true),
     );
+    fireEvent.click(giveButton());
+    await screen.findByText(/Your sign-in has ended/);
+    const again = screen.getByRole("link", { name: "Sign in again" });
+    const next = new URL(
+      again.getAttribute("href")!,
+      "https://home.example.test",
+    ).searchParams.get("next")!;
     expect(
-      screen.getByRole("heading", { name: /secure payment/i }),
+      Object.fromEntries(new URL(next, "https://h.example.test").searchParams),
+    ).toMatchObject({ fund_id: FUND, amount: "60.00", coverFees: "1" });
+    expect(
+      within(screen.getByRole("alert")).getByRole("button", {
+        name: "Give as a guest instead",
+      }),
     ).toBeTruthy();
-    expect(
-      screen.queryByRole("heading", { name: /contribution confirmed/i }),
-    ).toBeNull();
   });
+});
 
-  it("keeps the donor on payment when Stripe returns a processing PaymentIntent", async () => {
-    fetchMock().mockImplementation(initializedDonationResponse);
-    stripeState.stripe.confirmCardPayment.mockResolvedValue({
-      paymentIntent: { status: "processing" },
-    });
-
-    renderCheckout();
-    advanceToPayment();
-    confirmPayment();
-
-    expect((await screen.findByRole("alert")).textContent).toMatch(
-      /still processing/i,
+describe("AL-2681 B fix round X7: the page says what happened to the payment, and goes on saying it", () => {
+  const held = (over: Record<string, unknown> = {}) =>
+    window.sessionStorage.setItem(
+      GIFT_PAYMENT_STORAGE,
+      JSON.stringify({
+        key: "k-held",
+        clientSecret: SECRET,
+        account: "acct_held",
+        publishableKey: "pk_test_held",
+        target: { kind: "fund", id: FUND },
+        ...over,
+      }),
     );
-    expect(
-      screen.getByRole("heading", { name: /secure payment/i }),
-    ).toBeTruthy();
-    expect(
-      screen.queryByRole("heading", { name: /contribution confirmed/i }),
-    ).toBeNull();
+
+  it("a payment this tab holds is read with its own key and account although the config read now fails, and its state is what the page says", async () => {
+    held();
+    stripe.intents.set(SECRET, { status: "succeeded" });
+    configAnswer = { status: 503, body: { error: "giving_unavailable" } };
+    render(<CheckoutPageClient {...props()} />);
+    expect(await screen.findByText("Your gift was received.")).toBeTruthy();
+    expect(stripe.retrieved).toEqual([
+      { secret: SECRET, key: "pk_test_held", account: "acct_held" },
+    ]);
+    expect(screen.queryByText(/haven't been charged/)).toBeNull();
   });
 
-  // WP0 (#2672), audit finding NC-07: no receipt is sent when a card payment
-  // succeeds, so neither screen may claim or promise one.
-  it("says the payment was accepted and makes no receipt claim on the success screen", async () => {
-    fetchMock().mockImplementation(initializedDonationResponse);
-    stripeState.stripe.confirmCardPayment.mockResolvedValue({
-      paymentIntent: { status: "succeeded" },
-    });
-
-    renderCheckout();
-    advanceToPayment();
-    confirmPayment();
-
-    expect(
-      await screen.findByRole("heading", { name: /contribution confirmed/i }),
-    ).toBeTruthy();
-    expect(document.body.textContent ?? "").not.toMatch(/receipt/i);
-    expect(screen.getByText(/your payment was accepted/i)).toBeTruthy();
+  it("after a gift, a reload of the page shows the same thank-you", async () => {
+    const first = render(<CheckoutPageClient {...props()} />);
+    await fillAndGive();
+    await screen.findByText("Your gift was received.");
+    first.unmount();
+    render(<CheckoutPageClient {...props()} />);
+    expect(await screen.findByText("Your gift was received.")).toBeTruthy();
+    expect(screen.queryByLabelText("Email")).toBeNull();
   });
 
-  it("makes no receipt promise while Stripe is still processing the payment", async () => {
-    fetchMock().mockImplementation(initializedDonationResponse);
-    stripeState.stripe.confirmCardPayment.mockResolvedValue({
-      paymentIntent: { status: "processing" },
+  it("the thank-you offers no claim of giving history", async () => {
+    render(<CheckoutPageClient {...props()} />);
+    await fillAndGive();
+    await screen.findByText("Your gift was received.");
+    expect(screen.queryByText(/claim your giving history/)).toBeNull();
+  });
+
+  it("a cancelled card check says so, though Stripe reports it as a card error", async () => {
+    stripe.outcomes = ["authentication_failure"];
+    render(<CheckoutPageClient {...props()} />);
+    await fillAndGive();
+    expect(
+      await screen.findByText(
+        "The card check was cancelled, so your card wasn't charged. You can try again.",
+      ),
+    ).toBeTruthy();
+  });
+
+  it("when the intake answers another account than the config read, nothing is confirmed and the page says so", async () => {
+    donateAnswers = [created(SECRET, "acct_moved")];
+    render(<CheckoutPageClient {...props()} />);
+    await fillAndGive();
+    expect(
+      await screen.findByText(
+        "This ministry's payment details changed while you were giving. Nothing was charged. Reload this page to give.",
+      ),
+    ).toBeTruthy();
+    expect(stripe.confirms).toEqual([]);
+  });
+
+  it("a confirm error that is not a decline reads the payment: one that already succeeded ends in received", async () => {
+    stripe.outcomes = ["lost_after_success"];
+    render(<CheckoutPageClient {...props()} />);
+    await fillAndGive();
+    expect(await screen.findByText("Your gift was received.")).toBeTruthy();
+  });
+
+  it("Stripe.js failing to load while a payment is held says the connection was lost", async () => {
+    held({ account: "acct_1", publishableKey: "pk_test_1" });
+    stripe.failLoad = true;
+    render(<CheckoutPageClient {...props()} />);
+    expect(await screen.findAllByText(/We lost the connection/)).not.toEqual(
+      [],
+    );
+  });
+
+  it("a key this browser holds for the gift, with no payment in this tab, turns the unavailable sentence into the one that says we could not confirm", async () => {
+    window.localStorage.setItem(
+      GIFT_KEY_STORAGE,
+      JSON.stringify({ d: { key: "k-other-tab", at: Date.now() } }),
+    );
+    configAnswer = { status: 503, body: { error: "giving_unavailable" } };
+    render(<CheckoutPageClient {...props()} />);
+    expect(
+      await screen.findByText(
+        "Giving here is unavailable right now, and we could not confirm what happened to your payment. Check your card or bank statement before you give again.",
+      ),
+    ).toBeTruthy();
+  });
+});
+
+describe("AL-2681 B fix round X8: a client secret never stays in the address", () => {
+  it("a client secret in the address is taken out of it on load, and the held payment's state is shown", async () => {
+    window.sessionStorage.setItem(
+      GIFT_PAYMENT_STORAGE,
+      JSON.stringify({
+        key: "k-held",
+        clientSecret: SECRET,
+        account: "acct_1",
+        publishableKey: "pk_test_1",
+        target: { kind: "fund", id: FUND },
+      }),
+    );
+    stripe.intents.set(SECRET, { status: "succeeded" });
+    window.history.replaceState(
+      {},
+      "",
+      `/checkout?fund_id=${FUND}&payment_intent=pi_1&payment_intent_client_secret=${SECRET}&redirect_status=succeeded`,
+    );
+    render(<CheckoutPageClient {...props()} />);
+    expect(await screen.findByText("Your gift was received.")).toBeTruthy();
+    expect(window.location.search).toBe(`?fund_id=${FUND}`);
+  });
+});
+
+const ACCOUNT_CHANGED =
+  "This ministry's payment details changed while you were giving. Nothing was charged. Reload this page to give.";
+const UNAVAILABLE =
+  "Giving here is unavailable right now. Nothing was charged.";
+const UNCONFIRMED =
+  "Giving here is unavailable right now, and we could not confirm what happened to your payment. Check your card or bank statement before you give again.";
+const NOT_CHARGED = /haven't been charged|Nothing was charged/;
+
+describe("AL-2681 closing round Q2: after 'this gift is already complete', Give again starts a new gift", () => {
+  it("the first gift's key completed elsewhere: the page says received; Give again sends a new key and a second payment is confirmed", async () => {
+    completeNextKey = true;
+    donateAnswers = [created("pi_2_secret_def")];
+    render(<CheckoutPageClient {...props()} />);
+    await fillAndGive();
+    await screen.findByText("Your gift was received.");
+    fireEvent.click(screen.getByRole("button", { name: "Give again" }));
+    await waitFor(() => expect(turnstile.resets).toBe(1));
+    await waitFor(() =>
+      expect(giveButton()).not.toHaveProperty("disabled", true),
+    );
+    fireEvent.click(giveButton());
+    await waitFor(() => expect(stripe.confirms).toHaveLength(1));
+    await screen.findByText("Your gift was received.");
+    expect(donates()).toHaveLength(2);
+    expect(donates()[1]!.body.key).not.toBe(donates()[0]!.body.key);
+    expect(stripe.confirms[0]!.clientSecret).toBe("pi_2_secret_def");
+  });
+});
+
+describe("AL-2681 closing round Q3: a replay on another account than the page loaded is read before anything is said", () => {
+  async function replayOnOldAccount(status: string) {
+    stripe.outcomes = ["lost"];
+    const first = render(<CheckoutPageClient {...props()} />);
+    await fillAndGive();
+    await screen.findByText(/We lost the connection/);
+    first.unmount();
+    window.sessionStorage.clear();
+    stripe.intents.set(SECRET, { status });
+    configAnswer = {
+      status: 200,
+      body: {
+        publishableKey: "pk_test_1",
+        connectedAccountId: "acct_2",
+        wayBackHost: null,
+      },
+    };
+    donateAnswers = [created(SECRET, "acct_1")];
+    render(<CheckoutPageClient {...props()} />);
+    await fillAndGive();
+  }
+
+  it("a payment that went through on the earlier account is received, never 'nothing was charged'", async () => {
+    await replayOnOldAccount("succeeded");
+    expect(await screen.findByText("Your gift was received.")).toBeTruthy();
+    expect(stripe.retrieved.at(-1)).toMatchObject({
+      secret: SECRET,
+      account: "acct_1",
     });
+    expect(stripe.confirms).toHaveLength(1);
+    expect(screen.queryByText(NOT_CHARGED)).toBeNull();
+  });
 
-    renderCheckout();
-    advanceToPayment();
-    confirmPayment();
+  it("a payment the read shows unpaid on the earlier account says the details changed and nothing was charged", async () => {
+    await replayOnOldAccount("requires_payment_method");
+    expect(await screen.findByText(ACCOUNT_CHANGED)).toBeTruthy();
+    expect(stripe.retrieved.at(-1)).toMatchObject({ account: "acct_1" });
+    expect(stripe.confirms).toHaveLength(1);
+  });
+});
 
+describe("AL-2681 closing round Q4: a held payment of this key is read before the intake is asked again", () => {
+  it("held on another account and still open: read with its own key and account, nothing is posted, and the page says the details changed", async () => {
+    stripe.outcomes = ["lost"];
+    render(<CheckoutPageClient {...props()} />);
+    await fillAndGive();
+    await screen.findByText(/We lost the connection/);
+    const stored = JSON.parse(
+      window.sessionStorage.getItem(GIFT_PAYMENT_STORAGE)!,
+    ) as Record<string, unknown>;
+    window.sessionStorage.setItem(
+      GIFT_PAYMENT_STORAGE,
+      JSON.stringify({ ...stored, account: "acct_other" }),
+    );
+    await waitFor(() => expect(turnstile.resets).toBe(1));
+    fireEvent.click(giveButton());
+    expect(await screen.findByText(ACCOUNT_CHANGED)).toBeTruthy();
+    expect(donates()).toHaveLength(1);
+    expect(stripe.retrieved.at(-1)).toMatchObject({ account: "acct_other" });
+  });
+
+  it("held, and its read fails: the page says it could not confirm, and nothing is posted", async () => {
+    stripe.outcomes = ["lost"];
+    render(<CheckoutPageClient {...props()} />);
+    await fillAndGive();
+    await screen.findByText(/We lost the connection/);
+    stripe.failLoad = true;
+    await waitFor(() => expect(turnstile.resets).toBe(1));
+    fireEvent.click(giveButton());
+    await waitFor(() => expect(stripe.loads.length).toBeGreaterThan(1));
+    expect(await screen.findByText(/We lost the connection/)).toBeTruthy();
+    expect(donates()).toHaveLength(1);
+    expect(stripe.confirms).toHaveLength(1);
+  });
+});
+
+describe("AL-2681 closing round Q5: 'unavailable' says 'nothing was charged' only when the page knows", () => {
+  const liveKey = () =>
+    window.localStorage.setItem(
+      GIFT_KEY_STORAGE,
+      JSON.stringify({ d: { key: "k-other-tab", at: Date.now() } }),
+    );
+
+  it("the config read fails on the network while this browser holds a live key: we could not confirm", async () => {
+    liveKey();
+    configAnswer = { status: 0, body: null };
+    render(<CheckoutPageClient {...props()} />);
+    expect(await screen.findByText(UNCONFIRMED)).toBeTruthy();
+    expect(screen.queryByText(NOT_CHARGED)).toBeNull();
+  });
+
+  it("Stripe.js fails to load while this browser holds a live key and no payment: we could not confirm", async () => {
+    liveKey();
+    stripe.failLoad = true;
+    render(<CheckoutPageClient {...props()} />);
+    expect(await screen.findByText(UNCONFIRMED)).toBeTruthy();
+    expect(screen.queryByText(NOT_CHARGED)).toBeNull();
+  });
+
+  it("a reload during a suspension: the fast 503 waits for the held payment's read, and a payment that went through is received", async () => {
+    window.sessionStorage.setItem(
+      GIFT_PAYMENT_STORAGE,
+      JSON.stringify({
+        key: "k-held",
+        clientSecret: SECRET,
+        account: "acct_held",
+        publishableKey: "pk_test_held",
+        target: { kind: "fund", id: FUND },
+      }),
+    );
+    stripe.intents.set(SECRET, { status: "succeeded" });
+    let release!: () => void;
+    stripe.retrieveGate = new Promise<void>((resolve) => {
+      release = resolve;
+    });
+    configAnswer = { status: 503, body: { error: "giving_unavailable" } };
+    render(<CheckoutPageClient {...props()} />);
+    await waitFor(() => expect(calls.length).toBeGreaterThan(0));
+    await new Promise((resolve) => setTimeout(resolve, 50));
+    expect(screen.queryByText(NOT_CHARGED)).toBeNull();
+    expect(screen.queryByText(UNAVAILABLE)).toBeNull();
+    release();
+    expect(await screen.findByText("Your gift was received.")).toBeTruthy();
+    expect(screen.queryByText(NOT_CHARGED)).toBeNull();
+  });
+
+  it("with no key and no payment in this browser, the page knows: unavailable, nothing was charged", async () => {
+    configAnswer = { status: 0, body: null };
+    render(<CheckoutPageClient {...props()} />);
+    expect(await screen.findByText(UNAVAILABLE)).toBeTruthy();
+  });
+});
+
+describe("AL-2681 closing round Q6: smaller things", () => {
+  it("(a) an amount with a comma that is not a thousands separator is refused with the amount's own message, never another amount", async () => {
+    render(<CheckoutPageClient {...props()} />);
+    await fill();
+    typeInto(screen.getByLabelText("Amount (USD)"), "50,50");
+    expect(giveButton()).toHaveProperty("disabled", true);
+    expect(
+      screen.getByText("Enter the amount in dollars, like 25 or 1,000.50."),
+    ).toBeTruthy();
+    typeInto(screen.getByLabelText("Amount (USD)"), "5,050");
+    expect(giveButton().textContent).toBe("Give $5,050.00");
+  });
+
+  it("(b) a cancelled payment is not a final state: the form stays, with no Give again and no 'your details are saved'", async () => {
+    window.sessionStorage.setItem(
+      GIFT_PAYMENT_STORAGE,
+      JSON.stringify({
+        key: "k-held",
+        clientSecret: SECRET,
+        account: "acct_1",
+        publishableKey: "pk_test_1",
+        target: { kind: "fund", id: FUND },
+      }),
+    );
+    stripe.intents.set(SECRET, { status: "canceled" });
+    render(<CheckoutPageClient {...props()} />);
+    expect(
+      await screen.findByText(
+        "This payment was cancelled, so your card wasn't charged. You can start the gift again here.",
+      ),
+    ).toBeTruthy();
+    expect(await screen.findByLabelText("Email")).toBeTruthy();
+    expect(screen.queryByRole("button", { name: "Give again" })).toBeNull();
+    expect(screen.queryByText(/details are saved/)).toBeNull();
+  });
+
+  it("(d) a shared home with no source Site still offers the sign-in link to a donor who is signed out", async () => {
+    render(<CheckoutPageClient {...props({ isHome: true })} />);
+    await screen.findByTestId("payment-element");
+    expect(
+      screen.getByRole("link", { name: "Sign in to give from your account" }),
+    ).toBeTruthy();
+  });
+
+  it("(d) a 401 on the account surface with no guest way back does not offer to give as a guest", async () => {
+    donateAnswers = [{ status: 401, body: { error: "sign_in_required" } }];
+    render(
+      <CheckoutPageClient
+        {...props({
+          surface: "donor_account",
+          isHome: true,
+          signedInEmail: "dana@example.test",
+        })}
+      />,
+    );
+    await screen.findByTestId("payment-element");
+    await waitFor(() =>
+      expect(giveButton()).not.toHaveProperty("disabled", true),
+    );
+    fireEvent.click(giveButton());
     const alert = await screen.findByRole("alert");
-    expect(alert.textContent).toMatch(/still processing/i);
-    expect(alert.textContent).not.toMatch(/receipt/i);
-  });
-
-  it("coerces monthly input to one-time request behavior and one-time success copy", async () => {
-    fetchMock().mockImplementation(initializedDonationResponse);
-    stripeState.stripe.confirmCardPayment.mockResolvedValue({
-      paymentIntent: { status: "succeeded" },
-    });
-
-    renderCheckout({
-      amount: "100",
-      frequency: "monthly",
-      missionary_id: TEST_MISSIONARY_ID,
-      workerId: TEST_WORKER_ID,
-    });
-
-    expect(screen.getAllByText(/one-time gift/i).length).toBeGreaterThan(0);
-    expect(screen.queryByText(/monthly partner/i)).toBeNull();
-
-    advanceToPayment();
-    confirmPayment();
-
-    expect(
-      await screen.findByRole("heading", { name: /contribution confirmed/i }),
-    ).toBeTruthy();
-
-    expect(requestAt(0).body).toEqual({
-      amount: 100,
-      currency: "usd",
-      missionary_id: TEST_MISSIONARY_ID,
-      ...guestGivingDefaultFeeFlags,
-    });
-    expect(screen.queryByText(/monthly support/i)).toBeNull();
-    expect(screen.queryByText(/recurring/i)).toBeNull();
-  });
-});
-
-describe("CheckoutPageClient idempotency retry keys", () => {
-  it("reuses the same idempotency key for an exact retry after an error", async () => {
-    fetchMock()
-      .mockImplementationOnce(() => serverErrorResponse("Try again"))
-      .mockImplementationOnce(() => serverErrorResponse("Try again"));
-
-    renderCheckout();
-    advanceToPayment();
-    confirmPayment();
-
-    expect((await screen.findByRole("alert")).textContent).toContain(
-      "Try again",
-    );
-    confirmPayment();
-
-    await waitFor(() => expect(fetchMock()).toHaveBeenCalledTimes(2));
-    expect(requestAt(0).headers["Idempotency-Key"]).toBe("idem-1");
-    expect(requestAt(1).headers["Idempotency-Key"]).toBe("idem-1");
-  });
-
-  it("rotates the idempotency key when the amount changes after an error", async () => {
-    fetchMock()
-      .mockImplementationOnce(() => serverErrorResponse("Try again"))
-      .mockImplementationOnce(() => serverErrorResponse("Try again"));
-
-    renderCheckout();
-    advanceToPayment();
-    confirmPayment();
-
-    expect((await screen.findByRole("alert")).textContent).toContain(
-      "Try again",
-    );
-    fireEvent.click(screen.getByRole("button", { name: /^back$/i }));
-    fireEvent.click(screen.getByRole("button", { name: /^back$/i }));
-    fireEvent.click(screen.getByRole("radio", { name: "$250" }));
-    fireEvent.click(screen.getByRole("button", { name: /next step/i }));
-    fireEvent.click(
-      screen.getByRole("button", { name: /continue to payment/i }),
-    );
-    confirmPayment();
-
-    await waitFor(() => expect(fetchMock()).toHaveBeenCalledTimes(2));
-    expect(requestAt(0).headers["Idempotency-Key"]).toBe("idem-1");
-    expect(requestAt(1).headers["Idempotency-Key"]).toBe("idem-2");
-    expect(requestAt(1).body.amount).toBe(250);
-  });
-
-  it("rotates the idempotency key when the fund designation changes after a processing response", async () => {
-    fetchMock()
-      .mockImplementationOnce(processingDonationResponse)
-      .mockImplementationOnce(processingDonationResponse);
-
-    const view = renderCheckout({
-      amount: "100",
-      fund_id: TEST_FUND_ID,
-    });
-    advanceToPayment();
-    confirmPayment();
-
-    expect((await screen.findByRole("alert")).textContent).toMatch(
-      /still processing/i,
-    );
-
-    view.rerender(
-      <CheckoutPageClient
-        searchParams={{ amount: "100", fund_id: TEST_OTHER_FUND_ID }}
-        stripeOverride={{
-          cardElement: <div data-testid="stripe-card-element" />,
-          elements: stripeState.elements,
-          mode: "live",
-          publishableKey: "pk_test_unit",
-          stripe: stripeState.stripe,
-        }}
-      />,
-    );
-    confirmPayment();
-
-    await waitFor(() => expect(fetchMock()).toHaveBeenCalledTimes(2));
-    expect(requestAt(0).headers["Idempotency-Key"]).toBe("idem-1");
-    expect(requestAt(0).body.fund_id).toBe(TEST_FUND_ID);
-    expect(requestAt(1).headers["Idempotency-Key"]).toBe("idem-2");
-    expect(requestAt(1).body.fund_id).toBe(TEST_OTHER_FUND_ID);
-  });
-});
-
-describe("CheckoutPageClient shared form composition", () => {
-  it("focuses the custom amount field when its currency prefix is clicked", () => {
-    renderCheckout();
-    const input = screen.getByRole("textbox", { name: "Custom amount" });
-    fireEvent.click(screen.getByText("$", { exact: true }));
-    expect(document.activeElement).toBe(input);
-  });
-
-  it("exposes a label for the disabled country field", () => {
-    renderCheckout();
-    advanceToPayment();
-    const country = screen.getByRole("textbox", { name: "Country" });
-    expect(country).toHaveProperty("disabled", true);
-    expect(country).toHaveProperty("value", "United States");
-  });
-});
-
-describe("CheckoutPageClient StrictMode payment state", () => {
-  it("starts one payment when confirmation is repeated before React renders pending state", async () => {
-    let resolveDonation: ((value: Response) => void) | undefined;
-    fetchMock().mockReturnValueOnce(
-      new Promise<Response>((resolve) => {
-        resolveDonation = resolve;
-      }),
-    );
-    stripeState.stripe.confirmCardPayment.mockResolvedValue({
-      paymentIntent: { status: "succeeded" },
-    });
-    renderCheckoutInStrictMode();
-    advanceToPayment();
-    const button = screen.getByRole("button", { name: /confirm/i });
-
-    act(() => {
-      button.click();
-      button.click();
-    });
-
-    expect(fetchCallsByMethod("POST")).toHaveLength(1);
-    await act(async () => {
-      resolveDonation?.(await initializedDonationResponse());
-    });
-    expect(stripeState.stripe.confirmCardPayment).toHaveBeenCalledTimes(1);
-    expect(
-      await screen.findByRole("heading", { name: /contribution confirmed/i }),
-    ).toBeTruthy();
-  });
-
-  it("commits a successful payment once when React replays state updaters", async () => {
-    fetchMock().mockImplementation(initializedDonationResponse);
-    stripeState.stripe.confirmCardPayment.mockResolvedValue({
-      paymentIntent: { status: "succeeded" },
-    });
-
-    renderCheckoutInStrictMode();
-    advanceToPayment();
-    confirmPayment();
-
-    expect(
-      await screen.findByRole("heading", { name: /contribution confirmed/i }),
-    ).toBeTruthy();
-    expect(fetchCallsByMethod("POST")).toHaveLength(1);
-    expect(stripeState.stripe.confirmCardPayment).toHaveBeenCalledTimes(1);
-  });
-
-  it("reuses the idempotency key for an exact StrictMode retry", async () => {
-    fetchMock()
-      .mockImplementationOnce(() => serverErrorResponse("Try again"))
-      .mockImplementationOnce(() => serverErrorResponse("Try again"));
-
-    renderCheckoutInStrictMode();
-    advanceToPayment();
-    confirmPayment();
-
-    expect((await screen.findByRole("alert")).textContent).toContain(
-      "Try again",
-    );
-    confirmPayment();
-
-    await waitFor(() => expect(fetchCallsByMethod("POST")).toHaveLength(2));
-    expect(requestAt(0).headers["Idempotency-Key"]).toBe("idem-1");
-    expect(requestAt(1).headers["Idempotency-Key"]).toBe("idem-1");
-  });
-
-  it("unlocks a stale StrictMode request after checkout params change", async () => {
-    let rejectDonationRequest: ((reason?: unknown) => void) | null = null;
-    const donationRequestPromise = new Promise<Response>((_resolve, reject) => {
-      rejectDonationRequest = reject;
-    });
-    fetchMock().mockReturnValue(donationRequestPromise);
-
-    const view = renderCheckoutInStrictMode({
-      amount: "100",
-      fund_id: TEST_FUND_ID,
-    });
-    advanceToPayment();
-    confirmPayment();
-
-    await waitFor(() => expect(fetchCallsByMethod("POST")).toHaveLength(1));
-
-    view.rerenderCheckout({
-      amount: "100",
-      fund_id: TEST_OTHER_FUND_ID,
-    });
-
-    await act(async () => {
-      rejectDonationRequest?.(new Error("Network unavailable"));
-      await donationRequestPromise.catch(() => null);
-    });
-
-    expect((await screen.findByRole("alert")).textContent).toMatch(
-      /checkout details changed/i,
-    );
-    const backButton = screen.getByRole("button", { name: /^back$/i });
-    const confirmButton = screen.getByRole("button", { name: /confirm/i });
-    expect((backButton as HTMLButtonElement).disabled).toBe(false);
-    expect((confirmButton as HTMLButtonElement).disabled).toBe(false);
-    expect(stripeState.stripe.confirmCardPayment).not.toHaveBeenCalled();
-  });
-});
-
-describe("CheckoutPageClient Gift processing-fee policy", () => {
-  it("posts the donor-entered gift when cover-fees is on, not a client gross-up", async () => {
-    fetchMock().mockImplementation(initializedDonationResponse);
-    stripeState.stripe.confirmCardPayment.mockResolvedValue({
-      paymentIntent: { status: "succeeded" },
-    });
-
-    renderCheckout();
-    toggleCoverProcessingFees();
-    expect(screen.getByText(/estimated processing costs/i)).toBeTruthy();
-    expect(screen.queryByText(/reaches the field/i)).toBeNull();
-
-    advanceToPayment();
-    confirmPayment();
-
-    await waitFor(() => expect(fetchMock()).toHaveBeenCalledTimes(1));
-    expect(requestAt(0).body).toEqual({
-      amount: 100,
-      currency: "usd",
-      missionary_id: TEST_MISSIONARY_ID,
-      cover_fees: true,
-      payment_method: "card",
-    });
-  });
-
-  it("quotes ACH cover-fees on confirm without posting a live bank payment", async () => {
-    renderCheckout();
-    toggleCoverProcessingFees();
-    advanceToPayment();
-
-    expect(
-      screen.getByRole("button", { name: /confirm \$103.30/i }),
-    ).toBeTruthy();
-
-    fireEvent.click(screen.getByRole("tab", { name: /^bank$/i }));
-
-    // The ACH fee quote is still shown, but bank payment isn't available, so
-    // Confirm is disabled instead of leading to a failure message.
-    const confirm = screen.getByRole("button", { name: /confirm \$100.81/i });
-    expect(confirm.hasAttribute("disabled")).toBe(true);
-    fireEvent.click(confirm);
-    expect(screen.queryByRole("alert")).toBeNull();
-    expect(fetchMock()).not.toHaveBeenCalled();
-
-    fireEvent.click(screen.getByRole("tab", { name: /^card$/i }));
-    expect(
-      screen
-        .getByRole("button", { name: /confirm \$103.30/i })
-        .hasAttribute("disabled"),
-    ).toBe(false);
-  });
-});
-
-describe("CheckoutPageClient keyboard selection", () => {
-  it("selects preset amounts with arrow keys and keeps one tab stop", async () => {
-    renderCheckout();
-    const selected = screen.getByRole("radio", { name: "$100" });
-    act(() => selected.focus());
-    fireEvent.keyDown(selected, { key: "ArrowRight" });
-
-    const next = screen.getByRole("radio", { name: "$250" });
-    await waitFor(() => expect(next.getAttribute("aria-checked")).toBe("true"));
-    expect(document.activeElement).toBe(next);
-    expect(
-      screen.getAllByRole("radio").filter((item) => item.tabIndex === 0),
-    ).toEqual([next]);
-    expect(fetchMock()).not.toHaveBeenCalled();
-  });
-
-  it("clears custom amounts when a preset is selected", () => {
-    renderCheckout();
-    const custom = screen.getByLabelText("Custom amount");
-    fireEvent.change(custom, { target: { value: "123.45" } });
-    expect(screen.queryByRole("radio", { checked: true })).toBeNull();
-    fireEvent.click(screen.getByRole("radio", { name: "$50" }));
-    expect(
-      screen.getByRole("radio", { name: "$50", checked: true }),
-    ).toBeTruthy();
-    expect((custom as HTMLInputElement).value).toBe("");
-  });
-
-  it("navigates payment tabs by keyboard with correctly named panels", async () => {
-    renderCheckout();
-    advanceToPayment();
-    const card = screen.getByRole("tab", { name: "Card" });
-    act(() => card.focus());
-    fireEvent.keyDown(card, { key: "ArrowRight" });
-
-    const bank = screen.getByRole("tab", { name: "Bank" });
-    await waitFor(() =>
-      expect(bank.getAttribute("aria-selected")).toBe("true"),
-    );
-    expect(document.activeElement).toBe(bank);
-    const panel = screen.getByRole("tabpanel", { name: "Bank" });
-    expect(panel.id).toBe(bank.getAttribute("aria-controls"));
-    expect(panel.textContent).toContain("Instant Bank Link");
-    expect(
-      screen.getAllByRole("tab").filter((item) => item.tabIndex === 0),
-    ).toEqual([bank]);
-    expect(fetchMock()).not.toHaveBeenCalled();
-
-    fireEvent.keyDown(bank, { key: "Home" });
-    await waitFor(() =>
-      expect(card.getAttribute("aria-selected")).toBe("true"),
-    );
-    expect(screen.getByRole("tabpanel", { name: "Card" })).toBeTruthy();
-  });
-
-  it("says bank and wallet payment are unavailable instead of offering dead actions", async () => {
-    renderCheckout();
-    advanceToPayment();
-
-    fireEvent.click(screen.getByRole("tab", { name: "Bank" }));
-    const bank = await screen.findByRole("tabpanel", { name: "Bank" });
-    expect(bank.textContent).toContain("Instant Bank Link");
-    expect(bank.textContent).toContain("isn't available yet");
-    expect(bank.querySelector("button")).toBeNull();
-
-    fireEvent.click(screen.getByRole("tab", { name: /Apple|Wallet/ }));
-    const wallets = await screen.findAllByRole("tabpanel");
-    const wallet = wallets.find((panel) =>
-      /isn't available yet/.test(panel.textContent ?? ""),
-    );
-    expect(wallet).toBeTruthy();
-    expect(
-      screen.queryByRole("button", { name: /Pay with Apple Pay/ }),
-    ).toBeNull();
-    expect(fetchMock()).not.toHaveBeenCalled();
-  });
-
-  it("prevents changing payment methods during confirmation", async () => {
-    fetchMock().mockImplementation(() => new Promise<Response>(() => {}));
-    renderCheckout();
-    advanceToPayment();
-    confirmPayment();
-    await waitFor(() => expect(fetchMock()).toHaveBeenCalledTimes(1));
-
-    const card = screen.getByRole("tab", { name: "Card" });
-    const bank = screen.getByRole("tab", { name: "Bank" });
-    expect(
-      screen
-        .getAllByRole("tab")
-        .every(
-          (item) =>
-            (item as HTMLButtonElement).disabled ||
-            item.getAttribute("aria-disabled") === "true",
-        ),
-    ).toBe(true);
-    fireEvent.keyDown(card, { key: "ArrowRight" });
-    fireEvent.click(bank);
-    expect(card.getAttribute("aria-selected")).toBe("true");
-    expect(screen.getByTestId("stripe-card-panel")).toBeTruthy();
-  });
-});
-
-describe("CheckoutPageClient step focus", () => {
-  // Each step replaces the last, so without this a keyboard or screen-reader
-  // user is left on a control that no longer exists.
-  it("moves focus to the new step's heading on Next and Back, not on load", () => {
-    renderCheckout();
-    const gift = screen.getByRole("heading", { name: "Your Gift." });
-    expect(document.activeElement).not.toBe(gift);
-
-    fireEvent.click(screen.getByRole("button", { name: /next step/i }));
-    expect(document.activeElement).toBe(
-      screen.getByRole("heading", { name: "Your Details." }),
-    );
-
-    fireEvent.click(screen.getByRole("button", { name: "Back" }));
-    expect(document.activeElement).toBe(
-      screen.getByRole("heading", { name: "Your Gift." }),
-    );
-
-    advanceToPayment();
-    expect(document.activeElement).toBe(
-      screen.getByRole("heading", { name: "Secure Payment." }),
-    );
-  });
-});
-
-describe("CheckoutPageClient payment preparation handoff", () => {
-  const completeDetails = () => {
-    fireEvent.click(screen.getByRole("button", { name: /next step/i }));
-    fireEvent.change(screen.getByLabelText(/first name/i), {
-      target: { value: "Ada" },
-    });
-    fireEvent.change(screen.getByLabelText(/last name/i), {
-      target: { value: "Lovelace" },
-    });
-    fireEvent.change(screen.getByLabelText(/email address/i), {
-      target: { value: "ada@example.com" },
-    });
-    return screen.getByRole("form", { name: "Your details" });
-  };
-
-  it("keeps details editable until submission, then announces and locks the real configuration handoff", async () => {
-    let resolveConfig!: (response: Response) => void;
-    fetchMock().mockReturnValue(
-      new Promise<Response>((resolve) => {
-        resolveConfig = resolve;
-      }),
-    );
-    renderCheckoutWithRuntimeConfig();
-    const form = completeDetails();
-    const submitButton = screen.getByRole("button", {
-      name: /continue to payment/i,
-    });
-    expect(submitButton).toHaveProperty("disabled", false);
-    expect(screen.getByLabelText(/first name/i)).toHaveProperty(
-      "disabled",
-      false,
-    );
-
-    fireEvent.submit(form);
-
-    expect(form.getAttribute("aria-busy")).toBe("true");
-    expect(
-      screen.getByRole("button", { name: /preparing secure checkout/i }),
-    ).toHaveProperty("disabled", true);
-    expect(screen.getByRole("button", { name: "Back" })).toHaveProperty(
-      "disabled",
-      true,
-    );
-    for (const name of [/first name/i, /last name/i, /email address/i]) {
-      expect(screen.getByLabelText(name)).toHaveProperty("disabled", true);
-    }
-    const status = screen.getByRole("status");
-    expect(form.contains(status)).toBe(false);
-    expect(status.textContent).toMatch(/no payment has been submitted/i);
-    expect(
-      screen.queryByRole("heading", { name: "Secure Payment." }),
-    ).toBeNull();
-    expect(fetchCallsByMethod("GET")).toHaveLength(1);
-    expect(fetchCallsByMethod("POST")).toHaveLength(0);
-    expect(stripeState.stripe.confirmCardPayment).not.toHaveBeenCalled();
-
-    await act(async () => {
-      resolveConfig(await checkoutConfigResponse("pk_live_tenant"));
-    });
-
-    expect(screen.getByTestId("stripe-card-panel")).toBeTruthy();
-    expect(document.activeElement).toBe(
-      screen.getByRole("heading", { name: "Secure Payment." }),
-    );
-    expect(screen.queryByRole("form", { name: "Your details" })).toBeNull();
-    expect(fetchCallsByMethod("POST")).toHaveLength(0);
-  });
-
-  it("starts only one refreshed handoff when submit repeats before React renders pending state", async () => {
-    let resolveConfig!: (response: Response) => void;
-    const configuration = new Promise<Response>((resolve) => {
-      resolveConfig = resolve;
-    });
-    fetchMock()
-      .mockImplementationOnce(() => checkoutConfigResponse("pk_live_tenant"))
-      .mockReturnValue(configuration);
-    renderCheckoutWithRuntimeConfig();
-    await waitFor(() =>
-      expect(stripeJsState.loadStripe).toHaveBeenCalledWith("pk_live_tenant"),
-    );
-    const form = completeDetails();
-    const back = screen.getByRole("button", { name: "Back" });
-
-    act(() => {
-      form.dispatchEvent(
-        new Event("submit", { bubbles: true, cancelable: true }),
-      );
-      form.dispatchEvent(
-        new Event("submit", { bubbles: true, cancelable: true }),
-      );
-      back.dispatchEvent(new MouseEvent("click", { bubbles: true }));
-    });
-
-    expect(fetchCallsByMethod("GET")).toHaveLength(2);
-    expect(fetchMock().mock.calls[1]?.[1]?.signal?.aborted).toBe(false);
-    expect(form.getAttribute("aria-busy")).toBe("true");
-    fireEvent.submit(form);
-    fireEvent.click(screen.getByRole("button", { name: "Back" }));
-    expect(fetchCallsByMethod("GET")).toHaveLength(2);
-    expect(screen.getByRole("heading", { name: "Your Details." })).toBeTruthy();
-
-    await act(async () => {
-      resolveConfig(await checkoutConfigResponse("pk_live_tenant"));
-    });
-
-    expect(screen.getByTestId("stripe-card-panel")).toBeTruthy();
-    expect(fetchCallsByMethod("POST")).toHaveLength(0);
-    expect(stripeState.stripe.confirmCardPayment).not.toHaveBeenCalled();
-  });
-
-  it("releases a failed handoff and lets the donor return with details intact and retry", async () => {
-    let rejectConfig!: (error: Error) => void;
-    fetchMock()
-      .mockReturnValueOnce(
-        new Promise<Response>((_resolve, reject) => {
-          rejectConfig = reject;
-        }),
-      )
-      .mockImplementation(() => checkoutConfigResponse("pk_live_tenant"));
-    renderCheckoutWithRuntimeConfig();
-    fireEvent.submit(completeDetails());
-
-    await act(async () => {
-      rejectConfig(new Error("Configuration unavailable"));
-    });
-
-    expect(screen.getByRole("alert").textContent).toMatch(
-      /checkout configuration could not be loaded/i,
-    );
-    const back = screen.getByRole("button", { name: "Back" });
-    expect(back).toHaveProperty("disabled", false);
-    fireEvent.click(back);
-    expect(screen.getByLabelText(/email address/i)).toHaveProperty(
-      "value",
-      "ada@example.com",
-    );
-    const submitButton = screen.getByRole("button", {
-      name: /continue to payment/i,
-    });
-    expect(submitButton).toHaveProperty("disabled", false);
-    fireEvent.click(submitButton);
-
-    expect(await screen.findByTestId("stripe-card-panel")).toBeTruthy();
-    expect(fetchCallsByMethod("GET")).toHaveLength(2);
-    expect(fetchCallsByMethod("POST")).toHaveLength(0);
-    expect(stripeState.stripe.confirmCardPayment).not.toHaveBeenCalled();
-  });
-});
-
-describe("CheckoutPageClient donor details", () => {
-  const goToDetails = () => {
-    renderCheckout();
-    fireEvent.click(screen.getByRole("button", { name: /next step/i }));
-  };
-  const continueToPayment = () =>
-    fireEvent.click(
-      screen.getByRole("button", { name: /continue to payment/i }),
-    );
-
-  it("announces invalid details and clears the summary when the fields are corrected", () => {
-    goToDetails();
-    expect(screen.queryByRole("alert")).toBeNull();
-    continueToPayment();
-    expect(
-      screen.getByRole("alert", { name: "Check your details" }).textContent,
-    ).toBe("Check the highlighted fields before continuing.");
-    for (const [name, value] of [
-      ["First Name", "Ada"],
-      ["Last Name", "Lovelace"],
-      ["Email Address", "ada@example.com"],
-    ])
-      fireEvent.change(screen.getByRole("textbox", { name }), {
-        target: { value },
-      });
-    expect(screen.queryByRole("alert")).toBeNull();
-  });
-
-  it("says what's missing instead of disabling Continue", () => {
-    goToDetails();
-    const button = screen.getByRole("button", {
-      name: /continue to payment/i,
-    });
-    expect(button.hasAttribute("disabled")).toBe(false);
-
-    continueToPayment();
-
-    const firstName = screen.getByRole("textbox", { name: "First Name" });
-    expect(firstName.getAttribute("aria-invalid")).toBe("true");
-    expect(screen.getByText("Enter your first name.")).toBeTruthy();
-    expect(screen.getByText("Enter your last name.")).toBeTruthy();
-    expect(screen.getByText("Enter your email address.")).toBeTruthy();
-    // Each field is tied to its label and its error explicitly.
-    for (const [name, error] of [
-      ["First Name", "Enter your first name."],
-      ["Last Name", "Enter your last name."],
-      ["Email Address", "Enter your email address."],
-    ] as const) {
-      const field = screen.getByRole("textbox", { name });
-      expect(field.id, name).toMatch(/^checkout-/);
-      expect(document.querySelector(`label[for="${field.id}"]`)).not.toBeNull();
-      const describedBy = field.getAttribute("aria-describedby") ?? "";
-      expect(document.getElementById(describedBy)?.textContent, name).toBe(
-        error,
-      );
-    }
-    expect(document.activeElement).toBe(firstName);
-    expect(screen.queryByRole("heading", { name: "Secure Payment." })).toBe(
-      null,
-    );
-  });
-
-  it("doesn't accept spaces or a malformed email as details", () => {
-    goToDetails();
-    fireEvent.change(screen.getByLabelText(/first name/i), {
-      target: { value: "   " },
-    });
-    fireEvent.change(screen.getByLabelText(/last name/i), {
-      target: { value: "Lovelace" },
-    });
-    fireEvent.change(screen.getByLabelText(/email address/i), {
-      target: { value: "ada@example" },
-    });
-    continueToPayment();
-
-    expect(screen.getByText("Enter your first name.")).toBeTruthy();
-    expect(
-      screen.getByText("Enter an email address like name@example.com."),
-    ).toBeTruthy();
-    expect(document.activeElement).toBe(
-      screen.getByRole("textbox", { name: "First Name" }),
-    );
-  });
-
-  it("sends trimmed details to the payment step", async () => {
-    fetchMock().mockImplementation(initializedDonationResponse);
-    stripeState.stripe.confirmCardPayment.mockResolvedValue({
-      paymentIntent: { status: "succeeded" },
-    });
-    goToDetails();
-    fireEvent.change(screen.getByLabelText(/first name/i), {
-      target: { value: "  Ada " },
-    });
-    fireEvent.change(screen.getByLabelText(/last name/i), {
-      target: { value: " Lovelace  " },
-    });
-    fireEvent.change(screen.getByLabelText(/email address/i), {
-      target: { value: "  ada@example.com " },
-    });
-    continueToPayment();
-    fillPostalCode("94103");
-    confirmPayment();
-
-    await waitFor(() =>
-      expect(stripeState.stripe.confirmCardPayment).toHaveBeenCalledTimes(1),
-    );
-    expect(stripeState.stripe.confirmCardPayment).toHaveBeenCalledWith(
-      "cs_test_123",
-      expect.objectContaining({
-        payment_method: expect.objectContaining({
-          billing_details: expect.objectContaining({
-            email: "ada@example.com",
-            name: "Ada Lovelace",
-          }),
-        }),
-      }),
-    );
+    expect(alert.textContent).toMatch(/Your sign-in has ended/);
+    expect(alert.textContent).not.toMatch(/guest/i);
   });
 });

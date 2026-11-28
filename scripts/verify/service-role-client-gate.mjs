@@ -106,8 +106,7 @@ packages/api/src/admin/support/tickets.ts operation_admin_context 1
 packages/api/src/admin/workflows/notification-policy.ts operation_admin_context 2
 packages/api/src/admin/workflows/summaries.ts operation_admin_context 1
 packages/api/src/auth/cleanup-demo-users.ts admin_client 1
-packages/api/src/donate/index.ts admin_client 1
-packages/api/src/donate/index.ts operation_admin_context 1
+packages/api/src/donate/guest/intake-route.ts admin_client 1 ruling:W8-R17
 packages/api/src/donate/outbox.ts admin_client 1
 packages/api/src/donations/index.ts admin_client 1
 packages/api/src/donor-portal/billing.ts operation_admin_context 1

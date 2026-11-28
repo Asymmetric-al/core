@@ -21,6 +21,12 @@ const UNAVAILABLE: ChallengeVerdict = { ok: false, reason: "unavailable" };
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === "object" && value !== null;
 
+const SERVER_SIDE_CODES: ReadonlySet<unknown> = new Set([
+  "internal-error",
+  "invalid-input-secret",
+  "missing-input-secret",
+]);
+
 export async function verifyGuestChallenge(
   input: VerifyChallengeInput,
 ): Promise<ChallengeVerdict> {
@@ -57,7 +63,7 @@ export async function verifyGuestChallenge(
       isRecord(verdict) && Array.isArray(verdict["error-codes"])
         ? verdict["error-codes"]
         : [];
-    return codes.includes("internal-error")
+    return codes.some((code) => SERVER_SIDE_CODES.has(code))
       ? UNAVAILABLE
       : { ok: false, reason: "invalid" };
   } catch {

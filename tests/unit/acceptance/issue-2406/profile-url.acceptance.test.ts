@@ -89,7 +89,10 @@ function fakeAdmin() {
     rpc(name: string, args: Row) {
       if (name === "actor_gifts_without_donor")
         return Promise.resolve({ data: [], error: null });
-      if (name === "donor_portal_lifetime")
+      if (
+        name === "donor_portal_lifetime" ||
+        name === "donor_portal_login_lifetime"
+      )
         return Promise.resolve({
           data: [{ given_cents: 0, gift_count: 0 }],
           error: null,
@@ -618,7 +621,7 @@ describe("#2406 PATCH /api/profile", () => {
   });
 });
 
-describe("#2406 criterion 18: PATCH /api/donor/portal avatarUrl (OQ3) (D-18, AL-2678 WP5 rest: the donor is found through the account link of the profile's login, whose id is not the profile's, and that link's Party; D-18, AL-2681 fix round F2: the fake answers the read of the login's gifts without a donor, none; issue 2857 item 8: and the settled lifetime read, zero)", () => {
+describe("#2406 criterion 18: PATCH /api/donor/portal avatarUrl (OQ3) (D-18, AL-2678 WP5 rest: the donor is found through the account link of the profile's login, whose id is not the profile's, and that link's Party; D-18, AL-2681 fix round F2: the fake answers the read of the login's gifts without a donor, none; issue 2857 item 8: and the settled lifetime read, zero; D-18, AL-2681 PR 2b, issue 2857 item 36: which is now read by the login, donor_portal_login_lifetime)", () => {
   it("#2406 criterion 18 (c11): own avatars/T/U URL writes profiles.avatar_url and donors.avatar_url", async () => {
     await accepted("donor", "D", { avatarUrl: own("avatars", "D") });
     expect(row("profiles", "id", PROFILE.D).avatar_url).toBe(

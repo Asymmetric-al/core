@@ -240,14 +240,19 @@ describe.skipIf(!ADMIN_URL)(
           ).rows[0].n;
           expect(drift).toBe(0);
           const accounts = await eligibleAccounts();
-          expect(
-            accounts.find((a) => a.id === failedRow)?.reconciled_at,
-          ).not.toBeNull();
+          const failedAccount = accounts.find((a) => a.id === failedRow);
+          expect(failedAccount).toBeDefined();
+          expect(failedAccount!.reconciled_at).toBeInstanceOf(Date);
           const neverRead = accounts.filter((a) => a.reconciled_at === null);
           expect(neverRead.map((a) => a.id)).toContain(freshRow);
           const due = (await accountsDue(neverRead.length)).map((r) => r.id);
           expect(due).toContain(freshRow);
           expect(due).not.toContain(failedRow);
+          const all = (await accountsDue(accounts.length)).map((r) => r.id);
+          expect(all).toContain(failedRow);
+          expect(all.indexOf(failedRow)).toBeGreaterThan(
+            Math.max(...neverRead.map((a) => all.indexOf(a.id))),
+          );
         }));
     });
 

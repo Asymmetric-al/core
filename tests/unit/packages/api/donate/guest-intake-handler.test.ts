@@ -68,8 +68,14 @@ function setup(
   const calls: Call[] = [];
   const rpc = vi.fn(async (fn: string, args: Record<string, unknown>) => {
     calls.push({ fn, args });
-    if (fn === "take_intake_rate_token")
-      return { data: over.token ?? true, error: null };
+    if (fn === "take_intake_attempt")
+      return {
+        data:
+          (over.token ?? true)
+            ? { admitted: true, retry_after_seconds: null }
+            : { admitted: false, retry_after_seconds: 60, bucket: "address" },
+        error: null,
+      };
     return (
       over.begin ?? {
         data: {
@@ -111,7 +117,7 @@ function setup(
   };
 }
 
-describe("AL-2681 PR 2a: the guest intake handler (tested directly; not mounted until 2b)", () => {
+describe("AL-2681 PR 2a: the guest intake handler (tested directly; not mounted until 2b) (D-18, AL-2681 PR 2b: the limit is take_intake_attempt, and a refusal carries retryAfterSeconds)", () => {
   it("answers one generic unavailable while the switch, the challenge secret, the database or the client's address is missing, and calls nothing", async () => {
     for (const over of [
       { enabled: () => false },
@@ -161,9 +167,13 @@ describe("AL-2681 PR 2a: the guest intake handler (tested directly; not mounted 
     const s = setup({ token: false });
     const res = await s.handler(request(body()));
     expect(res.status).toBe(429);
-    expect(await res.json()).toEqual({ error: "too_many_requests" });
-    expect(s.calls.map((c) => c.fn)).toEqual(["take_intake_rate_token"]);
-    expect(s.calls[0]!.args).toEqual({ p_address: "198.51.100.4" });
+    expect(await res.json()).toEqual({
+      error: "too_many_requests",
+      retryAfterSeconds: 60,
+      bucket: "address",
+    });
+    expect(s.calls.map((c) => c.fn)).toEqual(["take_intake_attempt"]);
+    expect(s.calls[0]!.args).toMatchObject({ p_address: "198.51.100.4" });
     expect(s.sendFirst).not.toHaveBeenCalled();
   });
 
@@ -172,7 +182,7 @@ describe("AL-2681 PR 2a: the guest intake handler (tested directly; not mounted 
     await s.handler(
       request(body(), { "x-forwarded-for": "203.0.113.9, 10.0.0.1" }),
     );
-    expect(s.calls[0]!.args).toEqual({ p_address: "203.0.113.9" });
+    expect(s.calls[0]!.args).toMatchObject({ p_address: "203.0.113.9" });
   });
 
   it("ignores a browser total: the command gets the lines and the fee the policy computes, the host from the request, and no total", async () => {
@@ -398,7 +408,7 @@ describe("AL-2681 PR 2a: the guest intake handler (tested directly; not mounted 
   const commandCalled = (s: ReturnType<typeof setup>) =>
     s.calls.some((c) => c.fn === "begin_line_gift");
   const tokenTaken = (s: ReturnType<typeof setup>) =>
-    s.calls.some((c) => c.fn === "take_intake_rate_token");
+    s.calls.some((c) => c.fn === "take_intake_attempt");
 
   it("F3: the request names its path and the server never changes it; with no path named, the donor is a guest", async () => {
     const resolveActor = vi.fn(async () => sessionActor);

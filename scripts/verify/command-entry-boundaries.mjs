@@ -232,6 +232,10 @@ export const WORKER_WRAPPER_ANCHOR_LOOKUPS = Object.freeze([
   "public.resolve_verified_host",
 ]);
 
+export const WORKER_WRAPPER_ANCHOR_SIGNATURES = Object.freeze({
+  "public.resolve_verified_host": "public.resolve_verified_host(p_host text)",
+});
+
 export const WORKER_WRAPPER_TENANT_ARG_EXCEPTIONS = Object.freeze([
   "public.acquire_workflow_work_claim(p_tenant_id uuid, p_subject_type text, p_subject_id text, p_claimed_by text, p_ttl_seconds integer)",
   "public.release_workflow_work_claim(p_tenant_id uuid, p_claim_id uuid, p_status text)",

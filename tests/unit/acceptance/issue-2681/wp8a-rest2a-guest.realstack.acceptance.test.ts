@@ -1,4 +1,4 @@
-import { createHash, randomUUID } from "node:crypto";
+import { randomUUID } from "node:crypto";
 
 import pg from "pg";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
@@ -20,7 +20,6 @@ import {
   moneyRows,
   paymentIntent,
   person,
-  rateToken,
   readyOnlyHost,
   report,
   role,
@@ -113,13 +112,18 @@ describe.skipIf(!ADMIN_URL)(
     }
 
     describe("the anonymous config read (W8-R18, plan :1125)", () => {
-      it("an admitted host, an active organization, one entity and an active test binding get exactly the connected account", () =>
+      it("an admitted host, an active organization, one entity and an active test binding get exactly the connected account (D-18, AL-2681 PR 2b: the home asks as donor_account, now that the read is told which surface asks)", () =>
         inTx(db, async () => {
           const w = await world();
           const rows = await configFor(db, w.hostsA.site, [{ fund: w.A.fund }]);
           expect(rows).toEqual([{ connected_account_id: w.A.account }]);
           expect(
-            await configFor(db, w.hostsA.home, [{ fund: w.A.fund }]),
+            await configFor(
+              db,
+              w.hostsA.home,
+              [{ fund: w.A.fund }],
+              "donor_account",
+            ),
           ).toEqual([{ connected_account_id: w.A.account }]);
           const both = await dualHost(db, w.A, w.hostsA);
           expect(await configFor(db, both, [{ fund: w.A.fund }])).toEqual([
@@ -224,88 +228,13 @@ describe.skipIf(!ADMIN_URL)(
           await role(db, null);
           const rows = (
             await db.query(
-              `SELECT has_function_privilege('anon', 'public.checkout_giving_config(text,jsonb)', 'EXECUTE') AS can,
+              `SELECT has_function_privilege('anon', 'public.checkout_giving_config(text,jsonb,text,uuid)', 'EXECUTE') AS can,
                       (SELECT array_agg(t ORDER BY t) FROM unnest(ARRAY['site_domains','donor_portal_hosts','tenants','funds',
                          'missionaries','legal_entities','payment_account_bindings']) AS t
                         WHERE has_table_privilege('anon', 'public.' || t, 'SELECT')) AS granted`,
             )
           ).rows[0];
           expect(rows).toEqual({ can: true, granted: null });
-        }));
-    });
-
-    describe("the rate limit (plan :1148): a digest per address and window, trimmed by its own calls", () => {
-      it("ten requests from one address in a window pass, the eleventh is refused, another address is unaffected", () =>
-        inTx(db, async () => {
-          const address = `198.51.100.${Math.floor(Math.random() * 200) + 1}`;
-          const answers: boolean[] = [];
-          for (let i = 0; i < 11; i += 1)
-            answers.push(await rateToken(db, address));
-          expect(answers).toEqual([...Array(10).fill(true), false]);
-          expect(await rateToken(db, "203.0.113.7")).toBe(true);
-          await role(db, null);
-          const stored = (
-            await db.query(
-              "SELECT address_digest, hits FROM private.intake_rate_windows WHERE address_digest = $1",
-              [createHash("sha256").update(address).digest("hex")],
-            )
-          ).rows;
-          expect(stored).toEqual([
-            {
-              address_digest: createHash("sha256")
-                .update(address)
-                .digest("hex"),
-              hits: 11,
-            },
-          ]);
-          const raw = (
-            await db.query(
-              "SELECT count(*)::int AS n FROM private.intake_rate_windows AS w WHERE to_jsonb(w)::text LIKE $1",
-              [`%${address}%`],
-            )
-          ).rows[0].n;
-          expect(raw).toBe(0);
-        }));
-
-      it("a call removes windows that have ended, so the table holds at most the addresses of the current window", () =>
-        inTx(db, async () => {
-          await role(db, null);
-          await db.query(
-            "INSERT INTO private.intake_rate_windows (address_digest, window_start, hits) VALUES ($1, now() - interval '1 day', 3)",
-            [createHash("sha256").update("old").digest("hex")],
-          );
-          expect(await rateToken(db, "192.0.2.9")).toBe(true);
-          await role(db, null);
-          const left = (
-            await db.query(
-              "SELECT count(*)::int AS n FROM private.intake_rate_windows WHERE window_start < now() - interval '20 minutes'",
-            )
-          ).rows[0].n;
-          expect(left).toBe(0);
-        }));
-
-      it("only service_role may take a token; a missing address is refused", () =>
-        inTx(db, async () => {
-          await role(db, null);
-          const rows = (
-            await db.query(
-              `SELECT r, has_function_privilege(r, 'public.take_intake_rate_token(text)', 'EXECUTE') AS can
-                 FROM unnest(ARRAY['anon', 'authenticated', 'service_role']) AS r ORDER BY r`,
-            )
-          ).rows;
-          expect(rows.map((r) => r.can)).toEqual([false, false, true]);
-          await role(db, "service_role");
-          await db.query("SAVEPOINT rest2a_rate");
-          const refused = await db
-            .query("SELECT public.take_intake_rate_token('  ')")
-            .then(() => null)
-            .catch(
-              (e: { code?: string; message?: string }) =>
-                `${e.code} ${e.message}`,
-            );
-          await db.query("ROLLBACK TO SAVEPOINT rest2a_rate");
-          await role(db, null);
-          expect(refused).toBe("22023 rate_limit_address_required");
         }));
     });
 
@@ -445,7 +374,7 @@ describe.skipIf(!ADMIN_URL)(
         expect(writes).toEqual({ links: 0, memberships: 0 });
       }));
 
-    it("a guest whose e-mail is known and one whose e-mail is not get the same answer, byte for byte apart from opaque ids, with no Party id or match flag in it; no link or membership is written (ruling of 27 November, section 6)", () =>
+    it("a guest whose e-mail is known and one whose e-mail is not get the same answer, byte for byte apart from opaque ids, with no Party id or match flag in it; no link or membership is written (ruling of 27 November, section 6) (AL-2681 PR 2b, issue 2857 item 39: the known e-mail's payment is required to apply)", () =>
       inTx(db, async () => {
         const w = await world();
         const known = await person(db, w.A, {
@@ -502,6 +431,7 @@ describe.skipIf(!ADMIN_URL)(
           `stranger-${randomUUID()}@example.test`,
         );
         expect(knownAnswer.begun).toBe(unknownAnswer.begun);
+        expect(knownAnswer.outcome).toBe("applied");
         expect(knownAnswer.outcome).toBe(unknownAnswer.outcome);
         for (const answer of [knownAnswer, unknownAnswer]) {
           expect(Object.keys(answer.raw).sort()).toEqual(

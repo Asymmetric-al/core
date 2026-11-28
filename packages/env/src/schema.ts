@@ -301,6 +301,7 @@ export const env = createEnv({
     NEXT_PUBLIC_GIT_SHA: z.string().optional(),
     NEXT_PUBLIC_BUILD_DATE: z.string().optional(),
     NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: z.string().startsWith("pk_").optional(),
+    NEXT_PUBLIC_TURNSTILE_SITE_KEY: z.string().optional(),
     NEXT_PUBLIC_EMAIL_STUDIO_BUILDER: z
       .enum(["react_email", "unlayer", "auto"])
       .optional()
@@ -441,6 +442,7 @@ export const env = createEnv({
     NEXT_PUBLIC_BUILD_DATE: process.env.NEXT_PUBLIC_BUILD_DATE,
     NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY:
       process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY,
+    NEXT_PUBLIC_TURNSTILE_SITE_KEY: process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY,
     NEXT_PUBLIC_EMAIL_STUDIO_BUILDER:
       process.env.NEXT_PUBLIC_EMAIL_STUDIO_BUILDER,
     NEXT_PUBLIC_EMAIL_STUDIO_LEGACY_UNLAYER_ENABLED:

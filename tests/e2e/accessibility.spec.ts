@@ -1,6 +1,8 @@
 import AxeBuilder from "@axe-core/playwright";
 import { test, expect, type Page } from "@playwright/test";
 
+import { installDemoSessionInBrowser } from "./helpers/install-demo-session";
+
 async function gotoHealthyHomepage(page: Page) {
   await page.goto("/");
   await page.waitForLoadState("domcontentloaded");
@@ -85,6 +87,31 @@ test.describe("Accessibility Tests", () => {
 
     const accessibilityScanResults = await new AxeBuilder({ page })
       .withTags(["wcag2a", "wcag2aa"])
+      .analyze();
+
+    const criticalViolations = accessibilityScanResults.violations.filter(
+      (v) => v.impact === "critical" || v.impact === "serious",
+    );
+
+    expect(criticalViolations).toHaveLength(0);
+  });
+
+  test("Checkout page should be accessible", async ({ page }) => {
+    const session = await installDemoSessionInBrowser(page, "donor");
+    test.skip(
+      !session.ok,
+      `Donor demo session unavailable: POST /api/auth/demo-account returned ${session.status}.`,
+    );
+    await gotoStableRoute(
+      page,
+      "/checkout?amount=25&missionary_id=20000000-0000-0000-0000-000000000001",
+    );
+    await expect(
+      page.getByRole("heading", { name: "Give", exact: true }),
+    ).toBeVisible();
+
+    const accessibilityScanResults = await new AxeBuilder({ page })
+      .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"])
       .analyze();
 
     const criticalViolations = accessibilityScanResults.violations.filter(

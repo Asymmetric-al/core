@@ -1,6 +1,5 @@
 import { randomUUID } from "node:crypto";
 
-import { NextRequest } from "next/server";
 import pg from "pg";
 import {
   afterAll,
@@ -17,16 +16,12 @@ import {
   ADMIN_URL,
   HOSTED_SERVICE_GRANTS,
   IN_MIGRATE_JOB,
-  enqueue,
   grant,
   inTx,
-  lineIntake,
   paymentIntent,
-  recordReference,
   role,
   seedTwoTenants,
   storeEvent,
-  work,
 } from "./wp8a-p2r2a-harness";
 
 import type * as AuthContext from "@asym/auth/context";
@@ -262,170 +257,6 @@ describe.skipIf(!ADMIN_URL)(
                   unnest(ARRAY['public.donation_intake_lines', 'public.payment_observations']) AS t`,
         );
         expect(holdings).toEqual({ any: false, service_normalize: true });
-      }));
-
-    it("F1 (guard; ruling Q-C): after the apply has completed an intake, a replayed gift:<id>:create_payment key on POST /api/donate still answers 409 Idempotency key already used, and nothing is written: the counts, the intake and its request are as they were (D-18, AL-2678 WP5 rest: the saga now refuses that key with 23505 instead of answering it as a replay, and the double answers that refusal as supabase-js does, an error in the result, rolled back to a savepoint; D-18, AL-2681 rest PR 1, ruling Q-C: beginGiftIntake now refuses a key that begins gift: before the saga is called, so the route answers 400 and the saga is never reached)", () =>
-      inTx(db, async () => {
-        const fx = await seedTwoTenants(db);
-        await grant(db, HOSTED_SERVICE_GRANTS);
-        const intake = await lineIntake(db, fx.A);
-        const queued = await enqueue(db, fx.A, intake.donationId);
-        expect(queued.ok).toBe(true);
-        const pi = paymentIntent();
-        await recordReference(db, intake.donationId, pi);
-        const e = await storeEvent(db, fx.A, { pi, amount: intake.amount });
-        expect(await work(db, e.id)).toMatchObject({
-          outcome: "applied",
-          status: "completed",
-        });
-
-        const user = randomUUID();
-        await role(db, null);
-        await db.query("INSERT INTO auth.users (id) VALUES ($1)", [user]);
-        const profile = user;
-        const before = await one(
-          `SELECT (SELECT count(*) FROM public.donations WHERE tenant_id = $1)::int AS donations,
-                  (SELECT count(*) FROM public.donation_saga_outbox WHERE tenant_id = $1)::int AS outbox,
-                  (SELECT to_jsonb(d) FROM public.donations AS d WHERE d.id = $2) AS donation,
-                  (SELECT to_jsonb(o) FROM public.donation_saga_outbox AS o WHERE o.donation_id = $2) AS request`,
-          [fx.A.tenant, intake.donationId],
-        );
-        expect(before.request).toMatchObject({ status: "queued" });
-        expect(before.donation).toMatchObject({ status: "completed" });
-
-        const { getAuthContext } = await import("@asym/auth/context");
-        const { getAdminClient } =
-          await import("@asym/database/supabase/admin");
-        const { resolveTenantStripe } =
-          await import("../../../../packages/api/src/stripe/tenant-client");
-        const { resolveTenantSettlementCurrency } =
-          await import("../../../../packages/api/src/money/settlement");
-        const { processDonationSagaOutboxEvent } =
-          await import("../../../../packages/api/src/donate/saga");
-        const create = vi.fn();
-        vi.mocked(resolveTenantSettlementCurrency).mockResolvedValue("USD");
-        vi.mocked(resolveTenantStripe).mockResolvedValue({
-          ok: true,
-          stripe: { paymentIntents: { create } } as never,
-          secretKey: "sk_test_r2a",
-          publishableKey: "pk_test_r2a",
-        } as never);
-        vi.mocked(getAuthContext).mockResolvedValue({
-          userId: user,
-          email: "donor@example.org",
-          tenantId: fx.A.tenant,
-          role: "donor",
-          profileId: profile,
-          isAuthenticated: true,
-          memberships: [
-            {
-              tenantId: fx.A.tenant,
-              role: "donor",
-              staffRole: null,
-              isActive: true,
-            },
-          ],
-        } as never);
-        const asService = async <T>(fn: () => Promise<T>) => {
-          await role(db, null);
-          await db.query(
-            "SELECT pg_catalog.set_config('app.current_tenant_id', '', true)",
-          );
-          await role(db, "service_role");
-          try {
-            return await fn();
-          } finally {
-            await role(db, null);
-          }
-        };
-        const client = {
-          rpc: (fn: string, args: Record<string, unknown>) =>
-            asService(async () => {
-              expect(fn).toBe("begin_donation_saga");
-              const names = Object.keys(args);
-              await db.query("SAVEPOINT saga");
-              try {
-                const r = await db.query(
-                  `SELECT public.begin_donation_saga(${names.map((n, i) => `${n} => $${i + 1}`).join(", ")}) AS r`,
-                  names.map((n) =>
-                    n === "p_fee_extras" ? JSON.stringify(args[n]) : args[n],
-                  ),
-                );
-                await db.query("RELEASE SAVEPOINT saga");
-                return { data: r.rows[0].r, error: null };
-              } catch (e) {
-                await db.query("ROLLBACK TO SAVEPOINT saga");
-                const err = e as { code?: string; message: string };
-                return {
-                  data: null,
-                  error: { code: err.code, message: err.message },
-                };
-              }
-            }),
-          from: (table: string) => {
-            expect(table).toBe("donations");
-            const filters: Record<string, unknown> = {};
-            const query = {
-              select: () => query,
-              eq: (column: string, value: unknown) => {
-                filters[column] = value;
-                return query;
-              },
-              single: () =>
-                asService(async () => {
-                  const rows = (
-                    await db.query(
-                      `SELECT d.amount, d.currency, d.missionary_id, d.fund_id,
-                              (SELECT json_build_object('profile', json_build_object('id', p.id))
-                                 FROM public.donors AS x LEFT JOIN public.profiles AS p ON p.id = x.profile_id
-                                WHERE x.id = d.donor_id) AS donor
-                         FROM public.donations AS d WHERE d.id = $1 AND d.tenant_id = $2`,
-                      [filters.id, filters.tenant_id],
-                    )
-                  ).rows;
-                  return rows.length === 1
-                    ? { data: rows[0], error: null }
-                    : { data: null, error: { message: "not found" } };
-                }),
-            };
-            return query;
-          },
-        };
-        vi.mocked(getAdminClient).mockReturnValue({
-          client,
-          error: null,
-        } as never);
-        const { POST } = await import("../../../../packages/api/src/donate");
-        const response = await POST(
-          new NextRequest("http://localhost/api/donate", {
-            method: "POST",
-            headers: {
-              "content-type": "application/json",
-              "idempotency-key": `gift:${intake.donationId}:create_payment`,
-            },
-            body: JSON.stringify({
-              amount: intake.amount / 100,
-              currency: "usd",
-            }),
-          }),
-        );
-        expect(response.status).toBe(400);
-        expect(await response.json()).toMatchObject({
-          error: "Idempotency keys that begin with gift: are reserved.",
-        });
-        expect(create).not.toHaveBeenCalled();
-        expect(
-          vi.mocked(processDonationSagaOutboxEvent),
-        ).not.toHaveBeenCalled();
-        expect(
-          await one(
-            `SELECT (SELECT count(*) FROM public.donations WHERE tenant_id = $1)::int AS donations,
-                    (SELECT count(*) FROM public.donation_saga_outbox WHERE tenant_id = $1)::int AS outbox,
-                    (SELECT to_jsonb(d) FROM public.donations AS d WHERE d.id = $2) AS donation,
-                    (SELECT to_jsonb(o) FROM public.donation_saga_outbox AS o WHERE o.donation_id = $2) AS request`,
-            [fx.A.tenant, intake.donationId],
-          ),
-        ).toEqual(before);
       }));
   },
 );

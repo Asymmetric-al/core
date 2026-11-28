@@ -22,7 +22,7 @@ function setup(
   const rpc = vi.fn(async () => ({
     data:
       over.rows === undefined
-        ? [{ connected_account_id: "acct_alpha1" }]
+        ? [{ connected_account_id: "acct_alpha1", way_back_host: null }]
         : over.rows,
     error: over.error ?? null,
   }));
@@ -35,7 +35,7 @@ function setup(
   return { handler: createGivingConfigHandler(deps), rpc };
 }
 
-describe("AL-2681 PR 2a: the anonymous config read's route (W8-R18)", () => {
+describe("AL-2681 PR 2a: the anonymous config read's route (W8-R18) (D-18, AL-2681 PR 2b: it says which surface asks and answers the way back)", () => {
   it("answers exactly the publishable key and the connected account for an admitted host and its targets", async () => {
     const s = setup();
     const res = await s.handler(request({ targets: [{ fundId: FUND }] }));
@@ -43,10 +43,13 @@ describe("AL-2681 PR 2a: the anonymous config read's route (W8-R18)", () => {
     expect(await res.json()).toEqual({
       publishableKey: "pk_test_51abc",
       connectedAccountId: "acct_alpha1",
+      wayBackHost: null,
     });
     expect(s.rpc).toHaveBeenCalledWith("checkout_giving_config", {
       p_host: "give.example.test",
       p_targets: [{ fund_id: FUND }],
+      p_surface: "website",
+      p_source_site: null,
     });
   });
 
@@ -131,6 +134,8 @@ describe("AL-2681 PR 2a: the anonymous config read's route (W8-R18)", () => {
     expect(s.rpc).toHaveBeenCalledWith("checkout_giving_config", {
       p_host: "give.example.test",
       p_targets: [{ fund_id: FUND }],
+      p_surface: "website",
+      p_source_site: null,
     });
   });
 

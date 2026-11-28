@@ -260,3 +260,82 @@ describe("on: per-surface path admission across bare-b, site-a, second-a and rea
     }
   });
 });
+
+const GIVING_PATHS = ["/checkout", "/api/checkout/config", "/api/donate"];
+
+async function freshProxy() {
+  vi.resetModules();
+  return (await import("../../../../apps/donor/proxy")).proxy;
+}
+
+function openGiving() {
+  vi.stubEnv("GUEST_GIVING_ENABLED", "true");
+  vi.stubEnv("TURNSTILE_SECRET_KEY", "1x0000000000000000000000000000000AA");
+  vi.stubEnv("NEXT_PUBLIC_TURNSTILE_SITE_KEY", "1x00000000000000000000AA");
+  vi.stubEnv("NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY", "pk_test_51giving");
+}
+
+describe("AL-2681 PR 2b item zero 3: the giving routes on a website-only name, behind the switch and every control", () => {
+  it("on, giving open: a website-only Site name forwards the checkout, the config read and the intake with its organization, signed out and never sent to sign-in", async () => {
+    openGiving();
+    const proxy = await freshProxy();
+    for (const path of GIVING_PATHS) {
+      state.lookups = [];
+      const res = await proxy(
+        donorRequest(SITE_A, path, { headers: { [NAME]: TB } }),
+      );
+      expect(res.headers.get("x-middleware-next"), path).toBe("1");
+      expect(forwarded(res, NAME), path).toBe(TA);
+      expect(state.lookups, path).toEqual([SITE_A]);
+    }
+  });
+
+  it("on, giving open: an account-only home forwards the checkout with its organization, signed out, for account mode", async () => {
+    openGiving();
+    const proxy = await freshProxy();
+    const res = await proxy(
+      donorRequest(BARE_B, "/checkout", { headers: { [NAME]: TA } }),
+    );
+    expect(res.headers.get("x-middleware-next")).toBe("1");
+    expect(forwarded(res, NAME)).toBe(TB);
+  });
+
+  it.each([
+    ["GUEST_GIVING_ENABLED", "false"],
+    ["TURNSTILE_SECRET_KEY", ""],
+    ["NEXT_PUBLIC_TURNSTILE_SITE_KEY", ""],
+    ["NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY", "pk_live_51giving"],
+  ])(
+    "guard: with %s set to %j the giving routes stay account roots, refused on a website-only Site name",
+    async (name, value) => {
+      openGiving();
+      vi.stubEnv(name, value);
+      const proxy = await freshProxy();
+      for (const path of GIVING_PATHS)
+        await expectRefused(await proxy(donorRequest(SITE_A, path)), path);
+    },
+  );
+
+  it("off, giving open: the checkout is not a protected path, so a signed-out visitor is not sent to sign-in", async () => {
+    openGiving();
+    const proxy = await freshProxy();
+    state.offMode = true;
+    vi.stubEnv("CORE_SERVE_UNDER_PATHS", "");
+    const res = await proxy(donorRequest(SITE_A, "/checkout"));
+    expect(res.status).not.toBe(307);
+    expect(res.headers.get("x-middleware-next")).toBe("1");
+  });
+
+  it("guard: off, giving closed: a signed-out visitor to the checkout is sent to sign-in with the gift kept", async () => {
+    state.offMode = true;
+    vi.stubEnv("CORE_SERVE_UNDER_PATHS", "");
+    const proxy = await freshProxy();
+    const res = await proxy(
+      donorRequest(SITE_A, "/checkout?fund_id=f-1&amount=25"),
+    );
+    expect(res.status).toBe(307);
+    const location = new URL(res.headers.get("location")!);
+    expect(location.pathname).toBe("/login");
+    expect(location.searchParams.get("next")).toContain("/checkout");
+  });
+});

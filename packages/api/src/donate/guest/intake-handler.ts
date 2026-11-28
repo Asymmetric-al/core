@@ -7,10 +7,14 @@ import {
   type VerifyChallengeInput,
 } from "./challenge";
 
-export type GuestRpcError = { code?: string; message: string };
+export type GuestRpcError = {
+  code?: string;
+  message: string;
+  details?: string | null;
+};
 
 export type GuestIntakeRpc = (
-  fn: "take_intake_rate_token" | "begin_line_gift",
+  fn: "take_intake_attempt" | "begin_line_gift",
   args: Record<string, unknown>,
 ) => Promise<{ data: unknown; error: GuestRpcError | null }>;
 
@@ -64,7 +68,17 @@ const bodySchema = z.object({
     address: z.record(z.string(), z.string().max(500)).nullish(),
   }),
   challengeToken: z.string().nullish(),
+  sourceSiteId: z.string().max(100).nullish(),
 });
+
+const attemptSchema = z.union([
+  z.object({ admitted: z.literal(true) }),
+  z.object({
+    admitted: z.literal(false),
+    retry_after_seconds: z.number().int().min(1).max(600),
+    bucket: z.enum(["address", "person"]),
+  }),
+]);
 
 const intakeSchema = z.object({
   outcome: z.enum(["created", "replayed"]),
@@ -92,6 +106,7 @@ const INPUT_REFUSALS = new Set([
   "client_key_invalid",
   "amount_out_of_range",
   "fee_cover_out_of_range",
+  "source_site_not_admitted",
 ]);
 
 const json = (status: number, body: unknown) => Response.json(body, { status });
@@ -108,6 +123,19 @@ function clientAddress(request: Request): string | null {
 function refusal(error: GuestRpcError): Response {
   if (error.code === "23505" && error.message === "idempotency_key_reused")
     return json(409, { error: "idempotency_key_reused" });
+  if (error.code === "22023" && error.message === "amount_out_of_range") {
+    const bounds = /between ([\d,]+) and ([\d,]+) cents/.exec(
+      error.details ?? "",
+    );
+    return bounds
+      ? json(400, {
+          error: "amount_out_of_range",
+          minCents: Number(bounds[1]!.replaceAll(",", "")),
+          maxCents: Number(bounds[2]!.replaceAll(",", "")),
+          currency: "usd",
+        })
+      : json(400, { error: "amount_out_of_range" });
+  }
   if (error.code === "22023")
     return INPUT_REFUSALS.has(error.message)
       ? json(400, { error: error.message })
@@ -151,7 +179,7 @@ async function signedInActor(
 
 async function call(
   rpc: GuestIntakeRpc,
-  fn: "take_intake_rate_token" | "begin_line_gift",
+  fn: "take_intake_attempt" | "begin_line_gift",
   args: Record<string, unknown>,
 ) {
   try {
@@ -165,12 +193,13 @@ export function createGuestIntakeHandler(deps: GuestIntakeDeps) {
   const verify = deps.verifyChallenge ?? verifyGuestChallenge;
 
   return async function POST(request: Request): Promise<Response> {
+    const enabled = await settled(async () => deps.enabled());
+    if (!enabled) return unavailable();
     const ready = await settled(async () => ({
-      enabled: deps.enabled(),
       secret: deps.challengeSecret()?.trim(),
       rpc: deps.rpc(),
     }));
-    if (!ready?.enabled || !ready.secret || !ready.rpc) return unavailable();
+    if (!ready?.secret || !ready.rpc) return unavailable();
     const { secret, rpc } = ready;
     const host = request.headers.get("host")?.trim();
     if (!host) return unavailable();
@@ -207,11 +236,32 @@ export function createGuestIntakeHandler(deps: GuestIntakeDeps) {
       actor = found;
     }
 
-    const token = await call(rpc, "take_intake_rate_token", {
+    const attempted = await call(rpc, "take_intake_attempt", {
+      p_host: host,
+      p_surface: body.surface,
       p_address: address,
+      p_client_key: body.key,
+      p_user_id: actor?.user_id ?? null,
     });
-    if (token.error) return notStarted();
-    if (token.data !== true) return json(429, { error: "too_many_requests" });
+    if (attempted.error) {
+      if (attempted.error.code === "42501") return unavailable();
+      if (attempted.error.code === "22023") return refusal(attempted.error);
+      return notStarted();
+    }
+    const limit = attemptSchema.safeParse(attempted.data);
+    if (!limit.success) return notStarted();
+    if (!limit.data.admitted)
+      return Response.json(
+        {
+          error: "too_many_requests",
+          retryAfterSeconds: limit.data.retry_after_seconds,
+          bucket: limit.data.bucket,
+        },
+        {
+          status: 429,
+          headers: { "Retry-After": String(limit.data.retry_after_seconds) },
+        },
+      );
 
     const giftCents = body.lines.reduce(
       (sum, line) => sum + line.amountCents,
@@ -245,7 +295,10 @@ export function createGuestIntakeHandler(deps: GuestIntakeDeps) {
         address: body.contact.address ?? null,
       },
       p_actor: actor,
-      p_site_id: null,
+      p_site_id:
+        body.sourceSiteId && UUID.test(body.sourceSiteId)
+          ? body.sourceSiteId
+          : null,
     });
     if (begun.error) return refusal(begun.error);
     const intake = intakeSchema.safeParse(begun.data);

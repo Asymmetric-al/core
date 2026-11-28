@@ -13,9 +13,9 @@
       "reviewed_by": "Coordinator's WP3b part 2 ruling (D-16, Q1 and Q6), 2026-11-25"
     },
     {
-      "function": "public.checkout_giving_config(p_host text, p_targets jsonb)",
-      "reason": "WP8a part 2 rest, PR 2a (AL-2681): the anonymous config read of checkout. For an active claimed name serving website with an active Site, or the home record serving donor_account, of an active organization, and 1 to 99 targets (active funds that are not the reserved fee-cover fund, or workers) that all resolve in that organization to one legal entity with an active test-mode binding, it returns one output, connected_account_id; otherwise nothing, the same nothing for every reason. It returns no tenant, Site, entity, binding or status. It normalises HTTP spelling with resolve_verified_host's expression. There is no client grant on the tables beneath it (site_domains, sites, donor_portal_hosts, tenants, funds, missionaries, payment_account_bindings).",
-      "reviewed_by": "Coordinator's WP8a part 2 ruling W8-R18 (the anonymous config read), 2026-11-26"
+      "function": "public.checkout_giving_config(p_host text, p_targets jsonb, p_surface text, p_source_site uuid)",
+      "reason": "WP8a part 2 rest, PRs 2a and 2b (AL-2681): the anonymous config read of checkout. Told which surface asks: 'website' needs an active claimed name serving website with an active Site, 'donor_account' needs the organization's home record serving donor_account, of an active organization; with 1 to 99 targets (active funds that are not the reserved fee-cover fund, or workers) that all resolve in that organization to one legal entity with an active test-mode binding, it returns connected_account_id and way_back_host, the primary domain of the given source Site when it is an active Site of that organization with an active name serving website (else null); otherwise nothing, the same nothing for every reason. It returns no tenant, Site id, entity, binding or status. It normalises HTTP spelling with resolve_verified_host's expression. There is no client grant on the tables beneath it (site_domains, sites, donor_portal_hosts, tenants, funds, missionaries, payment_account_bindings).",
+      "reviewed_by": "Coordinator's WP8a part 2 rulings W8-R18 (the anonymous config read), 2026-11-26, and the 2b inventory ruling (the surface and the way back; the allowlist does not grow), 2026-11-28"
     }
   ]
 }

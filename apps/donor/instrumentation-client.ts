@@ -3,6 +3,7 @@ import {
   clearPendingInviteFragment,
   getInviteSafeReplayOptions,
   getSentryCompatibilityOptions,
+  scrubClientSecrets,
   scrubInviteFragmentFromUrl,
 } from "@asym/lib/monitoring/sentry-policy";
 import * as Sentry from "@sentry/nextjs";
@@ -28,7 +29,7 @@ export const onRouterTransitionStart: typeof Sentry.captureRouterTransitionStart
   (href, navigationType) => {
     clearPendingInviteFragment(href);
     return Sentry.captureRouterTransitionStart(
-      scrubInviteFragmentFromUrl(href),
+      scrubClientSecrets(scrubInviteFragmentFromUrl(href)),
       navigationType,
     );
   };

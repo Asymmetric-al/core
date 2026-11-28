@@ -835,7 +835,7 @@ describe.skipIf(!ADMIN_URL)(
           });
         }));
 
-      it("F6 (b), the confirmation's finding 1: a replay after the provider reported the PaymentIntent cancelled is closed, never open", () =>
+      it("F6 (b), the confirmation's finding 1: a replay after the provider reported the PaymentIntent cancelled is closed, never open (AL-2681 PR 2b, issue 2857 item 39: open before the cancellation applies, which is required to apply)", () =>
         inTx(db, async () => {
           const w = await world();
           const request = (key: string): GiftRequest => ({
@@ -860,7 +860,10 @@ describe.skipIf(!ADMIN_URL)(
               asym_intake: cancelled.donation_id,
             },
           });
-          await work(db, event.id);
+          expect(
+            begun(await begin(db, request("cancelled-key"))),
+          ).toMatchObject({ outcome: "replayed", gift_state: "open" });
+          expect((await work(db, event.id)).outcome).toBe("applied");
           expect(
             begun(await begin(db, request("cancelled-key"))),
           ).toMatchObject({ outcome: "replayed", gift_state: "closed" });
