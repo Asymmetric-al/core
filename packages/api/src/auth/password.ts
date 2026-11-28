@@ -12,7 +12,8 @@ import {
   signInAccountKey,
 } from "./sign-in-answers";
 import {
-  recordSignInFailure,
+  clearSignInAccount,
+  releaseSignInAttempt,
   takeSignInAttempt,
 } from "../identity/sign-in-limits";
 import { ApiHttpError, ensureJsonBody } from "../shared/http-errors";
@@ -100,6 +101,17 @@ async function readChange(request: Request): Promise<PasswordChange | Refusal> {
   return { current, next };
 }
 
+async function giveBack(
+  key: { account: string; address: string },
+  outcome: { cleared: boolean },
+): Promise<void> {
+  try {
+    await releaseSignInAttempt(key, outcome);
+  } catch {
+    console.error("[auth] sign_in_release_failed");
+  }
+}
+
 async function checkCurrentPassword(
   request: Request,
   subject: string,
@@ -117,7 +129,10 @@ async function checkCurrentPassword(
   }
 
   const verifier = createAnonymousClient();
-  if (!verifier) return REFUSALS.unavailable;
+  if (!verifier) {
+    await giveBack(key, { cleared: false });
+    return REFUSALS.unavailable;
+  }
   let checked;
   try {
     checked = await verifier.auth.signInWithPassword({
@@ -125,17 +140,15 @@ async function checkCurrentPassword(
       password: current,
     });
   } catch {
+    await giveBack(key, { cleared: false });
     return REFUSALS.unavailable;
   }
   if (checked.error) {
-    if (providerUnavailable(checked.error)) return REFUSALS.unavailable;
-    try {
-      await recordSignInFailure(key);
-    } catch {
-      console.error("[auth] a refused password check could not be counted.");
-    }
-    return REFUSALS.currentRefused;
+    if (!providerUnavailable(checked.error)) return REFUSALS.currentRefused;
+    await giveBack(key, { cleared: false });
+    return REFUSALS.unavailable;
   }
+  await giveBack(key, { cleared: true });
 
   try {
     const { error } = await verifier.auth.signOut({ scope: "local" });
@@ -146,6 +159,15 @@ async function checkCurrentPassword(
     );
   }
   return checked.data.user?.id === subject ? null : REFUSALS.currentRefused;
+}
+
+async function clearAfterRecovery(email: string | undefined): Promise<void> {
+  if (!email) return;
+  try {
+    await clearSignInAccount(signInAccountKey(email));
+  } catch {
+    console.error("[auth] sign_in_clear_failed");
+  }
 }
 
 export async function POST(request: Request) {
@@ -198,5 +220,6 @@ export async function POST(request: Request) {
   } catch {
     return refuse(REFUSALS.unavailable);
   }
+  if (change.current === null) await clearAfterRecovery(person.email);
   return noStoreJson({ ok: true });
 }

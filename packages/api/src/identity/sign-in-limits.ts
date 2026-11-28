@@ -13,16 +13,16 @@ export class SignInLimitsUnavailableError extends Error {
 }
 
 async function callLimits(
-  name: "take_sign_in_attempt" | "record_sign_in_failure",
-  key: SignInLimitKey,
+  name:
+    | "take_sign_in_attempt"
+    | "release_sign_in_attempt"
+    | "clear_sign_in_account",
+  args: Record<string, string | boolean>,
 ): Promise<unknown> {
   const { client } = getAdminClient();
   if (!client) throw new SignInLimitsUnavailableError();
   try {
-    const { data, error } = await client.rpc(name, {
-      p_account: key.account,
-      p_address: key.address,
-    });
+    const { data, error } = await client.rpc(name, args);
     if (error) throw new SignInLimitsUnavailableError();
     return data;
   } catch {
@@ -31,11 +31,25 @@ async function callLimits(
 }
 
 export async function takeSignInAttempt(key: SignInLimitKey): Promise<boolean> {
-  const allowed = await callLimits("take_sign_in_attempt", key);
+  const allowed = await callLimits("take_sign_in_attempt", {
+    p_account: key.account,
+    p_address: key.address,
+  });
   if (typeof allowed !== "boolean") throw new SignInLimitsUnavailableError();
   return allowed;
 }
 
-export async function recordSignInFailure(key: SignInLimitKey): Promise<void> {
-  await callLimits("record_sign_in_failure", key);
+export async function releaseSignInAttempt(
+  key: SignInLimitKey,
+  outcome: { cleared: boolean },
+): Promise<void> {
+  await callLimits("release_sign_in_attempt", {
+    p_account: key.account,
+    p_address: key.address,
+    p_cleared: outcome.cleared,
+  });
+}
+
+export async function clearSignInAccount(account: string): Promise<void> {
+  await callLimits("clear_sign_in_account", { p_account: account });
 }

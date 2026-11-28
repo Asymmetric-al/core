@@ -10,7 +10,7 @@ import {
   signInAccountKey,
 } from "./sign-in-answers";
 import {
-  recordSignInFailure,
+  releaseSignInAttempt,
   takeSignInAttempt,
   type SignInLimitKey,
 } from "../identity/sign-in-limits";
@@ -54,11 +54,14 @@ async function readCredentials(
   return { email, password };
 }
 
-async function countRefusal(key: SignInLimitKey): Promise<void> {
+async function giveBack(
+  key: SignInLimitKey,
+  outcome: { cleared: boolean },
+): Promise<void> {
   try {
-    await recordSignInFailure(key);
+    await releaseSignInAttempt(key, outcome);
   } catch {
-    console.error("[auth] a refused sign-in could not be counted.");
+    console.error("[auth] sign_in_release_failed");
   }
 }
 
@@ -88,14 +91,16 @@ export async function POST(request: Request) {
     const supabase = await createClient(null);
     ({ error } = await supabase.auth.signInWithPassword(credentials));
   } catch {
+    await giveBack(key, { cleared: false });
     return unavailable();
   }
 
   if (error) {
-    if (providerUnavailable(error)) return unavailable();
-    await countRefusal(key);
-    return refused();
+    if (!providerUnavailable(error)) return refused();
+    await giveBack(key, { cleared: false });
+    return unavailable();
   }
 
+  await giveBack(key, { cleared: true });
   return markSharedOriginSessionChange(noStoreJson({ ok: true }));
 }
