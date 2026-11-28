@@ -20,6 +20,7 @@ import {
   RadioGroup,
   RadioGroupItem,
 } from "@asym/ui/components/shadcn/radio-group";
+import { RichTextViewer } from "@asym/ui/components/shadcn/rich-text-editor";
 import { Textarea } from "@asym/ui/components/shadcn/textarea";
 import { useId, useState, type ReactNode } from "react";
 
@@ -146,6 +147,49 @@ function ReasonDialog({
   );
 }
 
+function RejectDialog({ post, name }: { post: ModerationPost; name: string }) {
+  const { review } = useModerationActions();
+  const [opened, setOpened] = useState(post.content_version);
+  const [refused, setRefused] = useState<number | null | undefined>(undefined);
+  const changed = refused !== undefined && post.content_version !== refused;
+  const version = changed ? post.content_version : opened;
+  return (
+    <ReasonDialog
+      trigger="Don’t approve"
+      triggerLabel={`Don’t approve ${name}`}
+      title={`Don’t approve “${name}”`}
+      description="The update stays off every feed but its author’s and a reviewer’s. Its author sees your reason."
+      submitLabel="Don’t approve"
+      onOpen={() => {
+        setOpened(post.content_version);
+        setRefused(undefined);
+      }}
+      onSubmit={async (reason) => {
+        const refusal = await review(
+          { id: post.id, content_version: version },
+          "reject",
+          reason,
+        );
+        if (refusal !== null) setRefused(version);
+        return refusal;
+      }}
+    >
+      {changed ? (
+        <div className="flex flex-col gap-2 rounded-md border border-border p-3">
+          <p className="text-sm font-medium">
+            This update changed after you opened it. Its words now:
+          </p>
+          {post.content ? (
+            <RichTextViewer value={post.content} />
+          ) : (
+            <p className="text-sm text-muted-foreground">No content</p>
+          )}
+        </div>
+      ) : null}
+    </ReasonDialog>
+  );
+}
+
 export function UpdateReviewActions({
   post,
   name,
@@ -168,14 +212,7 @@ export function UpdateReviewActions({
           >
             Approve
           </Button>
-          <ReasonDialog
-            trigger="Don’t approve"
-            triggerLabel={`Don’t approve ${name}`}
-            title={`Don’t approve “${name}”`}
-            description="The update stays off every feed but its author’s and a reviewer’s. Its author sees your reason."
-            submitLabel="Don’t approve"
-            onSubmit={(reason) => review(post, "reject", reason)}
-          />
+          <RejectDialog post={post} name={name} />
         </div>
         {approve.error ? (
           <p role="alert" className="text-sm text-destructive">
