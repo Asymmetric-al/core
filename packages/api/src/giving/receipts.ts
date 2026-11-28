@@ -251,29 +251,26 @@ function consentSkipMessage(reason: EmailConsentBlockReason): string {
 /**
  * The consent gate forbade this send. Record the compliance decision and mark
  * the receipt terminally so reconciliation does not retry it. Fail-closed: no
- * email is sent and no email_send_logs row is written (that would collide with
- * the send-path idempotency key on a later retry) — `audit_logs` is the
- * compliance record of record.
+ * email is sent. The updated-receipt path has already recorded the refusal on
+ * the snapshot's send-log row; the original-receipt path writes none, so its
+ * key stays free for a later send. `audit_logs` is the compliance record of
+ * record.
  */
-async function skipReceiptForConsent(input: {
-  supabaseAdmin: SupabaseAdminClient;
+async function auditConsentSkip(input: {
   gift: ReceiptGiftIdentity;
   donorEmail: string;
   idempotencyKey: string;
   decision: Extract<EmailConsentDecision, { allowed: false }>;
   source?: string;
-}): Promise<{ sendLogId: string | null; status: "suppressed" }> {
+}) {
   const { gift, decision } = input;
-  const message = consentSkipMessage(decision.reason);
-  const source = input.source ?? "donation_receipt";
-
   await logSystemAuditEvent({
     tenantId: gift.tenantId,
     action: "email_send_suppressed",
     resourceType: "email_send",
     resourceId: gift.donationId,
     details: {
-      source,
+      source: input.source ?? "donation_receipt",
       channel: "email",
       reason: decision.reason,
       suppressionType:
@@ -286,23 +283,40 @@ async function skipReceiptForConsent(input: {
       idempotencyKey: input.idempotencyKey,
     },
   });
+}
 
-  const updateResult = await input.supabaseAdmin
+async function markGiftReceipt(
+  supabaseAdmin: SupabaseAdminClient,
+  giftId: string,
+  fields: JsonRecord,
+) {
+  const updateResult = await supabaseAdmin
     .from("staged_gifts")
-    .update({
-      receipt_status: "suppressed",
-      receipt_send_log_id: null,
-      last_error_code: decision.reason,
-      last_error_message: message,
-      updated_at: new Date().toISOString(),
-    })
-    .eq("id", gift.id);
-
+    .update({ ...fields, updated_at: new Date().toISOString() })
+    .eq("id", giftId);
   if (updateResult.error) {
     throw new Error(updateResult.error.message);
   }
+}
 
-  return { sendLogId: null, status: "suppressed" };
+const sentGiftFields = (sendLogId: string | null): JsonRecord => ({
+  receipt_status: "sent",
+  receipt_send_log_id: sendLogId,
+  last_error_code: null,
+  last_error_message: null,
+});
+
+type ReceiptAnswer = "attempt" | "row";
+
+function answerOf(
+  answer: ReceiptAnswer,
+  attempt: ReceiptSendResult["status"],
+  row: { id: string | null; status: string } | null,
+): ReceiptSendResult {
+  if (answer === "row" && row?.status === "sent") {
+    return { sendLogId: row.id, status: "sent" };
+  }
+  return { sendLogId: row?.id ?? null, status: attempt };
 }
 
 async function deliverReceiptEmailForGift(input: {
@@ -314,6 +328,7 @@ async function deliverReceiptEmailForGift(input: {
   metadata: JsonRecord;
   customArgs: Record<string, string>;
   recordSuppressed?: boolean;
+  answer: ReceiptAnswer;
 }): Promise<ReceiptSendResult> {
   const { gift, donor, receipt } = input;
   const settings = await readTenantEmailSettings(gift.tenantId);
@@ -341,38 +356,53 @@ async function deliverReceiptEmailForGift(input: {
     donorId: gift.donorId,
     messageType: "transactional",
   });
+  const readRow = () =>
+    readSendLog(input.supabaseAdmin, gift.tenantId, receipt.idempotencyKey);
 
   if (!consent.allowed) {
-    if (input.recordSuppressed) {
-      await recordSendLog(input.supabaseAdmin, {
-        tenant_id: gift.tenantId,
-        idempotency_key: receipt.idempotencyKey,
-        correlation_id: globalThis.crypto.randomUUID(),
-        status: "suppressed",
-        resend_message_id: null,
-        recipient_count: 1,
-        message_type: "transactional",
-        requested_at: new Date().toISOString(),
-        sent_at: null,
-        error_code: consent.reason,
-        error_message: null,
-        retry_count: 0,
-        metadata: input.metadata,
-      });
-    }
-    return skipReceiptForConsent({
-      supabaseAdmin: input.supabaseAdmin,
-      gift: {
-        id: gift.id,
-        tenantId: gift.tenantId,
-        donationId: gift.donationId,
-        donorId: gift.donorId,
-      },
+    const recorded = input.recordSuppressed
+      ? await recordSendLog(input.supabaseAdmin, {
+          tenant_id: gift.tenantId,
+          idempotency_key: receipt.idempotencyKey,
+          correlation_id: globalThis.crypto.randomUUID(),
+          status: "suppressed",
+          resend_message_id: null,
+          recipient_count: 1,
+          message_type: "transactional",
+          requested_at: new Date().toISOString(),
+          sent_at: null,
+          error_code: consent.reason,
+          error_message: null,
+          retry_count: 0,
+          metadata: input.metadata,
+        })
+      : await readRow();
+    await auditConsentSkip({
+      gift,
       donorEmail: donor.email,
       idempotencyKey: receipt.idempotencyKey,
       decision: consent,
       source: input.source,
     });
+    if (recorded?.status === "sent") {
+      return answerOf(input.answer, "suppressed", recorded);
+    }
+    await markGiftReceipt(input.supabaseAdmin, gift.id, {
+      receipt_status: "suppressed",
+      receipt_send_log_id: null,
+      last_error_code: consent.reason,
+      last_error_message: consentSkipMessage(consent.reason),
+    });
+    const after = await readRow();
+    if (after?.status === "sent") {
+      await markGiftReceipt(
+        input.supabaseAdmin,
+        gift.id,
+        sentGiftFields(after.id),
+      );
+      return answerOf(input.answer, "suppressed", after);
+    }
+    return { sendLogId: null, status: "suppressed" };
   }
 
   const result = await sendEmail(
@@ -393,12 +423,13 @@ async function deliverReceiptEmailForGift(input: {
       customArgs: input.customArgs,
     },
   );
+  const attempt = result.success ? "sent" : "failed";
 
   const log = await recordSendLog(input.supabaseAdmin, {
     tenant_id: gift.tenantId,
     idempotency_key: receipt.idempotencyKey,
     correlation_id: result.correlationId,
-    status: result.success ? "sent" : "failed",
+    status: attempt,
     resend_message_id: result.messageId ?? null,
     recipient_count: 1,
     message_type: "transactional",
@@ -409,26 +440,26 @@ async function deliverReceiptEmailForGift(input: {
     retry_count: result.retryCount ?? 0,
     metadata: input.metadata,
   });
-  const sent = log.status === "sent";
-  const updateResult = await input.supabaseAdmin
-    .from("staged_gifts")
-    .update({
-      receipt_status: sent ? "sent" : "failed",
-      receipt_send_log_id: log.id,
-      last_error_code: sent ? null : (result.errors?.[0]?.code ?? null),
-      last_error_message: sent ? null : (result.errors?.[0]?.message ?? null),
-      updated_at: new Date().toISOString(),
-    })
-    .eq("id", gift.id);
-
-  if (updateResult.error) {
-    throw new Error(updateResult.error.message);
+  if (log.status === "sent") {
+    await markGiftReceipt(input.supabaseAdmin, gift.id, sentGiftFields(log.id));
+    return answerOf(input.answer, attempt, log);
   }
-
-  return {
-    sendLogId: log.id,
-    status: sent ? "sent" : "failed",
-  };
+  await markGiftReceipt(input.supabaseAdmin, gift.id, {
+    receipt_status: "failed",
+    receipt_send_log_id: log.id,
+    last_error_code: result.errors?.[0]?.code ?? null,
+    last_error_message: result.errors?.[0]?.message ?? null,
+  });
+  const after = await readRow();
+  if (after?.status === "sent") {
+    await markGiftReceipt(
+      input.supabaseAdmin,
+      gift.id,
+      sentGiftFields(after.id),
+    );
+    return answerOf(input.answer, attempt, after);
+  }
+  return { sendLogId: log.id, status: "failed" };
 }
 
 type SendLogRow = {
@@ -477,6 +508,18 @@ async function recordSendLog(
   if (updated.error) {
     throw new Error(updated.error.message);
   }
+  const current = await readSendLog(supabaseAdmin, tenantId, key);
+  if (!current) {
+    throw new Error("The receipt's send-log row could not be read back.");
+  }
+  return current;
+}
+
+async function readSendLog(
+  supabaseAdmin: SupabaseAdminClient,
+  tenantId: string,
+  key: string,
+): Promise<{ id: string | null; status: string } | null> {
   const current = await supabaseAdmin
     .from("email_send_logs")
     .select("id, status")
@@ -486,10 +529,7 @@ async function recordSendLog(
   if (current.error) {
     throw new Error(current.error.message);
   }
-  if (!isRecord(current.data)) {
-    throw new Error("The receipt's send-log row could not be read back.");
-  }
-  return sendLogOf(current.data, row.status);
+  return isRecord(current.data) ? sendLogOf(current.data, "pending") : null;
 }
 
 export async function sendStagedGiftReceipt(input: {
@@ -529,6 +569,7 @@ export async function sendStagedGiftReceipt(input: {
       source: "donation_receipt",
       stagedGiftId: gift.id,
     },
+    answer: "attempt",
   });
 }
 
@@ -576,5 +617,6 @@ export async function sendUpdatedReceiptSnapshotEmail(input: {
     metadata,
     customArgs,
     recordSuppressed: true,
+    answer: "row",
   });
 }

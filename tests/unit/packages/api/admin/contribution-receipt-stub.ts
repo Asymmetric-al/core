@@ -197,6 +197,31 @@ export const TABLE_RULES: Record<
   },
 };
 
+function notNullRefusal(
+  table: string,
+  operation: "insert" | "update",
+  payload: Row,
+): { code: string; message: string } | null {
+  const rules = TABLE_RULES[table];
+  if (!rules) return null;
+  const missing =
+    operation === "insert"
+      ? rules.required.find(
+          (column) => payload[column] === undefined || payload[column] === null,
+        )
+      : undefined;
+  const nulled = rules.notNull.find(
+    (column) => Object.hasOwn(payload, column) && payload[column] === null,
+  );
+  const column = missing ?? nulled;
+  return column
+    ? {
+        code: "23502",
+        message: `null value in column "${column}" of relation "${table}" violates not-null constraint`,
+      }
+    : null;
+}
+
 export interface State {
   donationMissionaryId: string | null;
   allocations: Row[];
@@ -298,6 +323,10 @@ export class QueryBuilder {
     error: { code?: string; message: string } | null;
   } {
     const { state } = this;
+    if (this.operation !== "select" && this.payload) {
+      const refused = notNullRefusal(this.table, this.operation, this.payload);
+      if (refused) return { data: null, error: refused };
+    }
     state.ops?.push(
       this.operation === "select"
         ? `select ${this.table} ${this.columns}`

@@ -1135,11 +1135,20 @@ async function sendExistingEmailReceipt(input: {
   if (last === "sent" || last === "suppressed") {
     return emailReceiptOutcome(input.base, last, input.snapshot.id);
   }
+  if (last === "bounced" || last === "complained") {
+    return {
+      ...input.base,
+      status: "bounced",
+      reason:
+        "The updated receipt email went out, but it bounced or was reported as spam, so the donor may not have received it. Check the donor's email address.",
+      snapshotId: input.snapshot.id,
+    };
+  }
   const createdAt = input.snapshot.createdAt
     ? Date.parse(input.snapshot.createdAt)
     : Number.NaN;
   const inFlight =
-    last === null &&
+    (last === null || last === "pending") &&
     (Number.isNaN(createdAt) ||
       Date.now() - createdAt < RECEIPT_SEND_IN_FLIGHT_MS);
   if (inFlight) {
@@ -1554,11 +1563,12 @@ export async function applyContributionCorrection(input: {
 
   const deliveryBlock = async (
     selection: ReceiptDeliverySelection,
+    donorId: string | null,
   ): Promise<string | null> => {
     const context = await loadReceiptDeliveryContext({
       supabaseAdmin: input.supabaseAdmin,
       tenantId: input.tenantId,
-      donorId: before.donor?.id ?? null,
+      donorId,
     });
     try {
       validateReceiptDeliverySelection({
@@ -1623,7 +1633,8 @@ export async function applyContributionCorrection(input: {
                 affectedFields,
                 adjustmentId,
               }),
-              check: deliveryBlock,
+              check: (selection) =>
+                deliveryBlock(selection, detail.donor?.id ?? null),
             })
           : null,
     };
