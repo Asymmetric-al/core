@@ -14,6 +14,7 @@ import {
 import {
   Field,
   FieldContent,
+  FieldError,
   FieldLabel,
 } from "@asym/ui/components/shadcn/field";
 import {
@@ -22,7 +23,7 @@ import {
 } from "@asym/ui/components/shadcn/radio-group";
 import { RichTextViewer } from "@asym/ui/components/shadcn/rich-text-editor";
 import { Textarea } from "@asym/ui/components/shadcn/textarea";
-import { useId, useState, type ReactNode } from "react";
+import { useId, useRef, useState, type ReactNode } from "react";
 
 import {
   useModerationActions,
@@ -55,7 +56,6 @@ function ReasonDialog({
   submitLabel,
   onSubmit,
   children,
-  canSubmit = true,
   onOpen,
 }: {
   trigger: string;
@@ -65,14 +65,14 @@ function ReasonDialog({
   submitLabel: string;
   onSubmit: (reason: string) => Promise<string | null>;
   children?: ReactNode;
-  canSubmit?: boolean;
   onOpen?: () => void;
 }) {
   const id = useId();
+  const field = useRef<HTMLTextAreaElement>(null);
   const [open, setOpen] = useState(false);
   const [reason, setReason] = useState("");
+  const [blank, setBlank] = useState(false);
   const submit = useSubmit();
-  const ready = canSubmit && !normalizesToNothing(reason);
   return (
     <Dialog
       open={open}
@@ -80,6 +80,7 @@ function ReasonDialog({
         if (submit.pending) return;
         if (next) {
           setReason("");
+          setBlank(false);
           submit.setError(null);
           onOpen?.();
         }
@@ -100,9 +101,15 @@ function ReasonDialog({
         </DialogHeader>
         <form
           className="flex flex-col gap-4"
+          noValidate
           onSubmit={(event) => {
             event.preventDefault();
-            if (!ready) return;
+            if (submit.pending) return;
+            if (normalizesToNothing(reason)) {
+              setBlank(true);
+              field.current?.focus();
+              return;
+            }
             void submit
               .run(() => onSubmit(reason))
               .then((done) => {
@@ -111,17 +118,26 @@ function ReasonDialog({
           }}
         >
           {children}
-          <Field>
+          <Field data-invalid={blank || undefined}>
             <FieldLabel htmlFor={`${id}-reason`}>Reason</FieldLabel>
             <Textarea
+              ref={field}
               id={`${id}-reason`}
               value={reason}
               maxLength={REASON_MAX}
               rows={3}
-              required
+              aria-required
+              aria-invalid={blank || undefined}
+              aria-describedby={blank ? `${id}-reason-error` : undefined}
               disabled={submit.pending}
-              onChange={(event) => setReason(event.target.value)}
+              onChange={(event) => {
+                setReason(event.target.value);
+                setBlank(false);
+              }}
             />
+            {blank ? (
+              <FieldError id={`${id}-reason-error`}>Give a reason.</FieldError>
+            ) : null}
           </Field>
           {submit.error ? (
             <p role="alert" className="text-sm text-destructive">
@@ -137,7 +153,7 @@ function ReasonDialog({
             >
               Cancel
             </Button>
-            <Button type="submit" disabled={submit.pending || !ready}>
+            <Button type="submit" disabled={submit.pending}>
               {submitLabel}
             </Button>
           </DialogFooter>
