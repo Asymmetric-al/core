@@ -19,9 +19,14 @@
 --    begin_human_command(..., 'safety.restrict_publication'). The reason,
 --    the display name and the legal name are required, "blank" being what
 --    private.normalize_safety_text returns empty (rule 13), checked before
---    any write. In one transaction: the Party and worker through item 1,
---    one audit row worker_created (no legal name), then
---    tenant_guard.set_worker_identity unchanged, which records the legal
+--    any write. Then it takes the organization's row and the caller's
+--    membership FOR SHARE and refuses 42501 as the other commands do after
+--    their locks (the organization no longer active, or the caller no
+--    longer holding the assignment or the capability), before item 1 reads
+--    the legal entity: a revocation that commits while the create waits is
+--    refused and nothing is written. In one transaction: the Party and
+--    worker through item 1, one audit row worker_created (no legal name),
+--    then tenant_guard.set_worker_identity unchanged, which records the legal
 --    identity, sets the level (standard and unreviewed_default when none is
 --    given) and writes its own worker_identity_set row. It answers the
 --    organization, Party, worker, level and source; never the legal name.
@@ -150,6 +155,9 @@ SET search_path = ''
 AS $$
 DECLARE
   v_ctx tenant_guard.command_context;
+  v_tenant_status TEXT;
+  v_assignment RECORD;
+  v_assignment_found BOOLEAN;
   v_reason TEXT;
   v_display TEXT;
   v_party UUID;
@@ -168,6 +176,27 @@ BEGIN
   END IF;
   IF private.normalize_safety_text(p_legal_name) IS NULL THEN
     RAISE EXCEPTION 'A legal name is required' USING ERRCODE = '22023';
+  END IF;
+
+  v_tenant_status := private.share_lock_tenant(v_ctx.tenant_id);
+  SELECT m.user_id, m.tenant_id, m.is_active, m.revoked_at
+    INTO v_assignment
+    FROM authz.memberships AS m
+   WHERE m.tenant_id = v_ctx.tenant_id
+     AND m.id = v_ctx.assignment_id
+     FOR SHARE;
+  v_assignment_found := FOUND;
+  IF (v_tenant_status = 'active') IS NOT TRUE
+     OR (
+       v_assignment_found
+       AND v_assignment.user_id = v_ctx.actor_id
+       AND v_assignment.tenant_id = v_ctx.tenant_id
+       AND v_assignment.is_active
+       AND v_assignment.revoked_at IS NULL
+     ) IS NOT TRUE
+     OR ('safety.restrict_publication' = ANY (authz.assignment_capabilities(v_ctx.assignment_id))) IS NOT TRUE THEN
+    RAISE EXCEPTION 'tenant_guard: the caller no longer holds the authority this command requires'
+      USING ERRCODE = '42501';
   END IF;
 
   SELECT w.party_id, w.assignment_id

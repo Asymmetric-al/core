@@ -8,9 +8,15 @@
 --    tenant_guard, opening with begin_human_command(...,
 --    'safety.restrict_publication'). It takes the organization's row FOR
 --    SHARE, the caller's membership row FOR SHARE and the Party row FOR
---    UPDATE, in restrict_worker_publication's order. If the Party's level or
---    its source differs from the expected pair it raises 22023 "The level
---    changed since it was read" and writes nothing; otherwise it answers
+--    UPDATE, in restrict_worker_publication's order. Between the membership
+--    and the Party it refuses 42501 as restrict does after its locks: the
+--    organization no longer active, or the caller no longer holding the
+--    assignment or the capability. A revocation that commits while the
+--    confirm waits is therefore refused whatever the level, and the
+--    comparison never answers a caller without the authority. Then, if the
+--    Party's level or its source differs from the expected pair it raises
+--    22023 "The level changed since it was read" and writes nothing;
+--    otherwise it answers
 --    tenant_guard.restrict_worker_publication(tenant, Party, the expected
 --    level, no alias, no do-not-publish, reason), unchanged, which marks the
 --    level reviewed and writes its one audit row. A Party that is not in the
@@ -68,17 +74,34 @@ SET search_path = ''
 AS $$
 DECLARE
   v_ctx tenant_guard.command_context;
+  v_tenant_status TEXT;
+  v_assignment RECORD;
+  v_assignment_found BOOLEAN;
   v_level TEXT;
   v_source TEXT;
 BEGIN
   v_ctx := tenant_guard.begin_human_command(p_tenant_id, 'safety.restrict_publication');
 
-  PERFORM private.share_lock_tenant(v_ctx.tenant_id);
-  PERFORM 1
-     FROM authz.memberships AS m
-    WHERE m.tenant_id = v_ctx.tenant_id
-      AND m.id = v_ctx.assignment_id
-      FOR SHARE;
+  v_tenant_status := private.share_lock_tenant(v_ctx.tenant_id);
+  SELECT m.user_id, m.tenant_id, m.is_active, m.revoked_at
+    INTO v_assignment
+    FROM authz.memberships AS m
+   WHERE m.tenant_id = v_ctx.tenant_id
+     AND m.id = v_ctx.assignment_id
+     FOR SHARE;
+  v_assignment_found := FOUND;
+  IF (v_tenant_status = 'active') IS NOT TRUE
+     OR (
+       v_assignment_found
+       AND v_assignment.user_id = v_ctx.actor_id
+       AND v_assignment.tenant_id = v_ctx.tenant_id
+       AND v_assignment.is_active
+       AND v_assignment.revoked_at IS NULL
+     ) IS NOT TRUE
+     OR ('safety.restrict_publication' = ANY (authz.assignment_capabilities(v_ctx.assignment_id))) IS NOT TRUE THEN
+    RAISE EXCEPTION 'tenant_guard: the caller no longer holds the authority this command requires'
+      USING ERRCODE = '42501';
+  END IF;
 
   SELECT p.security_level, p.security_level_source
     INTO v_level, v_source
@@ -98,7 +121,7 @@ BEGIN
 END;
 $$;
 COMMENT ON FUNCTION tenant_guard.confirm_worker_security_level(UUID, UUID, TEXT, TEXT, TEXT) IS
-  'Human command (AL-2678, WP5 rest part B; issue 2835): confirms a worker''s security level only while the Party still holds the level and source the staff member read, checked under restrict_worker_publication''s locks; otherwise 22023 and nothing written. Needs safety.restrict_publication.';
+  'Human command (AL-2678, WP5 rest part B; issue 2835): confirms a worker''s security level only while the Party still holds the level and source the staff member read, checked under restrict_worker_publication''s locks after its authority re-check (42501); otherwise 22023 and nothing written. Needs safety.restrict_publication.';
 -- Granted as its owner: on Supabase postgres is no superuser and cannot
 -- change the grants of a function tenant_guard owns.
 REVOKE ALL ON FUNCTION tenant_guard.confirm_worker_security_level(UUID, UUID, TEXT, TEXT, TEXT) FROM PUBLIC, anon, authenticated, service_role;
