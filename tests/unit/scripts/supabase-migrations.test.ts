@@ -16,6 +16,10 @@ import { fileURLToPath } from "node:url";
 import { afterEach, describe, expect, it } from "vitest";
 import { KEPT_READS } from "../../../scripts/verify/tenant-rls-catalog.mjs";
 
+import {
+  ownMinistryCommandRows,
+  ownMinistryHelperRows,
+} from "../../fixtures/own-ministry-commands";
 import { preMembershipCommandRows } from "../../fixtures/pre-membership-commands";
 import { MIGRATION } from "../acceptance/issue-2256/harness";
 
@@ -178,7 +182,11 @@ function runVerifier(
     ],
     // AL-2674: the gate also reads the command-schema functions, the
     // wrappers that call into them and the unadmitted table grants.
-    commands: preMembershipCommandRows(),
+    commands: [
+      ...preMembershipCommandRows(),
+      ...ownMinistryCommandRows(),
+      ...ownMinistryHelperRows(),
+    ],
     wrappers: [],
     grants: [],
     service_role_grants: [],
@@ -347,7 +355,7 @@ else if (sql.startsWith("-- field-policy-manifest-gate:v1")) {
 
 describe("supabase migrations verifier", () => {
   itPosix(
-    "requires the reviewed census after applying the complete migration sequence (D-18, AL-2678: the fake catalog carries the two reviewed pre-membership claim commands, which the gate now requires; D-18, AL-2676: and public.resolve_home_host, the second allowlisted anonymous read since WP3b part 2; D-18, AL-2681: and public.checkout_giving_config, the third, since WP8a part 2 rest 2a; D-18, AL-2681 PR 2b: in its four-argument form)",
+    "requires the reviewed census after applying the complete migration sequence (D-18, AL-2678: the fake catalog carries the two reviewed pre-membership claim commands, which the gate now requires; D-18, AL-2676: and public.resolve_home_host, the second allowlisted anonymous read since WP3b part 2; D-18, AL-2681: and public.checkout_giving_config, the third, since WP8a part 2 rest 2a; D-18, AL-2681 PR 2b: in its four-argument form; AL-2680: and the two reviewed own-ministry commands)",
     () => {
       const result = runVerifier("clean");
       expect(result.status).toBe(0);

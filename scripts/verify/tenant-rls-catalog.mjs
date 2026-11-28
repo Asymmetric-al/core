@@ -33,6 +33,9 @@ import { runPsqlQuery } from "../lib/psql.mjs";
 import { EXCLUDED_SCHEMA_PATTERN } from "../release/schema-fingerprint.mjs";
 import {
   isAssignmentReader,
+  ownMinistryEntry,
+  ownMinistryExceptions,
+  reviewedOwnMinistryHelpers,
   preMembershipExceptions,
   protectedEntry,
   WORKER_WRAPPER_ANCHOR_LOOKUPS,
@@ -129,12 +132,7 @@ const WRITE_COMMANDS = ["INSERT", "UPDATE", "DELETE"];
  * through a parent row (council R3): every signed-in policy on them is a
  * reviewed pin, and none of them may be published.
  */
-export const PARENT_SCOPED_TABLES = [
-  "post_comments",
-  "post_fires",
-  "post_likes",
-  "post_prayers",
-];
+export const PARENT_SCOPED_TABLES = [];
 
 const quoted = (names) => names.map((s) => `'${s}'`).join(", ");
 const CALL_GAP = `(\\s|/\\*.*\\*/|--[^\\n]*\\n)*`;
@@ -1010,6 +1008,7 @@ export function evaluateTenantRlsCatalog(
   preMembershipList = undefined,
   serviceRoleExceptions = SERVICE_ROLE_EXCEPTIONS,
   keptReadList = KEPT_READS,
+  ownMinistryList = undefined,
 ) {
   const { listed, failures, usable } = readExceptions(exceptions);
   const fail = (code, table, detail) => failures.push({ code, table, detail });
@@ -1162,6 +1161,16 @@ export function evaluateTenantRlsCatalog(
       ? preMembershipExceptions(commands)
       : preMembershipExceptions(commands, preMembershipList);
   failures.push(...preMembership.failures);
+  const ownMinistry = ownMinistryExceptions(
+    commands,
+    ownMinistryList?.entries,
+    ownMinistryList?.reviewed,
+    (c) => ownMinistryEntry(c, entryStatement(c.body), outerBlockHasHandler),
+    ownMinistryList === undefined
+      ? reviewedOwnMinistryHelpers
+      : (ownMinistryList.helpers ?? {}),
+  );
+  failures.push(...ownMinistry.failures);
   for (const c of commands) {
     if (c.public_execute || c.anon)
       failFn(
@@ -1212,6 +1221,7 @@ export function evaluateTenantRlsCatalog(
       else if (
         !c.service_role &&
         !preMembership.allowed.has(c.function) &&
+        !ownMinistry.allowed.has(c.function) &&
         !isAssignmentReader(c) &&
         !protectedEntry(c, entryStatement(c.body), outerBlockHasHandler)
       )

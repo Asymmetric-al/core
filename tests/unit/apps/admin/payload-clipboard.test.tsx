@@ -17,6 +17,9 @@ import {
   PayloadClipboardReset,
 } from "../../../../apps/admin/src/cms-ui/web-studio/shell/payload-clipboard";
 
+const navigation = vi.hoisted(() => ({ pathname: "/web-studio/organization" }));
+vi.mock("next/navigation", () => ({ usePathname: () => navigation.pathname }));
+
 const root = process.cwd();
 const read = (file: string) => readFileSync(path.join(root, file), "utf8");
 const MARK = "asym_clipboard_reset";
@@ -136,6 +139,22 @@ describe("Payload's copy-and-paste store never passes from one person to the nex
     localStorage.setItem(PAYLOAD_CLIPBOARD_KEY, COPIED);
     runSessionChangeCleanups();
     expect(localStorage.getItem(PAYLOAD_CLIPBOARD_KEY)).toBeNull();
+  });
+
+  it("is emptied when a navigation inside the document arrives with the mark, as the organization choice's redirect does, and a later copy survives later navigations (WP7 item zero, #2839)", () => {
+    navigation.pathname = "/web-studio/organization";
+    const view = render(<PayloadClipboardGuard />);
+    localStorage.setItem(PAYLOAD_CLIPBOARD_KEY, COPIED);
+    document.cookie = `${MARK}=1; Path=/`;
+    navigation.pathname = "/web-studio";
+    view.rerender(<PayloadClipboardGuard />);
+    expect(localStorage.getItem(PAYLOAD_CLIPBOARD_KEY)).toBeNull();
+    expect(document.cookie).not.toContain(MARK);
+
+    localStorage.setItem(PAYLOAD_CLIPBOARD_KEY, COPIED);
+    navigation.pathname = "/web-studio/collections/pages";
+    view.rerender(<PayloadClipboardGuard />);
+    expect(localStorage.getItem(PAYLOAD_CLIPBOARD_KEY)).toBe(COPIED);
   });
 
   it("is guarded on every page of the admin app, where the mark is read", () => {

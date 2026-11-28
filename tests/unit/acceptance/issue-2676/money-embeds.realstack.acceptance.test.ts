@@ -116,7 +116,7 @@ const INVENTORY: InventorySite[] = [
   },
 ];
 
-const EXEMPTIONS: Exemption[] = [1, 2, 3, 4].map(() => ({
+const EXEMPTIONS: Exemption[] = [1, 2].map(() => ({
   file: "packages/graphql/handler.ts",
   embed: "missionary:missionaries!missionary_id(",
   parent: "posts",
@@ -589,7 +589,7 @@ describe("money-table embeds of funds and missionaries (round M M1, round N F1, 
     expect(result.violations, VIOLATION_REMEDY).toEqual([]);
   });
 
-  it("every declared exemption names an unaltered parent table and matches an actual select in apps/ and packages/", () => {
+  it("every declared exemption names an unaltered parent table and matches an actual select in apps/ and packages/ (AL-2680: GraphQL createPost and its posts select are removed, so handler.ts holds two)", () => {
     for (const ex of EXEMPTIONS) {
       expect(
         SEVEN_TABLES.has(ex.parent),
@@ -784,11 +784,11 @@ describe("positive scanner controls (round O, A)", () => {
     ]);
   });
 
-  it("allows the four posts exemptions when bound to .from('posts')", () => {
+  it("allows the two posts exemptions when bound to .from('posts') (AL-2680: GraphQL's posts and post share one select, and its fix round removes createPost's)", () => {
     const res = evaluateEmbeds(
       scanText(
         "packages/graphql/handler.ts",
-        [1, 2, 3, 4]
+        [1, 2]
           .map(
             () =>
               `client.from("posts").select("*, missionary:missionaries!missionary_id(*, profile:profiles!profile_id(*))");`,
@@ -798,7 +798,7 @@ describe("positive scanner controls (round O, A)", () => {
       EXEMPTIONS,
     );
     expect(res.violations).toEqual([]);
-    expect(res.usedExemptions).toBe(4);
+    expect(res.usedExemptions).toBe(2);
     expect(res.unusedExemptions).toEqual([]);
   });
 

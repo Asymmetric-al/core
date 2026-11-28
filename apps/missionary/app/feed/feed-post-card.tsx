@@ -37,7 +37,7 @@ import {
   DropdownMenuTrigger,
 } from "@asym/ui/components/shadcn/dropdown-menu";
 import { PostContent } from "@asym/ui/components/shadcn/rich-text-editor";
-import { MoreHorizontal, Pencil, Trash2 } from "lucide-react";
+import { MoreHorizontal, Pencil, Trash2, Undo2 } from "lucide-react";
 import Image from "next/image";
 import { useId, useState } from "react";
 
@@ -111,15 +111,31 @@ function PostMedia({ post, name }: { post: Post; name: string }) {
   );
 }
 
+const REVIEW_MARKS = {
+  submitted: { label: "Waiting for review", variant: "warning" },
+  rejected: { label: "Not approved", variant: "destructive-subtle" },
+  withdrawn: { label: "Withdrawn", variant: "secondary" },
+} as const;
+
+function ReviewMark({ post }: { post: Post }) {
+  const mark =
+    post.review_state && post.review_state !== "approved"
+      ? REVIEW_MARKS[post.review_state]
+      : null;
+  return mark ? <Badge variant={mark.variant}>{mark.label}</Badge> : null;
+}
+
 function PostMenu({
   name,
   onEdit,
   onDelete,
+  onWithdraw,
   editLabel,
 }: {
   name: string;
   onEdit: () => void;
   onDelete: () => void;
+  onWithdraw?: () => void;
   editLabel: string;
 }) {
   return (
@@ -141,6 +157,12 @@ function PostMenu({
             <Pencil aria-hidden />
             {editLabel}
           </DropdownMenuItem>
+          {onWithdraw ? (
+            <DropdownMenuItem onClick={onWithdraw}>
+              <Undo2 aria-hidden />
+              Withdraw
+            </DropdownMenuItem>
+          ) : null}
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
         <DropdownMenuGroup>
@@ -159,10 +181,12 @@ export function PublishedPostCard({
   post,
   onEdit,
   onDelete,
+  onWithdraw,
 }: {
   post: Post;
   onEdit: () => void;
   onDelete: () => void;
+  onWithdraw?: () => void;
 }) {
   const { formatDate } = useLocaleFormat();
   const authorName = post.post_author_public_name?.trim() || "Unknown author";
@@ -189,6 +213,7 @@ export function PublishedPostCard({
               <Badge id={typeId} variant="outline">
                 {postTypeLabel(post.post_type)}
               </Badge>
+              <ReviewMark post={post} />
             </div>
             <p className="text-sm text-muted-foreground">
               <span id={dateId}>{formatDate(post.created_at, SHORT_DATE)}</span>{" "}
@@ -201,6 +226,12 @@ export function PublishedPostCard({
             name={name}
             onEdit={onEdit}
             onDelete={onDelete}
+            onWithdraw={
+              post.review_state === "submitted" ||
+              post.review_state === "approved"
+                ? onWithdraw
+                : undefined
+            }
             editLabel="Edit"
           />
         </CardAction>
@@ -218,6 +249,13 @@ export function PublishedPostCard({
         ) : null}
         <PostMedia post={post} name={name} />
         <PostContent value={post.content} />
+        {post.review_reason &&
+        (post.review_state === "rejected" ||
+          post.review_state === "withdrawn") ? (
+          <p className="text-sm text-muted-foreground">
+            Reviewer’s note: {post.review_reason}
+          </p>
+        ) : null}
         <div className="border-t border-border pt-4">
           <ReactionBar
             update={post}

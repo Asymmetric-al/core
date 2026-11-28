@@ -1008,6 +1008,12 @@ SELECT
   created_at + interval '2 hours'
 FROM post_seed;
 
+-- The demo posts start approved, as every post that existed before review
+-- did (WP7 pull request 1, AL-2680, D-08); a new post waits for review.
+UPDATE public.posts
+SET review_state = 'approved'
+WHERE tenant_id = '00000000-0000-0000-0000-000000000001';
+
 INSERT INTO public.post_likes (id, post_id, user_id, created_at)
 SELECT
   ('51000000-0000-0000-0000-' || lpad(gs::text, 12, '0'))::uuid,

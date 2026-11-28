@@ -149,7 +149,7 @@ describe.skipIf(!ADMIN_URL)(
       });
     });
 
-    it("the function is gone, no policy of any schema names the role, 59 reads stand on the helper and no write calls it", async () => {
+    it("the function is gone, no policy of any schema names the role, 61 reads stand on the helper and no write calls it (AL-2680: WP7 pull request 1 adds two, posts tenant read's staff branch and publication_policies_staff_read)", async () => {
       expect(
         (await rows("select to_regprocedure('authz.is_super_admin()') r"))[0]!
           .r,
@@ -164,7 +164,7 @@ describe.skipIf(!ADMIN_URL)(
         `${p.using_text} ${p.check_text}`.includes("authz.staff_read()"),
       );
       expect(onHelper.filter((p) => p.cmd !== "r")).toEqual([]);
-      expect(onHelper).toHaveLength(59);
+      expect(onHelper).toHaveLength(61);
     });
 
     const assertRestoredPolicies = (

@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { createGraphQLHandler } from "../../packages/graphql/handler";
 import { membershipsForRole } from "../fixtures/auth-memberships";
 
+import type * as SessionModule from "../../packages/api/src/shared/request-session-client";
 import type * as AuthModule from "../../packages/auth/context";
 import type { AuthContext } from "../../packages/auth/context";
 
@@ -66,6 +67,20 @@ vi.mock("@asym/database/supabase/admin", () => {
   };
   return { getAdminClient: () => ({ client, error: null }) };
 });
+vi.mock(
+  "../../packages/api/src/shared/request-session-client",
+  async (original) => ({
+    ...(await original<typeof SessionModule>()),
+    createRequestSessionClient: async () => {
+      const read = {
+        select: () => read,
+        eq: () => read,
+        maybeSingle: async () => ({ data: { id: "post-1" }, error: null }),
+      };
+      return { from: () => read };
+    },
+  }),
+);
 vi.mock("next/cache", () => ({ revalidateTag: vi.fn() }));
 
 const donor: AuthContext = {
@@ -103,7 +118,7 @@ beforeEach(() => {
   s.writes = [];
 });
 
-describe("AL-2678 r2a: GraphQL addComment's author is the caller's own profile, read as myProfile reads it", () => {
+describe("AL-2678 r2a: GraphQL addComment's author is the caller's own profile, read as myProfile reads it (AL-2680 fix round S8: on a post the caller's own token reads first)", () => {
   it("a caller with no profile row gets Comment author not found, and the comment stays written (N4)", async () => {
     const body = await addComment();
     expect(body.errors?.map((e) => e.message)).toEqual([

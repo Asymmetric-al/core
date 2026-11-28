@@ -8,8 +8,11 @@ import { CAPABILITY_REGISTRY } from "../../../packages/auth/capabilities/registr
 import { EXCLUDED_SCHEMA_PATTERN } from "../../../scripts/release/schema-fingerprint.mjs";
 import keys from "../../../scripts/verify/command-capabilities.json";
 import {
+  ownMinistryEntries,
+  ownMinistryExceptions,
   WORKER_WRAPPER_ANCHOR_LOOKUPS,
   preMembershipEntries,
+  reviewedOwnMinistry,
   reviewedPreMembership,
   preMembershipExceptions,
 } from "../../../scripts/verify/command-entry-boundaries.mjs";
@@ -34,6 +37,7 @@ it("allows the reviewed CMS tenant-key debt to shrink, never to grow", () => {
 });
 
 import {
+  PARENT_SCOPED_TABLES,
   TENANT_RLS_CATALOG_SQL,
   evaluateTenantRlsCatalog,
   formatTenantRlsCatalogSummary,
@@ -43,6 +47,11 @@ import {
   stripParens,
   tenantBound,
 } from "../../../scripts/verify/tenant-rls-catalog.mjs";
+import {
+  OWN_MINISTRY_HELPERS,
+  ownMinistryCommandRows,
+  ownMinistryHelperRows,
+} from "../../fixtures/own-ministry-commands";
 import { preMembershipCommandRows } from "../../fixtures/pre-membership-commands";
 
 const table = (name: string, over: Record<string, unknown> = {}) => ({
@@ -347,7 +356,7 @@ describe("WP4 command boundaries", () => {
       ).toContain("WRAPPER_GRANTS_HUMAN public.block(uuid)");
     },
   );
-  it("judges the repository's reviewed pre-membership list unless told otherwise (D-18, AL-2678: the list is no longer empty, so the synthetic catalogs of this file judge an empty one, and this case judges the real one)", () => {
+  it("judges the repository's reviewed pre-membership list unless told otherwise (D-18, AL-2678: the list is no longer empty, so the synthetic catalogs of this file judge an empty one, and this case judges the real one; AL-2680 fix round C3: with the own-ministry lane's two pinned helpers)", () => {
     const empty = {
       tables: [],
       definers: [],
@@ -367,15 +376,26 @@ describe("WP4 command boundaries", () => {
           undefined,
           [],
         ),
-      ),
+      ).sort(),
     ).toEqual(
-      preMembershipEntries.map(
-        (entry) => `COMMAND_EXCEPTION_UNREVIEWED ${entry.function}`,
-      ),
+      [
+        ...preMembershipEntries.map((entry) => entry.function),
+        ...ownMinistryEntries.map((entry) => entry.function),
+        ...OWN_MINISTRY_HELPERS,
+      ]
+        .map((fn) => `COMMAND_EXCEPTION_UNREVIEWED ${fn}`)
+        .sort(),
     );
     expect(
       evaluateTenantRlsCatalog(
-        { ...empty, commands: preMembershipCommandRows() },
+        {
+          ...empty,
+          commands: [
+            ...preMembershipCommandRows(),
+            ...ownMinistryCommandRows(),
+            ...ownMinistryHelperRows(),
+          ],
+        },
         listed(),
         undefined,
         undefined,
@@ -403,6 +423,7 @@ const evaluate = (
     serviceRole?: object[];
     serviceRoleSchemas?: string[];
     serviceRoleExceptions?: unknown;
+    ownMinistry?: unknown;
   } = {},
 ) =>
   evaluateTenantRlsCatalog(
@@ -424,6 +445,7 @@ const evaluate = (
     [],
     more.serviceRoleExceptions ?? { entries: [] },
     [],
+    more.ownMinistry ?? { entries: [], reviewed: {} },
   );
 const codes = (result: ReturnType<typeof evaluate>) =>
   result.failures.map(
@@ -1645,7 +1667,7 @@ describe("evaluateTenantRlsCatalog: the request's tenant on every signed-in poli
   const TABLES = [
     table("donors"),
     table("posts"),
-    table("post_comments", { tenant: false }),
+    table("post_comments"),
     table("currency_metadata", { tenant: false }),
   ];
   const run = (
@@ -1970,36 +1992,32 @@ describe("evaluateTenantRlsCatalog: the request's tenant on every signed-in poli
     }
   });
 
-  // Council R3: the tables with no tenant column whose rows reach their
-  // tenant through a parent row. Postgres ORs every permissive policy, so a
-  // second one beside the pin would widen it unseen.
-  it("on a table that reaches its tenant through a parent, fails every signed-in policy that is not pinned and a pin with a per-row lookup (D-18, AL-2678: donor_activities carries its own tenant now and left the parent-scoped list)", () => {
-    const comments = policy(
-      "post_comments",
-      "(EXISTS ( SELECT 1 FROM posts p WHERE (p.id = post_comments.post_id)))",
-      { policy: "tanstack browser read" },
-    );
-    expect(
-      run([comments], { policyExceptions: pin(comments) }).failures,
-    ).toEqual([]);
-    const second = policy("post_comments", "true", { policy: "another read" });
-    expect(
-      codes(run([comments, second], { policyExceptions: pin(comments) })),
-    ).toEqual(["PARENT_SCOPED_POLICY_NOT_PINNED post_comments"]);
-    for (const parentScoped of ["post_fires", "post_likes", "post_prayers"])
-      expect(codes(run([policy(parentScoped, "true")])), parentScoped).toEqual([
-        `PARENT_SCOPED_POLICY_NOT_PINNED ${parentScoped}`,
-      ]);
-    // Once a statement holds for a pinned text too.
-    const perRow = policy(
-      "post_comments",
-      "(EXISTS ( SELECT 1 FROM posts p WHERE ((p.id = post_comments.post_id) AND authz.has_membership(p.tenant_id))))",
-      { policy: "tanstack browser read" },
-    );
-    expect(codes(run([perRow], { policyExceptions: pin(perRow) }))).toEqual([
-      "POLICY_LOOKUP_PER_ROW post_comments",
+  it("leaves no table on the parent-scoped list once the four post tables carry their own tenant (WP7 pull request 1, AL-2680): post_comments is judged as a tenant table, its signed-in read needs the request's tenant, and its anonymous read stands only as a pinned exception", () => {
+    expect(PARENT_SCOPED_TABLES).toEqual([]);
+    const parent =
+      "(EXISTS ( SELECT 1 FROM posts parent_post WHERE (parent_post.id = post_comments.post_id)))";
+    const signedIn = policy("post_comments", `(${T} AND ${parent})`, {
+      policy: "post_comments tenant read",
+    });
+    expect(run([signedIn]).failures).toEqual([]);
+    const unbound = policy("post_comments", parent, {
+      policy: "post_comments tenant read",
+    });
+    expect(codes(run([unbound]))).toEqual([
+      "TENANT_CONDITION_MISSING post_comments",
     ]);
-    // A table with no tenant column and no parent is outside the rule.
+    const anonymous = policy("post_comments", parent, {
+      policy: "post_comments anonymous read",
+      roles: ["anon"],
+    });
+    expect(codes(run([signedIn, anonymous]))).toEqual([
+      "TENANT_CONDITION_MISSING post_comments",
+    ]);
+    expect(
+      run([signedIn, anonymous], {
+        policyExceptions: pin({ ...anonymous, roles: ["anon"] }),
+      }).failures,
+    ).toEqual([]);
     expect(run([policy("currency_metadata", "true")]).failures).toEqual([]);
   });
 
@@ -2054,10 +2072,7 @@ describe("evaluateTenantRlsCatalog: the request's tenant on every signed-in poli
     ).toEqual([]);
   });
 
-  // Amended by council R3 (record D-18): a table that reaches its tenant
-  // through a parent may not be published either, so the passing example of
-  // a published table with no tenant column is one with no parent.
-  it("fails a tenant table, or one that reaches its tenant through a parent, in a publication, and passes a published table with neither", () => {
+  it("fails a tenant table in a publication, the post tables among them since WP7 pull request 1 (AL-2680), and passes a published table with no tenant", () => {
     expect(codes(run([], { published: ["donors"] }))).toEqual([
       "TENANT_TABLE_PUBLISHED donors",
     ]);
@@ -2154,6 +2169,7 @@ describe("tenant keys", () => {
         [],
         undefined,
         [],
+        { entries: [], reviewed: {} },
       ),
     );
   const cms = (keyed: (table: string) => boolean) =>
@@ -2836,6 +2852,135 @@ describe("WP8a worker wrapper rules (TP2 section 11)", () => {
     expect(failure?.detail).toContain(
       "the qualifier is the relation's alias, or its name when it has none",
     );
+  });
+});
+
+describe("WP7 (AL-2680) PR 1: the own-ministry lane admits only reviewed commands opening with begin_human_command(<tenant>, NULL)", () => {
+  const OWN_BODY = `
+DECLARE
+  v_ctx tenant_guard.command_context;
+BEGIN
+  v_ctx := tenant_guard.begin_human_command(p_tenant_id, NULL);
+  IF v_ctx.role IS DISTINCT FROM 'missionary' THEN
+    RAISE EXCEPTION 'own ministry only' USING ERRCODE = '42501';
+  END IF;
+  RETURN NULL;
+END;
+`;
+  const name = "tenant_guard.submit_example(p_tenant_id uuid, p_title text)";
+  const entry = { function: name, reason: "fixture: own ministry" };
+  const reviewedFor = (body: string) => ({
+    [name]: {
+      reason: entry.reason,
+      digest: createHash("sha256").update(body.trim()).digest("hex"),
+    },
+  });
+  const run = (
+    row: ReturnType<typeof human>,
+    list?: { entries: (typeof entry)[]; reviewed: Record<string, unknown> },
+  ) =>
+    codes(
+      evaluateTenantRlsCatalog(
+        {
+          tables: [],
+          definers: [],
+          commands: [row],
+          wrappers: [],
+          grants: [],
+          policies: [],
+          published: [],
+        },
+        listed(),
+        allow(),
+        { entries: [] },
+        [],
+        { entries: [] },
+        [],
+        list,
+      ),
+    );
+
+  it("fails a planted unlisted command that opens with a NULL capability (a guard: refused today too)", () => {
+    expect(run(human(name, { body: OWN_BODY }))).toContain(
+      `COMMAND_CAPABILITY ${name}`,
+    );
+  });
+
+  it("passes a listed one whose body is the reviewed body", () => {
+    expect(
+      run(human(name, { body: OWN_BODY }), {
+        entries: [entry],
+        reviewed: reviewedFor(OWN_BODY),
+      }),
+    ).toEqual([]);
+  });
+
+  it("fails a listed one whose body changed since its review", () => {
+    const changed = OWN_BODY.replace("RETURN NULL;", "RETURN 1;");
+    const result = run(human(name, { body: changed }), {
+      entries: [entry],
+      reviewed: reviewedFor(OWN_BODY),
+    });
+    expect(result).toContain(`COMMAND_EXCEPTION_UNREVIEWED ${name}`);
+    expect(result).toContain(`COMMAND_CAPABILITY ${name}`);
+  });
+
+  it.each([
+    [
+      "a capability literal",
+      OWN_BODY.replace(
+        "begin_human_command(p_tenant_id, NULL)",
+        "begin_human_command(p_tenant_id, 'people.manage_members')",
+      ),
+    ],
+    [
+      "one argument",
+      OWN_BODY.replace(
+        "begin_human_command(p_tenant_id, NULL)",
+        "begin_human_command(p_tenant_id)",
+      ),
+    ],
+    [
+      "a declaration initialiser first",
+      OWN_BODY.replace(
+        "v_ctx tenant_guard.command_context;",
+        "v_ctx tenant_guard.command_context;\n  v_x int := 1;",
+      ),
+    ],
+  ])(
+    "fails a listed one that opens with %s instead of begin_human_command(<tenant>, NULL)",
+    (_label, body) => {
+      expect(
+        run(human(name, { body }), {
+          entries: [entry],
+          reviewed: reviewedFor(body),
+        }),
+      ).toContain(`COMMAND_EXCEPTION_UNREVIEWED ${name}`);
+    },
+  );
+
+  it("fails a listed one that service_role may also execute", () => {
+    expect(
+      run(human(name, { body: OWN_BODY, service_role: true }), {
+        entries: [entry],
+        reviewed: reviewedFor(OWN_BODY),
+      }),
+    ).toContain(`COMMAND_EXCEPTION_UNREVIEWED ${name}`);
+  });
+
+  it("keeps every shipped entry reviewed: same names, reasons and one entry each", () => {
+    expect(ownMinistryEntries.map((e) => e.function).sort()).toEqual(
+      Object.keys(reviewedOwnMinistry).sort(),
+    );
+    for (const e of ownMinistryEntries)
+      expect(reviewedOwnMinistry[e.function]?.reason).toBe(e.reason);
+    const res = ownMinistryExceptions(
+      [human(name, { body: OWN_BODY })],
+      [entry],
+      reviewedFor(OWN_BODY),
+    );
+    expect([...res.allowed]).toEqual([name]);
+    expect(res.failures).toEqual([]);
   });
 });
 

@@ -194,6 +194,51 @@ describe("Item 6b: server redirects (Server Component, JS action, no-JS MPA acti
   });
 });
 
+describe("WP7 item zero (#2839, 27 November 09:54): the organization choice marks the browser when it completes", () => {
+  const marks = () =>
+    state.setCookies.filter((cookie) => cookie.name === "asym_clipboard_reset");
+
+  it("sets the identifier-free mark beside the organization's cookie, on and off, scripted or not", async () => {
+    for (const on of [true, false]) {
+      vi.stubEnv("CORE_SERVE_UNDER_PATHS", on ? "1" : "0");
+      vi.stubEnv("CORE_APP_BASE_PATH", on ? "/admin" : "");
+      for (const headers of [
+        { "next-action": "action-hash-123", "x-asym-name-tenant": TA },
+        { "x-asym-name-tenant": TA },
+      ]) {
+        state.requestHeaders = new Headers(headers);
+        state.setCookies = [];
+        await catchRedirect(() =>
+          chooseWebStudioOrganization(
+            form({ tenant: TA, assignment: ROW_A, next: "/web-studio" }),
+          ),
+        );
+        expect(state.setCookies[0]?.name).toBe(WEB_STUDIO_TENANT_COOKIE);
+        expect(marks()).toEqual([
+          expect.objectContaining({ value: "1", path: "/" }),
+        ]);
+      }
+    }
+  });
+
+  it("sets no mark when the choice is refused or the person is signed out", async () => {
+    vi.stubEnv("CORE_SERVE_UNDER_PATHS", "0");
+    state.requestHeaders = new Headers({ "x-asym-name-tenant": TA });
+    await catchRedirect(() =>
+      chooseWebStudioOrganization(
+        form({ tenant: TA, assignment: "not-a-row", next: "/web-studio" }),
+      ),
+    );
+    state.signedIn = { kind: "signed_out" };
+    await catchRedirect(() =>
+      chooseWebStudioOrganization(
+        form({ tenant: TA, assignment: ROW_A, next: "/web-studio" }),
+      ),
+    );
+    expect(marks()).toEqual([]);
+  });
+});
+
 describe("Item 6h: Web Studio API and sign-out origin checks use requestOrigin without request.url fallback", () => {
   it("judges Web Studio writes against the Host-derived origin and refuses foreign or invalid Host", async () => {
     const stampedSame = new Request(

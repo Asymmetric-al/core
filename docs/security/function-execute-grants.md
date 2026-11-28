@@ -585,6 +585,30 @@ are replaced, and `tenant_guard.add_partner` by
 `20261127060100_wp5_rest2_add_partner_digest.sql`, each with its owner,
 security and grantees unchanged.
 
+## Functions added by AL-2680 (WP7 pull request 1)
+
+| Function                                                                                                                                                                                                      | Security | EXECUTE grantees (exact)                |
+| ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------- | --------------------------------------- |
+| `tenant_guard.submit_ministry_update(uuid, uuid, text, text, jsonb, text, text, boolean, timestamptz, boolean)`, `tenant_guard.withdraw_own_ministry_update(uuid, uuid)`                                      | DEFINER  | `tenant_guard` (owner), `authenticated` |
+| `tenant_guard.approve_ministry_update(uuid, uuid, integer)`, `tenant_guard.reject_ministry_update(uuid, uuid, integer, text)`                                                                                 | DEFINER  | `tenant_guard` (owner), `authenticated` |
+| `tenant_guard.withdraw_ministry_update(uuid, uuid, text)`, `tenant_guard.set_publication_policy(uuid, uuid, text, text, text)`                                                                                | DEFINER  | `tenant_guard` (owner), `authenticated` |
+| `tenant_guard.lock_live_assignment(tenant_guard.command_context, text)`, `tenant_guard.own_ministry(tenant_guard.command_context)`                                                                            | INVOKER  | `postgres` (owner), `tenant_guard`      |
+| `tenant_guard.review_ministry_update(tenant_guard.command_context, uuid, text, integer, text)`                                                                                                                | INVOKER  | `postgres` (owner), `tenant_guard`      |
+| `public.submit_ministry_update`, `public.withdraw_own_ministry_update`, `public.approve_ministry_update`, `public.reject_ministry_update`, `public.withdraw_ministry_update`, `public.set_publication_policy` | INVOKER  | `postgres` (owner), `authenticated`     |
+| `private.posts_review_on_write()`, `private.parties_withhold_posts()`, `private.post_child_tenant()` (triggers)                                                                                               | DEFINER  | `postgres` (owner)                      |
+| `private.ministry_update_mode(uuid, uuid)`, `private.ministry_assignment_withheld(uuid, uuid)`                                                                                                                | INVOKER  | `postgres` (owner)                      |
+
+Each revokes `PUBLIC`, `anon`, `authenticated` and `service_role` by name
+before granting (`20261127070000_wp7_1_review.sql`,
+`20261127070100_wp7_1_post_children.sql`). The first two commands are the
+own-ministry lane (ruling Q2): they open with
+`tenant_guard.begin_human_command(<tenant>, NULL)` and are admitted by the
+catalog gate's reviewed own-ministry list; the others name their capability
+(`updates.review`, `safety.restrict_publication`). The helpers run with the
+calling command's rights. The two private readers are called only from the
+posts trigger, as their owner. `post_author_public_name` keeps its
+`service_role`-only grant.
+
 ## Functions added by AL-2681 (WP8a part 2 rest, pull request 2b)
 
 | Function                                                   | Security | EXECUTE grantees (exact)                    |

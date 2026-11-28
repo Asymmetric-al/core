@@ -255,7 +255,7 @@ describe("GraphQL Gift and engagement source guards", () => {
     expect(donations).not.toContain("Math.round(amount * 100)");
   });
 
-  it("revalidates Ministry Update tags through the public CACHE_TAGS seam", () => {
+  it("revalidates Ministry Update tags through the public CACHE_TAGS seam, and no tenant-wide posts tag (AL-2680)", () => {
     const handler = readRepoFile("packages/graphql/handler.ts");
     const apiPackage = JSON.parse(
       readRepoFile("packages/api/package.json"),
@@ -265,7 +265,7 @@ describe("GraphQL Gift and engagement source guards", () => {
       "./src/shared/cache-tags.ts",
     );
     expect(handler).toContain('from "@asym/api/shared/cache-tags"');
-    expect(handler).toContain("CACHE_TAGS.tenantPosts");
+    expect(handler).not.toContain("CACHE_TAGS.tenantPosts");
     expect(handler).toContain("CACHE_TAGS.post");
     expect(handler).toContain("revalidateTags");
     expect(handler).not.toContain("posts:tenant:");

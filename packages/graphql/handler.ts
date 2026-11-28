@@ -7,9 +7,11 @@ import {
 import { isAnonymousToRecipient } from "@asym/api/missionary-portal/redaction";
 import { CACHE_TAGS, revalidateTags } from "@asym/api/shared/cache-tags";
 import { findOwnDonor, type OwnDonorLookup } from "@asym/api/shared/queries";
+import { createRequestSessionClient } from "@asym/api/shared/request-session-client";
 import {
   getAuthContext,
   hasContextRoleClass,
+  requestScopeOf,
   requireAuth,
   requireCapability,
   requireRoleClass,
@@ -37,8 +39,67 @@ interface GraphQLContext {
   supabaseAdmin: SupabaseClient;
 }
 
-function revalidatePostTags(postId: string, tenantId: string) {
-  revalidateTags([CACHE_TAGS.tenantPosts(tenantId), CACHE_TAGS.post(postId)]);
+function revalidatePostTags(postId: string) {
+  revalidateTags([CACHE_TAGS.post(postId)]);
+}
+
+const POST_MISSIONARY_SELECT =
+  "id, missionary:missionaries!missionary_id(id, tenant_id, bio, mission_field, funding_goal, current_funding, created_at, updated_at, worker_public_name, profile:profiles!profile_id(id, avatar_url))";
+
+const POST_COLUMNS =
+  "id, tenant_id, content, media, like_count, prayer_count, comment_count, created_at, updated_at, worker_withheld";
+
+async function postsReadByCaller(
+  ctx: GraphQLContext,
+  auth: AuthenticatedContext,
+) {
+  return createRequestSessionClient(ctx.request, requestScopeOf(auth));
+}
+
+async function requireReadablePost(
+  ctx: GraphQLContext,
+  auth: AuthenticatedContext,
+  postId: string,
+) {
+  const session = await postsReadByCaller(ctx, auth);
+  const { data, error } = await session
+    .from("posts")
+    .select("id")
+    .eq("id", postId)
+    .eq("tenant_id", auth.tenantId)
+    .maybeSingle();
+  if (error || !data)
+    throw createGraphQLError("Post not found", {
+      extensions: { code: "POST_NOT_FOUND" },
+    });
+}
+
+async function withPostMissionaries(
+  supabaseAdmin: SupabaseClient,
+  posts: Record<string, unknown>[],
+): Promise<Record<string, unknown>[]> {
+  if (posts.length === 0) return [];
+  const { data, error } = await supabaseAdmin
+    .from("posts")
+    .select(POST_MISSIONARY_SELECT)
+    .in(
+      "id",
+      posts.map((post) => post.id as string),
+    );
+  if (error) throw new Error(error.message);
+  const missionaries = new Map(
+    ((data ?? []) as { id: string; missionary?: unknown }[]).map((row) => [
+      row.id,
+      row.missionary ?? null,
+    ]),
+  );
+  return posts.map((post) => ({
+    ...post,
+    missionary:
+      post.worker_withheld === true
+        ? null
+        : (missionaries.get(post.id as string) ?? null),
+  }));
 }
 
 function yogaRpc(supabaseAdmin: SupabaseClient) {
@@ -130,7 +191,7 @@ const typeDefs = /* GraphQL */ `
   type Post {
     id: ID!
     tenantId: ID!
-    missionary: Missionary!
+    missionary: Missionary
     content: String!
     media: [MediaItem!]!
     likeCount: Int!
@@ -173,18 +234,6 @@ const typeDefs = /* GraphQL */ `
     auditLogs(limit: Int, offset: Int): [AuditLog!]!
   }
 
-  input CreatePostInput {
-    content: String!
-    media: [MediaItemInput!]
-  }
-
-  input MediaItemInput {
-    url: String!
-    type: String!
-    width: Int
-    height: Int
-  }
-
   input CreateDonationInput {
     missionaryId: ID!
     amount: Int!
@@ -212,7 +261,6 @@ const typeDefs = /* GraphQL */ `
   """
   type Mutation {
     updateMyProfile(input: UpdateProfileInput!): Profile!
-    createPost(input: CreatePostInput!): Post!
     deletePost(id: ID!): Boolean!
     likePost(postId: ID!): Boolean!
     unlikePost(postId: ID!): Boolean!
@@ -300,25 +348,29 @@ const resolvers = {
       const limit = args.limit || 20;
       const offset = args.offset || 0;
 
-      const { data: posts } = await ctx.supabaseAdmin
+      const session = await postsReadByCaller(ctx, auth);
+      const { data: rows, error } = await session
         .from("posts")
-        .select(
-          "*, missionary:missionaries!missionary_id(id, tenant_id, bio, mission_field, funding_goal, current_funding, created_at, updated_at, worker_public_name, profile:profiles!profile_id(id, avatar_url))",
-        )
+        .select(POST_COLUMNS)
         .eq("tenant_id", auth.tenantId)
         .order("created_at", { ascending: false })
         .range(offset, offset + limit - 1);
-
-      const postIds = (posts || []).map((p: { id: string }) => p.id);
-      const interactionRows = await fetchUserPostInteractions(
+      if (error) throw new Error(error.message);
+      const posts = await withPostMissionaries(
         ctx.supabaseAdmin,
+        (rows ?? []) as Record<string, unknown>[],
+      );
+
+      const postIds = posts.map((p) => p.id as string);
+      const interactionRows = await fetchUserPostInteractions(
+        session,
         auth.userId,
         postIds,
       );
       const { likedPostIds, prayedPostIds } =
         toUserPostInteractionSets(interactionRows);
 
-      return (posts || []).map((post: Record<string, unknown>) => ({
+      return posts.map((post) => ({
         ...mapPost(post),
         userLiked: likedPostIds.has(post.id as string),
         userPrayed: prayedPostIds.has(post.id as string),
@@ -329,19 +381,22 @@ const resolvers = {
       requireAuth(ctx.auth);
       const auth = ctx.auth as AuthenticatedContext;
 
-      const { data: post } = await ctx.supabaseAdmin
+      const session = await postsReadByCaller(ctx, auth);
+      const { data: row } = await session
         .from("posts")
-        .select(
-          "*, missionary:missionaries!missionary_id(id, tenant_id, bio, mission_field, funding_goal, current_funding, created_at, updated_at, worker_public_name, profile:profiles!profile_id(id, avatar_url))",
-        )
+        .select(POST_COLUMNS)
         .eq("id", args.id)
         .eq("tenant_id", auth.tenantId)
-        .single();
+        .maybeSingle();
 
+      if (!row) return null;
+      const [post] = await withPostMissionaries(ctx.supabaseAdmin, [
+        row as Record<string, unknown>,
+      ]);
       if (!post) return null;
 
       const interactionRows = await fetchUserPostInteractions(
-        ctx.supabaseAdmin,
+        session,
         auth.userId,
         [args.id],
       );
@@ -499,64 +554,6 @@ const resolvers = {
       return mapProfile(data, auth);
     },
 
-    createPost: async (
-      _: unknown,
-      args: {
-        input: {
-          content: string;
-          media?: Array<{
-            url: string;
-            type: string;
-            width?: number;
-            height?: number;
-          }>;
-        };
-      },
-      ctx: GraphQLContext,
-    ) => {
-      requireRoleClass(ctx.auth, ["missionary"]);
-      const auth = ctx.auth as AuthenticatedContext;
-
-      const { data: missionary } = await ctx.supabaseAdmin
-        .from("missionaries")
-        .select("id")
-        .eq("profile_id", auth.profileId)
-        .eq("tenant_id", auth.tenantId)
-        .single();
-
-      if (!missionary) throw new Error("Missionary profile not found");
-
-      const { data: rpcData, error: rpcError } = await ctx.supabaseAdmin.rpc(
-        "atomic_create_post_with_audit",
-        {
-          p_tenant_id: auth.tenantId,
-          p_missionary_id: missionary.id,
-          p_content: args.input.content,
-          p_media: args.input.media || [],
-          p_actor_user_id: auth.userId,
-          p_ip_address: ctx.request.headers.get("x-forwarded-for"),
-          p_user_agent: ctx.request.headers.get("user-agent"),
-        },
-      );
-      if (rpcError) throw new Error(rpcError.message);
-
-      const rpcResult = (rpcData ?? null) as { post_id?: string } | null;
-      if (!rpcResult?.post_id) throw new Error("Failed to create post");
-
-      const { data: post, error } = await ctx.supabaseAdmin
-        .from("posts")
-        .select(
-          "*, missionary:missionaries!missionary_id(id, tenant_id, bio, mission_field, funding_goal, current_funding, created_at, updated_at, worker_public_name, profile:profiles!profile_id(id, avatar_url))",
-        )
-        .eq("id", rpcResult.post_id)
-        .single();
-
-      if (error || !post) throw new Error(error?.message ?? "Post not found");
-
-      revalidatePostTags(post.id, auth.tenantId);
-      return { ...mapPost(post), userLiked: false, userPrayed: false };
-    },
-
     deletePost: async (
       _: unknown,
       args: { id: string },
@@ -595,7 +592,7 @@ const resolvers = {
       );
       if (error) throw new Error(error.message);
 
-      revalidatePostTags(args.id, auth.tenantId);
+      revalidatePostTags(args.id);
       return true;
     },
 
@@ -606,6 +603,7 @@ const resolvers = {
     ) => {
       requireAuth(ctx.auth);
       const auth = ctx.auth as AuthenticatedContext;
+      await requireReadablePost(ctx, auth, args.postId);
 
       return applyGraphQLMinistryUpdateReaction({
         rpc: yogaRpc(ctx.supabaseAdmin),
@@ -623,6 +621,7 @@ const resolvers = {
     ) => {
       requireAuth(ctx.auth);
       const auth = ctx.auth as AuthenticatedContext;
+      await requireReadablePost(ctx, auth, args.postId);
 
       return applyGraphQLMinistryUpdateReaction({
         rpc: yogaRpc(ctx.supabaseAdmin),
@@ -640,6 +639,7 @@ const resolvers = {
     ) => {
       requireAuth(ctx.auth);
       const auth = ctx.auth as AuthenticatedContext;
+      await requireReadablePost(ctx, auth, args.postId);
 
       return applyGraphQLMinistryUpdateReaction({
         rpc: yogaRpc(ctx.supabaseAdmin),
@@ -657,6 +657,7 @@ const resolvers = {
     ) => {
       requireAuth(ctx.auth);
       const auth = ctx.auth as AuthenticatedContext;
+      await requireReadablePost(ctx, auth, args.postId);
 
       return applyGraphQLMinistryUpdateReaction({
         rpc: yogaRpc(ctx.supabaseAdmin),
@@ -674,6 +675,7 @@ const resolvers = {
     ) => {
       requireAuth(ctx.auth);
       const auth = ctx.auth as AuthenticatedContext;
+      await requireReadablePost(ctx, auth, args.postId);
 
       const commentId = await addGraphQLMinistryUpdateComment({
         rpc: yogaRpc(ctx.supabaseAdmin),
@@ -703,7 +705,7 @@ const resolvers = {
           extensions: { code: "COMMENT_AUTHOR_NOT_FOUND" },
         });
 
-      revalidatePostTags(args.postId, auth.tenantId);
+      revalidatePostTags(args.postId);
       return mapComment(comment, author, auth);
     },
 

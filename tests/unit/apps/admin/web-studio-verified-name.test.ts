@@ -221,7 +221,11 @@ describe("on: the choice action takes the name", () => {
     expect(await redirectOf(() => choose(TA, P_FIN_A.assignmentId))).toBe(
       "/web-studio",
     );
-    expect(state.set).toHaveLength(1);
+    expect(state.set).toHaveLength(2);
+    expect(state.set[1]).toMatchObject({
+      name: "asym_clipboard_reset",
+      value: "1",
+    });
     expect(String(state.set[0]!.value)).toContain(
       `${TA}.${P_FIN_A.assignmentId}`,
     );
@@ -326,7 +330,11 @@ describe.each([
       state.cookie = "v1.x.y.z";
       expect(await gate()).toBe("/web-studio/organization?next=%2Fweb-studio");
       await redirectOf(() => choose(TB, P_DEV_B.assignmentId));
-      expect(state.set).toHaveLength(1);
+      expect(state.set).toHaveLength(2);
+      expect(state.set[1]).toMatchObject({
+        name: "asym_clipboard_reset",
+        value: "1",
+      });
     });
   },
 );

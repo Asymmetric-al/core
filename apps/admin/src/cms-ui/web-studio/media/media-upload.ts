@@ -1,5 +1,6 @@
 import { withAppBasePath } from "@asym/database/app-base-path";
 import { ownApiFetch } from "@asym/database/own-api";
+import { z } from "zod";
 
 const HEX_UUID =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -74,21 +75,41 @@ async function attempt(request: () => Promise<Response>) {
   }
 }
 
-async function readJson(response: Response) {
-  return (await response.json().catch(() => null)) as Record<
-    string,
-    unknown
-  > | null;
+const mediaId = z
+  .string()
+  .regex(HEX_UUID)
+  .transform((value) => value.toLowerCase());
+
+const mediaStartAnswer = z.object({
+  assetId: mediaId,
+  signedUrl: z.url({ protocol: /^https?$/ }),
+});
+
+const mediaRegistrationAnswer = z.object({ id: mediaId });
+
+const sentence = z.string().trim().min(1);
+
+const mediaErrorAnswer = z.union([
+  z.object({ error: sentence }),
+  z.object({ errors: z.array(z.object({ message: sentence })).min(1) }),
+]);
+
+export type MediaStartAnswer = z.infer<typeof mediaStartAnswer>;
+export type MediaRegistrationAnswer = z.infer<typeof mediaRegistrationAnswer>;
+export type MediaErrorAnswer = z.infer<typeof mediaErrorAnswer>;
+
+async function parseAnswer<T>(
+  response: Response,
+  schema: z.ZodType<T>,
+): Promise<T | null> {
+  const parsed = schema.safeParse(await response.json().catch(() => undefined));
+  return parsed.success ? parsed.data : null;
 }
 
 async function messageOf(response: Response, fallback: string) {
-  const body = (await readJson(response)) as {
-    error?: unknown;
-    errors?: Array<{ message?: unknown }>;
-  } | null;
-  if (typeof body?.error === "string" && body.error) return body.error;
-  const first = body?.errors?.[0]?.message;
-  return typeof first === "string" && first ? first : fallback;
+  const answer = await parseAnswer(response, mediaErrorAnswer);
+  if (!answer) return fallback;
+  return "error" in answer ? answer.error : answer.errors[0]!.message;
 }
 
 const jsonPost = (body: unknown): RequestInit => ({
@@ -126,8 +147,8 @@ export async function registerUploadedMedia(
       ),
     );
   }
-  const added = await readJson(response);
-  if (typeof added?.id !== "string") {
+  const added = await parseAnswer(response, mediaRegistrationAnswer);
+  if (added?.id !== assetId.toLowerCase()) {
     return notAdded(
       "The image was stored, but the library's answer could not be read. Try again.",
     );
@@ -177,16 +198,15 @@ export async function uploadMediaFile(
       message: await messageOf(start, "The upload could not start."),
     };
   }
-  const started = await readJson(start);
-  const assetId = started?.assetId;
-  const signedUrl = started?.signedUrl;
-  if (typeof assetId !== "string" || typeof signedUrl !== "string") {
+  const started = await parseAnswer(start, mediaStartAnswer);
+  if (!started) {
     return {
       ok: false,
       stage: "start",
       message: "The upload could not start. Try again.",
     };
   }
+  const { assetId, signedUrl } = started;
   const stored = await attempt(() =>
     fetch(signedUrl, {
       method: "PUT",
