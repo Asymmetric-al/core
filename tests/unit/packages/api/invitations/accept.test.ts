@@ -259,6 +259,33 @@ describe("POST /api/invitations/accept", () => {
     });
   });
 
+  it.each(["55P03", "40001", "40P01"])(
+    "W3 (fix round of 2869): an acceptance stopped by contention (%s: a lock wait, a serialization failure, a deadlock) wrote nothing, so it answers 503 RETRY, no-store, with the busy sentence, never the invalid or the failed answer (red: 500 INVITATION_ACCEPT_FAILED)",
+    async (pgCode) => {
+      h.hasSession.mockReturnValue(true);
+      h.createSessionClient.mockResolvedValue({
+        auth: {
+          getUser: vi
+            .fn()
+            .mockResolvedValue({ data: { user: { id: USER } }, error: null }),
+        },
+        rpc: vi.fn().mockResolvedValue({
+          data: null,
+          error: { code: pgCode, message: "database text" },
+        }),
+      });
+      const res = await POST(
+        jsonPost({ selector: "a".repeat(32), verifier: "b".repeat(43) }),
+      );
+      expect(res.status).toBe(503);
+      expect(res.headers.get("cache-control")).toBe("no-store");
+      expect(await res.json()).toEqual({
+        error: "This organization is busy right now. Try again.",
+        code: "RETRY",
+      });
+    },
+  );
+
   it("refuses malformed JSON and non-JSON media types", async () => {
     h.hasSession.mockReturnValue(true);
     const badJson = await POST(jsonPost("{bad", "application/json"));
