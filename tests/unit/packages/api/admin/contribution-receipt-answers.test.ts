@@ -302,7 +302,7 @@ describe("AL-2681 issue 2857 item 42: the gift's receipt status never moves back
 });
 
 const BOUNCED =
-  "The updated receipt email went out, but it bounced or was reported as spam, so the donor may not have received it. Check the donor's email address.";
+  "The updated receipt email was not delivered: it bounced, was reported as spam, or the mail provider is blocking this address. Check the donor's email address.";
 
 async function mailedThenMarked(state: State, key: string, status: string) {
   await correctWith(state, { key });
@@ -320,7 +320,7 @@ describe("AL-2681 issue 2857 item 43: a receipt that went out and bounced is ans
     ["no e-mail choice", "none"],
     ["e-mail", "email"],
   ] as const)(
-    "a replay with %s of a snapshot whose row reads bounced: answers bounced in words that say it went out, sends nothing and writes nothing",
+    "a replay with %s of a snapshot whose row reads bounced: answers bounced in the ruled words (not delivered), sends nothing and writes nothing",
     async (_label, choice) => {
       const state = freshState(true);
       const { before, gift } = await mailedThenMarked(
