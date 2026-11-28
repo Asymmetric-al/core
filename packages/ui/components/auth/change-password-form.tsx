@@ -35,7 +35,8 @@ function validate(values: Record<Field, string>): Errors {
   return errors;
 }
 
-const SAVE_FALLBACK = "Your password couldn’t be changed. Try again.";
+const SAVE_FALLBACK =
+  "We couldn’t confirm whether your password changed. Sign in with your new password; if that doesn’t work, use your old one.";
 
 const FIELD_REFUSALS: Record<string, Field> = {
   CURRENT_PASSWORD_REFUSED: "current",
@@ -196,6 +197,10 @@ export function ChangePasswordForm({ className }: { className?: string }) {
           </LabeledField>
         </div>
       </div>
+
+      <p className="mt-3 text-sm text-muted-foreground">
+        Changing it signs you out on your other devices.
+      </p>
 
       <div className="mt-4 flex flex-wrap items-center gap-3">
         <Button ref={submitRef} type="submit" disabled={isSaving}>

@@ -72,7 +72,8 @@ function validate(password: string, confirmation: string): Problem | null {
   return null;
 }
 
-const SAVE_FALLBACK = "Your new password couldn’t be saved. Try again.";
+const SAVE_FALLBACK =
+  "We couldn’t confirm whether your new password was saved. Sign in with it; if that doesn’t work, ask for a new link.";
 
 async function saveRecoveredPassword(
   newPassword: string,
@@ -247,8 +248,8 @@ function NewPasswordForm({
           <AuthCardTitle>Choose a new password</AuthCardTitle>
           <AuthCardDescription>
             {email
-              ? `For ${email}. You’ll stay signed in after you save it.`
-              : "You’ll stay signed in after you save it."}
+              ? `For ${email}. You’ll stay signed in here, and your other devices will be signed out.`
+              : "You’ll stay signed in here, and your other devices will be signed out."}
           </AuthCardDescription>
         </AuthCardHeader>
         <AuthCardContent>
