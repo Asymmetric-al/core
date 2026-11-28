@@ -901,11 +901,16 @@ describe("withdrawing one's own update (AL-2680, WP7 pull request 1)", () => {
     review_state: "approved",
   };
   function feed(withdraw: () => Response) {
+    const stored = { ...published };
     fetchMock.mockImplementation(async (input) => {
       const url = String(input);
-      if (url === "/api/posts/post-1/withdraw") return withdraw();
+      if (url === "/api/posts/post-1/withdraw") {
+        const answer = await withdraw();
+        if (answer.ok) stored.review_state = "withdrawn";
+        return answer;
+      }
       if (url.startsWith("/api/posts?status=published"))
-        return jsonResponse(200, { posts: [published] });
+        return jsonResponse(200, { posts: [{ ...stored }] });
       if (url.startsWith("/api/posts")) return jsonResponse(200, { posts: [] });
       if (url.startsWith("/api/follower-requests"))
         return jsonResponse(200, { requests: [] });
