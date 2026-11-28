@@ -346,6 +346,7 @@ function AppSidebar() {
 }
 
 const UNLISTED_PAGES: Array<{ href: string; title: string }> = [
+  { href: "/account", title: "Your account" },
   { href: "/help/about", title: "About" },
   { href: "/sign", title: "Sign Studio" },
 ];
