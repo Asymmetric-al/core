@@ -55,7 +55,12 @@ const USER = {
 
 const nowSeconds = () => Math.floor(Date.now() / 1000);
 
-function jwt(amr: Array<{ method: string; timestamp: number }>) {
+const SIGNATURE = Buffer.from("fixture-signature").toString("base64url");
+
+function jwt(
+  amr: Array<{ method: string; timestamp: number }>,
+  options: { sessionId?: string; signature?: string } = {},
+) {
   const part = (value: unknown) =>
     Buffer.from(JSON.stringify(value)).toString("base64url");
   return [
@@ -65,16 +70,22 @@ function jwt(amr: Array<{ method: string; timestamp: number }>) {
       email: USER.email,
       aud: "authenticated",
       role: "authenticated",
-      session_id: "session-1",
+      session_id: options.sessionId ?? "session-1",
       exp: nowSeconds() + 3600,
       amr,
     }),
-    Buffer.from("fixture-signature").toString("base64url"),
+    options.signature ?? SIGNATURE,
   ].join(".");
 }
 
-function withSession(method: "password" | "recovery", ageSeconds = 60) {
-  const accessToken = jwt([{ method, timestamp: nowSeconds() - ageSeconds }]);
+function withSession(
+  method: "password" | "recovery",
+  ageSeconds = 60,
+  signature?: string,
+) {
+  const accessToken = jwt([{ method, timestamp: nowSeconds() - ageSeconds }], {
+    signature,
+  });
   const session = {
     access_token: accessToken,
     token_type: "bearer",
@@ -92,10 +103,21 @@ function withSession(method: "password" | "recovery", ageSeconds = 60) {
 
 type Call = { method: string; url: string; auth: string | null; body: string };
 
+function sessionInJar(): { access_token: string } | null {
+  const value = fixture.cookies.get("sb-password-fixture-auth-token");
+  if (!value?.startsWith("base64-")) return null;
+  return JSON.parse(Buffer.from(value.slice(7), "base64url").toString());
+}
+
 function fakeProvider(
-  options: { updateRefusal?: "weak_password" | "same_password" } = {},
+  options: {
+    updateRefusal?: "weak_password" | "same_password";
+    refuseFreshSignIn?: boolean;
+  } = {},
 ) {
   const calls: Call[] = [];
+  const issued: string[] = [];
+  let stored = CURRENT;
   const fetch = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
     const url = input instanceof Request ? input.url : input.toString();
     const headers = new Headers(init?.headers);
@@ -108,15 +130,25 @@ function fakeProvider(
     calls.push(call);
     if (url.includes("/auth/v1/token?grant_type=password")) {
       const body = JSON.parse(call.body) as { email: string; password: string };
-      if (body.email.toLowerCase() === USER.email && body.password === CURRENT)
+      const fresh = stored !== CURRENT;
+      if (
+        body.email.toLowerCase() === USER.email &&
+        body.password === stored &&
+        !(fresh && options.refuseFreshSignIn)
+      ) {
+        const token = jwt([{ method: "password", timestamp: nowSeconds() }], {
+          sessionId: `session-${issued.length + 2}`,
+        });
+        issued.push(token);
         return Response.json({
-          access_token: "verify-access-token",
+          access_token: token,
           token_type: "bearer",
           expires_in: 3600,
           expires_at: nowSeconds() + 3600,
-          refresh_token: "verify-refresh-token",
+          refresh_token: `refresh-${issued.length}`,
           user: USER,
         });
+      }
       return Response.json(
         {
           code: 400,
@@ -141,12 +173,20 @@ function fakeProvider(
           },
           { status: 422 },
         );
+      stored = (JSON.parse(call.body) as { password: string }).password;
       return Response.json(USER);
     }
-    if (url.endsWith("/auth/v1/user")) return Response.json(USER);
+    if (url.endsWith("/auth/v1/user")) {
+      if (!call.auth?.endsWith(`.${SIGNATURE}`))
+        return Response.json(
+          { code: 403, error_code: "bad_jwt", msg: "invalid JWT" },
+          { status: 403 },
+        );
+      return Response.json(USER);
+    }
     throw new Error(`Unexpected request from Core's password route: ${url}`);
   });
-  return { fetch, calls };
+  return { fetch, calls, issued };
 }
 
 function change(
@@ -242,7 +282,7 @@ describe("Core's password route (AL-2671 N4 PR 1)", () => {
     );
     expect(order.filter(Boolean)).toEqual([
       "verify",
-      "logout Bearer verify-access-token",
+      `logout Bearer ${provider.issued[0]}`,
       `update Bearer ${personToken}`,
     ]);
     expect(JSON.parse(updates()[0]!.body)).toMatchObject({ password: NEXT });
@@ -318,6 +358,44 @@ describe("Core's password route (AL-2671 N4 PR 1)", () => {
     expect(response.status).toBe(400);
     expect(JSON.parse(body)).toMatchObject({ code: "PASSWORD_UNCHANGED" });
     expect(body).not.toMatch(/different from the old password/i);
+  });
+
+  it("ends the recovery exception with its save: the person goes on in a fresh session made from the new password, the recovery session is ended, and a second save needs the current password", async () => {
+    const recoveryToken = withSession("recovery", 60);
+    const saved = await change({ newPassword: NEXT });
+    expect(saved.status).toBe(200);
+    expect(
+      provider.calls
+        .filter((call) => call.url.includes("/auth/v1/logout"))
+        .map((call) => call.auth),
+    ).toEqual([`Bearer ${recoveryToken}`]);
+    expect(sessionInJar()?.access_token).toBe(provider.issued.at(-1));
+
+    const again = await change({ newPassword: "third account phrase" });
+    expect(again.status).toBe(403);
+    expect(await again.json()).toMatchObject({
+      code: "CURRENT_PASSWORD_REQUIRED",
+    });
+  });
+
+  it("keeps the person signed in on the recovery session when no fresh session can be made, and logs it", async () => {
+    provider = fakeProvider({ refuseFreshSignIn: true });
+    vi.stubGlobal("fetch", provider.fetch);
+    const recoveryToken = withSession("recovery", 60);
+    const saved = await change({ newPassword: NEXT });
+    expect(saved.status).toBe(200);
+    expect(sessionInJar()?.access_token).toBe(recoveryToken);
+    expect(
+      provider.calls.filter((call) => call.url.includes("/auth/v1/logout")),
+    ).toEqual([]);
+    expect(JSON.stringify(logged)).toContain("recovery_session_not_replaced");
+  });
+
+  it("refuses a session whose token the provider did not sign, however recent its recovery", async () => {
+    withSession("recovery", 60, Buffer.from("forged").toString("base64url"));
+    const response = await change({ newPassword: NEXT });
+    expect(response.status).toBe(401);
+    expect(updates()).toEqual([]);
   });
 
   it("never writes a password to a log", async () => {
