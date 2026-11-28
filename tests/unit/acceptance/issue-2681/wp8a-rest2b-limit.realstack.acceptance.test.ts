@@ -444,6 +444,164 @@ describe.skipIf(!ADMIN_URL)(
         }
       }));
 
+    describe("closing round Q1: the person's limit holds across organizations (one row for each gift: an organization and a key)", () => {
+      const signedIn = (host: string, user: string, key: string, n: number) =>
+        attemptGift(db, {
+          host,
+          surface: "donor_account",
+          address: `192.0.2.${200 + n}`,
+          key,
+          user,
+        });
+
+      it("one person, two organizations, the same keys: six unpaid gifts, and the seventh is refused wherever it is sent", () =>
+        inTx(db, async () => {
+          const { hosts, hostsB } = await world();
+          const user = randomUUID();
+          const keys = [randomUUID(), randomUUID(), randomUUID()];
+          let n = 0;
+          for (const key of keys) {
+            expect(
+              (await signedIn(hosts.home, user, key, (n += 1))).admitted,
+            ).toBe(true);
+            expect(
+              (await signedIn(hostsB.home, user, key, (n += 1))).admitted,
+            ).toBe(true);
+          }
+          const seventh = randomUUID();
+          expect(
+            await signedIn(hosts.home, user, seventh, (n += 1)),
+          ).toMatchObject({
+            admitted: false,
+            bucket: "person",
+          });
+          expect(
+            await signedIn(hostsB.home, user, seventh, (n += 1)),
+          ).toMatchObject({
+            admitted: false,
+            bucket: "person",
+          });
+          expect((await signedIn(hosts.home, user, keys[0]!, 1)).admitted).toBe(
+            true,
+          );
+        }));
+
+      it("a payment in the second organization does not free the first organization's count", () =>
+        inTx(db, async () => {
+          const { fx, hosts, hostsB } = await world();
+          const user = randomUUID();
+          const keys = [randomUUID(), randomUUID(), randomUUID()];
+          let n = 0;
+          for (const key of keys) {
+            await signedIn(hosts.home, user, key, (n += 1));
+            await signedIn(hostsB.home, user, key, (n += 1));
+            const gift = begun(
+              await begin(db, {
+                host: hostsB.site,
+                key,
+                lines: [{ fund: fx.B.fund, amount: 1000 }],
+              }),
+            );
+            await replica(
+              db,
+              "UPDATE public.donations SET status = 'completed' WHERE id = $1",
+              [gift.donation_id],
+            );
+          }
+          for (let i = 0; i < 3; i += 1)
+            expect(
+              (await signedIn(hosts.home, user, randomUUID(), (n += 1)))
+                .admitted,
+            ).toBe(true);
+          expect(
+            await signedIn(hosts.home, user, randomUUID(), (n += 1)),
+          ).toMatchObject({ admitted: false, bucket: "person" });
+        }));
+
+      it("two sessions: a person's sixth unpaid gift in one organization and another sixth in the other, at once: the second waits for the first and is refused", () =>
+        twoSessions(db, ADMIN_URL, async (s1, s2, fx, hosts) => {
+          const user = randomUUID();
+          const keys = Array.from({ length: 5 }, () => randomUUID());
+          try {
+            await db.query("BEGIN");
+            await feeFund(db, fx.A);
+            const hostsB = await admitHosts(db, fx.B);
+            let n = 0;
+            for (const key of keys)
+              await signedIn(hosts.home, user, key, (n += 1));
+            await db.query("COMMIT");
+            const pid2 = await pidOf(s2);
+            await s1.query("BEGIN");
+            await s1.query("SET LOCAL ROLE service_role");
+            const first = (
+              await s1.query(
+                ATTEMPT_SQL,
+                attemptArgs({
+                  host: hostsB.home,
+                  surface: "donor_account",
+                  address: "192.0.2.240",
+                  key: keys[0]!,
+                  user,
+                }),
+              )
+            ).rows[0].r;
+            await s2.query("BEGIN");
+            await s2.query("SET LOCAL ROLE service_role");
+            const second = launch(
+              s2,
+              ATTEMPT_SQL,
+              attemptArgs({
+                host: hosts.home,
+                surface: "donor_account",
+                address: "192.0.2.241",
+                key: randomUUID(),
+                user,
+              }),
+            );
+            const waited = await blockedBy(db, pid2);
+            await s1.query("COMMIT");
+            const answer = await second;
+            await s2.query("COMMIT");
+            expect({ first, waited, second: said(answer) }).toMatchObject({
+              first: { admitted: true },
+              waited: true,
+              second: "committed",
+            });
+            expect(answer.ok && answer.rows[0]!.r).toMatchObject({
+              admitted: false,
+              bucket: "person",
+            });
+          } finally {
+            await db.query("ROLLBACK").catch(() => undefined);
+            await db.query(
+              "DELETE FROM private.intake_rate_attempts WHERE tenant_id = ANY($1::uuid[])",
+              [[fx.A.tenant, fx.B.tenant]],
+            );
+          }
+        }));
+    });
+
+    it("closing round Q6(e): an attempt trims old rows only of the buckets it holds locks on", () =>
+      inTx(db, async () => {
+        const { fx, hosts } = await world();
+        await role(db, null);
+        const other = "e".repeat(64);
+        await db.query(
+          "INSERT INTO private.intake_rate_attempts (bucket_digest, key_digest, tenant_id, created_at) VALUES ($1, $2, $3, now() - interval '11 minutes')",
+          [other, "f".repeat(64), fx.A.tenant],
+        );
+        await attemptGift(db, { host: hosts.site, address: address() });
+        await role(db, null);
+        expect(
+          (
+            await db.query(
+              "SELECT count(*)::int AS n FROM private.intake_rate_attempts WHERE bucket_digest = $1",
+              [other],
+            )
+          ).rows[0].n,
+        ).toBe(1);
+      }));
+
     describe("the config read told which surface asks (review 7a)", () => {
       it("an inactive Site on a shared home gets no account for the website; the home asking as donor_account still does", () =>
         inTx(db, async () => {
