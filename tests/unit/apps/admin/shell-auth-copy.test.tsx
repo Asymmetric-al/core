@@ -23,8 +23,9 @@ describe("admin sign-in guidance", () => {
     );
     expect(source).toContain("Access is by invitation.");
     expect(source).not.toContain("reset your password");
-    // The default link points at /forgot-password, which now works.
-    expect(source).not.toContain("forgotPasswordHref");
+    expect(source).toContain(
+      "forgotPasswordHref={operations ? null : undefined}",
+    );
     expect(source).toContain("showRegisterLink={false}");
   });
 });
