@@ -1,4 +1,4 @@
-import { createHash } from "node:crypto";
+import { createHash, randomUUID } from "node:crypto";
 
 import pg from "pg";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
@@ -12,9 +12,13 @@ it.runIf(IN_MIGRATE_JOB && !ADMIN_URL)(
 
 const digest = (value: string) =>
   createHash("sha256").update(value).digest("hex");
+const unique = (label: string) =>
+  `${label}-${randomUUID().slice(0, 8)}@example.test`;
+const uniqueAddress = () =>
+  `198.51.${Math.floor(Math.random() * 256)}.${1 + Math.floor(Math.random() * 254)}`;
 
 describe.skipIf(!ADMIN_URL)(
-  "AL-2671 N4 PR 1: Core's sign-in limits, per account and per address (real stack, every test rolled back)",
+  "AL-2671 N4 PR 1: Core's sign-in limits reserve each attempt, per account and per address (real stack)",
   () => {
     let db: pg.Client;
 
@@ -57,45 +61,114 @@ describe.skipIf(!ADMIN_URL)(
         ),
       );
 
-    const fail = (account: string, address: string) =>
+    const release = (account: string, address: string, cleared: boolean) =>
       asService(async () => {
-        await db.query("SELECT public.record_sign_in_failure($1, $2)", [
+        await db.query("SELECT public.release_sign_in_attempt($1, $2, $3)", [
           account,
           address,
+          cleared,
         ]);
       });
 
-    it("attempts alone count nothing: forty sign-ins from one address across accounts all pass", () =>
+    const clear = (account: string) =>
+      asService(async () => {
+        await db.query("SELECT public.clear_sign_in_account($1)", [account]);
+      });
+
+    async function hits(kind: string, key: string) {
+      const { rows } = await db.query(
+        "SELECT coalesce(sum(hits), 0)::int AS n FROM private.sign_in_windows WHERE kind = $1 AND key_digest = $2",
+        [kind, digest(key)],
+      );
+      return rows[0].n as number;
+    }
+
+    async function concurrentTakes(
+      sessions: number,
+      account: string,
+      addresses: (i: number) => string,
+    ) {
+      const clients = await Promise.all(
+        Array.from({ length: sessions }, async () => {
+          const client = new pg.Client({ connectionString: ADMIN_URL });
+          await client.connect();
+          await client.query("SET ROLE service_role");
+          return client;
+        }),
+      );
+      try {
+        const answers = await Promise.all(
+          clients.map(async (client, i) =>
+            Boolean(
+              (
+                await client.query(
+                  "SELECT public.take_sign_in_attempt($1, $2) AS ok",
+                  [account, addresses(i)],
+                )
+              ).rows[0].ok,
+            ),
+          ),
+        );
+        return answers.filter(Boolean).length;
+      } finally {
+        await Promise.all(clients.map((client) => client.end()));
+      }
+    }
+
+    it("an attempt that is answered gives its reservation back: forty sign-ins from one address across accounts all pass", () =>
       inTx(async () => {
         const address = "198.51.100.70";
-        const answers: boolean[] = [];
-        for (let i = 0; i < 40; i += 1)
-          answers.push(await take(`signed-in-${i}@example.test`, address));
-        expect(answers).toEqual(Array(40).fill(true));
+        for (let i = 0; i < 40; i += 1) {
+          const account = `signed-in-${i}@example.test`;
+          expect(await take(account, address), String(i)).toBe(true);
+          await release(account, address, true);
+        }
+        expect(await hits("address", address)).toBe(0);
       }));
 
     it("thirty refused passwords from one address, across thirty accounts, refuse that address for every account, while another address passes", () =>
       inTx(async () => {
         const address = "198.51.100.77";
-        for (let i = 0; i < 29; i += 1)
-          await fail(`person-${i}@example.test`, address);
-        expect(await take("fresh@example.test", address)).toBe(true);
-        await fail("person-29@example.test", address);
+        for (let i = 0; i < 30; i += 1)
+          expect(await take(`person-${i}@example.test`, address)).toBe(true);
         expect(await take("fresh@example.test", address)).toBe(false);
-        expect(await take("person-0@example.test", address)).toBe(false);
         expect(await take("fresh@example.test", "203.0.113.8")).toBe(true);
-        expect(await take("person-0@example.test", "203.0.113.8")).toBe(true);
+        expect(await hits("address", address)).toBe(30);
       }));
 
-    it("ten refused passwords for one account, from several addresses, refuse it from every address, while another account and the same addresses still pass", () =>
+    it("ten refused passwords for one account, from several addresses, refuse it from every address, while another account still passes", () =>
       inTx(async () => {
         const account = "target@example.test";
-        for (let i = 0; i < 9; i += 1) await fail(account, `198.51.100.${i}`);
-        expect(await take(account, "203.0.113.50")).toBe(true);
-        await fail(account, "198.51.100.9");
-        for (const address of ["198.51.100.1", "198.51.100.2", "203.0.113.9"])
+        for (let i = 0; i < 10; i += 1)
+          expect(await take(account, `198.51.100.${i}`)).toBe(true);
+        for (const address of ["198.51.100.1", "203.0.113.9"])
           expect(await take(account, address), address).toBe(false);
         expect(await take("other@example.test", "198.51.100.1")).toBe(true);
+        expect(await hits("account", account)).toBe(10);
+      }));
+
+    it("a provider failure gives the reservation back without clearing the account", () =>
+      inTx(async () => {
+        const account = "flaky@example.test";
+        for (let i = 0; i < 9; i += 1) await take(account, `198.51.101.${i}`);
+        expect(await take(account, "198.51.101.50")).toBe(true);
+        await release(account, "198.51.101.50", false);
+        expect(await hits("account", account)).toBe(9);
+        expect(await hits("address", "198.51.101.50")).toBe(0);
+      }));
+
+    it("a success clears the account's count, and so does a recovery", () =>
+      inTx(async () => {
+        const account = "recovers@example.test";
+        for (let i = 0; i < 9; i += 1) await take(account, `198.51.102.${i}`);
+        expect(await take(account, "198.51.102.99")).toBe(true);
+        await release(account, "198.51.102.99", true);
+        expect(await hits("account", account)).toBe(0);
+
+        for (let i = 0; i < 10; i += 1) await take(account, `198.51.103.${i}`);
+        expect(await take(account, "198.51.103.99")).toBe(false);
+        await clear(account);
+        expect(await take(account, "198.51.103.99")).toBe(true);
       }));
 
     it("a limit ends with its window: an account refused in an ended window passes in the current one", () =>
@@ -106,30 +179,60 @@ describe.skipIf(!ADMIN_URL)(
           [digest(account)],
         );
         expect(await take(account, "198.51.100.3")).toBe(true);
-        const ended = (
-          await db.query(
-            "SELECT count(*)::int AS n FROM private.sign_in_windows WHERE window_start < now() - interval '20 minutes'",
-          )
-        ).rows[0].n;
-        expect(ended).toBe(0);
       }));
 
-    it("stores digests only: no account address or client address in any row, and one refusal counts once for each", () =>
+    it("two sessions at once at one reservation from the limit: exactly one passes", async () => {
+      const account = unique("two-at-once");
+      for (let i = 0; i < 9; i += 1)
+        expect(await concurrentTakes(1, account, () => uniqueAddress())).toBe(
+          1,
+        );
+      expect(await concurrentTakes(2, account, () => uniqueAddress())).toBe(1);
+    });
+
+    it("twenty sessions at once never pass more than the account's limit, nor the address's", async () => {
+      expect(
+        await concurrentTakes(20, unique("burst"), () => uniqueAddress()),
+      ).toBe(10);
+      const address = uniqueAddress();
+      expect(
+        await concurrentTakes(20, unique("burst-a"), () => address),
+      ).toBeLessThanOrEqual(10);
+      const shared = uniqueAddress();
+      const accounts = Array.from({ length: 40 }, (_, i) =>
+        unique(`burst-${i}`),
+      );
+      const clients = await Promise.all(
+        accounts.map(async () => {
+          const client = new pg.Client({ connectionString: ADMIN_URL });
+          await client.connect();
+          await client.query("SET ROLE service_role");
+          return client;
+        }),
+      );
+      try {
+        const answers = await Promise.all(
+          clients.map(
+            async (client, i) =>
+              (
+                await client.query(
+                  "SELECT public.take_sign_in_attempt($1, $2) AS ok",
+                  [accounts[i], shared],
+                )
+              ).rows[0].ok as boolean,
+          ),
+        );
+        expect(answers.filter(Boolean)).toHaveLength(30);
+      } finally {
+        await Promise.all(clients.map((client) => client.end()));
+      }
+    });
+
+    it("stores digests only: no account address or client address in any row", () =>
       inTx(async () => {
         const account = "stored@example.test";
         const address = "198.51.100.44";
         await take(account, address);
-        await fail(account, address);
-        const rows = (
-          await db.query(
-            "SELECT kind, key_digest, hits FROM private.sign_in_windows WHERE key_digest IN ($1, $2) ORDER BY kind",
-            [digest(account), digest(address)],
-          )
-        ).rows;
-        expect(rows).toEqual([
-          { kind: "account", key_digest: digest(account), hits: 1 },
-          { kind: "address", key_digest: digest(address), hits: 1 },
-        ]);
         const raw = (
           await db.query(
             "SELECT count(*)::int AS n FROM private.sign_in_windows AS w WHERE to_jsonb(w)::text LIKE ANY ($1)",
@@ -137,22 +240,25 @@ describe.skipIf(!ADMIN_URL)(
           )
         ).rows[0].n;
         expect(raw).toBe(0);
+        expect(await hits("account", account)).toBe(1);
+        expect(await hits("address", address)).toBe(1);
       }));
 
-    it("only service_role may call either function: the publishable key's roles are refused, and blank keys are refused", () =>
+    it("only service_role may call the functions: the publishable key's roles are refused, and blank keys are refused", () =>
       inTx(async () => {
         const grants = (
           await db.query(
             `SELECT r,
                     has_function_privilege(r, 'public.take_sign_in_attempt(text, text)', 'EXECUTE') AS take,
-                    has_function_privilege(r, 'public.record_sign_in_failure(text, text)', 'EXECUTE') AS fail
+                    has_function_privilege(r, 'public.release_sign_in_attempt(text, text, boolean)', 'EXECUTE') AS release,
+                    has_function_privilege(r, 'public.clear_sign_in_account(text)', 'EXECUTE') AS clear
                FROM unnest(ARRAY['anon', 'authenticated', 'service_role']) AS r ORDER BY r`,
           )
         ).rows;
         expect(grants).toEqual([
-          { r: "anon", take: false, fail: false },
-          { r: "authenticated", take: false, fail: false },
-          { r: "service_role", take: true, fail: true },
+          { r: "anon", take: false, release: false, clear: false },
+          { r: "authenticated", take: false, release: false, clear: false },
+          { r: "service_role", take: true, release: true, clear: true },
         ]);
         const table = (
           await db.query(
@@ -170,7 +276,7 @@ describe.skipIf(!ADMIN_URL)(
           ],
           [
             "authenticated",
-            "SELECT public.record_sign_in_failure($1, $2)",
+            "SELECT public.release_sign_in_attempt($1, $2, true)",
             ["a@example.test", "198.51.100.5"],
           ],
           [
@@ -183,11 +289,7 @@ describe.skipIf(!ADMIN_URL)(
             "SELECT public.take_sign_in_attempt($1, $2)",
             ["a@example.test", " "],
           ],
-          [
-            "service_role",
-            "SELECT public.record_sign_in_failure($1, $2)",
-            ["a@example.test", ""],
-          ],
+          ["service_role", "SELECT public.clear_sign_in_account($1)", [""]],
         ] as const) {
           await db.query("SAVEPOINT n4_limits");
           await db.query(`SET LOCAL ROLE ${roleName}`);
