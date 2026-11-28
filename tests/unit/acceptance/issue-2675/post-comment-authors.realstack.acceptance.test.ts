@@ -52,6 +52,10 @@ describe.skipIf(!ADMIN_URL)(
           [post, id.TA],
         );
         await db.query(
+          "update public.posts set review_state = 'approved' where id = $1",
+          [post],
+        );
+        await db.query(
           `insert into public.post_comments (post_id, user_id, content)
            values ($1, $2, 'first'), ($1, $3, 'second'), ($1, $2, 'third')`,
           [post, id.UADM, id.UFC],
@@ -67,12 +71,25 @@ describe.skipIf(!ADMIN_URL)(
     }
 
     /** What `sub` gets for the post, ordered by commenter. */
-    const call = (sub = "UDON") =>
-      as(
+    const SCOPES: Record<string, [keyof typeof id, keyof typeof id]> = {
+      UDON: ["TA", "mDonA"],
+      UB: ["TB", "mB"],
+      UREV: ["TA", "mRev"],
+    };
+    const call = (sub = "UDON") => {
+      const [tenant, assignment] = SCOPES[sub]!;
+      return as(
         "authenticated",
-        { sub },
+        {
+          sub,
+          headers: {
+            "x-asym-tenant": id[tenant]!,
+            "x-asym-assignment": id[assignment]!,
+          },
+        },
         `select * from public.post_comment_authors('${post}') order by user_id`,
       );
+    };
     const byUser = (
       rows: {
         user_id: string;
@@ -120,18 +137,13 @@ describe.skipIf(!ADMIN_URL)(
         });
       }));
 
-    it("gives a signed-in person outside the post's organization every commenter, with no name or avatar", () =>
+    it("gives a signed-in person outside the post's organization no commenter at all (AL-2680, WP7 pull request 1 fix round S7: it answers only for an approved post of the request's organization)", () =>
       tx(async () => {
         // UB is finance staff in TB only; UREV's row in TA is revoked.
         for (const sub of ["UB", "UREV"]) {
           const r = await call(sub);
           expect(r.code, r.message).toBeNull();
-          expect(r.rows, sub).toEqual(
-            byUser([
-              { user_id: id.UADM!, display_name: null, avatar_url: null },
-              { user_id: id.UFC!, display_name: null, avatar_url: null },
-            ]),
-          );
+          expect(r.rows, sub).toEqual([]);
         }
       }));
 

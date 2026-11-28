@@ -1,36 +1,32 @@
 import {
   getAuthContext,
+  requestScopeOf,
   requireCapability,
   type AuthenticatedContext,
 } from "@asym/auth/context";
-import { getAdminClient } from "@asym/database/supabase/admin";
 import { type NextRequest, NextResponse } from "next/server";
 
+import { withStaffPostAuthors } from "./index";
 import { toErrorResponse } from "../../shared/http-errors";
+import { createRequestSessionClient } from "../../shared/request-session-client";
 
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ postId: string }> },
 ) {
   try {
-    const { client: supabaseAdmin, error: adminError } = getAdminClient();
-    if (!supabaseAdmin) {
-      return NextResponse.json({ error: adminError }, { status: 503 });
-    }
-
     const auth = await getAuthContext(request);
     requireCapability(auth, "admin.dashboard.access");
     const ctx = auth as AuthenticatedContext;
     const { postId } = await params;
+    const supabase = await createRequestSessionClient(
+      request,
+      requestScopeOf(ctx),
+    );
 
-    const { data: post, error } = await supabaseAdmin
+    const { data: post, error } = await supabase
       .from("posts")
-      .select(
-        `
-        *,
-        author:profiles!missionary_id(id, first_name, last_name, avatar_url, role)
-      `,
-      )
+      .select("*")
       .eq("id", postId)
       .eq("tenant_id", ctx.tenantId)
       .single();
@@ -39,7 +35,13 @@ export async function GET(
       return NextResponse.json({ error: "Post not found" }, { status: 404 });
     }
 
-    return NextResponse.json({ post });
+    const [named] = await withStaffPostAuthors([
+      post as unknown as { id: string },
+    ]);
+    return NextResponse.json(
+      { post: named },
+      { headers: { "Cache-Control": "private, no-store" } },
+    );
   } catch (e) {
     // The shared answer: the guard's refusal of a proposed scope keeps its
     // 401 and its mark, any other error its status (check of the fix lists,

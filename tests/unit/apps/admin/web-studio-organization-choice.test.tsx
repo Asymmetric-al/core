@@ -152,7 +152,11 @@ describe("choosing an organization inside Web Studio", () => {
     });
 
     expect(target).toBe("/web-studio/collections/pages?limit=10");
-    expect(state.set).toHaveLength(1);
+    expect(state.set).toHaveLength(2);
+    expect(state.set[1]).toMatchObject({
+      name: "asym_clipboard_reset",
+      value: "1",
+    });
     const [cookie] = state.set;
     expect(cookie).toMatchObject({
       name: WEB_STUDIO_TENANT_COOKIE,

@@ -477,8 +477,10 @@ Thirteen were listed; WP5 part 2-r2b1 closed row 4, so twelve stay open. Short p
     PDF (`receipt-pdf.ts:70`). Owner: WP8b (retires the snapshots, builds
     immutable receipt facts, rules plan `:441` against `:345` and on free-text
     memos), with WP14's firewall.
-11. **GraphQL `posts`, `post`, `createPost`** (`handler.ts:300-335,533-539`)
-    fail closed (`PGRST200`). Owner: WP4b; if repaired, they select
+11. **GraphQL `posts`, `post`** (`handler.ts:300-335`) fail closed
+    (`PGRST200`); `createPost` (`handler.ts:533-539`) is removed by
+    AL-2680 (WP7 pull request 1), whose own-ministry lane is the one
+    writer of an update. Owner: WP4b; if repaired, they select
     `post_author_public_name`, and the photo moves with WP7.
 12. **GraphQL `Query.missionaries` and `Query.missionary`**
     (`handler.ts:249-288`) show any member every worker's `bio`,

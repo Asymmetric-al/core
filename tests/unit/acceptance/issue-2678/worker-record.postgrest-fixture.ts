@@ -367,6 +367,9 @@ export async function provisionWorkerRecordStack(): Promise<pg.Client> {
       `insert into public.posts (id, tenant_id, missionary_id, content, visibility, status) values (:postR, :TA, :R, 'From R', 'public', 'published')`,
     );
     await sql(
+      `update public.posts set review_state = 'approved' where id = :postR`,
+    );
+    await sql(
       `insert into public.post_comments (post_id, user_id, content) values (:postR, :R, 'r2b1 R'), (:postR, :D, 'r2b1 D')`,
     );
     await sql(

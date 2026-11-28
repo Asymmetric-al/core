@@ -24,6 +24,13 @@ vi.mock(import("@asym/auth/context"), async (importOriginal) => ({
 vi.mock("@asym/database/supabase/admin", () => ({
   getAdminClient: h.getAdminClient,
 }));
+vi.mock(
+  "../../../../packages/api/src/shared/request-session-client",
+  async (importOriginal) => ({
+    ...(await importOriginal<typeof SessionModule>()),
+    createRequestSessionClient: async () => postsClient(),
+  }),
+);
 vi.mock("../../../../packages/api/src/stripe/tenant-client", () => ({
   resolveTenantStripe: h.resolveTenantStripe,
 }));
@@ -42,6 +49,8 @@ import {
   POST as donationsPOST,
 } from "../../../../packages/api/src/donations";
 import { GET as postsGET } from "../../../../packages/api/src/posts/index";
+
+import type * as SessionModule from "../../../../packages/api/src/shared/request-session-client";
 
 const root = fileURLToPath(new URL("../../../../", import.meta.url));
 const TENANT = "6f1c2a4e-9b3d-4c5e-8f7a-0b1c2d3e4f5a";
@@ -235,7 +244,7 @@ describe("AL-2676 (record row WP2c, WP3): the donor app mounts only what a donor
     },
   );
 
-  it("guard: a missionary reads its own drafts", async () => {
+  it("guard: a missionary reads its own drafts (AL-2680: on the caller's own token, by the author's login)", async () => {
     h.getAdminClient.mockImplementation(() => ({
       client: postsClient(),
       error: null,
@@ -245,7 +254,7 @@ describe("AL-2676 (record row WP2c, WP3): the donor app mounts only what a donor
       new NextRequest("http://localhost:4000/api/posts?status=draft"),
     );
     expect(response.status).toBe(200);
-    expect(h.drafts).toContainEqual(["missionary_id", PROFILE]);
+    expect(h.drafts).toContainEqual(["author_user_id", "user-missionary"]);
   });
 
   it("guard: a donor asking for drafts gets 403", async () => {

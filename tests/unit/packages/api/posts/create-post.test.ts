@@ -1,8 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 
-import { memberRow } from "../../../../fixtures/fake-service-client";
-
 import { createMissionaryPost } from "../../../../../packages/api/src/posts/create";
+import { FEED_POST_SELECT } from "../../../../../packages/api/src/posts/select";
 import { postWriteSchema } from "../../../../../packages/api/src/schemas/posts";
 
 const doc = (text: string) =>
@@ -19,24 +18,14 @@ const auth = {
   role: "missionary",
 } as never;
 
-/**
- * Just enough of the service-role client for the create path. The author's
- * profile is read by their login (never by the profile's tenant column,
- * AL-2675, NR-68); the resolver has already checked their membership in the
- * tenant (council round 1 on WP2a, F12). `profile: null` means no profile.
- */
-function fakeClient(options: { profile?: { id: string } | null } = {}) {
-  const rpc = vi.fn(async (fn: string) =>
-    fn === "tenant_member_profiles"
-      ? {
-          data:
-            options.profile === null
-              ? []
-              : [memberRow({ profileId: "profile-1", userId: "user-1" })],
-          error: null,
-        }
-      : { data: { post_id: "post-1" }, error: null },
+function sessionClient(
+  refusal: { code: string; message: string; hint?: string } | null = null,
+  readBack: "row" | "fails" = "row",
+) {
+  const rpc = vi.fn(async () =>
+    refusal ? { data: null, error: refusal } : { data: "post-1", error: null },
   );
+  const reads: Array<[string, ...unknown[]]> = [];
   const created = {
     id: "post-1",
     title: "Clinic opens",
@@ -44,31 +33,28 @@ function fakeClient(options: { profile?: { id: string } | null } = {}) {
     status: "published",
     visibility: "partners_only",
     post_type: "Milestone",
+    review_state: "submitted",
   };
   const from = vi.fn((table: string) => {
+    reads.push(["from", table]);
     const chain = {
-      select: () => chain,
-      eq: () => chain,
+      select: (columns: string) => {
+        reads.push(["select", columns]);
+        return chain;
+      },
+      eq: (column: string, value: unknown) => {
+        reads.push(["eq", column, value]);
+        return chain;
+      },
       single: async () =>
-        table === "profiles"
-          ? {
-              data:
-                options.profile === undefined
-                  ? { id: "profile-1" }
-                  : options.profile,
-              error: null,
-            }
-          : { data: created, error: null },
+        readBack === "row"
+          ? { data: created, error: null }
+          : { data: null, error: { message: "read-back detail" } },
     };
     return chain;
   });
-  return { client: { rpc, from } as never, rpc, from };
+  return { client: { rpc, from } as never, rpc, reads };
 }
-
-const request = new Request("http://localhost/api/posts", {
-  method: "POST",
-  headers: { "x-forwarded-for": "203.0.113.9", "user-agent": "vitest" },
-});
 
 describe("postWriteSchema", () => {
   it("fills the defaults a new update needs", () => {
@@ -125,13 +111,12 @@ describe("postWriteSchema", () => {
   });
 });
 
-describe("createMissionaryPost", () => {
-  it("creates the post in one call with every attribute, as the author", async () => {
-    const { client, rpc } = fakeClient();
+describe("createMissionaryPost: the missionary submits through the own-ministry lane on their own token (AL-2680, WP7 pull request 1, invariant 1)", () => {
+  it("submits every attribute in one call to submit_ministry_update and reads the update back on the same token", async () => {
+    const { client, rpc, reads } = sessionClient();
     const result = await createMissionaryPost({
-      supabaseAdmin: client,
+      supabase: client,
       auth,
-      request,
       input: postWriteSchema.parse({
         title: "Clinic opens",
         content: doc("We opened."),
@@ -141,63 +126,116 @@ describe("createMissionaryPost", () => {
       }),
     });
 
-    // Council round 1 on WP2a, F12: the author's profile is read by login
-    // alone; the resolver has checked their membership, so no second read.
     expect(rpc).toHaveBeenCalledTimes(1);
-    expect(rpc).not.toHaveBeenCalledWith(
-      "tenant_member_profiles",
-      expect.anything(),
-    );
-    expect(rpc).toHaveBeenCalledWith("atomic_create_post_with_audit", {
+    expect(rpc).toHaveBeenCalledWith("submit_ministry_update", {
       p_tenant_id: "tenant-1",
-      // posts.missionary_id references profiles.id.
-      p_missionary_id: "profile-1",
+      p_post_id: null,
       p_title: "Clinic opens",
       p_content: doc("We opened."),
       p_media: [],
-      p_post_type: "Milestone",
       p_visibility: "partners_only",
-      p_status: "published",
-      p_actor_user_id: "user-1",
-      p_ip_address: "203.0.113.9",
-      p_user_agent: "vitest",
+      p_post_type: "Milestone",
+      p_publish: true,
+      p_expected_updated_at: null,
+      p_expected_draft: false,
     });
+    expect(FEED_POST_SELECT).not.toContain("*");
+    expect(reads).toEqual([
+      ["from", "posts"],
+      ["select", FEED_POST_SELECT],
+      ["eq", "id", "post-1"],
+    ]);
     expect(result).toEqual({
       ok: true,
-      post: expect.objectContaining({ id: "post-1" }),
+      post: expect.objectContaining({
+        id: "post-1",
+        review_state: "submitted",
+      }),
     });
   });
 
-  it("saves drafts as drafts", async () => {
-    const { client, rpc } = fakeClient();
+  it("saves drafts unpublished", async () => {
+    const { client, rpc } = sessionClient();
     await createMissionaryPost({
-      supabaseAdmin: client,
+      supabase: client,
       auth,
-      request,
       input: postWriteSchema.parse({ content: doc("Later"), status: "draft" }),
     });
     expect(rpc).toHaveBeenCalledWith(
-      "atomic_create_post_with_audit",
-      expect.objectContaining({ p_status: "draft", p_title: null }),
+      "submit_ministry_update",
+      expect.objectContaining({ p_publish: false, p_title: null }),
     );
   });
 
-  it("refuses when the signed-in user has no profile", async () => {
-    const { client, rpc } = fakeClient({ profile: null });
+  it("answers 403 when the lane refuses the caller (42501) and 400 with the command's words when it refuses the update (22023)", async () => {
+    const input = postWriteSchema.parse({ content: doc("Hi") });
+    const refused = sessionClient({
+      code: "42501",
+      message:
+        "tenant_guard: the caller does not hold the authority this command requires",
+    });
+    expect(
+      await createMissionaryPost({ supabase: refused.client, auth, input }),
+    ).toEqual({ ok: false, status: 403, error: "Forbidden" });
+    const invalid = sessionClient({
+      code: "22023",
+      message: "Unknown visibility",
+    });
+    expect(
+      await createMissionaryPost({ supabase: invalid.client, auth, input }),
+    ).toEqual({ ok: false, status: 400, error: "Unknown visibility" });
+  });
+
+  it("answers 403 in words the missionary can act on when their worker record is not linked to their sign-in (fix round S1)", async () => {
+    const input = postWriteSchema.parse({ content: doc("Hi") });
+    const unlinked = sessionClient({
+      code: "42501",
+      message:
+        "tenant_guard: the caller's worker record is not linked to their sign-in",
+      hint: "worker_not_linked",
+    });
+    expect(
+      await createMissionaryPost({ supabase: unlinked.client, auth, input }),
+    ).toEqual({
+      ok: false,
+      status: 403,
+      error:
+        "Your worker record is not linked to your sign-in yet: ask your organization’s staff.",
+      code: "worker_not_linked",
+    });
+  });
+
+  it("is done once the command returned an id: a failed read-back still answers the new update's id (fix round A1)", async () => {
+    const log = vi.spyOn(console, "error").mockImplementation(() => undefined);
+    const { client } = sessionClient(null, "fails");
     const result = await createMissionaryPost({
-      supabaseAdmin: client,
+      supabase: client,
       auth,
-      request,
       input: postWriteSchema.parse({ content: doc("Hi") }),
     });
-    expect(result).toEqual({
-      ok: false,
-      status: 404,
-      error: "Profile not found",
+    expect(result).toEqual({ ok: true, post: { id: "post-1" } });
+    expect(log).toHaveBeenCalled();
+    log.mockRestore();
+  });
+
+  it("answers a fixed sentence, never the database's words, for any other failure of the command (fix round A1)", async () => {
+    const log = vi.spyOn(console, "error").mockImplementation(() => undefined);
+    const failed = sessionClient({
+      code: "XX000",
+      message: "relation detail from the database",
     });
-    expect(rpc).not.toHaveBeenCalledWith(
-      "atomic_create_post_with_audit",
-      expect.anything(),
-    );
+    expect(
+      await createMissionaryPost({
+        supabase: failed.client,
+        auth,
+        input: postWriteSchema.parse({ content: doc("Hi") }),
+      }),
+    ).toEqual({
+      ok: false,
+      status: 500,
+      error: "Couldn’t save that update. Nothing was changed.",
+    });
+    expect(log).toHaveBeenCalled();
+    log.mockRestore();
   });
 });

@@ -45,10 +45,10 @@ describe("shared/cache-tags constant values", () => {
   // These strings are a cross-module contract: cached reads `cacheTag` them
   // and mutations `revalidateTag` them. A silent rename here breaks
   // invalidation, so the exact values are locked.
-  it("locks the Ministry Update post tag strings", () => {
+  it("locks the Ministry Update post tag strings, with no tenant-wide posts tag: no server cache holds a tenant's feed (AL-2680, ADR 0008 rule 11)", () => {
     expect(CACHE_TAGS.posts).toBe("posts");
-    expect(CACHE_TAGS.tenantPosts("t1")).toBe("posts:tenant:t1");
     expect(CACHE_TAGS.post("p1")).toBe("post:p1");
+    expect(Object.keys(CACHE_TAGS).sort()).toEqual(["post", "posts"]);
   });
 
   it("locks the admin CRM tag strings", () => {

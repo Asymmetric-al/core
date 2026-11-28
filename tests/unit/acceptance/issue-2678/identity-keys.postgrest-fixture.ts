@@ -341,6 +341,10 @@ export function identityKeysFixture() {
         "insert into public.posts (id, tenant_id, missionary_id, content, visibility, status) values ($1, $3, $4, 'From W', 'public', 'published'), ($2, $3, $5, 'From X', 'public', 'published')",
         [ids.postW, ids.postX, TA, worker.W, worker.X],
       );
+      await db.query(
+        "update public.posts set review_state = 'approved' where id = any($1::uuid[])",
+        [[ids.postW, ids.postX]],
+      );
       await db.query("commit");
     } catch (error) {
       await db.query("rollback");
