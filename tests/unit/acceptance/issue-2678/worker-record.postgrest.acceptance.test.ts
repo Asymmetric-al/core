@@ -12,13 +12,16 @@ import {
   vi,
 } from "vitest";
 
+import { downSql } from "./assignment-keys.helpers";
 import { BLANK_ALIASES, REAL_ALIAS, codePoints } from "./blank-aliases";
+import { migration } from "./harness";
 import {
   absent,
   anon,
   as,
   cleanupWorkerRecordStack,
   database,
+  freshLogin,
   id,
   NOT_PERMITTED,
   onAuth,
@@ -878,6 +881,218 @@ describe.skipIf(!required && ![url, database, anon, service].some(Boolean))(
         code: "LEGAL_ENTITY_NOT_FOUND",
       });
       expect(await workers()).toBe(before);
+    });
+    async function newWorker(name: string) {
+      const party = (
+        await db.query(
+          "insert into public.parties (tenant_id, display_name, security_level, security_level_source) values ($1, $2, 'standard', 'manual') returning id",
+          [TA, name],
+        )
+      ).rows[0].id as string;
+      const worker = (
+        await db.query(
+          "insert into public.missionaries (tenant_id, party_id, profile_id, legal_entity_id) values ($1, $2, null, $1) returning id",
+          [TA, party],
+        )
+      ).rows[0].id as string;
+      return { party, worker };
+    }
+    async function invite(assignmentId: string, email: string) {
+      const who = as("A");
+      const { POST_INVITE } = await routes.commands();
+      return POST_INVITE(
+        request(who, "POST", `/api/admin/workers/${assignmentId}/invite`, {
+          email,
+          reason: "Sign in to your record",
+        }),
+        params(assignmentId),
+      );
+    }
+    async function invited(assignmentId: string, email: string) {
+      const response = await invite(assignmentId, email);
+      const body = (await response.json()) as Record<string, unknown>;
+      expect(response.status, JSON.stringify(body)).toBe(201);
+      const parts = /^\/invite\/([^#]+)#(.+)$/.exec(String(body.invitePath));
+      expect(parts, "the invite path").not.toBeNull();
+      return { body, link: { selector: parts![1]!, verifier: parts![2]! } };
+    }
+    async function accept(
+      bearer: string,
+      link: { selector: string; verifier: string },
+    ) {
+      const { POST } =
+        await import("../../../../packages/api/src/invitations/accept");
+      return POST(
+        new NextRequest("http://localhost/api/invitations/accept", {
+          method: "POST",
+          headers: {
+            authorization: `Bearer ${bearer}`,
+            "content-type": "application/json",
+            "x-asym-name-tenant": TA,
+          },
+          body: JSON.stringify(link),
+        }),
+      );
+    }
+    async function ties(party: string, login: string) {
+      const rows = async (text: string, values: unknown[]) =>
+        (await db.query(text, values)).rows;
+      return {
+        invitations: (
+          await rows(
+            "select status from public.membership_invitations where tenant_id = $1 and party_id = $2",
+            [TA, party],
+          )
+        )
+          .map((r) => r.status as string)
+          .sort(),
+        worker: await rows(
+          "select profile_id from public.missionaries where tenant_id = $1 and party_id = $2",
+          [TA, party],
+        ),
+        links: await rows(
+          "select user_id, linked_via from public.account_links where tenant_id = $1 and party_id = $2 order by user_id",
+          [TA, party],
+        ),
+        memberships: (
+          await rows(
+            "select role::text from authz.memberships where tenant_id = $1 and user_id = $2 order by role",
+            [TA, login],
+          )
+        ).map((r) => r.role as string),
+      };
+    }
+
+    it("W7 (fix round of 2869): through the invite route with A's real token, a worker with no login is invited: 201 with the link, no-store and no referrer, and one issued missionary invitation naming the worker's Party; R, who has a login, is refused 409 HAS_LOGIN and nothing is issued (guard: the route was proven against mocks only)", async () => {
+      const w = await newWorker("Worker Ibis");
+      const email = `r2b1-ibis-${randomUUID()}@example.test`;
+      const response = await invite(w.worker, email);
+      const body = (await response.json()) as Record<string, unknown>;
+      expect(response.status, JSON.stringify(body)).toBe(201);
+      expect(response.headers.get("cache-control")).toBe("no-store");
+      expect(response.headers.get("referrer-policy")).toBe("no-referrer");
+      expect(body.invitation).toMatchObject({ email });
+      expect(String(body.invitePath)).toMatch(/^\/invite\/[^#]+#.+$/);
+      expect(
+        (
+          await db.query(
+            "select status, role::text, party_id from public.membership_invitations where tenant_id = $1 and email_normalized = $2",
+            [TA, email],
+          )
+        ).rows,
+      ).toEqual([{ status: "issued", role: "missionary", party_id: w.party }]);
+      const issuedCount = async () =>
+        (
+          await db.query(
+            "select count(*)::int n from public.membership_invitations where tenant_id = $1",
+            [TA],
+          )
+        ).rows[0].n as number;
+      const before = await issuedCount();
+      const refused = await invite(
+        id.wR!,
+        `r2b1-rowan-${randomUUID()}@example.test`,
+      );
+      expect(refused.status).toBe(409);
+      expect(await refused.json()).toMatchObject({
+        error: "This worker already has a login.",
+        code: "HAS_LOGIN",
+      });
+      expect(await issuedCount()).toBe(before);
+    });
+
+    it("W7 (fix round of 2869): two people invited to one worker accept through POST /api/invitations/accept with their real tokens: the first becomes the worker's login; the second reads 409 WORKER_HAS_LOGIN (55006) with its sentence, and nothing is written for them: no membership, no link, the worker's login unchanged, their invitation still issued (guard: the route's mapping was proven against a mock only)", async () => {
+      const w = await newWorker("Worker Jacana");
+      const first = await freshLogin("jacana-first");
+      const second = await freshLogin("jacana-second");
+      const one = await invited(w.worker, first.email);
+      const two = await invited(w.worker, second.email);
+      const accepted = await accept(first.bearer, one.link);
+      const acceptedBody = (await accepted.json()) as Record<string, unknown>;
+      expect(accepted.status, JSON.stringify(acceptedBody)).toBe(200);
+      expect(acceptedBody).toMatchObject({
+        user_id: first.userId,
+        party_id: w.party,
+        assignment_id: w.worker,
+      });
+      const before = await ties(w.party, second.userId);
+      const refused = await accept(second.bearer, two.link);
+      expect(refused.status).toBe(409);
+      expect(refused.headers.get("cache-control")).toBe("no-store");
+      expect(await refused.json()).toEqual({
+        error:
+          "This worker already has a login. Ask your organization for help.",
+        code: "WORKER_HAS_LOGIN",
+      });
+      const after = await ties(w.party, second.userId);
+      expect(after).toEqual(before);
+      expect(after).toEqual({
+        invitations: ["accepted", "issued"],
+        worker: [{ profile_id: first.userId }],
+        links: [{ user_id: first.userId, linked_via: "invitation" }],
+        memberships: [],
+      });
+    });
+
+    it("W7 (fix round of 2869): D, a donor of the organization on another Party, accepts an invitation to a worker through POST /api/invitations/accept with D's real token and reads 409 LOGIN_TIED_ELSEWHERE (21000) with its sentence; nothing is written: the worker keeps no login, no link, D keeps only the donor membership, the invitation is still issued (guard: the route's mapping was proven against a mock only)", async () => {
+      const w = await newWorker("Worker Kiskadee");
+      const { link } = await invited(w.worker, `r2b1-d-${TA}@example.test`);
+      const before = await ties(w.party, user.D);
+      expect(before).toEqual({
+        invitations: ["issued"],
+        worker: [{ profile_id: null }],
+        links: [],
+        memberships: ["donor"],
+      });
+      const refused = await accept(token.D, link);
+      expect(refused.status).toBe(409);
+      expect(refused.headers.get("cache-control")).toBe("no-store");
+      expect(await refused.json()).toEqual({
+        error:
+          "This account already belongs to another person in this organization. Ask your organization for help.",
+        code: "LOGIN_TIED_ELSEWHERE",
+      });
+      expect(await ties(w.party, user.D)).toEqual(before);
+    });
+
+    it("W8 (fix round of 2869): on the local stack, connected as postgres with the hosted role's attributes (no superuser, BYPASSRLS), 090300's Down UPDATE, run as written, revokes an issued worker invitation although membership_invitations forces row security and its one policy is tenant_guard's; in a transaction rolled back", async () => {
+      const w = await newWorker("Worker Limpkin");
+      await invited(w.worker, `r2b1-limpkin-${randomUUID()}@example.test`);
+      const statement = downSql(migration("_wp5_rest2b_worker_invitations"))
+        .split("\n")
+        .find((line) =>
+          line.startsWith("UPDATE public.membership_invitations"),
+        );
+      expect(statement, "the Down's UPDATE").toBeDefined();
+      const status = async () =>
+        (
+          await db.query(
+            "select status from public.membership_invitations where tenant_id = $1 and party_id = $2",
+            [TA, w.party],
+          )
+        ).rows.map((r) => r.status as string);
+      await db.query("begin");
+      try {
+        expect(
+          (
+            await db.query(
+              "select current_user::text who, r.rolsuper, r.rolbypassrls, c.relforcerowsecurity, (select array_agg(p.polroles::regrole[]::text) from pg_catalog.pg_policy p where p.polrelid = c.oid) policies from pg_catalog.pg_roles r, pg_catalog.pg_class c where r.rolname = current_user and c.oid = 'public.membership_invitations'::regclass",
+            )
+          ).rows[0],
+        ).toEqual({
+          who: "postgres",
+          rolsuper: false,
+          rolbypassrls: true,
+          relforcerowsecurity: true,
+          policies: ["{tenant_guard}"],
+        });
+        const changed = await db.query(statement!);
+        expect(changed.rowCount).toBeGreaterThanOrEqual(1);
+        expect(await status()).toEqual(["revoked"]);
+      } finally {
+        await db.query("rollback");
+      }
+      expect(await status()).toEqual(["issued"]);
     });
   },
 );

@@ -57,6 +57,7 @@ export const id = Object.fromEntries(
 ) as Record<string, string>;
 export const user = {} as Record<Person, string>;
 export const token = {} as Record<Person, string>;
+const extra: string[] = [];
 
 export const IDENTITY = [
   "Legal Kestrel",
@@ -412,6 +413,30 @@ export async function provisionWorkerRecordStack(): Promise<pg.Client> {
   return db!;
 }
 
+export async function freshLogin(tag: string) {
+  const credentials = {
+    email: `r2b1-${tag}-${randomUUID()}@example.test`,
+    password: randomUUID(),
+  };
+  const created = await api("auth/v1/admin/users", {
+    key: service,
+    bearer: service,
+    body: { ...credentials, email_confirm: true },
+  });
+  expect(created.ok, `Auth fixture ${tag}: ${created.status}`).toBe(true);
+  const userId = (await created.json()).id as string;
+  extra.push(userId);
+  const login = await api("auth/v1/token?grant_type=password", {
+    body: credentials,
+  });
+  expect(login.ok, `Sign-in ${tag}: ${login.status}`).toBe(true);
+  return {
+    userId,
+    email: credentials.email,
+    bearer: (await login.json()).access_token as string,
+  };
+}
+
 export async function cleanupWorkerRecordStack() {
   restoreEnv("NEXT_PUBLIC_SUPABASE_URL", publicEnv.url);
   restoreEnv("NEXT_PUBLIC_SUPABASE_ANON_KEY", publicEnv.anonKey);
@@ -424,6 +449,7 @@ export async function cleanupWorkerRecordStack() {
         try {
           for (const statement of [
             "delete from public.audit_logs where tenant_id = any($1::uuid[])",
+            "delete from public.membership_invitations where tenant_id = any($1::uuid[])",
             "delete from public.contribution_receipt_snapshots where tenant_id = any($1::uuid[])",
             "delete from public.post_comments where post_id in (select id from public.posts where tenant_id = any($1::uuid[]))",
             "delete from public.posts where tenant_id = any($1::uuid[])",
@@ -449,18 +475,24 @@ export async function cleanupWorkerRecordStack() {
       }
   } finally {
     const failures: string[] = [];
-    for (const who of PEOPLE)
-      if (user[who])
-        try {
-          const deleted = await api(`auth/v1/admin/users/${user[who]}`, {
-            key: service,
-            bearer: service,
-            method: "DELETE",
-          });
-          if (!deleted.ok) failures.push(`${who}: ${deleted.status}`);
-        } catch (error) {
-          failures.push(`${who}: ${String(error)}`);
-        }
+    const logins: [string, string][] = [
+      ...PEOPLE.filter((who) => user[who]).map((who): [string, string] => [
+        who,
+        user[who],
+      ]),
+      ...extra.map((userId): [string, string] => [userId, userId]),
+    ];
+    for (const [who, userId] of logins)
+      try {
+        const deleted = await api(`auth/v1/admin/users/${userId}`, {
+          key: service,
+          bearer: service,
+          method: "DELETE",
+        });
+        if (!deleted.ok) failures.push(`${who}: ${deleted.status}`);
+      } catch (error) {
+        failures.push(`${who}: ${String(error)}`);
+      }
     expect(failures, "auth users the fixture could not delete").toEqual([]);
   }
 }
