@@ -477,7 +477,7 @@ gift_already_completed`, never `gift_closed`), `closed` once it is
     organization is not `active` (`organization_inactive`), takes the
     binding `FOR SHARE`, and only then the request, so a suspension or a
     disconnect committed first is seen and one committed later waits for the
-    claim (two sessions; `20261127080000_wp8a2_rest2b_item_zero.sql`).
+    claim (two sessions; `20261128080000_wp8a2_rest2b_item_zero.sql`).
 58. **A disconnect leaves no request whose outcome is unknown without a task
     (item 19).** At the disconnect, each such request of the binding gets
     one staff task and link (`provider_request_outcome_unknown_disconnected`);

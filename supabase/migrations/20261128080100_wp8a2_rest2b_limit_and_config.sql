@@ -47,7 +47,7 @@
 -- Locks, held to COMMIT, taken first: SHARE ROW EXCLUSIVE on public.tenants
 -- (the new foreign key of private.intake_rate_attempts). lock_timeout stops a
 -- run rather than queue it behind live traffic. It is the one statement that
--- can stop this release after 20261127080000 has committed; nothing of this
+-- can stop this release after 20261128080000 has committed; nothing of this
 -- file has then committed, and a re-run of the release completes it.
 --
 -- Recovery. Nothing here is written to run twice: a run lost between its
@@ -57,7 +57,7 @@
 --   SELECT to_regclass('private.intake_rate_attempts') IS NOT NULL
 -- Then follow docs/ops/release-job.md, "If the migration committed but its
 -- ledger row is missing", with this check and this file's version,
--- 20261127080100.
+-- 20261128080100.
 --
 -- Down, an operator's last resort, in one transaction:
 --   SET LOCAL lock_timeout = '5s';

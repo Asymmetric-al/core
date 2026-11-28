@@ -40,7 +40,7 @@
 --   SELECT to_regprocedure('public.donor_portal_login_lifetime(uuid, uuid, uuid)') IS NOT NULL
 -- Then follow docs/ops/release-job.md, "If the migration committed but its
 -- ledger row is missing", with this check and this file's version,
--- 20261127080000.
+-- 20261128080000.
 --
 -- Down, an operator's last resort, in one transaction:
 --   SET LOCAL lock_timeout = '5s';

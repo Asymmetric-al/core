@@ -15,8 +15,8 @@ const body = (text: string) => text.slice(text.indexOf("\nBEGIN;\n") + 8);
 const header = (text: string) => text.slice(0, text.indexOf("\nBEGIN;\n"));
 
 describe("AL-2681 B fix round X1 and X12.1: the limit's migration on a hosted database", () => {
-  it("20261127080100 takes SHARE ROW EXCLUSIVE on public.tenants straight after its lock_timeout, and its header names that lock and what a stop there leaves", () => {
-    const text = file("20261127080100");
+  it("20261128080100 takes SHARE ROW EXCLUSIVE on public.tenants straight after its lock_timeout, and its header names that lock and what a stop there leaves", () => {
+    const text = file("20261128080100");
     const statements = body(text);
     const locks = [
       ...statements.matchAll(/^LOCK TABLE ([\w.]+) IN ([A-Z ]+) MODE;$/gm),
@@ -32,7 +32,7 @@ describe("AL-2681 B fix round X1 and X12.1: the limit's migration on a hosted da
   it("take_intake_attempt takes its bucket locks one at a time in a sorted loop, not in a PERFORM ... ORDER BY", () => {
     const fn =
       /CREATE FUNCTION public\.take_intake_attempt[\s\S]*?\n\$\$;/.exec(
-        file("20261127080100"),
+        file("20261128080100"),
       )![0];
     expect(fn).not.toMatch(
       /PERFORM pg_catalog\.pg_advisory_xact_lock[^;]*ORDER BY/,
