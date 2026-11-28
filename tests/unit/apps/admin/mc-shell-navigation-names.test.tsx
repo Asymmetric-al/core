@@ -378,6 +378,17 @@ describe("Mission Control composed navigation names", () => {
     expect(within(trail).getByText("About")).toBeTruthy();
   });
 
+  it("names the account page in the breadcrumb (N4)", () => {
+    shellState.pathname = "/account";
+    const view = render(
+      <MCShell>
+        <h1>Content</h1>
+      </MCShell>,
+    );
+    const trail = view.getByRole("navigation", { name: /breadcrumb/i });
+    expect(within(trail).getByText("Your account")).toBeTruthy();
+  });
+
   it("marks the current page in the sidebar", () => {
     shellState.pathname = "/crm/notes";
     const view = render(

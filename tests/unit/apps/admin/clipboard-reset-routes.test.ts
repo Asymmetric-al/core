@@ -31,6 +31,18 @@ vi.mock("@asym/api/auth/demo-account", () => ({
   },
 }));
 
+vi.mock("@asym/api/auth/sign-in", () => ({
+  POST: async (request: Request) => {
+    const { NextResponse } = await import("next/server");
+    return request.headers.get("x-test-outcome") === "refused"
+      ? NextResponse.json(
+          { ok: false, code: "SIGN_IN_REFUSED" },
+          { status: 401 },
+        )
+      : NextResponse.json({ ok: true });
+  },
+}));
+
 vi.mock("@asym/api/auth/signout", () => ({
   POST: async (request: Request) => {
     const { NextResponse } = await import("next/server");
@@ -109,6 +121,23 @@ describe("each way into or out of a session marks the browser, with no identifie
       expect(marks[0]).not.toMatch(/HttpOnly/i);
     },
   );
+
+  it("marks a sign-in through Core only when it signs someone in, so a refusal answers exactly as the other apps' do (N4 fix round, Y9)", async () => {
+    const { POST } =
+      await import("../../../../apps/admin/app/api/auth/sign-in/route");
+    const signedIn = await POST(
+      new Request("https://admin.test/api/auth/sign-in", { method: "POST" }),
+    );
+    expect(markOf(signedIn)).toHaveLength(1);
+    const refused = await POST(
+      new Request("https://admin.test/api/auth/sign-in", {
+        method: "POST",
+        headers: { "x-test-outcome": "refused" },
+      }),
+    );
+    expect(refused.status).toBe(401);
+    expect(markOf(refused)).toEqual([]);
+  });
 
   it("keeps the shared callbacks' redirects", async () => {
     const callback =
