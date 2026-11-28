@@ -553,3 +553,95 @@ describe("AL-2681 issue 2857 item 45: the replay's delivery check and the stub's
     ).toMatchObject({ code: "23502" });
   });
 });
+
+const STORED: Record<string, (state: State) => Row[]> = {
+  email_send_logs: (state) => state.emailSendLogs,
+  contribution_receipt_snapshots: (state) => state.snapshots,
+  contribution_adjustments: (state) => state.adjustments,
+};
+
+function filled(table: string, key: string[], value: string): Row {
+  const rules = TABLE_RULES[table]!;
+  const row: Row = {};
+  for (const column of new Set([...rules.required, ...rules.notNull])) {
+    if (column === "id" || column === "created_at") continue;
+    row[column] = ["metadata", "content", "effective_values"].includes(column)
+      ? {}
+      : ["recipient_count", "retry_count"].includes(column)
+        ? 0
+        : `${column}-x`;
+  }
+  for (const column of key) row[column] = `${column}-${value}`;
+  return row;
+}
+
+describe("AL-2681 A2 fix round Z6: the stub refuses what the tables refuse, from TABLE_RULES", () => {
+  const cases = Object.entries(TABLE_RULES)
+    .filter(([table]) => table in STORED)
+    .flatMap(([table, rules]) =>
+      rules.unique.map((key) => [table, key] as [string, string[]]),
+    );
+
+  it.each(cases)(
+    "%s: a second row of the unique key %j is refused 23505, by insert and by update",
+    async (table, key) => {
+      const state = freshState(false);
+      const db = stub(state);
+      const first = await db
+        .from(table)
+        .insert(filled(table, key, "a"))
+        .select("id")
+        .single();
+      expect(first.error).toBeNull();
+      const twin = await db
+        .from(table)
+        .insert(filled(table, key, "a"))
+        .select("id")
+        .single();
+      expect(twin.error?.code).toBe("23505");
+      const other = await db
+        .from(table)
+        .insert(filled(table, key, "b"))
+        .select("id")
+        .single();
+      expect(other.error).toBeNull();
+      const moved = await db
+        .from(table)
+        .update(
+          Object.fromEntries(key.map((column) => [column, `${column}-a`])),
+        )
+        .eq(key[0]!, `${key[0]}-b`);
+      expect(moved.error?.code).toBe("23505");
+      expect(STORED[table]!(state)).toHaveLength(2);
+    },
+  );
+
+  it("a send-log row inserted without a status takes the column's default, pending", async () => {
+    const state = freshState(false);
+    const row = filled(
+      "email_send_logs",
+      ["tenant_id", "idempotency_key"],
+      "a",
+    );
+    delete row.status;
+    const inserted = await stub(state)
+      .from("email_send_logs")
+      .insert(row)
+      .select("id, status")
+      .single();
+    expect(inserted.error).toBeNull();
+    expect(inserted.data).toMatchObject({ status: "pending" });
+    expect(state.emailSendLogs[0]).toMatchObject({ status: "pending" });
+  });
+
+  it("a staged-gift update whose filters match no row changes nothing", async () => {
+    const state = freshState(false);
+    const result = await stub(state)
+      .from("staged_gifts")
+      .update({ receipt_status: "failed" })
+      .eq("id", "staged-1")
+      .neq("receipt_status", "sent");
+    expect(result.error).toBeNull();
+    expect(state.stagedGift.receipt_status).toBe("sent");
+  });
+});
