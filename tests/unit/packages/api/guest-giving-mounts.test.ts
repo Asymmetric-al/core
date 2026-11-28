@@ -67,8 +67,10 @@ describe("AL-2681 PR 2a: what is mounted and what is not", () => {
 
   it("the money schedule is served once, beside the existing functions (AL-2681 PR 2b, issue 2857 item 39: the array handed to serve lists it exactly once as an element)", () => {
     const serve = read("packages/api/src/workflows/serve.ts");
-    const list = /functions:\s*\[([^\]]*)\]/.exec(serve);
+    const list = /const functions = \[([^\]]*)\]/.exec(serve);
     expect(list).not.toBeNull();
+    expect(serve.match(/^\s+functions,$/gm)?.length).toBeGreaterThan(0);
+    expect(serve).not.toMatch(/functions:\s*\[/);
     const elements = list![1]!
       .split(",")
       .map((entry) => entry.trim())
