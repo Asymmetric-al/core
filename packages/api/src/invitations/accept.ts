@@ -32,7 +32,9 @@ type AcceptInvitationRpcPayload = {
   assignment_id?: string;
 };
 
-const WORKER_REFUSALS: Record<
+const BUSY_TEXT = "This organization is busy right now. Try again.";
+
+const KNOWN_REFUSALS: Record<
   string,
   { status: number; code: string; error: string }
 > = {
@@ -46,6 +48,21 @@ const WORKER_REFUSALS: Record<
     code: "LOGIN_TIED_ELSEWHERE",
     error:
       "This account already belongs to another person in this organization. Ask your organization for help.",
+  },
+  "55P03": {
+    status: 503,
+    code: "RETRY",
+    error: BUSY_TEXT,
+  },
+  "40001": {
+    status: 503,
+    code: "RETRY",
+    error: BUSY_TEXT,
+  },
+  "40P01": {
+    status: 503,
+    code: "RETRY",
+    error: BUSY_TEXT,
   },
 };
 
@@ -182,7 +199,7 @@ export async function POST(request: NextRequest) {
         { status: 409, headers: NO_STORE_HEADERS },
       );
     }
-    const worker = pgCode ? WORKER_REFUSALS[pgCode] : undefined;
+    const worker = pgCode ? KNOWN_REFUSALS[pgCode] : undefined;
     if (worker) {
       return NextResponse.json(
         { error: worker.error, code: worker.code },
