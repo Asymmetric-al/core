@@ -285,6 +285,41 @@ describe.skipIf(!ADMIN_URL)(
               .admitted,
           ).toBe(true);
         }));
+
+      it("a key the address bucket alone holds is not free when it comes back signed in: a full person bucket refuses it 429, and keeps refusing", () =>
+        inTx(db, async () => {
+          const { fx, hosts } = await world();
+          const user = randomUUID();
+          for (let i = 0; i < 6; i += 1)
+            await attemptGift(db, {
+              host: hosts.home,
+              surface: "donor_account",
+              address: `192.0.2.${120 + i}`,
+              user,
+            });
+          const from = address();
+          const key = randomUUID();
+          expect(
+            await attemptGift(db, {
+              host: hosts.home,
+              surface: "donor_account",
+              address: from,
+              key,
+            }),
+          ).toEqual({ admitted: true, retry_after_seconds: null });
+          const before = await attemptRows(fx.A.tenant);
+          for (let i = 0; i < 3; i += 1)
+            expect(
+              await attemptGift(db, {
+                host: hosts.home,
+                surface: "donor_account",
+                address: from,
+                key,
+                user,
+              }),
+            ).toMatchObject({ admitted: false, bucket: "person" });
+          expect(await attemptRows(fx.A.tenant)).toBe(before);
+        }));
     });
 
     describe("a row older than the window", () => {
@@ -314,6 +349,53 @@ describe.skipIf(!ADMIN_URL)(
           expect(left).toHaveLength(1);
         }));
     });
+
+    it("the purge skips an old row that a running attempt holds, instead of waiting for it", () =>
+      twoSessions(db, ADMIN_URL, async (s1, s2, fx) => {
+        const bucket = "c".repeat(64);
+        const key = "d".repeat(64);
+        try {
+          await db.query(
+            "INSERT INTO private.intake_rate_attempts (bucket_digest, key_digest, tenant_id, created_at) VALUES ($1, $2, $3, now() - interval '11 minutes')",
+            [bucket, key, fx.A.tenant],
+          );
+          await s1.query("BEGIN");
+          await s1.query(
+            "SELECT 1 FROM private.intake_rate_attempts WHERE bucket_digest = $1 AND key_digest = $2 FOR UPDATE",
+            [bucket, key],
+          );
+          const pid2 = await pidOf(s2);
+          await s2.query("BEGIN");
+          await s2.query("SET LOCAL ROLE service_role");
+          const purge = launch(
+            s2,
+            "SELECT public.purge_intake_attempts() AS n",
+          );
+          const waited = await blockedBy(db, pid2);
+          await s1.query("COMMIT");
+          const answer = await purge;
+          await s2.query("COMMIT");
+          expect({ waited, purge: said(answer) }).toEqual({
+            waited: false,
+            purge: "committed",
+          });
+          expect(
+            (
+              await db.query(
+                "SELECT count(*)::int AS n FROM private.intake_rate_attempts WHERE bucket_digest = $1",
+                [bucket],
+              )
+            ).rows[0].n,
+          ).toBe(1);
+        } finally {
+          await s1.query("ROLLBACK").catch(() => undefined);
+          await s2.query("ROLLBACK").catch(() => undefined);
+          await db.query(
+            "DELETE FROM private.intake_rate_attempts WHERE tenant_id = ANY($1::uuid[])",
+            [[fx.A.tenant, fx.B.tenant]],
+          );
+        }
+      }));
 
     it("two sessions at the edge of the address bucket: the second waits for the first and is refused; one more attempt in all", () =>
       twoSessions(db, ADMIN_URL, async (s1, s2, fx, hosts) => {

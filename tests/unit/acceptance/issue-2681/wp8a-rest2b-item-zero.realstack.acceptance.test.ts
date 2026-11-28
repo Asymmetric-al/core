@@ -224,6 +224,114 @@ describe.skipIf(!ADMIN_URL)(
             outcome: "binding_inactive",
           });
         }));
+
+      it("two sessions: a first send claimed while the disconnect waits on its binding is linked to the disconnect task as sending", () =>
+        twoSessions(db, ADMIN_URL, async (s1, s2, fx, hosts) => {
+          await committed(() => feeFund(db, fx.A));
+          const gift = await committed(async () =>
+            begun(
+              await begin(db, {
+                host: hosts.site,
+                lines: [{ fund: fx.A.fund, amount: 1500 }],
+              }),
+            ),
+          );
+          const eventId = await committed(() => accountClosedEvent(db, fx.A));
+          const pid2 = await pidOf(s2);
+          const claimed = await claimIn(s1, gift.operation_id);
+          expect(outcomeOf(claimed)).toBe("claimed");
+          await s2.query("BEGIN");
+          await s2.query("SET LOCAL ROLE service_role");
+          const applying = launch(s2, APPLY_SQL, [eventId]);
+          const waited = await blockedBy(db, pid2);
+          await s1.query("COMMIT");
+          const applied = await applying;
+          await s2.query("COMMIT");
+          expect({ waited, applied: said(applied) }).toEqual({
+            waited: true,
+            applied: "committed",
+          });
+          const task = applied.ok
+            ? (applied.rows[0]!.r as { task_id: string }).task_id
+            : null;
+          const links = (
+            await db.query(
+              `SELECT l.task_id AS task, l.relationship, l.metadata ->> 'status' AS status
+                 FROM public.mission_control_task_links AS l
+                WHERE l.tenant_id = $1 AND l.record_id = $2`,
+              [fx.A.tenant, gift.operation_id],
+            )
+          ).rows;
+          expect(links).toEqual([
+            {
+              task,
+              relationship: "provider_request_outcome_unknown_disconnected",
+              status: "sending",
+            },
+          ]);
+          expect(await requestRow(db, gift.operation_id)).toMatchObject({
+            status: "sending",
+            attempt_count: 1,
+          });
+        }));
+    });
+
+    describe("issue 2857 item 18, completed: a refused claim is not offered again at once", () => {
+      it("25 refused requests of a suspended organization do not keep another organization's due request from the worker", () =>
+        inTx(db, async () => {
+          const fx = await seedTwoTenants(db);
+          const hostsA = await admitHosts(db, fx.A);
+          const hostsB = await admitHosts(db, fx.B);
+          await feeFund(db, fx.A);
+          await feeFund(db, fx.B);
+          const refused: string[] = [];
+          for (let i = 0; i < 25; i += 1)
+            refused.push(
+              begun(
+                await begin(db, {
+                  host: hostsA.site,
+                  lines: [{ fund: fx.A.fund, amount: 1000 + i }],
+                }),
+              ).operation_id,
+            );
+          const other = begun(
+            await begin(db, {
+              host: hostsB.site,
+              lines: [{ fund: fx.B.fund, amount: 1500 }],
+            }),
+          ).operation_id;
+          await replica(
+            db,
+            `UPDATE public.donation_saga_outbox AS o
+                SET next_attempt_at = timestamptz '2000-01-01 00:00:00+00' + make_interval(secs => r.n)
+               FROM unnest($1::uuid[]) WITH ORDINALITY AS r(id, n)
+              WHERE o.id = r.id`,
+            [refused],
+          );
+          await replica(
+            db,
+            "UPDATE public.donation_saga_outbox SET next_attempt_at = timestamptz '2000-01-01 01:00:00+00' WHERE id = $1",
+            [other],
+          );
+          await role(db, null);
+          await db.query(
+            "UPDATE public.tenants SET status = 'suspended' WHERE id = $1",
+            [fx.A.tenant],
+          );
+          for (const id of refused)
+            expect(await claim(db, id)).toMatchObject({
+              outcome: "organization_inactive",
+            });
+          await role(db, "service_role");
+          const due = (
+            await db.query(
+              "SELECT d.id FROM public.money_due_work(25) AS d WHERE d.kind = 'operation'",
+            )
+          ).rows.map((row) => row.id as string);
+          await role(db, null);
+          expect(due).toContain(other);
+          expect(due.filter((id) => refused.includes(id))).toEqual([]);
+        }));
     });
 
     describe("item 35: two requests with one key serialize before the first read", () => {
