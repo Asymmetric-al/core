@@ -122,6 +122,81 @@ export const STAGED_GIFT = {
   metadata: {},
 };
 
+export const TABLE_RULES: Record<
+  string,
+  { required: string[]; notNull: string[]; unique: string[][] }
+> = {
+  contribution_adjustments: {
+    required: [
+      "tenant_id",
+      "donation_id",
+      "adjustment_type",
+      "reason",
+      "source_surface",
+    ],
+    notNull: [
+      "id",
+      "tenant_id",
+      "donation_id",
+      "adjustment_type",
+      "status",
+      "effective_values",
+      "reason",
+      "source_surface",
+      "created_at",
+    ],
+    unique: [["tenant_id", "idempotency_key"]],
+  },
+  contribution_receipt_snapshots: {
+    required: ["tenant_id", "donation_id", "kind"],
+    notNull: [
+      "id",
+      "tenant_id",
+      "donation_id",
+      "kind",
+      "content",
+      "created_at",
+    ],
+    unique: [["adjustment_id", "kind"]],
+  },
+  email_send_logs: {
+    required: ["tenant_id", "idempotency_key", "correlation_id"],
+    notNull: [
+      "id",
+      "tenant_id",
+      "idempotency_key",
+      "correlation_id",
+      "status",
+      "recipient_count",
+      "message_type",
+      "requested_at",
+      "retry_count",
+      "metadata",
+    ],
+    unique: [["tenant_id", "idempotency_key"]],
+  },
+  staged_gifts: {
+    required: ["tenant_id", "donation_id", "amount", "intake_format"],
+    notNull: [
+      "id",
+      "tenant_id",
+      "donation_id",
+      "amount",
+      "currency",
+      "status",
+      "donor_match_status",
+      "allocation_status",
+      "receipt_status",
+      "crm_post_status",
+      "metadata",
+      "created_at",
+      "updated_at",
+      "intake_format",
+    ],
+    unique: [["donation_id"], ["tenant_id", "id", "legal_entity_id"]],
+  },
+};
+
 export interface State {
   donationMissionaryId: string | null;
   allocations: Row[];
@@ -144,6 +219,14 @@ export interface State {
   keyLookups?: number;
   donorDoNotEmail?: boolean;
   suppressionTypes?: string[];
+  writeGate?: (
+    table: string,
+    operation: "insert" | "update",
+    payload: Row,
+  ) => Promise<void> | void;
+  onSecondKeyLookup?: () => void;
+  currentDonorId?: string;
+  donorRows?: Record<string, Row>;
 }
 
 export class QueryBuilder {
@@ -226,7 +309,7 @@ export class QueryBuilder {
           data: {
             id: DONATION_ID,
             tenant_id: TENANT_ID,
-            donor_id: "donor-1",
+            donor_id: state.currentDonorId ?? "donor-1",
             missionary_id: state.donationMissionaryId,
             fund_id: state.donationFundId ?? null,
             amount: 25_000,
@@ -248,7 +331,10 @@ export class QueryBuilder {
         return { data: state.stagedGift, error: null };
       case "staged_gift_allocations":
         return { data: state.allocations, error: null };
-      case "donors":
+      case "donors": {
+        const id = this.eqs.find(([column]) => column === "id")?.[1];
+        const own = typeof id === "string" ? state.donorRows?.[id] : undefined;
+        if (own) return { data: structuredClone(own), error: null };
         return {
           data: {
             id: "donor-1",
@@ -260,6 +346,7 @@ export class QueryBuilder {
           },
           error: null,
         };
+      }
       case "missionaries": {
         const wantsPublicName = /\bworker_public_name\b/.test(this.columns);
         if (wantsPublicName && (state.failWorkerNames ?? 0) > 0) {
@@ -443,7 +530,12 @@ export class QueryBuilder {
           }
           if (
             typeof key === "string" &&
-            state.adjustments.some((row) => row.idempotency_key === key)
+            state.adjustments.some(
+              (row) =>
+                row.idempotency_key === key &&
+                (row.tenant_id ?? this.payload?.tenant_id) ===
+                  this.payload?.tenant_id,
+            )
           )
             return {
               data: null,
@@ -464,6 +556,7 @@ export class QueryBuilder {
           if (state.keyLookups === 2 && state.commitOnSecondKeyLookup) {
             state.adjustments.push(state.commitOnSecondKeyLookup);
             state.commitOnSecondKeyLookup = undefined;
+            state.onSecondKeyLookup?.();
           }
         }
         const adjustments = state.adjustments.filter((row) =>
@@ -494,7 +587,17 @@ export class QueryBuilder {
       error: { code?: string; message: string } | null;
     }) => T,
   ): Promise<T> {
-    return Promise.resolve(this.resolve()).then(onfulfilled);
+    const gate =
+      this.operation === "select"
+        ? undefined
+        : this.state.writeGate?.(
+            this.table,
+            this.operation,
+            this.payload ?? {},
+          );
+    return Promise.resolve(gate)
+      .then(() => this.resolve())
+      .then(onfulfilled);
   }
 }
 
