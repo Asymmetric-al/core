@@ -317,6 +317,7 @@ const REAL_DATABASE_FILES = [
     "issue-2406/profiles-storage.realstack",
     "issue-2407/editor-images.realstack",
     // #2714 (AL-2671 stage 1): run by the program step's glob.
+    "issue-2671/n4-sign-in-limits.realstack",
     "issue-2672/role-change-command.realstack",
     "issue-2672/staged-gift-allocations.realstack",
     "issue-2674/catalog-gate.realstack",
