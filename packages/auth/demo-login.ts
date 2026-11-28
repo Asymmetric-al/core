@@ -4,6 +4,7 @@ import {
 } from "@asym/database/app-base-path";
 
 import { defaultRouteForRole, type AppRole } from "./roles";
+import { parseSubRoleAddress, parseTenantAddress } from "./tenant-address";
 
 export const APP_IDS = ["admin", "missionary", "donor"] as const;
 export type AppId = (typeof APP_IDS)[number];
@@ -33,24 +34,60 @@ const BLOCKED_NEXT_PREFIXES = [
 
 const OTHER_APP_SEGMENTS = new Set(["admin", "missionary"]);
 
-const API_PATH = /^(?:\/(?:admin|missionary))?\/api(?:\/|$)/i;
+const API_PATH = /^\/api(?:\/|$)/;
 
-const DOORWAY_PATH = /^\/invite(?:\/|$)/;
+const BASE_SEGMENTS = ["/admin", "/missionary"] as const;
 
-function isBlockedNextPath(pathname: string): boolean {
+const DOORWAY_ROOT = "/invite";
+
+const DOORWAY_PATH = /^\/invite\/([^/]+)$/i;
+
+function servedForms(pathname: string): string[] | null {
   let decoded: string;
   try {
     decoded = decodeURIComponent(pathname);
   } catch {
-    return true;
+    return null;
   }
-  return [pathname, decoded].some(
-    (form) =>
-      API_PATH.test(form) ||
-      BLOCKED_NEXT_PREFIXES.some(
-        (prefix) => form === prefix || form.startsWith(`${prefix}/`),
-      ),
+  const forms = new Set<string>();
+  const pending = [pathname, decoded];
+  while (pending.length > 0) {
+    const form = pending.shift()!;
+    const lower = form.toLowerCase();
+    if (forms.has(lower)) continue;
+    forms.add(lower);
+    for (const base of BASE_SEGMENTS)
+      if (lower.startsWith(`${base}/`)) pending.push(form.slice(base.length));
+    const address = parseTenantAddress(form) ?? parseSubRoleAddress(form);
+    if (address) pending.push(address.innerPathname);
+  }
+  return [...forms];
+}
+
+function underRoot(form: string, root: string): boolean {
+  return form === root || form.startsWith(`${root}/`);
+}
+
+function isBlockedForm(form: string): boolean {
+  return (
+    API_PATH.test(form) ||
+    BLOCKED_NEXT_PREFIXES.some((prefix) => underRoot(form, prefix))
   );
+}
+
+function doorwayLanding(
+  pathname: string,
+  forms: readonly string[],
+): string | null | undefined {
+  if (!forms.some((form) => underRoot(form, DOORWAY_ROOT))) return undefined;
+  let decoded: string;
+  try {
+    decoded = decodeURIComponent(pathname);
+  } catch {
+    return null;
+  }
+  const selector = DOORWAY_PATH.exec(decoded)?.[1];
+  return selector ? `${DOORWAY_ROOT}/${encodeURIComponent(selector)}` : null;
 }
 
 function namesAnotherApp(pathname: string): boolean {
@@ -112,9 +149,11 @@ export function safeNextParam(value: string | null): string | null {
 
   if (parsed.origin !== "http://localhost") return null;
   if (hasEmptySegmentOrBackslash(parsed.pathname)) return null;
-  if (isBlockedNextPath(parsed.pathname)) return null;
+  const forms = servedForms(parsed.pathname);
+  if (!forms || forms.some(isBlockedForm)) return null;
   if (leavesTheDonorApp(parsed.pathname)) return null;
 
-  if (DOORWAY_PATH.test(parsed.pathname)) return parsed.pathname;
+  const doorway = doorwayLanding(parsed.pathname, forms);
+  if (doorway !== undefined) return doorway;
   return `${parsed.pathname}${parsed.search}`;
 }
