@@ -41,6 +41,7 @@ const stripe = vi.hoisted(() => ({
   elementsOptions: [] as unknown[],
   paymentElementOptions: [] as Array<Record<string, unknown>>,
   failLoad: false,
+  retrieveGate: null as Promise<void> | null,
 }));
 
 const turnstile = vi.hoisted(() => ({ resets: 0, issued: 0 }));
@@ -106,6 +107,7 @@ function instance(key: string, options: { stripeAccount?: string }) {
       return { paymentIntent: { status: "succeeded" } };
     },
     async retrievePaymentIntent(secret: string) {
+      if (stripe.retrieveGate) await stripe.retrieveGate;
       stripe.retrieved.push({ secret, key, account: options.stripeAccount });
       return {
         paymentIntent: stripe.intents.get(secret) ?? {
@@ -195,6 +197,8 @@ let calls: Call[] = [];
 let donateAnswers: Answer[] = [];
 let configAnswer: Answer;
 let verified: Set<string>;
+let completedKeys: Set<string>;
+let completeNextKey: boolean;
 
 const created = (secret = SECRET, account = "acct_1"): Answer => ({
   status: 200,
@@ -266,6 +270,8 @@ const donates = () => calls.filter((c) => c.url === "/api/donate");
 beforeEach(() => {
   calls = [];
   verified = new Set();
+  completedKeys = new Set();
+  completeNextKey = false;
   donateAnswers = [created()];
   configAnswer = {
     status: 200,
@@ -284,6 +290,7 @@ beforeEach(() => {
   stripe.elementsOptions = [];
   stripe.paymentElementOptions = [];
   stripe.failLoad = false;
+  stripe.retrieveGate = null;
   stripe.submit.mockClear();
   turnstile.resets = 0;
   turnstile.issued = 0;
@@ -298,16 +305,28 @@ beforeEach(() => {
         unknown
       >;
       calls.push({ url, body });
-      if (url === "/api/checkout/config")
+      if (url === "/api/checkout/config") {
+        if (configAnswer.status === 0) throw new TypeError("Failed to fetch");
         return new Response(JSON.stringify(configAnswer.body), {
           status: configAnswer.status,
         });
+      }
       const token = String(body.challengeToken ?? "");
       if (!token || verified.has(token))
         return new Response(JSON.stringify({ error: "challenge_failed" }), {
           status: 400,
         });
       verified.add(token);
+      const key = String(body.key);
+      if (completeNextKey) {
+        completeNextKey = false;
+        completedKeys.add(key);
+      }
+      if (completedKeys.has(key))
+        return new Response(
+          JSON.stringify({ error: "gift_already_completed" }),
+          { status: 409 },
+        );
       const answer = donateAnswers.shift() ?? created();
       return new Response(JSON.stringify(answer.body), {
         status: answer.status,
@@ -471,7 +490,7 @@ describe("AL-2681 PR 2b: the guest checkout page", () => {
     render(<CheckoutPageClient {...props()} />);
     expect(
       await screen.findByText(
-        /It may be the designation you chose, or online giving may be paused. You haven't been charged./,
+        "Giving here is unavailable right now. Nothing was charged.",
       ),
     ).toBeTruthy();
     expect(screen.queryByTestId("payment-element")).toBeNull();
@@ -648,42 +667,6 @@ describe("AL-2681 B fix round X4: one gift, one key", () => {
       ).toBeNull();
     },
   );
-
-  it("a 409 for this key whose held payment is not final forgets that key and payment, asks for a fresh challenge and says the key was reused; the next Give makes a new key", async () => {
-    stripe.outcomes = ["lost"];
-    donateAnswers = [
-      created(),
-      { status: 409, body: { error: "idempotency_key_reused" } },
-      created("pi_2_secret_def"),
-    ];
-    render(<CheckoutPageClient {...props()} />);
-    await fillAndGive();
-    await screen.findByText(/We lost the connection/);
-    const stored = JSON.parse(
-      window.sessionStorage.getItem(GIFT_PAYMENT_STORAGE)!,
-    ) as Record<string, unknown>;
-    window.sessionStorage.setItem(
-      GIFT_PAYMENT_STORAGE,
-      JSON.stringify({ ...stored, account: "acct_other" }),
-    );
-    await waitFor(() => expect(turnstile.resets).toBe(1));
-    fireEvent.click(giveButton());
-    await screen.findByText(
-      /This gift was already started with different details, so nothing was charged this time/,
-    );
-    expect(window.sessionStorage.getItem(GIFT_PAYMENT_STORAGE)).toBeNull();
-    await waitFor(() => expect(turnstile.resets).toBe(2));
-    fireEvent.click(giveButton());
-    await screen.findByText("Your gift was received.");
-    expect(donates()).toHaveLength(3);
-    expect(donates()[1]!.body.key).toBe(donates()[0]!.body.key);
-    expect(donates()[2]!.body.key).not.toBe(donates()[1]!.body.key);
-    expect(donates().map((c) => c.body.challengeToken)).toEqual([
-      "token-0",
-      "token-1",
-      "token-2",
-    ]);
-  });
 });
 
 describe("AL-2681 B fix round X5: the amount can be typed", () => {
@@ -938,7 +921,7 @@ describe("AL-2681 B fix round X7: the page says what happened to the payment, an
     );
   });
 
-  it("a key this browser holds for the gift, with no payment in this tab, turns the unavailable sentences into the key-reused form", async () => {
+  it("a key this browser holds for the gift, with no payment in this tab, turns the unavailable sentence into the one that says we could not confirm", async () => {
     window.localStorage.setItem(
       GIFT_KEY_STORAGE,
       JSON.stringify({ d: { key: "k-other-tab", at: Date.now() } }),
@@ -947,7 +930,7 @@ describe("AL-2681 B fix round X7: the page says what happened to the payment, an
     render(<CheckoutPageClient {...props()} />);
     expect(
       await screen.findByText(
-        "We can't take this gift online right now, so nothing was charged this time. If you gave a moment ago, check that gift before you start again.",
+        "Giving here is unavailable right now, and we could not confirm what happened to your payment. Check your card or bank statement before you give again.",
       ),
     ).toBeTruthy();
   });
@@ -974,5 +957,233 @@ describe("AL-2681 B fix round X8: a client secret never stays in the address", (
     render(<CheckoutPageClient {...props()} />);
     expect(await screen.findByText("Your gift was received.")).toBeTruthy();
     expect(window.location.search).toBe(`?fund_id=${FUND}`);
+  });
+});
+
+const ACCOUNT_CHANGED =
+  "This ministry's payment details changed while you were giving. Nothing was charged. Reload this page to give.";
+const UNAVAILABLE =
+  "Giving here is unavailable right now. Nothing was charged.";
+const UNCONFIRMED =
+  "Giving here is unavailable right now, and we could not confirm what happened to your payment. Check your card or bank statement before you give again.";
+const NOT_CHARGED = /haven't been charged|Nothing was charged/;
+
+describe("AL-2681 closing round Q2: after 'this gift is already complete', Give again starts a new gift", () => {
+  it("the first gift's key completed elsewhere: the page says received; Give again sends a new key and a second payment is confirmed", async () => {
+    completeNextKey = true;
+    donateAnswers = [created("pi_2_secret_def")];
+    render(<CheckoutPageClient {...props()} />);
+    await fillAndGive();
+    await screen.findByText("Your gift was received.");
+    fireEvent.click(screen.getByRole("button", { name: "Give again" }));
+    await waitFor(() => expect(turnstile.resets).toBe(1));
+    await waitFor(() =>
+      expect(giveButton()).not.toHaveProperty("disabled", true),
+    );
+    fireEvent.click(giveButton());
+    await waitFor(() => expect(stripe.confirms).toHaveLength(1));
+    await screen.findByText("Your gift was received.");
+    expect(donates()).toHaveLength(2);
+    expect(donates()[1]!.body.key).not.toBe(donates()[0]!.body.key);
+    expect(stripe.confirms[0]!.clientSecret).toBe("pi_2_secret_def");
+  });
+});
+
+describe("AL-2681 closing round Q3: a replay on another account than the page loaded is read before anything is said", () => {
+  async function replayOnOldAccount(status: string) {
+    stripe.outcomes = ["lost"];
+    const first = render(<CheckoutPageClient {...props()} />);
+    await fillAndGive();
+    await screen.findByText(/We lost the connection/);
+    first.unmount();
+    window.sessionStorage.clear();
+    stripe.intents.set(SECRET, { status });
+    configAnswer = {
+      status: 200,
+      body: {
+        publishableKey: "pk_test_1",
+        connectedAccountId: "acct_2",
+        wayBackHost: null,
+      },
+    };
+    donateAnswers = [created(SECRET, "acct_1")];
+    render(<CheckoutPageClient {...props()} />);
+    await fillAndGive();
+  }
+
+  it("a payment that went through on the earlier account is received, never 'nothing was charged'", async () => {
+    await replayOnOldAccount("succeeded");
+    expect(await screen.findByText("Your gift was received.")).toBeTruthy();
+    expect(stripe.retrieved.at(-1)).toMatchObject({
+      secret: SECRET,
+      account: "acct_1",
+    });
+    expect(stripe.confirms).toHaveLength(1);
+    expect(screen.queryByText(NOT_CHARGED)).toBeNull();
+  });
+
+  it("a payment the read shows unpaid on the earlier account says the details changed and nothing was charged", async () => {
+    await replayOnOldAccount("requires_payment_method");
+    expect(await screen.findByText(ACCOUNT_CHANGED)).toBeTruthy();
+    expect(stripe.retrieved.at(-1)).toMatchObject({ account: "acct_1" });
+    expect(stripe.confirms).toHaveLength(1);
+  });
+});
+
+describe("AL-2681 closing round Q4: a held payment of this key is read before the intake is asked again", () => {
+  it("held on another account and still open: read with its own key and account, nothing is posted, and the page says the details changed", async () => {
+    stripe.outcomes = ["lost"];
+    render(<CheckoutPageClient {...props()} />);
+    await fillAndGive();
+    await screen.findByText(/We lost the connection/);
+    const stored = JSON.parse(
+      window.sessionStorage.getItem(GIFT_PAYMENT_STORAGE)!,
+    ) as Record<string, unknown>;
+    window.sessionStorage.setItem(
+      GIFT_PAYMENT_STORAGE,
+      JSON.stringify({ ...stored, account: "acct_other" }),
+    );
+    await waitFor(() => expect(turnstile.resets).toBe(1));
+    fireEvent.click(giveButton());
+    expect(await screen.findByText(ACCOUNT_CHANGED)).toBeTruthy();
+    expect(donates()).toHaveLength(1);
+    expect(stripe.retrieved.at(-1)).toMatchObject({ account: "acct_other" });
+  });
+
+  it("held, and its read fails: the page says it could not confirm, and nothing is posted", async () => {
+    stripe.outcomes = ["lost"];
+    render(<CheckoutPageClient {...props()} />);
+    await fillAndGive();
+    await screen.findByText(/We lost the connection/);
+    stripe.failLoad = true;
+    await waitFor(() => expect(turnstile.resets).toBe(1));
+    fireEvent.click(giveButton());
+    await waitFor(() => expect(stripe.loads.length).toBeGreaterThan(1));
+    expect(await screen.findByText(/We lost the connection/)).toBeTruthy();
+    expect(donates()).toHaveLength(1);
+    expect(stripe.confirms).toHaveLength(1);
+  });
+});
+
+describe("AL-2681 closing round Q5: 'unavailable' says 'nothing was charged' only when the page knows", () => {
+  const liveKey = () =>
+    window.localStorage.setItem(
+      GIFT_KEY_STORAGE,
+      JSON.stringify({ d: { key: "k-other-tab", at: Date.now() } }),
+    );
+
+  it("the config read fails on the network while this browser holds a live key: we could not confirm", async () => {
+    liveKey();
+    configAnswer = { status: 0, body: null };
+    render(<CheckoutPageClient {...props()} />);
+    expect(await screen.findByText(UNCONFIRMED)).toBeTruthy();
+    expect(screen.queryByText(NOT_CHARGED)).toBeNull();
+  });
+
+  it("Stripe.js fails to load while this browser holds a live key and no payment: we could not confirm", async () => {
+    liveKey();
+    stripe.failLoad = true;
+    render(<CheckoutPageClient {...props()} />);
+    expect(await screen.findByText(UNCONFIRMED)).toBeTruthy();
+    expect(screen.queryByText(NOT_CHARGED)).toBeNull();
+  });
+
+  it("a reload during a suspension: the fast 503 waits for the held payment's read, and a payment that went through is received", async () => {
+    window.sessionStorage.setItem(
+      GIFT_PAYMENT_STORAGE,
+      JSON.stringify({
+        key: "k-held",
+        clientSecret: SECRET,
+        account: "acct_held",
+        publishableKey: "pk_test_held",
+        target: { kind: "fund", id: FUND },
+      }),
+    );
+    stripe.intents.set(SECRET, { status: "succeeded" });
+    let release!: () => void;
+    stripe.retrieveGate = new Promise<void>((resolve) => {
+      release = resolve;
+    });
+    configAnswer = { status: 503, body: { error: "giving_unavailable" } };
+    render(<CheckoutPageClient {...props()} />);
+    await waitFor(() => expect(calls.length).toBeGreaterThan(0));
+    await new Promise((resolve) => setTimeout(resolve, 50));
+    expect(screen.queryByText(NOT_CHARGED)).toBeNull();
+    expect(screen.queryByText(UNAVAILABLE)).toBeNull();
+    release();
+    expect(await screen.findByText("Your gift was received.")).toBeTruthy();
+    expect(screen.queryByText(NOT_CHARGED)).toBeNull();
+  });
+
+  it("with no key and no payment in this browser, the page knows: unavailable, nothing was charged", async () => {
+    configAnswer = { status: 0, body: null };
+    render(<CheckoutPageClient {...props()} />);
+    expect(await screen.findByText(UNAVAILABLE)).toBeTruthy();
+  });
+});
+
+describe("AL-2681 closing round Q6: smaller things", () => {
+  it("(a) an amount with a comma that is not a thousands separator is refused with the amount's own message, never another amount", async () => {
+    render(<CheckoutPageClient {...props()} />);
+    await fill();
+    typeInto(screen.getByLabelText("Amount (USD)"), "50,50");
+    expect(giveButton()).toHaveProperty("disabled", true);
+    expect(
+      screen.getByText("Enter the amount in dollars, like 25 or 1,000.50."),
+    ).toBeTruthy();
+    typeInto(screen.getByLabelText("Amount (USD)"), "5,050");
+    expect(giveButton().textContent).toBe("Give $5,050.00");
+  });
+
+  it("(b) a cancelled payment is not a final state: the form stays, with no Give again and no 'your details are saved'", async () => {
+    window.sessionStorage.setItem(
+      GIFT_PAYMENT_STORAGE,
+      JSON.stringify({
+        key: "k-held",
+        clientSecret: SECRET,
+        account: "acct_1",
+        publishableKey: "pk_test_1",
+        target: { kind: "fund", id: FUND },
+      }),
+    );
+    stripe.intents.set(SECRET, { status: "canceled" });
+    render(<CheckoutPageClient {...props()} />);
+    expect(
+      await screen.findByText(
+        "This payment was cancelled, so your card wasn't charged. You can start the gift again here.",
+      ),
+    ).toBeTruthy();
+    expect(await screen.findByLabelText("Email")).toBeTruthy();
+    expect(screen.queryByRole("button", { name: "Give again" })).toBeNull();
+    expect(screen.queryByText(/details are saved/)).toBeNull();
+  });
+
+  it("(d) a shared home with no source Site still offers the sign-in link to a donor who is signed out", async () => {
+    render(<CheckoutPageClient {...props({ isHome: true })} />);
+    await screen.findByTestId("payment-element");
+    expect(
+      screen.getByRole("link", { name: "Sign in to give from your account" }),
+    ).toBeTruthy();
+  });
+
+  it("(d) a 401 on the account surface with no guest way back does not offer to give as a guest", async () => {
+    donateAnswers = [{ status: 401, body: { error: "sign_in_required" } }];
+    render(
+      <CheckoutPageClient
+        {...props({
+          surface: "donor_account",
+          isHome: true,
+          signedInEmail: "dana@example.test",
+        })}
+      />,
+    );
+    await screen.findByTestId("payment-element");
+    await waitFor(() =>
+      expect(giveButton()).not.toHaveProperty("disabled", true),
+    );
+    fireEvent.click(giveButton());
+    const alert = await screen.findByRole("alert");
+    expect(alert.textContent).toMatch(/Your sign-in has ended/);
+    expect(alert.textContent).not.toMatch(/guest/i);
   });
 });

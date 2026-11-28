@@ -42,7 +42,7 @@ const WORDS = {
   monthly:
     "Monthly giving isn't available online yet. You can give once now instead.",
   configUnavailable:
-    "We can't take this gift online right now. It may be the designation you chose, or online giving may be paused. You haven't been charged.",
+    "Giving here is unavailable right now. Nothing was charged.",
   declined:
     "Your card was declined, and you haven't been charged. Check the card details or try another card.",
 };
@@ -148,7 +148,11 @@ async function typeGuest(
   await page.getByLabel("Last name").fill(names[1]);
 }
 
-async function answerIntake(page: Page, account: string) {
+async function answerIntake(
+  page: Page,
+  account: string,
+  completedAfterFirstAnswer = false,
+) {
   const secrets = new Map<string, string>();
   await page.context().route("**/api/donate", (route) => {
     if (route.request().method() !== "POST") return route.continue();
@@ -157,6 +161,12 @@ async function answerIntake(page: Page, account: string) {
       lines?: Array<{ amountCents?: number }>;
     };
     const key = String(body.key);
+    if (completedAfterFirstAnswer && secrets.has(key))
+      return route.fulfill({
+        status: 409,
+        contentType: "application/json",
+        body: JSON.stringify({ error: "gift_already_completed" }),
+      });
     if (!secrets.has(key))
       secrets.set(
         key,
@@ -583,6 +593,45 @@ test.describe("Guest giving with the switch on (Level 1: Stripe.js stubbed at th
       surface: "donor_account",
       sourceSiteId: world.sites.siteA,
     });
+  });
+
+  test("a gift that completed in a closed tab, then this gift again in a new tab: the page says received, and Give again makes a second gift under a second key with a second payment", async ({
+    page,
+  }) => {
+    await answerIntake(page, world.accounts.A1, true);
+    await planStripe(page, { confirms: [LOST] });
+    const url = checkoutUrl(
+      world.hosts.siteA,
+      `fund_id=${world.funds.A1}&amount=32`,
+    );
+    const email = `again-${Date.now()}@example.test`;
+    const first = await page.context().newPage();
+    const firstPosts = donatePosts(first);
+    await first.goto(url);
+    await typeGuest(first, email);
+    await waitForChallenge(first);
+    await first.getByRole("button", { name: /^Give \$/ }).click();
+    await expect(first.getByText(WORDS.lostConnection)).toBeVisible();
+    await first.close();
+    const posts = donatePosts(page);
+    await page.goto(url);
+    await countResets(page);
+    await typeGuest(page, email);
+    await waitForChallenge(page);
+    await page.getByRole("button", { name: /^Give \$/ }).click();
+    await expect(page.getByText(WORDS.received)).toBeVisible();
+    await page.getByRole("button", { name: "Give again" }).click();
+    await page.waitForFunction(
+      () => ((window as Challenged).__resets ?? 0) >= 1,
+    );
+    await waitForChallenge(page);
+    await page.getByRole("button", { name: /^Give \$/ }).click();
+    await expect.poll(() => posts.length).toBe(2);
+    await expect(page.getByText(WORDS.received)).toBeVisible();
+    expect(posts[0]?.key).toBe(firstPosts[0]?.key);
+    expect(posts[1]?.key).not.toBe(posts[0]?.key);
+    const log = await stubLog(page);
+    expect(log.confirms).toHaveLength(1);
   });
 
   test("a signed-in gift on the home confirms with the e-mail the page shows, and is received", async ({

@@ -159,6 +159,22 @@ describe("real Sentry browser HTTP context under Core's collection policy", () =
     expect(fetch).not.toHaveBeenCalled();
   });
 
+  it("the donor app's router-transition hook takes a payment's client secret out of the address it reports (AL-2681 closing round Q6(c))", async () => {
+    vi.resetModules();
+    const sentry = await import("@sentry/nextjs");
+    const spy = vi
+      .spyOn(sentry, "captureRouterTransitionStart")
+      .mockImplementation(() => undefined);
+    const mod = await import("../../../../apps/donor/instrumentation-client");
+    const secret = ["pi_3Router", "secret", "Q6c"].join("_");
+    mod.onRouterTransitionStart(
+      `/checkout?fund_id=f1&payment_intent_client_secret=${secret}`,
+      "push",
+    );
+    expect(spy).toHaveBeenCalledTimes(1);
+    expect(String(spy.mock.calls[0]![0])).not.toContain(secret);
+  });
+
   it.each([
     {
       name: "admin",

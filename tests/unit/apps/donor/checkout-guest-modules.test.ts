@@ -13,10 +13,12 @@ import {
   checkoutPath,
   checkoutSurface,
   handOffHref,
+  parseTypedAmount,
   readCheckoutLink,
 } from "../../../../apps/donor/app/(public)/(solid)/checkout/checkout-targets";
 import {
   CHECKOUT_WORDS,
+  FINAL_STATES,
   intakeRefusalWords,
   paymentStateNotice,
 } from "../../../../apps/donor/app/(public)/(solid)/checkout/checkout-words";
@@ -50,7 +52,7 @@ describe("AL-2681 PR 2b: the checkout's words (the coordinator's approved senten
   it.each([
     [
       { status: 503, error: "giving_unavailable" },
-      CHECKOUT_WORDS.intakeUnavailable,
+      "Giving here is unavailable right now. Nothing was charged.",
     ],
     [{ status: 503, error: "payment_not_started" }, CHECKOUT_WORDS.notStarted],
     [{ status: 400, error: "challenge_required" }, CHECKOUT_WORDS.challenge],
@@ -138,11 +140,11 @@ describe("AL-2681 PR 2b: the checkout's words (the coordinator's approved senten
     ).toBe(CHECKOUT_WORDS.detailsRefused);
   });
 
-  it("the intake's unavailable sentence takes the key-reused form when this browser already held the gift's key", () => {
+  it("the intake's unavailable sentence says we could not confirm when this browser already held the gift's key (closing round Q5)", () => {
     expect(
       intakeRefusalWords({ status: 503, error: "giving_unavailable" }, true),
     ).toBe(
-      "This ministry can't take gifts online here right now, so nothing was charged this time. If you gave a moment ago, check that gift before you start again.",
+      "Giving here is unavailable right now, and we could not confirm what happened to your payment. Check your card or bank statement before you give again.",
     );
   });
 
@@ -192,9 +194,10 @@ describe("AL-2681 PR 2b: the checkout's words (the coordinator's approved senten
         },
       }).text,
     ).toBe(CHECKOUT_WORDS.cancelled);
-    expect(paymentStateNotice({ status: "canceled" }).text).not.toBe(
-      CHECKOUT_WORDS.received,
+    expect(paymentStateNotice({ status: "canceled" }).text).toBe(
+      "This payment was cancelled, so your card wasn't charged. You can start the gift again here.",
     );
+    expect(FINAL_STATES.has("canceled")).toBe(false);
   });
 });
 
@@ -414,5 +417,23 @@ describe("AL-2681 PR 2b: what the checkout reads from its link", () => {
         sourceSiteId: null,
       }),
     ).toBe("donor_account");
+  });
+});
+
+describe("AL-2681 closing round Q6(a): an amount typed with a comma is never another amount", () => {
+  it.each([
+    ["50,50", null],
+    ["5,050", 505_000],
+    ["1,000.50", 100_050],
+    ["50,5", null],
+    ["1,00", null],
+    [",50", null],
+    ["50,", null],
+    ["12,345,678.9", 1_234_567_890],
+    ["$1,000", 100_000],
+    ["50.50", 5_050],
+    ["0", null],
+  ] as const)("%s reads as %s cents", (text, cents) => {
+    expect(parseTypedAmount(text)).toBe(cents);
   });
 });
