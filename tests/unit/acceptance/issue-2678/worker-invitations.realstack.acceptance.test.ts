@@ -265,6 +265,7 @@ describe.skipIf(!ADMIN_URL)(
         );
         for (const table of [
           "audit_logs",
+          "posts",
           "membership_invitations",
           "account_links",
           "donation_saga_outbox",
@@ -691,6 +692,53 @@ describe.skipIf(!ADMIN_URL)(
         ).rows[0].restored,
       ).toBe(true);
       expect(await counts()).toEqual(before);
+    });
+    it("after the merge of #2863: a login that already has a post accepts an invitation to a restricted worker; the acceptance commits, the post takes the worker's key and leaves the feed (worker_withheld), and its approved review and content are kept, the review trigger firing inside the acceptance's lock on the Party (guard)", async () => {
+      const { user, mail } = await login();
+      const w = await worker();
+      await admin.query(
+        "update public.parties set security_level = 'restricted', security_level_source = 'manual', public_alias = 'Alder' where id = $1",
+        [w.party],
+      );
+      const post = (
+        await admin.query(
+          "insert into public.posts (tenant_id, missionary_id, content, visibility, status) values ($1, $2, 'wp5rest2b written before', 'public', 'published') returning id",
+          [tenant, user],
+        )
+      ).rows[0].id as string;
+      await admin.query(
+        "update public.posts set review_state = 'approved' where id = $1",
+        [post],
+      );
+      const read = async () =>
+        (
+          await admin.query(
+            "select ministry_assignment_id key, worker_withheld, review_state, content, content_version from public.posts where id = $1",
+            [post],
+          )
+        ).rows[0];
+      expect(await read()).toEqual({
+        key: null,
+        worker_withheld: false,
+        review_state: "approved",
+        content: "wp5rest2b written before",
+        content_version: 1,
+      });
+      const link = await issued(mail, w.party);
+      const answer = await committed(user, (c) => accept(c, link));
+      expect(answer.ok, JSON.stringify(answer)).toBe(true);
+      expect(await written(user)).toEqual({
+        memberships: [{ role: "missionary" }],
+        links: [{ party_id: w.party, linked_via: "invitation" }],
+        workers: [{ id: w.worker, party_id: w.party }],
+      });
+      expect(await read()).toEqual({
+        key: w.worker,
+        worker_withheld: true,
+        review_state: "approved",
+        content: "wp5rest2b written before",
+        content_version: 1,
+      });
     });
   },
 );
