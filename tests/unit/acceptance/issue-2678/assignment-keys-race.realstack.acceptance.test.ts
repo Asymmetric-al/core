@@ -546,5 +546,48 @@ describe.skipIf(!ADMIN_URL)(
         );
       }
     });
+    it("W7 (fix round of 2869), the reverse order: the re-link of the worker of the child's login to the new login holds the keys first; a writer that follows the rule waits on a key, not on the child's row, then moves the child once the re-link commits, both commit with no 40P01, and the child ends with that worker's key at its new login (guard)", async () => {
+      const m = await movable();
+      await c2.query("begin");
+      await c2.query("set local lock_timeout = '20s'");
+      await c2.query(
+        "update public.missionaries set profile_id = $2 where id = $1",
+        [m.W, m.L],
+      );
+      await c1.query("begin");
+      await c1.query("set local lock_timeout = '20s'");
+      const move = codeOf(
+        (async () => {
+          for (const login of m.ascending) await c1.query(KEY_LOCK, [T, login]);
+          await c1.query(
+            "select 1 from public.missionary_tasks where id = $1 for update",
+            [m.task],
+          );
+          await c1.query(
+            "update public.missionary_tasks set missionary_id = $2 where id = $1",
+            [m.task, m.L],
+          );
+        })(),
+      );
+      expect(await blockedOrSettled(admin, move, c1pid, c2pid)).toBe(true);
+      expect(
+        (
+          await admin.query(
+            "select locktype from pg_catalog.pg_locks where pid = $1 and not granted",
+            [c1pid],
+          )
+        ).rows,
+      ).toEqual([{ locktype: "advisory" }]);
+      await c2.query("commit");
+      expect(await move).toBe("ok");
+      await c1.query("commit");
+      const after = await m.child();
+      expect([
+        after.missionary_id,
+        after.key,
+        after.derived,
+        await m.profileOf(),
+      ]).toEqual([m.L, m.W, m.W, m.L]);
+    });
   },
 );
