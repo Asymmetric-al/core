@@ -1,10 +1,17 @@
+import { hasContextCapability } from "@asym/auth/context";
 import { NextResponse } from "next/server";
 
 import {
+  INVITE_CAPABILITIES,
   WORKERS_CAPABILITY,
   assignmentIdOf,
   commandResultSchema,
   confirmBodySchema,
+  createBodySchema,
+  createResultSchema,
+  inviteBodySchema,
+  inviteNotPermitted,
+  inviteResultSchema,
   isBlank,
   liftBodySchema,
   readBody,
@@ -28,9 +35,15 @@ import {
 import { normalizesToNothing } from "./safety-text";
 import { withOperation } from "../../shared/with-operation";
 
+import type { RequestSessionClient } from "../../shared/request-session-client";
 import type { z } from "zod";
 
 const WRITE = { capability: WORKERS_CAPABILITY } as const;
+
+const INVITATION_HEADERS = {
+  "Cache-Control": "no-store",
+  "Referrer-Policy": "no-referrer",
+} as const;
 
 const codeOf = (error: RpcError | null) =>
   error && typeof error.code === "string" ? error.code : null;
@@ -49,7 +62,7 @@ async function prepare<T extends { reason: string }>(
   operation: WorkersOperation,
   input: {
     request: Request;
-    sessionClient: unknown;
+    sessionClient: RequestSessionClient;
     requestId: string;
     context?: {
       params?: Promise<Record<string, string | string[] | undefined>>;
@@ -179,14 +192,16 @@ export const POST_CONFIRM = withWorkersWrite(
         prepared.row.security_level !== level
       )
         return workerError("LEVEL_CHANGED");
-      const result = await prepared.client.rpc("restrict_worker_publication", {
-        p_tenant_id: auth.tenantId,
-        p_party_id: prepared.row.party_id,
-        p_security_level: level,
-        p_public_alias: null,
-        p_do_not_publish: null,
-        p_reason: reason,
-      });
+      const result = await prepared.client.rpc(
+        "confirm_worker_security_level",
+        {
+          p_tenant_id: auth.tenantId,
+          p_party_id: prepared.row.party_id,
+          p_expected_level: level,
+          p_expected_source: prepared.row.security_level_source,
+          p_reason: reason,
+        },
+      );
       return answerAfterCommand(
         "confirm",
         prepared,
@@ -222,7 +237,7 @@ export const POST_REVEAL = withWorkersWrite(
         !parsed.success ||
         !sameId(parsed.data.party_id, prepared.row.party_id)
       )
-        return workersFailure("reveal", null, requestId);
+        return workersOutcomeUnknown("reveal", null, requestId);
       return NextResponse.json({
         legalName: parsed.data.legal_name,
         realCountry: parsed.data.real_country,
@@ -230,5 +245,97 @@ export const POST_REVEAL = withWorkersWrite(
       });
     },
     WRITE,
+  ),
+);
+
+export const POST_CREATE = withWorkersWrite(
+  withOperation(async ({ auth, request, sessionClient, requestId }) => {
+    const body = await readBody(request, createBodySchema);
+    if (!body.ok) return body.response;
+    const {
+      displayName,
+      legalName,
+      realCountry,
+      preciseLocation,
+      level,
+      alias,
+      legalEntityId,
+      reason,
+    } = body.data;
+    if (isBlank(reason)) return workerError("REASON_REQUIRED");
+    const client = rpcClient(sessionClient);
+    const result = await client.rpc("create_worker", {
+      p_tenant_id: auth.tenantId,
+      p_display_name: displayName,
+      p_legal_name: legalName,
+      p_real_country: realCountry ?? null,
+      p_precise_location: preciseLocation ?? null,
+      p_security_level: level ?? null,
+      p_public_alias:
+        alias === undefined || normalizesToNothing(alias) ? null : alias,
+      p_legal_entity_id: legalEntityId ?? null,
+      p_reason: reason,
+    });
+    if (result.error) return refusal("create", result.error, requestId);
+    const parsed = createResultSchema.safeParse(result.data);
+    if (!parsed.success || !sameId(parsed.data.tenant_id, auth.tenantId))
+      return workersOutcomeUnknown("create", null, requestId);
+    const reread = await readWorkerRows(client, parsed.data.assignment_id);
+    if (!reread.ok)
+      return workersOutcomeUnknown("create", codeOf(reread.error), requestId);
+    const [row] = reread.rows;
+    if (!row || reread.rows.length !== 1)
+      return workersOutcomeUnknown("create", null, requestId);
+    return NextResponse.json({ worker: toWorker(row) }, { status: 201 });
+  }, WRITE),
+);
+
+export const POST_INVITE = withWorkersWrite(
+  withOperation(
+    async ({ auth, request, sessionClient, requestId }, context) => {
+      const missing = INVITE_CAPABILITIES.filter(
+        (capability) => !hasContextCapability(auth, capability),
+      );
+      if (missing.length > 0) return inviteNotPermitted(missing);
+      const prepared = await prepare(
+        "invite",
+        { request, sessionClient, requestId, context },
+        inviteBodySchema,
+      );
+      if (!prepared.ok) return prepared.response;
+      if (prepared.row.has_login) return workerError("HAS_LOGIN");
+      const { email, reason } = prepared.body;
+      const { data, error } = await prepared.client.rpc("invite_worker", {
+        p_tenant_id: auth.tenantId,
+        p_email: email,
+        p_party_id: prepared.row.party_id,
+        p_display_name: null,
+        p_legal_name: null,
+        p_real_country: null,
+        p_precise_location: null,
+        p_legal_entity_id: null,
+        p_reason: reason,
+      });
+      if (codeOf(error) === "42501") return inviteNotPermitted([]);
+      if (error) return refusal("invite", error, requestId);
+      const parsed = inviteResultSchema.safeParse(data);
+      if (
+        !parsed.success ||
+        !sameId(parsed.data.tenant_id, auth.tenantId) ||
+        !sameId(parsed.data.party_id, prepared.row.party_id)
+      )
+        return workersOutcomeUnknown("invite", null, requestId);
+      return NextResponse.json(
+        {
+          invitation: {
+            invitationId: parsed.data.invitation_id,
+            email,
+            expiresAt: parsed.data.expires_at,
+          },
+          invitePath: `/invite/${parsed.data.selector}#${parsed.data.verifier}`,
+        },
+        { status: 201, headers: INVITATION_HEADERS },
+      );
+    },
   ),
 );

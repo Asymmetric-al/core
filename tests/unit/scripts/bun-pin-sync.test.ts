@@ -18,7 +18,9 @@ import { afterEach, describe, expect, it } from "vitest";
 import {
   collectGitHubWorkflowBunPinDrift,
   isGitHubWorkflowFile,
+  readEnginesNode,
   readExpectedVersion,
+  runtimeMismatch,
 } from "../../../scripts/verify/bun-version.mjs";
 
 const fixtureRoots = new Set<string>();
@@ -550,5 +552,188 @@ describe("bun-version.mjs CLI", () => {
     } finally {
       rmSync(repoRoot, { recursive: true, force: true });
     }
+  });
+});
+
+describe("bun-version.mjs --runtime (AL-2671, release 7)", () => {
+  const nodeRange = (
+    JSON.parse(readFileSync(path.join(repoRoot, "package.json"), "utf8")) as {
+      engines: { node: string };
+    }
+  ).engines.node;
+  const required = `but this repository requires Bun ${VERIFIED_STABLE_BUN} (package.json packageManager) and Node.js ${nodeRange} (package.json engines).`;
+
+  function fakeRuntimeDir(versions: Record<string, string>): string {
+    const dir = mkdtempSync(path.join(tmpdir(), "fake-runtime-"));
+    fixtureRoots.add(dir);
+    for (const [command, version] of Object.entries(versions)) {
+      writeFileSync(
+        path.join(dir, command),
+        [
+          "#!/bin/sh",
+          'if [ "$1" = "--version" ]; then',
+          `  echo "${version}"`,
+          "  exit 0",
+          "fi",
+          "exit 1",
+          "",
+        ].join("\n"),
+        { mode: 0o755 },
+      );
+    }
+    return dir;
+  }
+
+  function spawnRuntimeCheck(scriptPath: string, pathPrefix?: string) {
+    return spawnSync(process.execPath, [scriptPath, "--runtime"], {
+      encoding: "utf8",
+      env: pathPrefix
+        ? {
+            ...process.env,
+            PATH: `${pathPrefix}${path.delimiter}${process.env.PATH ?? ""}`,
+          }
+        : process.env,
+    });
+  }
+
+  it("reads the Node.js range from package.json engines", () => {
+    expect(readEnginesNode(repoRoot)).toBe(nodeRange);
+    expect(nodeRange).toMatch(/^>=\d+\.\d+\.\d+ <\d+$/);
+  });
+
+  it.each([undefined, ">=24", "^24.22.3", ">=24.22.3 <25 || >=26"])(
+    "refuses an engines.node range it cannot read exactly: %s",
+    (range) => {
+      const root = writePinFixture({
+        packageManager: "bun@1.4.0",
+        bunVersion: "1.4.0",
+      });
+      writeFileSync(
+        path.join(root, "package.json"),
+        `${JSON.stringify({ packageManager: "bun@1.4.0", engines: range === undefined ? undefined : { node: range } })}\n`,
+      );
+
+      expect(() => readEnginesNode(root)).toThrow(/engines\.node/);
+    },
+  );
+
+  it.each(["24.22.3", "v24.22.3", "24.22.4", "24.23.0"])(
+    "accepts the pinned Bun with Node.js %s",
+    (node) => {
+      expect(
+        runtimeMismatch({
+          bun: "1.4.3",
+          bunPin: "1.4.3",
+          node,
+          nodeRange: ">=24.22.3 <25",
+        }),
+      ).toBeNull();
+    },
+  );
+
+  it.each<[string, string | null, string | null, string, string]>([
+    [
+      "the Supabase CLI's Bun, as in release 7",
+      "1.3.10",
+      "24.22.3",
+      "Bun 1.3.10",
+      "Node.js 24.22.3",
+    ],
+    ["a newer Bun", "1.4.4", "24.22.3", "Bun 1.4.4", "Node.js 24.22.3"],
+    ["no Bun on PATH", null, "24.22.3", "no Bun", "Node.js 24.22.3"],
+    [
+      "a Node.js below the floor",
+      "1.4.3",
+      "v24.22.2",
+      "Bun 1.4.3",
+      "Node.js 24.22.2",
+    ],
+    [
+      "the next Node.js major",
+      "1.4.3",
+      "25.0.0",
+      "Bun 1.4.3",
+      "Node.js 25.0.0",
+    ],
+    [
+      "an older Node.js major",
+      "1.4.3",
+      "22.22.0",
+      "Bun 1.4.3",
+      "Node.js 22.22.0",
+    ],
+    [
+      "a pre-release Node.js",
+      "1.4.3",
+      "24.22.3-rc.1",
+      "Bun 1.4.3",
+      "Node.js 24.22.3-rc.1",
+    ],
+    ["no Node.js on PATH", "1.4.3", null, "Bun 1.4.3", "no Node.js"],
+  ])(
+    "names the versions found and required in one sentence for %s",
+    (_case, bun, node, foundBun, foundNode) => {
+      expect(
+        runtimeMismatch({
+          bun,
+          bunPin: "1.4.3",
+          node,
+          nodeRange: ">=24.22.3 <25",
+        }),
+      ).toBe(
+        `Found ${foundBun} and ${foundNode} on PATH, but this repository requires Bun 1.4.3 (package.json packageManager) and Node.js >=24.22.3 <25 (package.json engines).`,
+      );
+    },
+  );
+
+  it("passes with the Bun and Node.js on this PATH", () => {
+    const result = spawnRuntimeCheck(verifierSourcePath);
+
+    expect(result.stderr).toBe("");
+    expect(result.status).toBe(0);
+    expect(result.stdout).toContain(`Runtime OK: Bun ${VERIFIED_STABLE_BUN}`);
+  });
+
+  it.skipIf(process.platform === "win32")(
+    "stops with one sentence when the Supabase CLI's Bun 1.3.10 is first on PATH",
+    () => {
+      const result = spawnRuntimeCheck(
+        verifierSourcePath,
+        fakeRuntimeDir({ bun: "1.3.10", node: "v24.22.3" }),
+      );
+
+      expect(result.status).toBe(1);
+      expect(result.stdout).toBe("");
+      expect(result.stderr).toBe(
+        `Found Bun 1.3.10 and Node.js 24.22.3 on PATH, ${required}\n`,
+      );
+    },
+  );
+
+  it.skipIf(process.platform === "win32")(
+    "reads node --version from PATH, not the Node.js that runs the check",
+    () => {
+      const result = spawnRuntimeCheck(
+        verifierSourcePath,
+        fakeRuntimeDir({ bun: VERIFIED_STABLE_BUN, node: "v24.21.0" }),
+      );
+
+      expect(result.status).toBe(1);
+      expect(result.stderr).toBe(
+        `Found Bun ${VERIFIED_STABLE_BUN} and Node.js 24.21.0 on PATH, ${required}\n`,
+      );
+    },
+  );
+
+  it("exits 2 when package.json has no engines.node to check against", () => {
+    const { scriptPath } = writeIsolatedVerifier({
+      packageManager: `bun@${VERIFIED_STABLE_BUN}`,
+      bunVersion: VERIFIED_STABLE_BUN,
+    });
+
+    const result = spawnRuntimeCheck(scriptPath);
+
+    expect(result.status).toBe(2);
+    expect(result.stderr).toMatch(/engines\.node/);
   });
 });

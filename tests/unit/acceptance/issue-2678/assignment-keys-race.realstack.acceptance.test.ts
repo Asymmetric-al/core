@@ -410,5 +410,184 @@ describe.skipIf(!ADMIN_URL)(
         await c1.query("rollback");
       }
     });
+
+    const KEY_LOCK =
+      "select pg_catalog.pg_advisory_xact_lock(pg_catalog.hashtext('ministry_assignment_key'), pg_catalog.hashtext($1::uuid::text || ':' || $2::uuid::text))";
+
+    async function movable() {
+      const A = await login();
+      const L = await login();
+      const W = await worker(A);
+      const task = (
+        await admin.query(
+          "insert into public.missionary_tasks (tenant_id, missionary_id, title) values ($1, $2, 'acc2678 move') returning id",
+          [T, A],
+        )
+      ).rows[0].id as string;
+      const ascending = (
+        await admin.query(
+          "select k::text from unnest($2::uuid[]) k order by pg_catalog.hashtext($1::uuid::text || ':' || k::text)",
+          [T, [A, L]],
+        )
+      ).rows.map((r) => r.k as string);
+      const child = async () =>
+        (
+          await admin.query(
+            "select missionary_id, ministry_assignment_id key, private.assignment_for_profile(tenant_id, missionary_id) derived from public.missionary_tasks where id = $1",
+            [task],
+          )
+        ).rows[0] as {
+          missionary_id: string;
+          key: string | null;
+          derived: string | null;
+        };
+      const profileOf = async () =>
+        (
+          await admin.query(
+            "select profile_id from public.missionaries where id = $1",
+            [W],
+          )
+        ).rows[0].profile_id as string;
+      return { A, L, W, task, ascending, child, profileOf };
+    }
+
+    const codeOf = (call: Promise<unknown>) =>
+      call.then(
+        () => "ok",
+        (error: { code?: string }) => error.code ?? String(error),
+      );
+
+    it("(issue 2835, 28 November, item 2) a writer that locks a child's row and then moves the child to another login, against a re-link of the worker of the child's login to that login: the re-link takes the key and waits on the child's row, the move holds the row and asks for the key, PostgreSQL ends one of the two with 40P01, the other commits, and the child's key is the one its login's worker gives (passes before this part: it shows the outcome the comments now state)", async () => {
+      const m = await movable();
+      await c1.query("begin");
+      await c1.query("set local lock_timeout = '20s'");
+      await c1.query(
+        "select 1 from public.missionary_tasks where id = $1 for update",
+        [m.task],
+      );
+      await c2.query("begin");
+      await c2.query("set local lock_timeout = '20s'");
+      const relink = codeOf(
+        c2.query(
+          "update public.missionaries set profile_id = $2 where id = $1",
+          [m.W, m.L],
+        ),
+      );
+      expect(await blockedOrSettled(admin, relink, c2pid, c1pid)).toBe(true);
+      const move = codeOf(
+        c1.query(
+          "update public.missionary_tasks set missionary_id = $2 where id = $1",
+          [m.task, m.L],
+        ),
+      );
+      const [moved, relinked] = await Promise.all([move, relink]);
+      expect([moved, relinked].sort()).toEqual(["40P01", "ok"]);
+      await (moved === "ok" ? c1 : c2).query("commit");
+      await (moved === "ok" ? c2 : c1).query("rollback");
+      const after = await m.child();
+      expect(after.key).toBe(after.derived);
+      if (moved === "ok") {
+        expect([after.missionary_id, after.key, await m.profileOf()]).toEqual([
+          m.L,
+          null,
+          m.A,
+        ]);
+      } else {
+        expect([after.missionary_id, after.key, await m.profileOf()]).toEqual([
+          m.A,
+          null,
+          m.L,
+        ]);
+      }
+    });
+
+    it("(issue 2835, 28 November, item 2) the rule: a writer that moves an existing child takes the key's lock for the child's old and new login, in ascending order of the key, before it locks the row; a re-link of the worker of the child's login to the new login then waits for it, both commit and the child ends with that worker's key (guard for the rule the comments state)", async () => {
+      const m = await movable();
+      await c1.query("begin");
+      for (const login of m.ascending) await c1.query(KEY_LOCK, [T, login]);
+      await c1.query(
+        "select 1 from public.missionary_tasks where id = $1 for update",
+        [m.task],
+      );
+      await c2.query("begin");
+      await c2.query("set local lock_timeout = '20s'");
+      const relink = codeOf(
+        c2.query(
+          "update public.missionaries set profile_id = $2 where id = $1",
+          [m.W, m.L],
+        ),
+      );
+      expect(await blockedOrSettled(admin, relink, c2pid, c1pid)).toBe(true);
+      await c1.query(
+        "update public.missionary_tasks set missionary_id = $2 where id = $1",
+        [m.task, m.L],
+      );
+      await c1.query("commit");
+      expect(await relink).toBe("ok");
+      await c2.query("commit");
+      const after = await m.child();
+      expect([after.missionary_id, after.key, after.derived]).toEqual([
+        m.L,
+        m.W,
+        m.W,
+      ]);
+    });
+
+    it("(issue 2835, 28 November, item 2) the two key triggers' comments give the true order: a child's UPDATE holds the row before its trigger asks for the key, a worker's write takes the key and then the children's rows, the two can meet in a cycle that PostgreSQL ends with 40P01, and a writer that moves an existing child takes the key's lock before its UPDATE (red: the comments say nothing of the cycle)", async () => {
+      const comments = (
+        await admin.query(
+          "select obj_description('private.derive_ministry_assignment_id()'::regprocedure, 'pg_proc') derive, obj_description('private.rederive_ministry_assignment_children()'::regprocedure, 'pg_proc') rederive",
+        )
+      ).rows[0] as Record<string, string>;
+      for (const comment of Object.values(comments)) {
+        expect(comment).toContain("40P01");
+        expect(comment).toContain(
+          "A writer that moves an existing child takes the key's lock for the child's old and new login, in ascending order of the key, before its UPDATE.",
+        );
+      }
+    });
+    it("W7 (fix round of 2869), the reverse order: the re-link of the worker of the child's login to the new login holds the keys first; a writer that follows the rule waits on a key, not on the child's row, then moves the child once the re-link commits, both commit with no 40P01, and the child ends with that worker's key at its new login (guard)", async () => {
+      const m = await movable();
+      await c2.query("begin");
+      await c2.query("set local lock_timeout = '20s'");
+      await c2.query(
+        "update public.missionaries set profile_id = $2 where id = $1",
+        [m.W, m.L],
+      );
+      await c1.query("begin");
+      await c1.query("set local lock_timeout = '20s'");
+      const move = codeOf(
+        (async () => {
+          for (const login of m.ascending) await c1.query(KEY_LOCK, [T, login]);
+          await c1.query(
+            "select 1 from public.missionary_tasks where id = $1 for update",
+            [m.task],
+          );
+          await c1.query(
+            "update public.missionary_tasks set missionary_id = $2 where id = $1",
+            [m.task, m.L],
+          );
+        })(),
+      );
+      expect(await blockedOrSettled(admin, move, c1pid, c2pid)).toBe(true);
+      expect(
+        (
+          await admin.query(
+            "select locktype from pg_catalog.pg_locks where pid = $1 and not granted",
+            [c1pid],
+          )
+        ).rows,
+      ).toEqual([{ locktype: "advisory" }]);
+      await c2.query("commit");
+      expect(await move).toBe("ok");
+      await c1.query("commit");
+      const after = await m.child();
+      expect([
+        after.missionary_id,
+        after.key,
+        after.derived,
+        await m.profileOf(),
+      ]).toEqual([m.L, m.W, m.W, m.L]);
+    });
   },
 );

@@ -12,6 +12,8 @@ const defaultRepoRoot = path.resolve(
 );
 const scriptPath = fileURLToPath(import.meta.url);
 const STABLE_BUN_VERSION = /^\d+\.\d+\.\d+$/;
+const ENGINES_NODE_RANGE = /^>=(\d+)\.(\d+)\.(\d+) <(\d+)$/;
+const RELEASED_NODE_VERSION = /^v?(\d+)\.(\d+)\.(\d+)$/;
 
 function resolveExistingPath(filePath) {
   try {
@@ -88,6 +90,57 @@ export function readExpectedVersion(root = defaultRepoRoot) {
   }
 
   return expected;
+}
+
+export function readEnginesNode(root = defaultRepoRoot) {
+  const packageJson = JSON.parse(
+    readFileSync(path.join(root, "package.json"), "utf8"),
+  );
+  const range = packageJson.engines?.node;
+
+  if (typeof range !== "string" || !ENGINES_NODE_RANGE.test(range)) {
+    throw new Error(
+      `package.json engines.node must look like >=x.y.z <major, got: ${String(range)}`,
+    );
+  }
+
+  return range;
+}
+
+function nodeSatisfiesRange(version, range) {
+  const found = RELEASED_NODE_VERSION.exec(version);
+  const bounds = ENGINES_NODE_RANGE.exec(range);
+
+  if (!found || !bounds) {
+    return false;
+  }
+
+  const [major, minor, patch] = found.slice(1).map(Number);
+  const [floorMajor, floorMinor, floorPatch, ceiling] = bounds
+    .slice(1)
+    .map(Number);
+
+  if (major >= ceiling) {
+    return false;
+  }
+  if (major !== floorMajor) {
+    return major > floorMajor;
+  }
+  if (minor !== floorMinor) {
+    return minor > floorMinor;
+  }
+  return patch >= floorPatch;
+}
+
+export function runtimeMismatch({ bun, bunPin, node, nodeRange }) {
+  if (bun === bunPin && node && nodeSatisfiesRange(node, nodeRange)) {
+    return null;
+  }
+
+  const foundBun = bun ? `Bun ${bun}` : "no Bun";
+  const foundNode = node ? `Node.js ${node.replace(/^v/, "")}` : "no Node.js";
+
+  return `Found ${foundBun} and ${foundNode} on PATH, but this repository requires Bun ${bunPin} (package.json packageManager) and Node.js ${nodeRange} (package.json engines).`;
 }
 
 export function isGitHubWorkflowFile(name) {
@@ -227,6 +280,43 @@ function readInstalledVersion() {
   return null;
 }
 
+function readPathVersion(command) {
+  const result = spawnSync(command, ["--version"], {
+    encoding: "utf8",
+    stdio: ["ignore", "pipe", "ignore"],
+  });
+
+  if (result.status !== 0) {
+    return null;
+  }
+
+  return result.stdout.trim().replace(/^v/, "") || null;
+}
+
+export function checkRuntime(root = defaultRepoRoot) {
+  let bunPin;
+  let nodeRange;
+
+  try {
+    bunPin = readExpectedVersion(root);
+    nodeRange = readEnginesNode(root);
+  } catch (error) {
+    console.error(`error: ${error.message}`);
+    process.exit(2);
+  }
+
+  const bun = readPathVersion("bun");
+  const node = readPathVersion("node");
+  const mismatch = runtimeMismatch({ bun, bunPin, node, nodeRange });
+
+  if (mismatch) {
+    console.error(mismatch);
+    process.exit(1);
+  }
+
+  console.log(`Runtime OK: Bun ${bun} and Node.js ${node} match package.json.`);
+}
+
 export function main(root = defaultRepoRoot) {
   let expected;
 
@@ -276,5 +366,9 @@ const isDirectRun =
   resolveExistingPath(process.argv[1]) === resolveExistingPath(scriptPath);
 
 if (isDirectRun) {
-  main();
+  if (process.argv.slice(2).includes("--runtime")) {
+    checkRuntime();
+  } else {
+    main();
+  }
 }

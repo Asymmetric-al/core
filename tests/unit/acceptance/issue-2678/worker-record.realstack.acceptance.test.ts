@@ -17,6 +17,7 @@ import {
   fixtureSql,
   keepAs,
   migration,
+  type Caller,
 } from "./harness";
 import { normalizesToNothing } from "../../../../packages/api/src/admin/workers/safety-text";
 import {
@@ -163,15 +164,26 @@ describe.skipIf(!ADMIN_URL)(
     };
     const run = asRole(db, id);
     const keep = keepAs(db, id);
+    const callerOf = (
+      user: keyof typeof id,
+      membership: keyof typeof id,
+      tenant: keyof typeof id,
+    ): Caller => ({
+      sub: user,
+      headers: {
+        "x-asym-tenant": id[tenant],
+        "x-asym-assignment": id[membership],
+      },
+    });
     const admin = caller(id, "US", "mS", "TA");
-    const plain = caller(id, "UP" as never, "mP" as never, "TA");
+    const plain = callerOf("UP", "mP", "TA");
     const adminB = caller(id, "UBS", "mBS", "TB");
     const adminBforgedA = {
       sub: "UBS",
       headers: { "x-asym-tenant": id.TA, "x-asym-assignment": id.mBS },
     };
-    const dualA = caller(id, "UDS" as never, "mDSA" as never, "TA");
-    const dualB = caller(id, "UDS" as never, "mDSB" as never, "TB");
+    const dualA = callerOf("UDS", "mDSA", "TA");
+    const dualB = callerOf("UDS", "mDSB", "TB");
     const donor = caller(id, "UDA", "mDA", "TA");
     const missionary = caller(id, "UM", "mM", "TA");
     const nobody = { sub: "UN", headers: { "x-asym-tenant": id.TA } };
@@ -180,16 +192,12 @@ describe.skipIf(!ADMIN_URL)(
       aal: "aal2",
       headers: { "x-asym-tenant": id.TA },
     };
-    const records = (who: object, arg = "") =>
-      run(
-        "authenticated",
-        who as never,
-        `select * from public.worker_records(${arg})`,
-      );
-    const reveal = (who: object, party: string, reason: string) =>
+    const records = (who: Caller, arg = "") =>
+      run("authenticated", who, `select * from public.worker_records(${arg})`);
+    const reveal = (who: Caller, party: string, reason: string) =>
       keep(
         "authenticated",
-        who as never,
+        who,
         `select public.reveal_worker_identity('${id.TA}', '${party}', '${reason.replaceAll("'", "''")}') as r`,
       );
     const audits = async (party: string) =>
@@ -203,7 +211,7 @@ describe.skipIf(!ADMIN_URL)(
     beforeAll(async () => {
       await db.connect();
       await db.query("begin");
-      await db.query(fixtureSql(id as never));
+      await db.query(fixtureSql(id));
       await db.query(
         "update authz.memberships set is_tenant_admin = true where id = any($1::uuid[])",
         [[id.mS, id.mBS]],
@@ -472,7 +480,7 @@ describe.skipIf(!ADMIN_URL)(
       for (const who of [admin, plain, adminB, donor]) {
         const result = await run(
           "authenticated",
-          who as never,
+          who,
           `select * from public.read_party_restricted('${id.pK}')`,
         );
         expect(result).toMatchObject({

@@ -609,6 +609,38 @@ calling command's rights. The two private readers are called only from the
 posts trigger, as their owner. `post_author_public_name` keeps its
 `service_role`-only grant.
 
+## Functions added by AL-2678 (WP5 rest, pull request 2b)
+
+| Function                                                                           | Security | EXECUTE grantees (exact)                |
+| ---------------------------------------------------------------------------------- | -------- | --------------------------------------- |
+| `tenant_guard.confirm_worker_security_level(uuid, uuid, text, text, text)`         | DEFINER  | `tenant_guard` (owner), `authenticated` |
+| `public.confirm_worker_security_level(uuid, uuid, text, text, text)`               | INVOKER  | `postgres` (owner), `authenticated`     |
+| `private.insert_worker(uuid, text, uuid)`                                          | DEFINER  | `postgres` (owner), `tenant_guard`      |
+| `tenant_guard.create_worker(uuid, text, text, text, text, text, text, uuid, text)` | DEFINER  | `tenant_guard` (owner), `authenticated` |
+| `public.create_worker(uuid, text, text, text, text, text, text, uuid, text)`       | INVOKER  | `postgres` (owner), `authenticated`     |
+| `private.accept_worker_invitation(uuid, uuid, uuid)`                               | DEFINER  | `postgres` (owner), `tenant_guard`      |
+| `tenant_guard.invite_worker(uuid, text, uuid, text, text, text, text, uuid, text)` | DEFINER  | `tenant_guard` (owner), `authenticated` |
+| `public.invite_worker(uuid, text, uuid, text, text, text, text, uuid, text)`       | INVOKER  | `postgres` (owner), `authenticated`     |
+
+Each revokes `PUBLIC`, `anon`, `authenticated` and `service_role` by name
+before granting (`20261127090000_wp5_rest2b_confirm_level.sql`,
+`20261127090100_wp5_rest2b_create_worker.sql`,
+`20261127090300_wp5_rest2b_worker_invitations.sql`). The two `private`
+helpers refuse a call outside the tenant the transaction entered (42501):
+`private.insert_worker` makes one Party (standard, unreviewed) and one worker
+row with no login under the named or only legal entity;
+`private.accept_worker_invitation` locks the invited worker's Party and worker
+row, refuses a worker with another login or a linked login (55006) and a login
+tied to another Party there (21000), then sets the worker's login where NULL
+and adds the account link (`invitation`). The three commands are human
+commands owned by `tenant_guard`. `tenant_guard.redeem_account_claim`
+(`20261127090200_wp5_rest2b_claim_and_key_order.sql`),
+`tenant_guard.accept_membership_invitation`
+(`20261127090300_wp5_rest2b_worker_invitations.sql`) and
+`public.member_care_directory_rows`
+(`20261127090400_wp5_rest2b_care_worker_names.sql`) are replaced, each with
+its owner, security and grantees unchanged.
+
 ## Functions added by AL-2671 (N4, pull request 1)
 
 | Function                                              | Security | EXECUTE grantees (exact)           |

@@ -65,7 +65,7 @@ export type MissionaryPortalSnapshot = {
     displayName: string;
     email: string | null;
     phone: string | null;
-    preferredContact: string;
+    preferredContact: string | null;
     avatarUrl: string | null;
     location: string | null;
     status: string;

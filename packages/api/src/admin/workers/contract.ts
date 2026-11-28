@@ -2,28 +2,33 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 
 import {
+  FAILURE_TEXT,
+  LEVEL_SOURCES,
+  NOT_PERMITTED_TEXT,
+  OUTCOME_UNKNOWN_TEXT,
+  SECURITY_LEVELS,
+  type Worker,
+} from "./envelopes";
+import { normalizesToNothing } from "./safety-text";
+import {
   ApiHttpError,
   ensureJsonBody,
   reportOperationFailure,
 } from "../../shared/http-errors";
 import { READ_ALL_PAGE_SIZE, readAllPages } from "../../shared/read-all-pages";
 
+import type { RequestSessionClient } from "../../shared/request-session-client";
+
+export {
+  FAILURE_TEXT,
+  NOT_PERMITTED_TEXT,
+  OUTCOME_UNKNOWN_TEXT,
+  SECURITY_LEVELS,
+  type SecurityLevel,
+  type Worker,
+} from "./envelopes";
+
 export const WORKERS_CAPABILITY = "safety.restrict_publication";
-
-export const SECURITY_LEVELS = [
-  "standard",
-  "sensitive",
-  "restricted",
-  "high_risk",
-] as const;
-
-export type SecurityLevel = (typeof SECURITY_LEVELS)[number];
-
-const LEVEL_SOURCES = [
-  "manual",
-  "country_default",
-  "unreviewed_default",
-] as const;
 
 export const REASON_MAX = 500;
 export const ALIAS_MAX = 200;
@@ -80,20 +85,44 @@ export const confirmBodySchema = z.strictObject({
 
 export const revealBodySchema = z.strictObject({ reason });
 
-export type WorkerRow = z.infer<typeof workerRowSchema>;
+export const createBodySchema = z.strictObject({
+  displayName: z.string().max(ALIAS_MAX),
+  legalName: z.string().max(ALIAS_MAX),
+  realCountry: z.string().max(ALIAS_MAX).optional(),
+  preciseLocation: z.string().max(REASON_MAX).optional(),
+  level: z.enum(SECURITY_LEVELS).optional(),
+  alias: z.string().max(ALIAS_MAX).optional(),
+  legalEntityId: z.guid().optional(),
+  reason,
+});
 
-export interface Worker {
-  assignmentId: string;
-  partyId: string;
-  displayName: string;
-  publicAlias: string | null;
-  securityLevel: SecurityLevel;
-  securityLevelSource: WorkerRow["security_level_source"];
-  doNotPublish: boolean;
-  hasLegalIdentity: boolean | null;
-  hasLogin: boolean;
-  createdAt: string;
-}
+export const inviteBodySchema = z.strictObject({
+  email: z.string().trim().email().max(320),
+  reason,
+});
+
+export const inviteResultSchema = z.strictObject({
+  invitation_id: z.guid(),
+  tenant_id: z.guid(),
+  selector: z.string().min(1),
+  verifier: z.string().min(1),
+  expires_at: z.string(),
+  role: z.literal("missionary"),
+  staff_role: z.null(),
+  is_tenant_admin: z.literal(false),
+  party_id: z.guid(),
+  assignment_id: z.guid(),
+});
+
+export const createResultSchema = z.strictObject({
+  tenant_id: z.guid(),
+  party_id: z.guid(),
+  assignment_id: z.guid(),
+  security_level: z.enum(SECURITY_LEVELS),
+  security_level_source: z.enum(LEVEL_SOURCES),
+});
+
+export type WorkerRow = z.infer<typeof workerRowSchema>;
 
 export function toWorker(row: WorkerRow): Worker {
   return {
@@ -109,9 +138,6 @@ export function toWorker(row: WorkerRow): Worker {
     createdAt: row.created_at,
   };
 }
-
-export const NOT_PERMITTED_TEXT =
-  "Only staff with the Restrict publication permission can change these settings.";
 
 export const WORKER_ERRORS = {
   NOT_PERMITTED: { status: 403, text: NOT_PERMITTED_TEXT },
@@ -137,14 +163,52 @@ export const WORKER_ERRORS = {
   },
   RETRY: { status: 503, text: "Mission Control is busy. Try again." },
   INVALID_INPUT: { status: 400, text: "Check the form and try again." },
+  DISPLAY_NAME_REQUIRED: { status: 400, text: "Give a display name." },
+  LEGAL_NAME_REQUIRED: { status: 400, text: "Give the worker's legal name." },
+  LEGAL_ENTITY_REQUIRED: {
+    status: 400,
+    text: "Choose the legal entity this worker serves under.",
+  },
+  LEGAL_ENTITY_NOT_FOUND: {
+    status: 404,
+    text: "That legal entity is not this organization's.",
+  },
+  NO_LEGAL_ENTITY: {
+    status: 400,
+    text: "This organization has no legal entity yet.",
+  },
+  HAS_LOGIN: { status: 409, text: "This worker already has a login." },
+  EMAIL_REQUIRED: { status: 400, text: "Give a valid e-mail address." },
 } as const;
 
 export type WorkerErrorCode = keyof typeof WORKER_ERRORS;
 
-export const FAILURE_TEXT = "Something went wrong. Nothing was changed.";
+export const INVITE_CAPABILITIES = [
+  "people.manage_members",
+  "safety.restrict_publication",
+] as const;
 
-export const OUTCOME_UNKNOWN_TEXT =
-  "The change may have been saved. Reload this worker before trying again.";
+export type InviteCapability = (typeof INVITE_CAPABILITIES)[number];
+
+const INVITE_PERMISSION_LABELS: Record<InviteCapability, string> = {
+  "people.manage_members": "Manage members",
+  "safety.restrict_publication": "Restrict publication",
+};
+
+export const INVITE_PERMISSIONS_CHANGED_TEXT =
+  "Your permissions here have changed. Reload the page to see what you can do.";
+
+export function inviteNotPermittedText(
+  missing: readonly InviteCapability[],
+): string {
+  if (missing.length === 0) return INVITE_PERMISSIONS_CHANGED_TEXT;
+  const labels = INVITE_CAPABILITIES.filter((capability) =>
+    missing.includes(capability),
+  ).map((capability) => INVITE_PERMISSION_LABELS[capability]);
+  return labels.length === 1
+    ? `Inviting a worker to sign in needs the ${labels[0]} permission.`
+    : `Inviting a worker to sign in needs the ${labels.join(" and ")} permissions.`;
+}
 
 const NO_STORE = "no-store";
 
@@ -158,8 +222,26 @@ export function workerError(
   );
 }
 
+export function inviteNotPermitted(
+  missing: readonly InviteCapability[],
+): NextResponse {
+  return NextResponse.json(
+    { error: inviteNotPermittedText(missing), code: "NOT_PERMITTED" },
+    { status: 403, headers: { "Cache-Control": NO_STORE } },
+  );
+}
+
 export type WorkersOperation =
-  "list" | "count" | "record" | "restrict" | "lift" | "confirm" | "reveal";
+  | "list"
+  | "count"
+  | "record"
+  | "restrict"
+  | "lift"
+  | "confirm"
+  | "reveal"
+  | "create"
+  | "invite"
+  | "entities";
 
 async function reportWorkersFailure(
   operation: WorkersOperation,
@@ -212,13 +294,24 @@ function refusalOf(error: RpcError): WorkerErrorCode | null {
   if (code === "P0002")
     return message === "No private identity for that worker"
       ? "NO_IDENTITY"
-      : "NOT_FOUND";
+      : message === "No legal entity with that id in this organization"
+        ? "LEGAL_ENTITY_NOT_FOUND"
+        : "NOT_FOUND";
   if (code === "22023") {
     if (message === "A reason is required") return "REASON_REQUIRED";
+    if (message === "A display name is required")
+      return "DISPLAY_NAME_REQUIRED";
+    if (message === "A legal name is required") return "LEGAL_NAME_REQUIRED";
+    if (message === "Name the legal entity") return "LEGAL_ENTITY_REQUIRED";
+    if (message === "This organization has no legal entity")
+      return "NO_LEGAL_ENTITY";
+    if (message === "A valid email address is required")
+      return "EMAIL_REQUIRED";
     if (message === "Nothing to change") return "NOTHING_TO_CHANGE";
     if (
       message.startsWith("Lowering a level") ||
-      message.startsWith("Raising a level")
+      message.startsWith("Raising a level") ||
+      message === "The level changed since it was read"
     )
       return "LEVEL_CHANGED";
     if (
@@ -234,6 +327,7 @@ function refusalOf(error: RpcError): WorkerErrorCode | null {
       return "ALIAS_IS_LEGAL_NAME";
     return null;
   }
+  if (code === "55006") return "HAS_LOGIN";
   if (code === "55P03" || code === "40001" || code === "40P01") return "RETRY";
   return null;
 }
@@ -253,7 +347,7 @@ export async function refusal(
 }
 
 export function isBlank(value: string): boolean {
-  return value.trim().length === 0;
+  return normalizesToNothing(value);
 }
 
 export async function readBody<T>(
@@ -339,8 +433,17 @@ export interface WorkersRpcClient {
   ): WorkersRpcQuery;
 }
 
-export function rpcClient(client: unknown): WorkersRpcClient {
-  return client as WorkersRpcClient;
+export function rpcClient(client: RequestSessionClient): WorkersRpcClient {
+  return {
+    rpc: (fn, args, options) =>
+      (options === undefined
+        ? client.rpc(fn as never, args as never)
+        : client.rpc(
+            fn as never,
+            args as never,
+            options,
+          )) as unknown as WorkersRpcQuery,
+  };
 }
 
 type WorkerRowsRead =

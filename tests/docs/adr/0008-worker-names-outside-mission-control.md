@@ -413,7 +413,8 @@ the publishing effect of "Do not publish", which arrives with WP7:
 
 `tests/unit/acceptance/issue-2678/worker-record.postgrest.acceptance.test.ts`
 T4 restricts a worker through the route and reads every surface r1, r2a and
-r2s cover at once: each shows the alias or no name.
+r2s cover at once: each shows the alias or no name. Its stack rows come from
+one module, `worker-record.postgrest-fixture.ts`.
 
 ## Readers left open, with owners
 
