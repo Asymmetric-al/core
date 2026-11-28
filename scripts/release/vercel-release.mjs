@@ -697,18 +697,26 @@ export async function deployRelease({
 
 /**
  * Registers the job functions with Inngest once Git deployment is off
- * (council reservation 7): the serve route syncs on PUT.
+ * (council reservation 7): the serve route syncs on a PUT that carries the
+ * admin deployment's automation-bypass secret as its proof.
  */
 export async function registerJobFunctions({
   request = fetch,
   pathPrefix = "",
+  bypassSecret,
 }) {
+  if (!bypassSecret) {
+    stop(
+      `The job-function registration needs ${BYPASS_SECRETS.admin}; nothing was sent.`,
+    );
+  }
   let response;
   try {
     response = await request(
       `https://${PRODUCTION_HOSTS.admin}${pathPrefix}/api/inngest`,
       {
         method: "PUT",
+        headers: { "x-vercel-protection-bypass": bypassSecret },
         redirect: "error",
         signal: AbortSignal.timeout(30_000),
       },
@@ -834,7 +842,11 @@ export async function runCli(
   }
   if (step === "register-jobs") {
     const { admin: pathPrefix } = productionPathPrefixes(["admin"], env);
-    await registerJobFunctions({ request, pathPrefix });
+    await registerJobFunctions({
+      request,
+      pathPrefix,
+      bypassSecret: env[BYPASS_SECRETS.admin],
+    });
     log("Job functions registered with the admin app's serve route.");
     return;
   }

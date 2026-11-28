@@ -43,9 +43,21 @@ const D = [
 ];
 const Q = [{ tenant: TA, role: "staff" }];
 
-function fakeAuthFetch() {
+function fakeAuthFetch(
+  outcome: "user" | "no user" | "refused exchange" = "user",
+) {
   return vi.fn(async (input: RequestInfo | URL) => {
     const url = input instanceof Request ? input.url : input.toString();
+    if (url.includes("/auth/v1/token") && outcome === "refused exchange")
+      return Response.json(
+        { error_code: "flow_state_not_found", msg: "invalid flow state" },
+        { status: 404 },
+      );
+    if (url.endsWith("/auth/v1/user") && outcome === "no user")
+      return Response.json(
+        { error_code: "unexpected_failure", msg: "unavailable" },
+        { status: 500 },
+      );
     if (url.includes("/auth/v1/token")) {
       return Response.json({
         access_token: "fixture-access-token",
@@ -166,6 +178,106 @@ describe("on: the staff callback picks the home among the name's organization's 
     },
   );
 });
+
+function operationsCallback(
+  next: string,
+  headers: Record<string, string> = {},
+) {
+  fixture.cookies.set(
+    "sb-callback-fixture-auth-token-code-verifier",
+    JSON.stringify("fixture-code-verifier"),
+  );
+  return GET(
+    new Request(
+      `http://ops.test/admin/auth/callback?code=fixture-code&next=${encodeURIComponent(next)}`,
+      { headers: { host: "ops.test", ...headers } },
+    ),
+  );
+}
+
+describe("on: the callback on an operations address", () => {
+  beforeEach(() => {
+    vi.stubEnv("CORE_SERVE_UNDER_PATHS", "1");
+    vi.stubEnv("CORE_APP_BASE_PATH", "/admin");
+    vi.stubEnv("OPERATIONS_NAMES", "ops.test");
+  });
+
+  it("lands on /operator whatever next says, reading no membership", async () => {
+    fixture.rows = Q;
+    const response = await operationsCallback("/donors");
+    expect(response.status).toBe(307);
+    expect(response.headers.get("location")).toBe("/admin/operator");
+    expect(fixture.rowReads).toBe(0);
+  });
+
+  it("lands a request that carries the name by class, as today (guard)", async () => {
+    fixture.rows = Q;
+    const response = await operationsCallback("/donors", {
+      "x-asym-name-tenant": TA,
+      "x-asym-role-class": "staff",
+    });
+    expect(response.headers.get("location")).toBe("/admin");
+  });
+
+  it("keeps next on another host, as today (guard)", async () => {
+    fixture.rows = Q;
+    const response = await operationsCallback("/donors", {
+      host: "other.test",
+    });
+    expect(response.headers.get("location")).toBe("/admin/donors");
+    expect(fixture.rowReads).toBe(0);
+  });
+
+  it("lands on /operator when the exchange succeeds and no user is read, never on next", async () => {
+    vi.stubGlobal("fetch", fakeAuthFetch("no user"));
+    const response = await operationsCallback("/donors");
+    expect(response.status).toBe(307);
+    expect(response.headers.get("location")).toBe("/admin/operator");
+    expect(fixture.rowReads).toBe(0);
+  });
+
+  it("keeps next on another host when no user is read, as today (guard)", async () => {
+    vi.stubGlobal("fetch", fakeAuthFetch("no user"));
+    const response = await operationsCallback("/donors", {
+      host: "other.test",
+    });
+    expect(response.headers.get("location")).toBe("/admin/donors");
+  });
+
+  it("lands a refused exchange on the sign-in page with its error (guard)", async () => {
+    vi.stubGlobal("fetch", fakeAuthFetch("refused exchange"));
+    const response = await operationsCallback("/donors");
+    expect(response.headers.get("location")).toBe(
+      "/admin/login?error=Could%20not%20authenticate",
+    );
+  });
+});
+
+describe.each([
+  ["unset", undefined],
+  ["0", "0"],
+] as const)(
+  "off (switch %s): an operations name keeps next (guard)",
+  (_label, value) => {
+    it("lands a person with no class on next", async () => {
+      vi.stubEnv("CORE_SERVE_UNDER_PATHS", value);
+      vi.stubEnv("CORE_APP_BASE_PATH", "");
+      vi.stubEnv("OPERATIONS_NAMES", "ops.test");
+      fixture.rows = [];
+      const response = await operationsCallback("/donors");
+      expect(response.headers.get("location")).toBe("/donors");
+    });
+
+    it("lands on next when no user is read", async () => {
+      vi.stubEnv("CORE_SERVE_UNDER_PATHS", value);
+      vi.stubEnv("CORE_APP_BASE_PATH", "");
+      vi.stubEnv("OPERATIONS_NAMES", "ops.test");
+      vi.stubGlobal("fetch", fakeAuthFetch("no user"));
+      const response = await operationsCallback("/donors");
+      expect(response.headers.get("location")).toBe("/donors");
+    });
+  },
+);
 
 describe.each([
   ["unset", undefined],

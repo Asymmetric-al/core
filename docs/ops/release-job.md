@@ -136,7 +136,25 @@ file applied and not recorded, and the next run applies it again (see
    [If a promotion fails part way](#if-a-promotion-fails-part-way).
 7. **Register job functions** (optional, `RELEASE_REGISTER_JOB_FUNCTIONS`):
    a `PUT` to the admin app's Inngest serve route, because Git deployment no
-   longer triggers a sync (council reservation 7).
+   longer triggers a sync (council reservation 7). The step sends
+   `VERCEL_ADMIN_AUTOMATION_BYPASS_SECRET` as `x-vercel-protection-bypass`,
+   its proof, and stops before any request without it. The route syncs a
+   proven `PUT` at `INNGEST_SERVE_ORIGIN` where the admin project sets it,
+   otherwise at `https://admin.asymmetric.al` on a production deployment
+   (`isProductionDeployment`: `VERCEL_ENV` or `VERCEL_TARGET_ENV` is
+   `production`), with `/admin/api/inngest` when the switch is on. A
+   deployment that is not production never registers production's host. With
+   no origin, or with a configured value the route refuses, it answers 503
+   and the release ends red after promotion.
+
+   Before a release that registers, check that `INNGEST_SERVE_ORIGIN` on the
+   admin project's Production environment is unset, or an `https` origin with
+   no path (a trailing slash and capital letters are accepted).
+
+   If the register step ends red, correct the cause, then dispatch **Release**
+   anew with operation `release` and `apps: all`. A dispatch with
+   `apps: changed` finds admin already serving the commit, skips it, skips the
+   registration with it, and ends green with the jobs not registered.
 
 ### Serving under paths
 
@@ -1571,7 +1589,7 @@ Names only. Values live in GitHub environments and never in the repository.
 | Environment `release-owner-approval` | none                                                       |          | Holds no secret. Its required reviewer (the owner) approves each marker change and each first rebuild                                                                                                                                                                                                                                                                                                                                                                           |
 | Repository (exist today)             | `VERCEL_TOKEN`, `VERCEL_ORG_ID`                            | secret   | Unchanged                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
 |                                      | `VERCEL_{ADMIN,DONOR,MISSIONARY}_PROJECT_ID`               | secret   | Unchanged                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
-|                                      | `VERCEL_{ADMIN,DONOR,MISSIONARY}_AUTOMATION_BYPASS_SECRET` | secret   | Unchanged; used as a header to reach staged and preview deployments                                                                                                                                                                                                                                                                                                                                                                                                             |
+|                                      | `VERCEL_{ADMIN,DONOR,MISSIONARY}_AUTOMATION_BYPASS_SECRET` | secret   | Unchanged; used as a header to reach staged and preview deployments. The admin value is also the job-function registration's proof: the register step sends it                                                                                                                                                                                                                                                                                                                  |
 | Repository or `release-production`   | `RELEASE_REGISTER_JOB_FUNCTIONS`                           | variable | `true` once Inngest is configured in production; unset otherwise                                                                                                                                                                                                                                                                                                                                                                                                                |
 
 The cms_owner login is derived from `RELEASE_DATABASE_URL` (same host,
@@ -1730,7 +1748,7 @@ below follow those decisions.
    5. Run `bun run verify:vercel-production -- --commit <sha>`. Keep its actual exit status. At switch-on it returned BLOCKED (1): CLI 66.6.0 wrote `[SENSITIVE]` for values it could not read and the verifier checked that literal as a value. Since #2758 the verifier accepts the marker, in either letter case, for a variable whose type is sensitive, and reports it only where the type is not sensitive or cannot be confirmed; it returned READY (0) at the release of 24 November 2026 (`aac2b6c0f`). Still require matching READY deployments, normal and detailed health and protected runtime validation, and check both Inngest names separately. Never waive a failure or report the verifier as READY when it is not.
    6. Sign in on all three production domains and check the expected landing and tenant scope.
    7. In Web Studio choose the organization and read its pages and media lists; an empty list can be a successful scoped read.
-   8. When registration is enabled, check the production Inngest app, sync, functions and schedules from Inngest itself. At switch-on: seven declared plus two SDK failure handlers; three half-hour recovery schedules. An unsigned serve request answers 401.
+   8. When registration is enabled, check the production Inngest app, sync, functions and schedules from Inngest itself. At switch-on: seven declared plus two SDK failure handlers; three half-hour recovery schedules. An unsigned serve request answers 401, a sync (`PUT`) included, unless it carries the release's proof.
    9. While Production reads disposable demo data, check Stripe’s **test** publishable mode in its delivered bundles. That does not reveal the secret key’s mode.
    10. Signed in on the staff domain, drive one conversation through the assistant panel: open it, send one message and wait for the answer. The session's creation (`POST /eve/v1/session`) answers `202`, its stream (`GET /eve/v1/session/<id>/stream`) answers `200` and never `403`, and the answer appears in the panel. No other check drives the panel; issue #2796 was found only this way. The check writes one conversation on production's database: an Eve session and its row in `eve_session_ownership`.
 

@@ -164,13 +164,27 @@ path of the tenant flow, and no application code called
     (`tests/unit/acceptance/issue-2675/operator-mfa.localstack.test.ts`, T5
     row 5).
 
-13. **With `CORE_SERVE_UNDER_PATHS=1` (ruling Q2),** the same rule holds: a
-    stamped request to `/operator` (the front's `/admin/operator` on an
-    organization's name) answers `404`, and an unstamped request on an
-    unlisted host answers `403`. No unstamped sign-in or callback route opens
-    with this record; how operators sign in on the operations address under
-    the switch, and how they reach `aal2` for the assistant runtime's operator
-    actions, are N3/N4 prerequisites.
+13. **With `CORE_SERVE_UNDER_PATHS=1` (ruling Q2; N3 rest, pull request 2),**
+    the area's rule holds: a stamped request to `/operator` (the front's
+    `/admin/operator` on an organization's name) answers `404`, and an
+    unstamped request on an unlisted host answers `403`. On an operations
+    address an operator signs in unstamped. `admitOperationsSignIn`
+    (`operator-area.ts`), which the admin proxy runs after `admitOperatorArea`
+    and before the front's admission, passes `GET` and `HEAD` `/login`, `GET`
+    and `HEAD` `/auth/callback`, and `POST /api/auth/signout` (through
+    `admitApiMutation`, then `signout.ts`'s own origin check), each with every
+    `x-asym-*` request header removed. Every other unstamped path there
+    answers as on any host: the staff project's explicit list as before, and
+    `403 no-store` for the rest, the demo route's `GET` and `POST` among them.
+    A signed-in visit to `/login` there answers `307` to `/operator` after
+    the session read alone; the sign-in page (`readOperationsSignIn`) shows
+    the password form even with `DEMO_ONLY_LOGIN=true` and lands on
+    `/operator`; the callback (`isOperationsSignIn`) lands on `/operator`.
+    None of them reads `next`, a name, a generation or a membership
+    ([0015](0015-organization-from-the-verified-name.md), decision 20). With
+    the switch off none of this runs: `OPERATIONS_NAMES` names hosts staff
+    use today, and sign-in there keeps its `next`. The assistant runtime's
+    operator actions are unchanged by this decision.
 
 14. **The history with no organization (WP2c rest, AL-2675).** In the area's
     confirmed state only, the page reads `public.platform_eve_history`
@@ -185,6 +199,11 @@ path of the tenant flow, and no application code called
 
 `tests/unit/auth/operator-area.test.ts` (paths, addresses, the variable),
 `tests/unit/packages/env/operations-names-schema.test.ts` (the schema),
+`tests/unit/apps/admin/operations-sign-in-proxy.test.ts`,
+`tests/unit/apps/admin/operations-login-page.test.tsx`, the operations
+address cases of `tests/unit/auth/callback-verified-name.test.ts` and
+`tests/e2e/n2-on-operations-sign-in.spec.ts` (decision 13, on, on a
+production build),
 `tests/unit/apps/admin/operator-area-proxy.test.ts` (the proxy's table, switch
 off and on), `tests/unit/apps/admin/operator-gate.test.tsx` (the page),
 `tests/unit/auth/operator-mfa.test.ts` and

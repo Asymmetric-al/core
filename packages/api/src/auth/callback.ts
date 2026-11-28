@@ -1,5 +1,9 @@
 import { markSharedOriginSessionChange } from "@asym/auth/clipboard-reset";
 import { safeNextParam } from "@asym/auth/demo-login";
+import {
+  isOperationsSignIn,
+  OPERATOR_AREA_ROOT,
+} from "@asym/auth/operator-area";
 import { createRpcAssignmentReader } from "@asym/auth/principal";
 import {
   isNameTenantRefused,
@@ -104,6 +108,11 @@ export async function GET(request: Request) {
     const { error } = await supabase.auth.exchangeCodeForSession(code);
 
     if (!error) {
+      if (isOperationsSignIn(request.headers, process.env)) {
+        return markSharedOriginSessionChange(
+          callbackRedirect(OPERATOR_AREA_ROOT),
+        );
+      }
       const {
         data: { user },
       } = await supabase.auth.getUser();

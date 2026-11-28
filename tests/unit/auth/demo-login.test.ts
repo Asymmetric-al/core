@@ -58,10 +58,29 @@ describe("auth/demo-login: next stays a same-app path", () => {
     "/missionary",
     "/missionary/profile",
     "/MISSIONARY/profile",
+    "/%61dmin/donors",
+    "/admin%2fdonors",
+    "/%6Dissionary/profile",
   ])("on, the donor app refuses %s, which another app serves", (next) => {
     onTheDonorApp();
     expect(safeNextParam(next)).toBeNull();
   });
+
+  it.each([
+    "/.%2fadmin/donors",
+    "/..%2fadmin/donors",
+    "/x/..%2fadmin/donors",
+    "/admin%3fx",
+    "/admin%23x",
+    "/%2e/admin",
+    "/.%2fmissionary/x",
+  ])(
+    "on, the donor app refuses %s, which could leave it after decoding",
+    (next) => {
+      onTheDonorApp();
+      expect(safeNextParam(next)).toBeNull();
+    },
+  );
 
   it.each([
     "/administration",
@@ -69,6 +88,8 @@ describe("auth/demo-login: next stays a same-app path", () => {
     "/missionary-stories",
     "/donor-dashboard/x",
     "/workers/admin",
+    "/workers/jos%C3%A9",
+    "/checkout?gift=1#pay",
   ])("on, the donor app keeps %s (guard)", (next) => {
     onTheDonorApp();
     expect(safeNextParam(next)).toBe(next);
@@ -80,6 +101,12 @@ describe("auth/demo-login: next stays a same-app path", () => {
       vi.stubEnv("CORE_SERVE_UNDER_PATHS", value);
       vi.stubEnv("CORE_APP_BASE_PATH", "");
       expect(safeNextParam("/admin/donors")).toBe("/admin/donors");
+      expect(safeNextParam("/%61dmin/donors")).toBe("/%61dmin/donors");
+      expect(safeNextParam("/admin%2fdonors")).toBe("/admin%2fdonors");
+      expect(safeNextParam("/admin%3fx")).toBe("/admin%3fx");
+      expect(safeNextParam("/x/..%2fadmin/donors")).toBe(
+        "/x/..%2fadmin/donors",
+      );
     },
   );
 

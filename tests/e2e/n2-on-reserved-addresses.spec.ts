@@ -22,20 +22,24 @@ test("reserved addresses no donor route serves answer HTTP 404, uncached, before
   for (const path of REFUSED_PATHS) {
     const response = await page.goto(path);
     expect(response?.status(), path).toBe(404);
-    expect(response?.headers()["cache-control"] ?? "", path).not.toMatch(
-      YEAR_LONG,
-    );
+    const cacheControl = response?.headers()["cache-control"] ?? "";
+    expect(cacheControl, path).toContain("no-store");
+    expect(cacheControl, path).not.toMatch(YEAR_LONG);
   }
   for (const path of ["/api/nope", "/auth/nope", "/web-studio/x"]) {
-    const status = await page.evaluate(async (address) => {
+    const answer = await page.evaluate(async (address) => {
       const response = await fetch(address, {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: "{}",
       });
-      return response.status;
+      return {
+        status: response.status,
+        cacheControl: response.headers.get("cache-control") ?? "",
+      };
     }, path);
-    expect(status, `POST ${path}`).toBe(404);
+    expect(answer.status, `POST ${path}`).toBe(404);
+    expect(answer.cacheControl, `POST ${path}`).toContain("no-store");
   }
 });
 
