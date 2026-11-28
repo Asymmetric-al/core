@@ -146,7 +146,7 @@ packages/api/src/missionary-portal/task.ts operation_admin_context 2
 packages/api/src/missionary-portal/tasks.ts operation_admin_context 2
 packages/api/src/pdf-templates/store.ts admin_client 1
 packages/api/src/posts/index.ts admin_client 2
-packages/api/src/posts/post.ts admin_client 2
+packages/api/src/posts/post.ts admin_client 1
 packages/api/src/posts/reaction-route-handlers.ts admin_client 1
 packages/api/src/profile/index.ts admin_client 2
 packages/api/src/reads/dashboard-stats.ts admin_client 1

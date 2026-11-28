@@ -16,6 +16,7 @@ const identity = vi.hoisted(() => ({
   tenant: { id: "tenant-a" },
   user: { id: "user-a" },
   role: "admin",
+  hasCapability: () => false,
 }));
 const formatDateTime = vi.hoisted(() => vi.fn(() => "Formatted post date"));
 vi.mock("@asym/lib/mission-control/context", () => ({ useMC: () => identity }));
@@ -32,6 +33,7 @@ beforeEach(() => {
   identity.user.id = "user-a";
 });
 function response(url: string) {
+  if (url.includes("publication-policies")) return { policies: [] };
   if (url.includes("comments"))
     return {
       comments: [
@@ -64,7 +66,7 @@ function mount() {
     </QueryProvider>,
   );
 }
-it("loads server-authorized posts even when the shell identity is unresolved", async () => {
+it("loads server-authorized posts even when the shell identity is unresolved, in four reads (AL-2680: the publication policies are the fourth)", async () => {
   identity.tenant.id = "";
   identity.user.id = "";
   const fetcher = vi.fn(async (url: string) => Response.json(response(url)));
@@ -72,7 +74,7 @@ it("loads server-authorized posts even when the shell identity is unresolved", a
   mount();
   expect(await screen.findByText("Real update")).toBeTruthy();
   expect(screen.queryByText("Organization unavailable")).toBeNull();
-  expect(fetcher).toHaveBeenCalledTimes(3);
+  expect(fetcher).toHaveBeenCalledTimes(4);
 });
 it("uses staff labels, semantic badges and the shared date formatter", async () => {
   vi.stubGlobal(
@@ -112,7 +114,7 @@ it("uses staff labels, semantic badges and the shared date formatter", async () 
     screen.queryByText(/pending_review|prayer_request|partners_only/),
   ).toBeNull();
 });
-it("shows real review posts and comments read-only with capped-list disclosures", async () => {
+it("shows the review queue (AL-2680) and comments with capped-list disclosures, and offers no hiding, deleting or export", async () => {
   const fetcher = vi.fn(async (url: string) => Response.json(response(url)));
   vi.stubGlobal("fetch", fetcher);
   mount();
@@ -121,7 +123,7 @@ it("shows real review posts and comments read-only with capped-list disclosures"
     screen.getByRole("tab", { name: "Queue" }).getAttribute("aria-selected"),
   ).toBe("true");
   expect(screen.getByText("Real comment")).toBeTruthy();
-  expect(screen.getByText("Read-only for now")).toBeTruthy();
+  expect(screen.getByText("Updates wait for review")).toBeTruthy();
   expect(screen.getByText("Showing the latest 1 of 150 updates.")).toBeTruthy();
   expect(screen.getByText("Showing the latest 1 of 50 comments.")).toBeTruthy();
   expect(
@@ -129,7 +131,7 @@ it("shows real review posts and comments read-only with capped-list disclosures"
   ).toBeNull();
   expect(
     fetcher.mock.calls.some(([url]) =>
-      url.includes("status=flagged,hidden,pending_review"),
+      url.includes("reviewState=submitted&status=published"),
     ),
   ).toBe(true);
 });

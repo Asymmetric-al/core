@@ -14,11 +14,15 @@ const state = vi.hoisted(() => ({
   authors: [] as Record<string, unknown>[] | null,
   authorsError: null as unknown,
   rpcCalls: [] as unknown[][],
+  eqs: [] as unknown[][],
+  postFound: true,
+  postError: null as unknown,
 }));
 
 vi.mock("@asym/auth/context", () => ({
   getAuthContext: async () => ({
     userId: "user-viewer",
+    tenantId: "tenant-1",
     isAuthenticated: true,
   }),
   requestScopeOf: () => ({
@@ -32,7 +36,14 @@ vi.mock("@asym/database/supabase/server", () => ({
       select: (columns: string) => {
         state.selected.push(`${table}: ${columns}`);
         const chain = {
-          eq: () => chain,
+          eq: (column: string, value: unknown) => {
+            state.eqs.push([table, column, value]);
+            return chain;
+          },
+          maybeSingle: async () =>
+            state.postError
+              ? { data: null, error: state.postError }
+              : { data: state.postFound ? { id: "found" } : null, error: null },
           order: async () => ({ data: state.comments, error: null }),
         };
         return chain;
@@ -61,6 +72,9 @@ beforeEach(() => {
   state.selected = [];
   state.rpcCalls = [];
   state.authorsError = null;
+  state.eqs = [];
+  state.postFound = true;
+  state.postError = null;
   state.comments = [
     {
       id: "c1",
@@ -101,15 +115,55 @@ beforeEach(() => {
 });
 
 describe("GET /api/posts/[postId]/comments", () => {
-  it("reads the comments without embedding profiles, and the commenters through post_comment_authors", async () => {
+  it("reads the post on the caller's token in the request's organization, then the comments without embedding profiles, and the commenters through post_comment_authors", async () => {
     const { status } = await get();
     expect(status).toBe(200);
-    expect(state.selected).toHaveLength(1);
-    expect(state.selected[0]).toMatch(/^post_comments: /);
-    expect(state.selected[0]).not.toMatch(/profiles/);
+    expect(state.selected).toHaveLength(2);
+    expect(state.selected[0]).toMatch(/^posts: /);
+    expect(state.eqs.filter(([table]) => table === "posts")).toEqual([
+      ["posts", "id", POST],
+      ["posts", "tenant_id", "tenant-1"],
+    ]);
+    expect(state.selected[1]).toMatch(/^post_comments: /);
+    expect(state.selected[1]).not.toMatch(/profiles/);
     expect(state.rpcCalls).toEqual([
       ["post_comment_authors", { p_post_id: POST }],
     ]);
+  });
+
+  it("answers the missing post (404), reading no comments and naming no one, when the caller cannot read the post on their own token (AL-2680, round 3, R1)", async () => {
+    state.postFound = false;
+    const { status, body } = await get();
+    expect(status).toBe(404);
+    expect(body).toEqual({ error: "Post not found" });
+    expect(state.selected.filter((s) => s.startsWith("post_comments"))).toEqual(
+      [],
+    );
+    expect(state.rpcCalls).toEqual([]);
+  });
+
+  it("answers the missing post for an id that names no post, reading nothing (AL-2680, round 3, R1)", async () => {
+    const response = await GET(
+      new Request("http://localhost/api/posts/not-a-post/comments") as never,
+      { params: Promise.resolve({ postId: "not-a-post" }) },
+    );
+    expect(response.status).toBe(404);
+    expect(await response.json()).toEqual({ error: "Post not found" });
+    expect(state.selected).toEqual([]);
+  });
+
+  it("fails as a server error with a fixed sentence, not as a missing post or an empty list, when the post cannot be read (AL-2680, round 3, R1)", async () => {
+    const log = vi.spyOn(console, "error").mockImplementation(() => undefined);
+    state.postError = {
+      code: "XX000",
+      message: "relation detail from the database",
+    };
+    const { status, body } = await get();
+    expect(status).toBe(500);
+    expect(body).toEqual({ error: "Couldn’t read that update’s comments." });
+    expect(state.rpcCalls).toEqual([]);
+    expect(log).toHaveBeenCalled();
+    log.mockRestore();
   });
 
   it("gives each comment its commenter in the screens' shape, with empty names and no avatar when there is no name to show", async () => {

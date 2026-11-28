@@ -717,7 +717,7 @@ describe.skipIf(!ADMIN_URL)(
       });
     });
 
-    it("12. catalog: the four functions are owned by postgres and executable by nobody else, the two trigger functions are definers with an empty search path; ours are the last BEFORE ROW triggers of each table; no unique index or foreign key includes the key; the field-policy census passes (red: 42883)", async () => {
+    it("12. catalog: the four functions are owned by postgres and executable by nobody else, the two trigger functions are definers with an empty search path; ours are the last BEFORE ROW triggers of each table but posts, where AL-2680's zzz_wp7_posts_review_on_write sorts after them so the review decides on the key they derive; no unique index or foreign key includes the key but public.publication_policies', a later table that keys its own rows to the worker (AL-2680, fix round T4: every table is looked at, and that one is named); the field-policy census passes (red: 42883)", async () => {
       for (const fn of FUNCTIONS)
         for (const role of ["anon", "authenticated", "service_role"])
           expect(
@@ -761,10 +761,17 @@ describe.skipIf(!ADMIN_URL)(
         [TABLES],
       );
       expect(triggers.rows).toEqual(
-        [...TABLES].sort().flatMap((t) => [
-          { t, event: "insert", last: "zz_wp5_assignment_key_insert" },
-          { t, event: "update", last: "zz_wp5_assignment_key_update" },
-        ]),
+        [...TABLES].sort().flatMap((t) =>
+          t === "posts"
+            ? [
+                { t, event: "insert", last: "zzz_wp7_posts_review_on_write" },
+                { t, event: "update", last: "zzz_wp7_posts_review_on_write" },
+              ]
+            : [
+                { t, event: "insert", last: "zz_wp5_assignment_key_insert" },
+                { t, event: "update", last: "zz_wp5_assignment_key_update" },
+              ],
+        ),
       );
       const parent = await db.query(
         `select g.tgname, g.tgenabled, pg_get_triggerdef(g.oid) as def from pg_trigger g
@@ -784,16 +791,24 @@ describe.skipIf(!ADMIN_URL)(
            join pg_attribute a on a.attrelid = i.indrelid and a.attnum = any(i.indkey)
           where a.attname = 'ministry_assignment_id' and i.indisunique`,
       );
-      expect(keyed.rows).toEqual([]);
+      expect(
+        keyed.rows
+          .map((r: { t: string; conname: string }) => `${r.t} ${r.conname}`)
+          .sort(),
+      ).toEqual([
+        "publication_policies publication_policies_assignment_fkey",
+        "publication_policies publication_policies_one_per_path",
+        "publication_policies publication_policies_one_per_path",
+      ]);
       const columns = await db.query(
         `select table_name, data_type, is_nullable, column_default from information_schema.columns
           where table_schema = 'public' and column_name = 'ministry_assignment_id' order by 1`,
       );
       expect(columns.rows).toEqual(
-        [...TABLES].sort().map((table_name) => ({
+        [...TABLES, "publication_policies"].sort().map((table_name) => ({
           table_name,
           data_type: "uuid",
-          is_nullable: "YES",
+          is_nullable: table_name === "publication_policies" ? "NO" : "YES",
           column_default: null,
         })),
       );

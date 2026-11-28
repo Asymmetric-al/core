@@ -2,6 +2,7 @@ import type { MediaItem } from "@asym/database/types";
 
 export type AccessLevel = "view" | "comment";
 export type PostStatus = "published" | "draft";
+export type ReviewState = "submitted" | "approved" | "rejected" | "withdrawn";
 
 /** The kinds of update a missionary can share (stored values). */
 export const POST_TYPES = [
@@ -74,6 +75,8 @@ export interface Post {
   /** "public" or "partners_only" as stored. */
   visibility: string;
   status: PostStatus;
+  review_state?: ReviewState;
+  review_reason?: string | null;
   user_liked?: boolean;
   user_prayed?: boolean;
   author?: {

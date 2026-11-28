@@ -1,5 +1,6 @@
 import {
   getAuthContext,
+  requestScopeOf,
   requireRoleClass,
   type AuthenticatedContext,
 } from "@asym/auth/context";
@@ -8,6 +9,13 @@ import { revalidateTag } from "next/cache";
 import { type NextRequest, NextResponse } from "next/server";
 import { ZodError } from "zod";
 
+import {
+  commandClient,
+  isWorkerNotLinked,
+  UPDATE_NOT_SAVED,
+  WORKER_NOT_LINKED,
+  WORKER_NOT_LINKED_CODE,
+} from "./command-client";
 import { normalizeStoredPostContent } from "./content";
 import { FEED_POST_SELECT } from "./select";
 import { postIdParamSchema, postUpdateSchema } from "../schemas/posts";
@@ -18,9 +26,9 @@ import {
   toErrorResponse,
 } from "../shared/http-errors";
 import { findProfileByUserId } from "../shared/queries";
+import { createRequestSessionClient } from "../shared/request-session-client";
 
-function revalidatePostTags(postId: string, tenantId: string) {
-  revalidateTag(CACHE_TAGS.tenantPosts(tenantId), "max");
+function revalidatePostTags(postId: string) {
   revalidateTag(CACHE_TAGS.post(postId), "max");
 }
 
@@ -52,18 +60,11 @@ export async function PATCH(
   { params }: { params: Promise<{ postId: string }> },
 ) {
   try {
-    const { client: supabaseAdmin, error: adminError } = getAdminClient();
-    if (!supabaseAdmin) {
-      return NextResponse.json({ error: adminError }, { status: 503 });
-    }
-
     const auth = await getAuthContext(request);
     requireRoleClass(auth, ["missionary"]);
     const ctx = auth as AuthenticatedContext;
     const { postId } = postIdParamSchema.parse(await params);
 
-    // Same closed vocabulary as creation, so an edit can't store a
-    // visibility or type the feeds don't understand.
     const {
       title,
       content,
@@ -74,60 +75,39 @@ export async function PATCH(
       autosave,
       expected_updated_at,
     } = postUpdateSchema.parse(await ensureJsonBody(request));
+    if (
+      title === undefined ||
+      content === undefined ||
+      visibility === undefined ||
+      status === undefined
+    ) {
+      return NextResponse.json(
+        { error: "Send the update’s title, words, visibility and status." },
+        { status: 400 },
+      );
+    }
 
-    const { data: profile } = await findProfileByUserId(
-      supabaseAdmin,
-      ctx.userId,
+    const supabase = await createRequestSessionClient(
+      request,
+      requestScopeOf(ctx),
     );
-
-    if (!profile) {
-      return NextResponse.json({ error: "Profile not found" }, { status: 404 });
-    }
-
-    const { data: existingPost } = await supabaseAdmin
-      .from("posts")
-      .select("missionary_id")
-      .eq("id", postId)
-      .eq("tenant_id", ctx.tenantId)
-      .single();
-
-    if (!existingPost) {
-      return NextResponse.json({ error: "Post not found" }, { status: 404 });
-    }
-
-    if (existingPost.missionary_id !== profile.id) {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-    }
-
-    const updateData: Record<string, unknown> = {
-      updated_at: new Date().toISOString(),
-    };
-    if (content !== undefined) {
-      updateData.content = normalizeStoredPostContent(content);
-    }
-    if (media !== undefined) updateData.media = media;
-    if (status !== undefined) updateData.status = status;
-    if (visibility !== undefined) updateData.visibility = visibility;
-    if (post_type !== undefined) updateData.post_type = post_type;
-    if (title !== undefined) updateData.title = title;
-    if (autosave) updateData.expected_status = "draft";
-    if (expected_updated_at !== undefined)
-      updateData.expected_updated_at = expected_updated_at;
-
-    const { error: rpcError } = await supabaseAdmin.rpc(
-      "atomic_update_post_with_audit",
+    const { error: commandError } = await commandClient(supabase).rpc(
+      "submit_ministry_update",
       {
-        p_post_id: postId,
         p_tenant_id: ctx.tenantId,
-        p_actor_user_id: ctx.userId,
-        p_updates: updateData,
-        p_audit_action: "post_updated",
-        p_ip_address: request.headers.get("x-forwarded-for"),
-        p_user_agent: request.headers.get("user-agent"),
+        p_post_id: postId,
+        p_title: title ?? null,
+        p_content: normalizeStoredPostContent(content),
+        p_media: media ?? null,
+        p_visibility: visibility,
+        p_post_type: post_type ?? null,
+        p_publish: status === "published",
+        p_expected_updated_at: expected_updated_at ?? null,
+        p_expected_draft: autosave === true,
       },
     );
-    if (rpcError) {
-      if (rpcError.code === "40001") {
+    if (commandError) {
+      if (commandError.code === "40001") {
         return NextResponse.json(
           {
             error:
@@ -136,25 +116,38 @@ export async function PATCH(
           { status: 409 },
         );
       }
-      if (rpcError.code === "P0002") {
+      if (isWorkerNotLinked(commandError)) {
+        return NextResponse.json(
+          { error: WORKER_NOT_LINKED, code: WORKER_NOT_LINKED_CODE },
+          { status: 403 },
+        );
+      }
+      if (commandError.code === "42501") {
         return NextResponse.json({ error: "Post not found" }, { status: 404 });
       }
-      return NextResponse.json({ error: rpcError.message }, { status: 500 });
+      if (commandError.code === "22023") {
+        return NextResponse.json(
+          { error: commandError.message ?? "Invalid update" },
+          { status: 400 },
+        );
+      }
+      console.error(
+        "[posts] editing through submit_ministry_update failed",
+        commandError,
+      );
+      return NextResponse.json({ error: UPDATE_NOT_SAVED }, { status: 500 });
     }
 
-    const { data: post, error } = await supabaseAdmin
+    revalidatePostTags(postId);
+    const { data: post, error } = await supabase
       .from("posts")
       .select(FEED_POST_SELECT)
       .eq("id", postId)
       .single();
     if (error || !post) {
-      return NextResponse.json(
-        { error: error?.message ?? "Post not found" },
-        { status: 500 },
-      );
+      console.error("[posts] reading back an edited update failed", error);
+      return NextResponse.json({ post: { id: postId } });
     }
-
-    revalidatePostTags(postId, ctx.tenantId);
     return NextResponse.json({ post });
   } catch (e) {
     return toAuthAwareErrorResponse(e);
@@ -217,7 +210,7 @@ export async function DELETE(
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
-    revalidatePostTags(postId, ctx.tenantId);
+    revalidatePostTags(postId);
     return NextResponse.json({ success: true });
   } catch (e) {
     return toAuthAwareErrorResponse(e);

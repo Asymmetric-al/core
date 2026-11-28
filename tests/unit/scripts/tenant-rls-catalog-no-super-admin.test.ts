@@ -127,10 +127,11 @@ function run(
     { entries: [] },
   ];
   if ("keptReads" in more) {
-    if (more.keptReads !== undefined) args.push(more.keptReads);
+    args.push(more.keptReads);
   } else {
     args.push([]);
   }
+  args.push({ entries: [], reviewed: {} });
   return (
     evaluateTenantRlsCatalog as (
       ...a: unknown[]

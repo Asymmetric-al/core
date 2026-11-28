@@ -462,6 +462,7 @@ function FeedPostsTabsSection({
               post={post}
               onEdit={() => vm.requestEditPost(post)}
               onDelete={() => requestDelete("published", vm.posts, index)}
+              onWithdraw={() => void vm.withdrawPost(post.id)}
             />
           ))}
         </PublishedFeedPane>

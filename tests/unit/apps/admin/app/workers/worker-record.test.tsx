@@ -155,7 +155,7 @@ function fillReason(dialog: HTMLElement, value = "Field security") {
 }
 
 describe("AL-2678 r2b1: a worker's record in Mission Control", () => {
-  it("with safety.restrict_publication shows the fields, the Legal name row, every control that applies and gate (e)'s text", async () => {
+  it("with safety.restrict_publication shows the fields, the Legal name row, every control that applies and gate (e)'s text (AL-2680, WP7 pull request 1 and its fix round C5: a restriction or do-not-publish takes the worker's updates out of every feed but their own and a reviewer's, and off the public site)", async () => {
     current = worker({ doNotPublish: true });
     show();
     expect(
@@ -171,9 +171,17 @@ describe("AL-2678 r2b1: a worker's record in Mission Control", () => {
     ])
       expect(screen.getByRole("button", { name })).toBeTruthy();
     expect(screen.getByText("What a restriction changes.")).toBeTruthy();
+    expect(document.body.textContent).toContain(
+      "Their ministry updates leave every feed but their own and a reviewer’s, and the public site, at once, and return when the restriction is lifted.",
+    );
     expect(
       screen.getByText(
-        'Turning on "Do not publish" saves the setting now, but does not hide posts, profiles or giving pages yet; that enforcement comes in a later publishing update.',
+        'Turning on "Do not publish" takes their ministry updates out of every feed but their own and a reviewer’s, and off the public site, at once, but does not hide profiles or giving pages yet; that enforcement comes in a later publishing update.',
+      ),
+    ).toBeTruthy();
+    expect(
+      screen.getByText(
+        "The worker's login photo on gift rows still shows, and a photo or media file already attached to one of their updates stays reachable at its address, until a later publishing update.",
       ),
     ).toBeTruthy();
     expect(screen.queryByText(NOT_PERMITTED)).toBeNull();

@@ -32,12 +32,13 @@ import type { NextRequest } from "next/server";
 
 const TENANT = "00000000-0000-0000-0000-000000000002";
 const ASSIGNMENT = "00000000-0000-4000-8000-000000000152";
+const POST_ID = "00000000-0000-4000-8000-0000000000a1";
 
-function ctx(postId = "post-1") {
+function ctx(postId = POST_ID) {
   return { params: Promise.resolve({ postId }) };
 }
 const request = new Request(
-  "https://example.com/api/posts/post-1/comments",
+  `https://example.com/api/posts/${POST_ID}/comments`,
 ) as unknown as NextRequest;
 
 function signedIn(userId: string | null) {
@@ -86,7 +87,14 @@ function signedIn(userId: string | null) {
 
 function mockClient() {
   const order = vi.fn().mockResolvedValue({ data: [], error: null });
-  const eq = vi.fn(() => ({ order }));
+  const maybeSingle = vi
+    .fn()
+    .mockResolvedValue({ data: { id: POST_ID }, error: null });
+  const eq: ReturnType<typeof vi.fn> = vi.fn(() => ({
+    eq,
+    order,
+    maybeSingle,
+  }));
   const select = vi.fn(() => ({ eq }));
   const from = vi.fn(() => ({ select }));
   // The commenters' names and avatars (`post_comment_authors`; AL-2675, JB11).
@@ -111,6 +119,7 @@ describe("posts/comments GET — explicit auth check (finding 06 Gap 3)", () => 
     const { from } = mockClient();
     const res = await GET(request, ctx());
     expect(res.status).toBe(200);
+    expect(from).toHaveBeenCalledWith("posts");
     expect(from).toHaveBeenCalledWith("post_comments");
   });
 

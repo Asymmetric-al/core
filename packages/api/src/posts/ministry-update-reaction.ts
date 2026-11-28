@@ -80,10 +80,7 @@ export async function applyMinistryUpdateReaction(
   const parsed = parseRpcObject<ReactionRpcPayload>(data);
   const applied = parsed?.applied === true;
   if (applied) {
-    revalidateTags([
-      CACHE_TAGS.tenantPosts(input.tenantId),
-      CACHE_TAGS.post(input.postId),
-    ]);
+    revalidateTags([CACHE_TAGS.post(input.postId)]);
   }
 
   return { ok: true, applied };

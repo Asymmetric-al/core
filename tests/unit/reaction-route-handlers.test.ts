@@ -236,7 +236,7 @@ describe("donor reaction route handlers", () => {
   });
 
   it.each(mutationCases)(
-    "$label uses the admin RPC after auth and tenant validation",
+    "$label uses the admin RPC after auth and tenant validation, and revalidates only the post's own tag (AL-2680: the tenant's posts tag is gone, since a feed is read per request and no server cache holds it)",
     async ({ handler, rpcName }) => {
       const requestClient = mockRequestClient();
       const adminRpc = mockAdminRpc({
@@ -279,16 +279,9 @@ describe("donor reaction route handlers", () => {
       expect(
         requestClient.postLookup.single.mock.invocationCallOrder[0]!,
       ).toBeLessThan(getAdminClientMock.mock.invocationCallOrder[0]!);
-      expect(revalidateTagMock).toHaveBeenNthCalledWith(
-        1,
-        `posts:tenant:${TENANT_ID}`,
-        "max",
-      );
-      expect(revalidateTagMock).toHaveBeenNthCalledWith(
-        2,
-        `post:${POST_ID}`,
-        "max",
-      );
+      expect(revalidateTagMock.mock.calls).toEqual([
+        [`post:${POST_ID}`, "max"],
+      ]);
     },
   );
 

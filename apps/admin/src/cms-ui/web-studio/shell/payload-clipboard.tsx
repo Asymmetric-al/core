@@ -4,7 +4,8 @@ import {
   registerClientSessionCleanup,
   registerSessionChangeCleanup,
 } from "@asym/auth/client-session";
-import { useEffect } from "react";
+import { useRoutePathname } from "@asym/auth/tenant-navigation";
+import { Suspense, useEffect } from "react";
 
 import { CLIPBOARD_RESET_COOKIE } from "../../../cms/clipboard-reset";
 
@@ -36,9 +37,16 @@ export function PayloadClipboardReset() {
   return null;
 }
 
-export function PayloadClipboardGuard() {
+function PayloadClipboardMarkReader() {
+  const pathname = useRoutePathname();
   useEffect(() => {
     if (takeClipboardResetMark()) clearPayloadClipboard();
+  }, [pathname]);
+  return null;
+}
+
+export function PayloadClipboardGuard() {
+  useEffect(() => {
     const atSignOut = registerClientSessionCleanup(() => clearPayloadClipboard);
     const atSessionChange = registerSessionChangeCleanup(clearPayloadClipboard);
     return () => {
@@ -46,5 +54,9 @@ export function PayloadClipboardGuard() {
       atSessionChange();
     };
   }, []);
-  return null;
+  return (
+    <Suspense fallback={null}>
+      <PayloadClipboardMarkReader />
+    </Suspense>
+  );
 }
