@@ -9,6 +9,7 @@ import {
   SECURITY_LEVELS,
   type Worker,
 } from "./envelopes";
+import { normalizesToNothing } from "./safety-text";
 import {
   ApiHttpError,
   ensureJsonBody,
@@ -309,7 +310,7 @@ export async function refusal(
 }
 
 export function isBlank(value: string): boolean {
-  return value.trim().length === 0;
+  return normalizesToNothing(value);
 }
 
 export async function readBody<T>(

@@ -90,9 +90,9 @@ function useFieldErrors() {
 }
 
 const reasonProblem = (reason: string, id: string): Problem[] =>
-  reason.trim().length > 0
-    ? []
-    : [{ field: "reason", message: REASON_MISSING, focus: id }];
+  normalizesToNothing(reason)
+    ? [{ field: "reason", message: REASON_MISSING, focus: id }]
+    : [];
 
 function messageOf(error: unknown) {
   return error instanceof WorkerRequestError ? error.message : FAILURE_TEXT;
