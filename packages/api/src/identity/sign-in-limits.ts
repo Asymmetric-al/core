@@ -16,7 +16,8 @@ async function callLimits(
   name:
     | "take_sign_in_attempt"
     | "release_sign_in_attempt"
-    | "clear_sign_in_account",
+    | "clear_sign_in_account"
+    | "trim_sign_in_windows",
   args: Record<string, string | boolean>,
 ): Promise<unknown> {
   const { client } = getAdminClient();
@@ -52,4 +53,9 @@ export async function releaseSignInAttempt(
 
 export async function clearSignInAccount(account: string): Promise<void> {
   await callLimits("clear_sign_in_account", { p_account: account });
+}
+
+export async function trimSignInWindows(): Promise<number> {
+  const removed = await callLimits("trim_sign_in_windows", {});
+  return typeof removed === "number" ? removed : 0;
 }

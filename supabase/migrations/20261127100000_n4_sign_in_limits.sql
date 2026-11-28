@@ -21,9 +21,11 @@
 -- password keeps its reservation, which is its count.
 -- public.clear_sign_in_account(account) clears an account's count after a
 -- password is saved through recovery. A limit ends with its window; recovery
--- never consults either count.
+-- never consults either count. public.trim_sign_in_windows() removes every row
+-- of an ended window; the half-hourly dispatch recovery scan calls it, so no
+-- row outlives its window by more than one tick.
 --
--- All three are SECURITY DEFINER, owned by postgres, with an empty search
+-- All four are SECURITY DEFINER, owned by postgres, with an empty search
 -- path; they name nothing in `auth` and take no organization. EXECUTE goes to
 -- service_role alone; none to PUBLIC, anon or authenticated. The table is in
 -- private with row security forced and no privilege for any API role.
@@ -39,7 +41,8 @@
 -- row is missing", with this check and this file's version, 20261127100000.
 --
 -- Down (only after the build that calls them is rolled back; in one
--- transaction): DROP FUNCTION public.clear_sign_in_account(text),
+-- transaction): DROP FUNCTION public.trim_sign_in_windows(),
+-- public.clear_sign_in_account(text),
 -- public.release_sign_in_attempt(text, text, boolean),
 -- public.take_sign_in_attempt(text, text); DROP TABLE private.sign_in_windows;
 -- then NOTIFY pgrst, 'reload schema';
@@ -243,6 +246,35 @@ COMMENT ON FUNCTION public.clear_sign_in_account(TEXT) IS
 ALTER FUNCTION public.clear_sign_in_account(TEXT) OWNER TO postgres;
 REVOKE ALL ON FUNCTION public.clear_sign_in_account(TEXT) FROM PUBLIC, anon, authenticated, service_role;
 GRANT EXECUTE ON FUNCTION public.clear_sign_in_account(TEXT) TO service_role;
+
+CREATE FUNCTION public.trim_sign_in_windows()
+RETURNS INTEGER
+LANGUAGE plpgsql
+VOLATILE
+SECURITY DEFINER
+SET search_path = ''
+AS $$
+DECLARE
+  v_removed INTEGER;
+BEGIN
+  DELETE FROM private.sign_in_windows AS w
+   WHERE w.window_start < pg_catalog.date_bin(
+           INTERVAL '15 minutes',
+           pg_catalog.now(),
+           TIMESTAMPTZ '2000-01-01 00:00:00+00'
+         );
+  GET DIAGNOSTICS v_removed = ROW_COUNT;
+  RETURN v_removed;
+END;
+$$;
+
+COMMENT ON FUNCTION public.trim_sign_in_windows() IS
+  'Core''s sign-in limits (AL-2671 N4 PR 1): removes every row of an ended '
+  'window; the half-hourly dispatch recovery scan calls it.';
+
+ALTER FUNCTION public.trim_sign_in_windows() OWNER TO postgres;
+REVOKE ALL ON FUNCTION public.trim_sign_in_windows() FROM PUBLIC, anon, authenticated, service_role;
+GRANT EXECUTE ON FUNCTION public.trim_sign_in_windows() TO service_role;
 
 COMMIT;
 

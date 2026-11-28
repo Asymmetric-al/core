@@ -238,7 +238,6 @@ describe.skipIf(!ADMIN_URL)(
             "INSERT INTO private.sign_in_windows (kind, key_digest, window_start, hits) VALUES ($1, $2, now() - interval '20 minutes', 3)",
             [kind, digest(key)],
           );
-        await take("current@example.test", "198.51.104.2");
         const removed = await asService(
           async () =>
             (await db.query("SELECT public.trim_sign_in_windows() AS n"))
@@ -249,6 +248,10 @@ describe.skipIf(!ADMIN_URL)(
           "SELECT count(*)::int AS n FROM private.sign_in_windows WHERE window_start < now() - interval '15 minutes'",
         );
         expect(rows[0].n).toBe(0);
+        await take("current@example.test", "198.51.104.2");
+        await asService(async () => {
+          await db.query("SELECT public.trim_sign_in_windows()");
+        });
         expect(await hits("account", "current@example.test")).toBe(1);
       }));
 

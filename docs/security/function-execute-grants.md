@@ -616,6 +616,7 @@ posts trigger, as their owner. `post_author_public_name` keeps its
 | `public.take_sign_in_attempt(text, text)`             | DEFINER  | `postgres` (owner), `service_role` |
 | `public.release_sign_in_attempt(text, text, boolean)` | DEFINER  | `postgres` (owner), `service_role` |
 | `public.clear_sign_in_account(text)`                  | DEFINER  | `postgres` (owner), `service_role` |
+| `public.trim_sign_in_windows()`                       | DEFINER  | `postgres` (owner), `service_role` |
 
 `20261127100000_n4_sign_in_limits.sql`: Core's sign-in limits.
 `public.take_sign_in_attempt` reserves a password attempt against the account
@@ -625,7 +626,9 @@ for the address in a fifteen-minute window; a refusal reserves nothing.
 `public.release_sign_in_attempt` gives a reservation back when the provider
 accepted the password (clearing the account's count) or failed itself; a
 refused password keeps its reservation. `public.clear_sign_in_account` clears
-an account's count after a recovery save. All keep SHA-256 digests only in
+an account's count after a recovery save; `public.trim_sign_in_windows`
+removes every row of an ended window for the half-hourly dispatch scan
+([sign-in-limits.md](sign-in-limits.md)). All keep SHA-256 digests only in
 `private.sign_in_windows`, take no organization and name nothing in `auth`.
 The file revokes `PUBLIC`, `anon`, `authenticated` and `service_role` by name
 before granting.
