@@ -47,7 +47,7 @@ own password.
    either limit, so a limited person can always recover.
 
 4. **What "same account" and "same address" mean.** The account key is the
-   address trimmed and case-folded (`signInAccountKey`). The installed provider
+   address trimmed and case-folded (`signInAccountKey`, made by the auth handlers; the identity adapter only carries keys). The installed provider
    stores an address in lower case, accepts any capitalisation of an ASCII
    address, and refuses to create an address with a non-ASCII letter; a test
    against the local stack pins each. The client address is the first
@@ -60,7 +60,7 @@ own password.
    at once, and only then changes the password on the person's session, so the
    person's live sessions do not grow. Without a current password it saves only
    on a session whose `amr` shows recovery inside the recovery window, read by
-   `getClaims()` on the server (`passwordRecoverySecondsLeft`). The provider's
+   the server through `recoverySecondsLeft` (`packages/auth`, beside `readPasswordRecovery`). The provider's
    own refusals answer in Core's words. `secure_password_change` stays off: a
    script holding today's readable session token can still change the password
    at the provider directly, which N6 closes.
