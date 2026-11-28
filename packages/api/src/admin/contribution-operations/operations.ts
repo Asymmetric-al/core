@@ -1140,7 +1140,7 @@ async function sendExistingEmailReceipt(input: {
       ...input.base,
       status: "bounced",
       reason:
-        "The updated receipt email went out, but it bounced or was reported as spam, so the donor may not have received it. Check the donor's email address.",
+        "The updated receipt email was not delivered: it bounced, was reported as spam, or the mail provider is blocking this address. Check the donor's email address.",
       snapshotId: input.snapshot.id,
     };
   }

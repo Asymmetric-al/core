@@ -44,7 +44,7 @@ const RECEIPT_OUTCOME_STATUS_LABELS: Record<
   failed: "Failed",
   pending: "Being sent",
   superseded: "Superseded by a later correction",
-  bounced: "Sent, then bounced",
+  bounced: "Not delivered",
 };
 
 function isKnownReceiptOutcomeStatus(
