@@ -47,6 +47,128 @@ export const preMembershipEntries = Object.freeze([
   }),
 ]);
 
+const submitMinistryUpdate =
+  "tenant_guard.submit_ministry_update(p_tenant_id uuid, p_post_id uuid, p_title text, p_content text, p_media jsonb, p_visibility text, p_post_type text, p_publish boolean, p_expected_updated_at timestamp with time zone, p_expected_draft boolean)";
+const withdrawOwnMinistryUpdate =
+  "tenant_guard.withdraw_own_ministry_update(p_tenant_id uuid, p_post_id uuid)";
+const submitMinistryUpdateReason =
+  "AL-2680 WP7 PR 1 invariant 1 (Q2): a missionary writes their own update. It opens with begin_human_command(<tenant>, NULL); tenant_guard.lock_live_assignment then refuses (42501) unless the selected assignment is the caller's live missionary row in an active tenant, and tenant_guard.own_ministry names the caller's own worker row through account_links and its Party; it locks that Party FOR SHARE and refuses (42501) unless the worker row is the one its profile maps to; it writes only a post of that ministry that the caller authored, an edit only while the post still has the updated_at (and, for an autosave, the draft state) it was loaded with (40001 otherwise), takes no owner, assignment, Party or profile argument, and the posts trigger sets the review state";
+const withdrawOwnMinistryUpdateReason =
+  "AL-2680 WP7 PR 1 invariant 1 (Q2): a missionary withdraws their own update with no reason. Same opening and checks as submit_ministry_update; it locks and changes only a submitted or approved post of the caller's own ministry that the caller authored (22023 for any other state) and writes one audit row";
+export const reviewedOwnMinistry = Object.freeze({
+  [submitMinistryUpdate]: Object.freeze({
+    reason: submitMinistryUpdateReason,
+    digest: "47a0e304d8e702e622b073c514b593cad7a41b2a88251250d412be517a1d23b8",
+  }),
+  [withdrawOwnMinistryUpdate]: Object.freeze({
+    reason: withdrawOwnMinistryUpdateReason,
+    digest: "9d208e64528a4a7bc3e794e9cee10cb488b903ffa6158c77f3eeb225653dd6d4",
+  }),
+});
+export const ownMinistryEntries = Object.freeze([
+  Object.freeze({
+    function: submitMinistryUpdate,
+    reason: submitMinistryUpdateReason,
+  }),
+  Object.freeze({
+    function: withdrawOwnMinistryUpdate,
+    reason: withdrawOwnMinistryUpdateReason,
+  }),
+]);
+
+const lockLiveAssignment =
+  "tenant_guard.lock_live_assignment(p_ctx tenant_guard.command_context, p_capability text)";
+const ownMinistryHelper =
+  "tenant_guard.own_ministry(p_ctx tenant_guard.command_context)";
+export const reviewedOwnMinistryHelpers = Object.freeze({
+  [lockLiveAssignment]: Object.freeze({
+    reason:
+      "AL-2680 WP7 PR 1, fix round C3: the lane's assignment check. It takes the tenant FOR SHARE through private.share_lock_tenant and the selected membership FOR SHARE, and refuses (42501) unless that row is the caller's live assignment in an active tenant, a missionary row when no capability is named, or one holding the named capability",
+    digest: "012bf2cdb9fef2d480726faedf02a20bfa1b3689d82ea6b54b671aabecbf94ed",
+  }),
+  [ownMinistryHelper]: Object.freeze({
+    reason:
+      "AL-2680 WP7 PR 1, fix round C3: the lane's ministry. It names the caller's own worker row through account_links and its Party and refuses (42501) when there is none",
+    digest: "25f84905ef294d8a4247a4c70e30b702545bdccd0335f9c84a2e0b6285f35e6b",
+  }),
+});
+
+const OWN_MINISTRY_OPENING =
+  /^\s*(?:PERFORM\s+|[a-z_][\w$]*\s*:=\s*)tenant_guard\.begin_human_command\s*\(\s*(?:[a-z_][\w$]*|\$[1-9]\d*)\s*,\s*NULL\s*\)\s*;/i;
+
+export function ownMinistryEntry(command, frame, outerBlockHasHandler) {
+  return (
+    command.language === "plpgsql" &&
+    Boolean(frame) &&
+    !/:=|=|\bDEFAULT\b/i.test(frame.declarations) &&
+    OWN_MINISTRY_OPENING.test(frame.raw) &&
+    !outerBlockHasHandler(frame.main)
+  );
+}
+
+export function ownMinistryExceptions(
+  commands,
+  entries = ownMinistryEntries,
+  reviewed = reviewedOwnMinistry,
+  opens = () => true,
+  helpers = {},
+) {
+  const allowed = new Set();
+  const failures = [];
+  for (const [signature, pinned] of Object.entries(helpers)) {
+    const target = commands.find(
+      (command) =>
+        command.function === signature && command.schema === "tenant_guard",
+    );
+    if (
+      !target ||
+      target.owner !== "postgres" ||
+      target.definer ||
+      target.language !== "plpgsql" ||
+      target.authenticated ||
+      target.service_role ||
+      target.anon ||
+      target.public_execute ||
+      !pinned?.reason?.trim() ||
+      pinned.digest !== digest(target.body)
+    )
+      failures.push({
+        code: "COMMAND_EXCEPTION_UNREVIEWED",
+        function: signature,
+        detail:
+          "Missing or changed own-ministry helper: a postgres-owned SECURITY INVOKER plpgsql function that no API role may execute, with its reviewed body",
+      });
+  }
+  for (const entry of entries) {
+    const target = commands.find(
+      (command) =>
+        command.function === entry.function &&
+        command.authenticated &&
+        !command.service_role &&
+        command.schema === "tenant_guard",
+    );
+    const pinned =
+      Object.hasOwn(reviewed, entry.function) && reviewed[entry.function];
+    if (
+      !target ||
+      !pinned ||
+      !entry.reason?.trim() ||
+      pinned.reason !== entry.reason ||
+      pinned.digest !== digest(target.body) ||
+      !opens(target) ||
+      allowed.has(entry.function)
+    ) {
+      failures.push({
+        code: "COMMAND_EXCEPTION_UNREVIEWED",
+        function: entry.function,
+        detail:
+          "Missing, stale, duplicate or changed own-ministry command, or one that does not open with tenant_guard.begin_human_command(<tenant>, NULL)",
+      });
+    } else allowed.add(entry.function);
+  }
+  return { allowed, failures };
+}
+
 export const isAssignmentReader = (command) =>
   command.function === assignmentReader &&
   digest(command.body) === assignmentReaderDigest;

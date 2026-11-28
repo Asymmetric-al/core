@@ -478,12 +478,12 @@ test.describe("the missionary workspace", () => {
   // Fixcheck F7 (record D-72). The first release reads the commenters
   // through `public.post_comment_authors`: a member of the post's
   // organization gets each commenter's display name and avatar; a signed-in
-  // person with no membership there gets every comment, with an empty name
-  // and no avatar. Each is compared with what the database owner computes by
+  // person of another organization only gets the missing post (WP7 brief,
+  // invariant 2). The names are compared with what the owner computes by
   // the function's rule. This case replaced an expected failure (PGRST200 on
   // the route's old embed of `profiles`), which the first release's route
   // would have turned into a silent pass.
-  test("the comments route returns a published post's comments, with the commenters' names only to a member of the post's organization", async ({
+  test("the comments route returns a published post's comments, with the commenters' names, to a member of the post's organization, and the missing post to a member of another organization (the WP7 brief's invariant 2 supersedes D-72 there)", async ({
     page,
     browser,
     baseURL,
@@ -564,9 +564,11 @@ test.describe("the missionary workspace", () => {
     expect((await documentScopeHeaders(outsider))["x-asym-tenant"]).toBe(
       SECOND,
     );
-    expect(await shown(outsider)).toEqual(
-      named.map((c) => ({ ...c, name: "", avatar: null })),
-    );
+    const refused = await outsider.request.get(`/api/posts/${post}/comments`, {
+      headers: await documentScopeHeaders(outsider),
+    });
+    expect(refused.status()).toBe(404);
+    expect(await refused.json()).toEqual({ error: "Post not found" });
     await context.close();
   });
 });

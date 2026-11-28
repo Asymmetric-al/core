@@ -1,78 +1,82 @@
+import {
+  commandClient,
+  isWorkerNotLinked,
+  UPDATE_NOT_SAVED,
+  WORKER_NOT_LINKED,
+  WORKER_NOT_LINKED_CODE,
+  type CommandRefusal,
+} from "./command-client";
 import { normalizeStoredPostContent } from "./content";
 import { FEED_POST_SELECT } from "./select";
-import { findProfileByUserId } from "../shared/queries";
 
+import type { FeedPostRow } from "./select";
 import type { PostWriteInput } from "../schemas/posts";
+import type { RequestSessionClient } from "../shared/request-session-client";
 import type { AuthenticatedContext } from "@asym/auth/context";
-import type { AdminSupabaseClient } from "@asym/database/supabase/admin";
 
 type CreatePostResult =
-  | { ok: true; post: Record<string, unknown> }
-  | { ok: false; status: number; error: string };
+  | { ok: true; post: FeedPostRow }
+  | { ok: false; status: number; error: string; code?: string };
 
-/**
- * Creates a missionary's own ministry update. The post and its audit entry
- * are written by one RPC with every attribute (title, type, visibility,
- * status), so a draft or partners-only update is never briefly public.
- * `posts.missionary_id` references `profiles.id`, so the author is the
- * caller's profile in this tenant.
- */
+function refused(error: CommandRefusal): CreatePostResult {
+  if (isWorkerNotLinked(error))
+    return {
+      ok: false,
+      status: 403,
+      error: WORKER_NOT_LINKED,
+      code: WORKER_NOT_LINKED_CODE,
+    };
+  if (error.code === "42501")
+    return { ok: false, status: 403, error: "Forbidden" };
+  if (error.code === "22023")
+    return {
+      ok: false,
+      status: 400,
+      error: error.message ?? "Invalid update",
+    };
+  console.error("[posts] submit_ministry_update failed", error);
+  return { ok: false, status: 500, error: UPDATE_NOT_SAVED };
+}
+
 export async function createMissionaryPost({
-  supabaseAdmin,
+  supabase,
   auth,
   input,
-  request,
 }: {
-  supabaseAdmin: AdminSupabaseClient;
+  supabase: RequestSessionClient;
   auth: AuthenticatedContext;
   input: PostWriteInput;
-  request: Request;
 }): Promise<CreatePostResult> {
-  const { data: profile } = await findProfileByUserId(
-    supabaseAdmin,
-    auth.userId,
-  );
-  if (!profile) {
-    return { ok: false, status: 404, error: "Profile not found" };
-  }
-
-  const { data, error } = await supabaseAdmin.rpc(
-    "atomic_create_post_with_audit",
+  const { data, error } = await commandClient(supabase).rpc(
+    "submit_ministry_update",
     {
       p_tenant_id: auth.tenantId,
-      p_missionary_id: profile.id,
+      p_post_id: null,
       p_title: input.title ?? null,
       p_content: normalizeStoredPostContent(input.content),
       p_media: input.media,
-      p_post_type: input.post_type,
       p_visibility: input.visibility,
-      p_status: input.status,
-      p_actor_user_id: auth.userId,
-      p_ip_address: request.headers.get("x-forwarded-for"),
-      p_user_agent: request.headers.get("user-agent"),
+      p_post_type: input.post_type,
+      p_publish: input.status === "published",
+      p_expected_updated_at: null,
+      p_expected_draft: false,
     },
   );
-  if (error) {
-    return { ok: false, status: 500, error: error.message };
+  if (error) return refused(error);
+  if (typeof data !== "string" || data === "") {
+    console.error("[posts] submit_ministry_update returned no id", data);
+    return { ok: false, status: 500, error: UPDATE_NOT_SAVED };
   }
 
-  const postId = (data as { post_id?: string } | null)?.post_id;
-  if (!postId) {
-    return { ok: false, status: 500, error: "Failed to create post" };
-  }
-
-  const { data: post, error: readError } = await supabaseAdmin
+  const { data: post, error: readError } = await supabase
     .from("posts")
     .select(FEED_POST_SELECT)
-    .eq("id", postId)
+    .eq("id", data)
     .single();
   if (readError || !post) {
-    return {
-      ok: false,
-      status: 500,
-      error: readError?.message ?? "Post not found",
-    };
+    console.error("[posts] reading back a submitted update failed", readError);
+    return { ok: true, post: { id: data } };
   }
 
-  return { ok: true, post: post as Record<string, unknown> };
+  return { ok: true, post: post as unknown as FeedPostRow };
 }

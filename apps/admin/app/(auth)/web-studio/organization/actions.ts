@@ -19,6 +19,7 @@ import { cookies, headers } from "next/headers";
 
 import type { OrganizationChoiceLoad } from "@asym/ui/components/auth/organization-choice-form";
 
+import { clipboardResetCookie } from "@/src/cms/clipboard-reset";
 import { webStudioTenantCookie } from "@/src/cms/web-studio-tenant-cookie";
 
 /**
@@ -78,11 +79,13 @@ async function setChosenOrganization(formData: FormData): Promise<string> {
     );
   }
 
-  (await cookies()).set(
+  const cookieStore = await cookies();
+  cookieStore.set(
     await webStudioTenantCookie({
       tenantId: decision.assignment.tenantId,
       assignmentId: decision.assignment.assignmentId,
     }),
   );
+  cookieStore.set(clipboardResetCookie());
   return next;
 }

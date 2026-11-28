@@ -61,7 +61,7 @@ describe("applyMinistryUpdateReaction", () => {
     });
   });
 
-  it("revalidates tenant and post tags when applied", async () => {
+  it("revalidates the post's tag when applied, and no tenant-wide posts tag (AL-2680)", async () => {
     const rpc = mockRpc({ data: { applied: true }, error: null });
 
     await applyMinistryUpdateReaction({
@@ -72,16 +72,7 @@ describe("applyMinistryUpdateReaction", () => {
       tenantId: TENANT_ID,
     });
 
-    expect(revalidateTagMock).toHaveBeenNthCalledWith(
-      1,
-      `posts:tenant:${TENANT_ID}`,
-      "max",
-    );
-    expect(revalidateTagMock).toHaveBeenNthCalledWith(
-      2,
-      `post:${POST_ID}`,
-      "max",
-    );
+    expect(revalidateTagMock.mock.calls).toEqual([[`post:${POST_ID}`, "max"]]);
   });
 
   it("does not revalidate when applied is false", async () => {
