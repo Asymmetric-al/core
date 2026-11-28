@@ -15,7 +15,10 @@ import {
   validateReceiptDeliverySelection,
 } from "./receipt-delivery";
 import { loadWorkerPublicNames } from "./worker-public-names";
-import { sendUpdatedReceiptSnapshotEmail } from "../../giving/receipts";
+import {
+  receiptRecipientDonorId,
+  sendUpdatedReceiptSnapshotEmail,
+} from "../../giving/receipts";
 import { ApiHttpError } from "../../shared/http-errors";
 import { asString, isRecord } from "../../shared/json-coerce";
 import { isCountedIntake, loadGiftHolds } from "../../shared/line-based-gifts";
@@ -1081,6 +1084,12 @@ async function insertReceiptSnapshot(input: {
   };
 }
 
+const RECEIPT_NOT_DELIVERED =
+  "The updated receipt email was not delivered: it bounced, was reported as spam, or the mail provider is blocking this address. Check the donor's email address.";
+
+const RECEIPT_STATE_UNRECOGNIZED =
+  "This receipt's delivery is recorded in a state this screen does not know, so this action sent nothing. Check the email send log for this correction before you try again.";
+
 function emailReceiptOutcome(
   base: Pick<
     ReceiptDeliveryOutcome,
@@ -1089,6 +1098,14 @@ function emailReceiptOutcome(
   status: string,
   snapshotId: string,
 ): ReceiptDeliveryOutcome {
+  if (status === "bounced") {
+    return {
+      ...base,
+      status: "bounced",
+      reason: RECEIPT_NOT_DELIVERED,
+      snapshotId,
+    };
+  }
   if (status === "suppressed") {
     return {
       ...base,
@@ -1135,11 +1152,22 @@ async function sendExistingEmailReceipt(input: {
   if (last === "sent" || last === "suppressed") {
     return emailReceiptOutcome(input.base, last, input.snapshot.id);
   }
+  if (last === "bounced" || last === "complained") {
+    return emailReceiptOutcome(input.base, "bounced", input.snapshot.id);
+  }
+  if (last !== null && last !== "pending" && last !== "failed") {
+    return {
+      ...input.base,
+      status: "unrecognized",
+      reason: RECEIPT_STATE_UNRECOGNIZED,
+      snapshotId: input.snapshot.id,
+    };
+  }
   const createdAt = input.snapshot.createdAt
     ? Date.parse(input.snapshot.createdAt)
     : Number.NaN;
   const inFlight =
-    last === null &&
+    (last === null || last === "pending") &&
     (Number.isNaN(createdAt) ||
       Date.now() - createdAt < RECEIPT_SEND_IN_FLIGHT_MS);
   if (inFlight) {
@@ -1522,7 +1550,11 @@ export async function applyContributionCorrection(input: {
     receiptContext = await loadReceiptDeliveryContext({
       supabaseAdmin: input.supabaseAdmin,
       tenantId: input.tenantId,
-      donorId: before.donor?.id ?? null,
+      donorId: await receiptRecipientDonorId({
+        supabaseAdmin: input.supabaseAdmin,
+        tenantId: input.tenantId,
+        stagedGiftId: before.stagedGift?.id ?? null,
+      }),
     });
 
     if (!deliverySelection && receiptContext.policy.requireDeliveryAction) {
@@ -1554,11 +1586,16 @@ export async function applyContributionCorrection(input: {
 
   const deliveryBlock = async (
     selection: ReceiptDeliverySelection,
+    stagedGiftId: string | null,
   ): Promise<string | null> => {
     const context = await loadReceiptDeliveryContext({
       supabaseAdmin: input.supabaseAdmin,
       tenantId: input.tenantId,
-      donorId: before.donor?.id ?? null,
+      donorId: await receiptRecipientDonorId({
+        supabaseAdmin: input.supabaseAdmin,
+        tenantId: input.tenantId,
+        stagedGiftId,
+      }),
     });
     try {
       validateReceiptDeliverySelection({
@@ -1623,7 +1660,8 @@ export async function applyContributionCorrection(input: {
                 affectedFields,
                 adjustmentId,
               }),
-              check: deliveryBlock,
+              check: (selection) =>
+                deliveryBlock(selection, detail.stagedGift?.id ?? null),
             })
           : null,
     };
