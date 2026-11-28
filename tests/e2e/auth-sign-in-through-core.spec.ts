@@ -113,11 +113,15 @@ test("the sign-in form sends the password to Core's route alone, and no provider
       .filter(
         (url) =>
           url.origin === new URL(env.supabaseUrl).origin &&
-          (url.pathname === "/auth/v1/token" ||
-            url.pathname === "/auth/v1/user"),
+          url.pathname.startsWith("/auth/v1/"),
       )
       .map((url) => url.pathname);
     expect(toTheProvider).toEqual([]);
+    expect(
+      requests.some((request) =>
+        new URL(request.url()).pathname.endsWith("/api/auth/session"),
+      ),
+    ).toBe(true);
   } finally {
     await deleteUser(env, userId);
   }
