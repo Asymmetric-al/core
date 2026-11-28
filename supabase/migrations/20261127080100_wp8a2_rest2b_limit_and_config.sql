@@ -10,19 +10,22 @@
 --    account-area gift, and of 'person:' || user id for a signed-in gift; no
 --    address and no key is stored, only their digests, and no API role holds
 --    a grant on it. A row older than ten minutes is gone within one tick of
---    the money schedule (public.purge_intake_attempts), whether or not its
---    bucket is called again; its tenant key restricts deletion, so the
+--    the money schedule (public.purge_intake_attempts, which skips a row a
+--    running attempt holds, as the attempt's own trim does), whether or not
+--    its bucket is called again; its tenant key restricts deletion, so the
 --    organization's rows are gone first.
 -- 2. public.take_intake_attempt(host, surface, address, client key, user):
 --    resolves the host as resolve_verified_host does (an unknown or inactive
 --    host, or a surface it does not serve, is 42501 host_not_admitted and
---    writes nothing), serializes on each bucket's advisory lock in order, and
---    admits an attempt while the address bucket holds fewer than 30 unpaid
---    and fewer than 250 attempts in the rolling ten minutes and, for a
---    signed-in gift, the person bucket fewer than 6 unpaid and fewer than 15.
---    Paid means the key's intake is completed. A key that already began an
---    intake of the organization, or was already admitted in the bucket, is
---    free. A refusal answers retry_after_seconds (1 to 600), when the oldest
+--    writes nothing), takes each bucket's advisory lock in sorted order, one
+--    lock a loop step, and admits an attempt while the address bucket holds
+--    fewer than 30 unpaid and fewer than 250 attempts in the rolling ten
+--    minutes and, for a signed-in gift, the person bucket fewer than 6 unpaid
+--    and fewer than 15. Paid means the key's intake is completed. A key that
+--    already began an intake of the organization, or that every bucket of
+--    this request already holds inside the window, is free; a key held by
+--    the address bucket alone is counted in the person bucket like any other.
+--    A refusal answers retry_after_seconds (1 to 600), when the oldest
 --    attempt that holds the bucket full leaves the window, and which bucket
 --    refused ('address' or 'person', the one that holds longer).
 -- 3. public.checkout_giving_config(host, targets, surface, source Site):
@@ -35,6 +38,12 @@
 -- 4. public.take_intake_rate_token(text) and private.intake_rate_windows are
 --    dropped: no released build calls them (the build on develop calls the
 --    token from an unmounted handler).
+--
+-- Locks, held to COMMIT, taken first: SHARE ROW EXCLUSIVE on public.tenants
+-- (the new foreign key of private.intake_rate_attempts). lock_timeout stops a
+-- run rather than queue it behind live traffic. It is the one statement that
+-- can stop this release after 20261127080000 has committed; nothing of this
+-- file has then committed, and a re-run of the release completes it.
 --
 -- Recovery. Nothing here is written to run twice: a run lost between its
 -- COMMIT and its ledger row stops on the next run at its CREATE TABLE
@@ -60,6 +69,8 @@
 
 BEGIN;
 SET LOCAL lock_timeout = '5s';
+
+LOCK TABLE public.tenants IN SHARE ROW EXCLUSIVE MODE;
 
 CREATE TABLE private.intake_rate_attempts (
   bucket_digest TEXT NOT NULL
@@ -99,6 +110,7 @@ DECLARE
   v_key TEXT;
   v_since TIMESTAMPTZ;
   v_buckets TEXT[];
+  v_sorted TEXT[];
   v_limits INTEGER[];
   v_bucket TEXT;
   v_index INTEGER;
@@ -153,9 +165,10 @@ BEGIN
     v_limits := v_limits || ARRAY[6, 15];
   END IF;
 
-  PERFORM pg_catalog.pg_advisory_xact_lock(pg_catalog.hashtextextended('intake_attempt:' || b.digest, 0))
-     FROM pg_catalog.unnest(v_buckets) AS b(digest)
-    ORDER BY b.digest;
+  v_sorted := ARRAY(SELECT b.digest FROM pg_catalog.unnest(v_buckets) AS b(digest) ORDER BY b.digest);
+  FOREACH v_bucket IN ARRAY v_sorted LOOP
+    PERFORM pg_catalog.pg_advisory_xact_lock(pg_catalog.hashtextextended('intake_attempt:' || v_bucket, 0));
+  END LOOP;
 
   v_since := pg_catalog.clock_timestamp() - INTERVAL '10 minutes';
 
@@ -174,12 +187,16 @@ BEGIN
         WHERE r.tenant_id = v_tenant
           AND r.key_digest = v_key
      )
-     OR EXISTS (
+     OR NOT EXISTS (
        SELECT 1
-         FROM private.intake_rate_attempts AS a
-        WHERE a.bucket_digest = v_buckets[1]
-          AND a.key_digest = v_key
-          AND a.created_at >= v_since
+         FROM pg_catalog.unnest(v_buckets) AS b(digest)
+        WHERE NOT EXISTS (
+                SELECT 1
+                  FROM private.intake_rate_attempts AS a
+                 WHERE a.bucket_digest = b.digest
+                   AND a.key_digest = v_key
+                   AND a.created_at >= v_since
+              )
      ) THEN
     RETURN pg_catalog.jsonb_build_object('admitted', true, 'retry_after_seconds', NULL);
   END IF;
@@ -257,7 +274,12 @@ DECLARE
   v_removed INTEGER;
 BEGIN
   DELETE FROM private.intake_rate_attempts AS a
-   WHERE a.created_at < pg_catalog.clock_timestamp() - INTERVAL '10 minutes';
+   WHERE (a.bucket_digest, a.key_digest) IN (
+           SELECT o.bucket_digest, o.key_digest
+             FROM private.intake_rate_attempts AS o
+            WHERE o.created_at < pg_catalog.clock_timestamp() - INTERVAL '10 minutes'
+              FOR UPDATE SKIP LOCKED
+         );
   GET DIAGNOSTICS v_removed = ROW_COUNT;
   RETURN v_removed;
 END;

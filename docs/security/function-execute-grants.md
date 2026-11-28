@@ -628,7 +628,8 @@ all; for a signed-in gift also the session's user: fewer than 6 unpaid and 15
 in all), kept in `private.intake_rate_attempts`, which stores only SHA-256
 digests of the bucket and the client key, holds no grant for any API role, and
 restricts its organization's deletion. `public.purge_intake_attempts` removes
-every row older than the window; the money schedule calls it on each tick.
+every row older than the window that no running attempt holds; the money
+schedule calls it on each tick.
 `public.checkout_giving_config` is told which surface asks and, given a source
 Site, answers its primary domain when it is a current Site of the host's
 organization (the way back); the allowlist still lists three functions.
@@ -637,4 +638,6 @@ gifts by its own intake contacts, with no capped list
 (`20261127080000_wp8a2_rest2b_item_zero.sql`, which also replaces
 `tenant_guard.claim_provider_operation`, `tenant_guard.apply_account_event` and
 `tenant_guard.begin_line_gift` as their owner with the same security and
-grantees).
+grantees, and `public.money_due_work` with the same security and grantees; it
+now leaves out a provider request the claim would refuse for an inactive
+organization or binding, unless its attempts or send window have run out).

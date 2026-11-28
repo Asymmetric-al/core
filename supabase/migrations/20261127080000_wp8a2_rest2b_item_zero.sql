@@ -11,7 +11,8 @@
 --    organization_inactive and is not claimed (item 18).
 -- 2. tenant_guard.apply_account_event replaced: as 20261127030200 wrote it,
 --    and a disconnect links each request of the binding whose outcome is
---    unknown (queued, retry_wait or sending) to its one disconnect task as
+--    unknown (queued or retry_wait marked outcome-unknown, or sending, a
+--    first send in flight included) to its one disconnect task as
 --    provider_request_outcome_unknown_disconnected; such a request keeps its
 --    status, and the claim answers binding_inactive for it (item 19).
 -- 3. tenant_guard.begin_line_gift replaced: as 20261127050100 wrote it, and
@@ -23,6 +24,15 @@
 --    line-based gifts by its own intake contacts rather than by a capped list
 --    (item 36). public.donor_portal_lifetime(uuid, uuid, uuid[]) stays: the
 --    running build's portal calls it; WP8b's contract drops it.
+-- 5. public.money_due_work replaced: as 20261127050200 wrote it, and a
+--    provider request the claim would refuse (a create_payment of an
+--    organization that is not active, or any request whose gift's binding
+--    is not active) is left out, so 25 of them cannot keep every other
+--    organization's due requests from the worker; one whose attempts or
+--    send window have run out (within the longest lease, 900 seconds) is
+--    still read, for the claim to park or dead-letter it. A refused row's
+--    next attempt is not moved instead: the request's own trigger allows no
+--    move that keeps its status (provider_request_bad_move).
 --
 -- Recovery. A run lost between its COMMIT and its ledger row reruns
 -- cleanly (every statement replaces or creates OR REPLACE). This file has
@@ -41,6 +51,8 @@
 --     and the CREATE OR REPLACE of tenant_guard.apply_account_event from
 --     20261127030200, each as CREATE OR REPLACE;
 --   RESET ROLE; REVOKE CREATE ON SCHEMA tenant_guard FROM tenant_guard;
+--   re-run, verbatim, the CREATE FUNCTION of public.money_due_work from
+--     20261127050200 as CREATE OR REPLACE, with its REVOKE and GRANT.
 
 BEGIN;
 SET LOCAL lock_timeout = '5s';
@@ -541,7 +553,7 @@ BEGIN
         FROM public.donation_saga_outbox AS o
        WHERE o.tenant_id = p_tenant_id
          AND o.kind = 'provider_request'
-         AND o.outcome_unknown
+         AND (o.outcome_unknown OR o.status = 'sending')
          AND o.status IN ('queued', 'retry_wait', 'sending')
          AND o.donation_id IN (
            SELECT d.id
@@ -1162,6 +1174,82 @@ ALTER FUNCTION public.donor_portal_login_lifetime(UUID, UUID, UUID) OWNER TO pos
 REVOKE ALL ON FUNCTION public.donor_portal_login_lifetime(UUID, UUID, UUID)
   FROM PUBLIC, anon, authenticated, service_role;
 GRANT EXECUTE ON FUNCTION public.donor_portal_login_lifetime(UUID, UUID, UUID) TO service_role;
+
+CREATE OR REPLACE FUNCTION public.money_due_work(p_limit INTEGER)
+RETURNS TABLE (kind TEXT, id UUID, tenant_id UUID, detail TEXT)
+LANGUAGE sql
+VOLATILE
+SECURITY INVOKER
+SET search_path = ''
+AS $fn$
+  (SELECT 'operation'::TEXT, o.id, o.tenant_id, o.request_kind
+     FROM public.donation_saga_outbox AS o
+    WHERE o.kind = 'provider_request'
+      AND ((o.status = 'queued' AND o.next_attempt_at <= pg_catalog.clock_timestamp() - INTERVAL '2 minutes')
+           OR (o.status = 'retry_wait' AND o.next_attempt_at <= pg_catalog.clock_timestamp())
+           OR (o.status = 'sending' AND o.lease_expires_at < pg_catalog.clock_timestamp()))
+      AND (
+        o.attempt_count >= o.max_attempts
+        OR (o.first_sent_at IS NOT NULL
+            AND o.send_deadline <= pg_catalog.clock_timestamp() + INTERVAL '900 seconds')
+        OR ((o.request_kind <> 'create_payment'
+             OR EXISTS (
+               SELECT 1
+                 FROM public.tenants AS t
+                WHERE t.id = o.tenant_id
+                  AND t.status = 'active'
+             ))
+            AND EXISTS (
+              SELECT 1
+                FROM public.donations AS d
+                JOIN public.payment_account_bindings AS b
+                  ON b.tenant_id = d.tenant_id
+                 AND b.id = d.payment_account_binding_id
+               WHERE d.tenant_id = o.tenant_id
+                 AND d.id = o.donation_id
+                 AND b.status = 'active'
+            ))
+      )
+    ORDER BY o.next_attempt_at, o.id
+    LIMIT p_limit)
+  UNION ALL
+  (SELECT 'unpaid'::TEXT, d.id, d.tenant_id, NULL::TEXT
+     FROM public.donations AS d
+    WHERE d.intake_format = 'line_based'
+      AND d.status IN ('pending', 'failed')
+      AND d.created_at <= pg_catalog.clock_timestamp() - INTERVAL '7 days'
+    ORDER BY d.created_at, d.id
+    LIMIT p_limit)
+  UNION ALL
+  (SELECT CASE WHEN e.event_type LIKE 'v2.core.account%' THEN 'account_event' ELSE 'payment_event' END,
+          e.id,
+          e.tenant_id,
+          CASE WHEN e.event_type LIKE 'v2.core.account%'
+               THEN e.event_type || '|' || e.provider_account_id
+               ELSE e.event_type END
+     FROM public.stripe_connect_events AS e
+    WHERE e.tenant_id IS NOT NULL
+      AND ((e.processing_status = 'received' AND e.received_at <= pg_catalog.clock_timestamp() - INTERVAL '2 minutes')
+           OR (e.processing_status = 'failed' AND e.next_attempt_at <= pg_catalog.clock_timestamp())
+           OR (e.processing_status = 'processing' AND e.lease_expires_at < pg_catalog.clock_timestamp()))
+    ORDER BY e.received_at, e.id
+    LIMIT p_limit)
+  UNION ALL
+  (SELECT 'account'::TEXT, a.id, a.tenant_id, a.provider_account_id
+     FROM public.payment_provider_accounts AS a
+     JOIN public.payment_account_bindings AS b
+       ON b.tenant_id = a.tenant_id
+      AND b.legal_entity_id = a.legal_entity_id
+      AND b.provider_account_ref = a.provider_account_id
+      AND b.livemode = a.livemode
+    WHERE a.livemode = false
+      AND b.status IN ('pending', 'active', 'restricted')
+    ORDER BY a.reconciled_at NULLS FIRST, a.id
+    LIMIT p_limit);
+$fn$;
+
+REVOKE ALL ON FUNCTION public.money_due_work(INTEGER) FROM PUBLIC, anon, authenticated, service_role;
+GRANT EXECUTE ON FUNCTION public.money_due_work(INTEGER) TO service_role;
 
 COMMIT;
 
