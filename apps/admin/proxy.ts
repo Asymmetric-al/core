@@ -11,7 +11,10 @@ import {
 } from "@asym/auth/front";
 import { answerAdmittedRedirect } from "@asym/auth/legacy-redirects";
 import { createAuthMiddleware } from "@asym/auth/middleware";
-import { admitOperatorArea } from "@asym/auth/operator-area";
+import {
+  admitOperationsSignIn,
+  admitOperatorArea,
+} from "@asym/auth/operator-area";
 import { resolveUserRoleFromDatabase } from "@asym/auth/resolve-user-role";
 import { refusesAddressOnName } from "@asym/auth/tenant-address";
 import {
@@ -68,6 +71,8 @@ export async function proxy(request: NextRequest) {
   if (!isServeUnderPathsEnabled()) {
     return authProxy(withoutFrontHeaders(request));
   }
+  const operationsSignIn = await admitOperationsSignIn(request, process.env);
+  if (operationsSignIn) return operationsSignIn;
   const admission = await admitFromFront(request, {
     prefix: APP_BASE_PATHS.admin,
     key: process.env.FRONT_STAMP_KEY,

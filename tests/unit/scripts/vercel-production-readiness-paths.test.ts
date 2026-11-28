@@ -1,9 +1,11 @@
 import { describe, expect, it, vi } from "vitest";
 
 import {
+  crossProjectSwitchProblem,
   formatReadinessReport,
   PROJECTS,
   readHealth,
+  readinessExitCode,
   summarizeProjectReadiness,
 } from "../../../scripts/verify/vercel-production-readiness.mjs";
 
@@ -199,4 +201,147 @@ describe("readiness compares the switch state each app reports", () => {
       ).not.toContain("Release health serveUnderPaths");
     },
   );
+});
+
+const KEY = "k".repeat(32);
+const PATH_VALUES: Record<string, Record<string, string>> = {
+  admin: { CORE_SERVE_UNDER_PATHS: "1", FRONT_STAMP_KEY: KEY },
+  missionary: { CORE_SERVE_UNDER_PATHS: "1", FRONT_STAMP_KEY: KEY },
+  donor: {
+    CORE_SERVE_UNDER_PATHS: "1",
+    FRONT_ADMIN_ORIGIN: "https://admin.asymmetric.al",
+    FRONT_MISSIONARY_ORIGIN: "https://missionary.asymmetric.al",
+    FRONT_STAMP_KEY_ADMIN: KEY,
+    FRONT_STAMP_KEY_MISSIONARY: KEY,
+  },
+};
+
+function projectReport(
+  key: "admin" | "missionary" | "donor",
+  values: Record<string, string>,
+  releaseCommit: string | null = "built",
+) {
+  return summarizeProjectReadiness({
+    project: {
+      key,
+      project: key,
+      vercelConfigPath: `apps/${key}/vercel.json`,
+      healthUrl: `https://${key}.asymmetric.al/api/health`,
+      requiredEnv: [],
+    },
+    envKeys: Object.keys(values),
+    envValues: values,
+    envTypes: {},
+    deployments: [
+      {
+        url: `${key}.example.vercel.app`,
+        state: "READY",
+        target: "production",
+        createdAt: 1,
+        commitSha: "built",
+        commitRef: "production",
+      },
+    ],
+    commit: "built",
+    health: {
+      url: `https://${key}.asymmetric.al/api/health/migrations`,
+      status: 200,
+      releaseCommit: releaseCommit ?? undefined,
+      serveUnderPaths: values.CORE_SERVE_UNDER_PATHS === "1" ? true : undefined,
+    },
+    productionBranch: "production",
+    productionGitDeployments: false,
+  });
+}
+
+describe("#2845 item 6: readiness compares the switch across the three projects", () => {
+  it("blocks when the projects' configured values differ, whatever the shell says", () => {
+    const reports = [
+      projectReport("admin", PATH_VALUES.admin!),
+      projectReport("missionary", PATH_VALUES.missionary!),
+      projectReport("donor", {}),
+    ];
+    expect(reports.every((report) => report.ready)).toBe(true);
+    expect(crossProjectSwitchProblem(reports)).toBe(
+      "CORE_SERVE_UNDER_PATHS differs across projects: admin on, missionary on, donor off",
+    );
+    const text = formatReadinessReport({ commit: "built", reports });
+    expect(text).toContain(
+      "Switch: CORE_SERVE_UNDER_PATHS differs across projects: admin on, missionary on, donor off",
+    );
+    expect(text).toContain("Overall: BLOCKED");
+    expect(text).not.toContain("Overall: READY");
+    expect(readinessExitCode(reports)).toBe(1);
+  });
+
+  it.each([
+    ["all on", PATH_VALUES],
+    ["all off", { admin: {}, missionary: {}, donor: {} }],
+  ] as const)("passes when the three agree, %s (guard)", (_label, values) => {
+    const reports = (["admin", "missionary", "donor"] as const).map((key) =>
+      projectReport(key, values[key]!),
+    );
+    expect(crossProjectSwitchProblem(reports)).toBeNull();
+    expect(formatReadinessReport({ commit: "built", reports })).toContain(
+      "Overall: READY",
+    );
+    expect(readinessExitCode(reports)).toBe(0);
+  });
+});
+
+describe("#2845 item 8: in path mode the live commit must be the target commit", () => {
+  it.each([null, "unknown", "older"])(
+    "an app on paths reporting commit %s is not ready",
+    (commit) => {
+      expect(projectReport("admin", PATH_VALUES.admin!, commit).ready).toBe(
+        false,
+      );
+    },
+  );
+
+  it("an app on paths reporting the target commit is ready (guard)", () => {
+    expect(projectReport("admin", PATH_VALUES.admin!, "built").ready).toBe(
+      true,
+    );
+  });
+
+  it.each([null, "unknown"])(
+    "off keeps today's tolerance for commit %s (guard)",
+    (commit) => {
+      expect(projectReport("admin", {}, commit).ready).toBe(true);
+    },
+  );
+
+  it.each([
+    [null, "Release health commit: absent (does not match target)"],
+    ["unknown", "Release health commit: unknown (does not match target)"],
+    ["built", "Release health commit: built (matches target)"],
+  ])(
+    "in path mode the report states the commit it compared (%s)",
+    (commit, line) => {
+      const text = formatReadinessReport({
+        commit: "built",
+        reports: [projectReport("admin", PATH_VALUES.admin!, commit)],
+      });
+      expect(text).toContain(line);
+      expect(text).not.toContain("legacy-unknown");
+    },
+  );
+
+  it("off keeps today's report lines (guard)", () => {
+    expect(
+      formatReadinessReport({
+        commit: "built",
+        reports: [projectReport("admin", {}, "unknown")],
+      }),
+    ).toContain(
+      "Release health commit: unknown (matches target or legacy-unknown)",
+    );
+    expect(
+      formatReadinessReport({
+        commit: "built",
+        reports: [projectReport("admin", {}, null)],
+      }),
+    ).not.toContain("Release health commit:");
+  });
 });

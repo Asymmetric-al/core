@@ -35,12 +35,24 @@ function isBlockedNextPath(pathname: string): boolean {
   );
 }
 
-function leavesTheDonorApp(pathname: string): boolean {
-  if (!isServeUnderPathsEnabled() || appBasePath() !== "") return false;
+function namesAnotherApp(pathname: string): boolean {
   const first = pathname
     .split("/", 2)[1]!
     .replace(/[A-Z]/g, (letter) => letter.toLowerCase());
   return OTHER_APP_SEGMENTS.has(first);
+}
+
+function leavesTheDonorApp(pathname: string): boolean {
+  if (!isServeUnderPathsEnabled() || appBasePath() !== "") return false;
+  let decoded: string;
+  try {
+    decoded = decodeURIComponent(pathname);
+  } catch {
+    return true;
+  }
+  if (/[?#]/.test(decoded) || /(?:^|\/)\.\.?(?:\/|$)/.test(decoded))
+    return true;
+  return namesAnotherApp(pathname) || namesAnotherApp(decoded);
 }
 
 export function getDemoRoleForApp(appId: AppId): AppRole {

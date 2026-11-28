@@ -1,3 +1,4 @@
+import { isServeUnderPathsEnabled } from "@asym/database/app-base-path";
 import { createClient } from "@asym/database/supabase/server";
 import { headers } from "next/headers";
 import { unstable_rethrow } from "next/navigation";
@@ -5,7 +6,11 @@ import { connection } from "next/server";
 import { cache } from "react";
 
 import { FRONT_HEADER_PREFIX } from "./front";
-import { isOperationsAddress, operationsNamesFromEnv } from "./operator-area";
+import {
+  isOperationsAddress,
+  isOperationsSignIn,
+  operationsNamesFromEnv,
+} from "./operator-area";
 import { PAGE_SCOPE_HEADERS } from "./request-headers";
 
 export interface OperatorAdmission {
@@ -23,6 +28,15 @@ function carriesScopeOrFrontHeader(requestHeaders: RequestHeaders): boolean {
     if (name.toLowerCase().startsWith(FRONT_HEADER_PREFIX)) return true;
   }
   return false;
+}
+
+export async function readOperationsSignIn(): Promise<boolean> {
+  if (!isServeUnderPathsEnabled()) return false;
+  const requestHeaders = await headers();
+  return (
+    !carriesScopeOrFrontHeader(requestHeaders) &&
+    isOperationsSignIn(requestHeaders, process.env)
+  );
 }
 
 export const readOperatorAdmission = cache(
