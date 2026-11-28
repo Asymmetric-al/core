@@ -1468,8 +1468,8 @@ limit, a timeout), then retry:
   for a rebuild only until the next reset.
 
 A stop of the sweep with a runtime error, not a database or connection
-error, means the sweep ran on another Bun or Node.js than the repository's;
-it says nothing about the Sites or their presentations. Release 7 stopped so
+error, points to the runtime the sweep ran on or to the sweep's own code; it
+says nothing about the Sites or their presentations. Release 7 stopped so
 on 28 November 2026 (`SyntaxError: Export named 'argon2Sync' not found in
 module 'node:crypto'`, `Bun v1.3.10`): `supabase/setup-cli` had set up its
 own Bun over the job's 1.4.3. The job now sets up the repository's Bun after
@@ -1482,8 +1482,8 @@ satisfies its `engines`. After any stop of the sweep in a release, whatever
 its cause, fix the cause (on `production`, where it needs a change), then
 dispatch **Release** anew from branch `production` (operation `release`);
 never use **Re-run all jobs** or **Re-run failed jobs** on the stopped run,
-which runs that run's commit and workflow again. "Re-run the release" in the
-stop's message means that dispatch.
+which runs that run's commit and workflow again. "Re-run the release", in the
+bullet above and in the stop's message, means that dispatch.
 
 **Rollback.** Revert the apps; the presentations stay, since pages key on
 them. Admin never goes below WP6 part 2b's release.
