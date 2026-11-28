@@ -509,10 +509,11 @@ export function summarizeProjectReadiness({
   );
   const latestDeployment = deployments[0] ?? null;
   const healthOk = health ? health.status >= 200 && health.status < 300 : false;
-  const healthReleaseMatches =
-    !health?.releaseCommit ||
-    health.releaseCommit === "unknown" ||
-    health.releaseCommit === commit;
+  const healthReleaseMatches = paths
+    ? health?.releaseCommit === commit
+    : !health?.releaseCommit ||
+      health.releaseCommit === "unknown" ||
+      health.releaseCommit === commit;
   const healthStateMatches = !paths || health?.serveUnderPaths === true;
   // Production deploys only through the release job, so Vercel's Git
   // integration must not deploy the production branch.
@@ -543,10 +544,30 @@ export function summarizeProjectReadiness({
     health: health ?? null,
     healthReleaseMatches,
     pathMode: paths,
+    configuredPaths: pathMode(resolvedEnvValues),
     productionBranch: productionBranch ?? "",
     productionGitDeployments,
     vercelConfigPath: project.vercelConfigPath,
   };
+}
+
+export function crossProjectSwitchProblem(reports) {
+  const states = reports.map(
+    (report) => `${report.key} ${report.configuredPaths ? "on" : "off"}`,
+  );
+  const agree = reports.every(
+    (report) => report.configuredPaths === reports[0]?.configuredPaths,
+  );
+  return agree
+    ? null
+    : `CORE_SERVE_UNDER_PATHS differs across projects: ${states.join(", ")}`;
+}
+
+export function readinessExitCode(reports) {
+  return reports.some((report) => !report.ready) ||
+    crossProjectSwitchProblem(reports) !== null
+    ? 1
+    : 0;
 }
 
 export function formatReadinessReport({ commit, reports }) {
@@ -633,7 +654,11 @@ export function formatReadinessReport({ commit, reports }) {
       if (report.health.bodyStatus) {
         lines.push(`Health body status: ${report.health.bodyStatus}`);
       }
-      if (report.health.releaseCommit) {
+      if (report.pathMode) {
+        lines.push(
+          `Release health commit: ${report.health.releaseCommit || "absent"} (${report.healthReleaseMatches ? "matches target" : "does not match target"})`,
+        );
+      } else if (report.health.releaseCommit) {
         lines.push(
           `Release health commit: ${report.health.releaseCommit} (${report.healthReleaseMatches ? "matches target or legacy-unknown" : "does not match target"})`,
         );
@@ -663,11 +688,21 @@ export function formatReadinessReport({ commit, reports }) {
     lines.push("");
   }
 
-  const blocked = reports.filter((report) => !report.ready);
+  const switchProblem = crossProjectSwitchProblem(reports);
+  if (switchProblem) {
+    lines.push(`Switch: ${switchProblem}`);
+    lines.push("");
+  }
+  const blocked = [
+    ...reports
+      .filter((report) => !report.ready)
+      .map((report) => report.project),
+    ...(switchProblem ? ["switch differs"] : []),
+  ];
   lines.push(
     blocked.length === 0
       ? "Overall: READY"
-      : `Overall: BLOCKED (${blocked.map((report) => report.project).join(", ")})`,
+      : `Overall: BLOCKED (${blocked.join(", ")})`,
   );
   lines.push("");
 
@@ -922,7 +957,7 @@ async function main() {
 
   console.log(formatReadinessReport({ commit, reports }));
 
-  if (reports.some((report) => !report.ready)) {
+  if (readinessExitCode(reports) !== 0) {
     process.exitCode = 1;
   }
 }
