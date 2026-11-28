@@ -252,6 +252,100 @@ describe.skipIf(!READY)(
       expect((await tryPassword(person, PASSWORD, address())).status).toBe(200);
     });
 
+    async function countingPasswordGrants<T>(
+      work: () => Promise<T>,
+    ): Promise<{ result: T; grants: number }> {
+      const realFetch = globalThis.fetch;
+      let grants = 0;
+      vi.stubGlobal("fetch", (input: RequestInfo | URL, init?: RequestInit) => {
+        const url = input instanceof Request ? input.url : String(input);
+        if (
+          url.includes("/auth/v1/token") &&
+          url.includes("grant_type=password")
+        )
+          grants += 1;
+        return realFetch(input, init);
+      });
+      try {
+        return { result: await work(), grants };
+      } finally {
+        vi.stubGlobal("fetch", realFetch);
+      }
+    }
+
+    it("never sends more than ten guesses at one account to the provider, however many arrive at once", async () => {
+      const target = `n4-burst-${nonce()}@example.test`;
+      await adminCreate(target);
+      jar.current = new Map();
+      const { result, grants } = await countingPasswordGrants(() =>
+        Promise.all(
+          Array.from({ length: 20 }, () =>
+            post(
+              signIn,
+              "/api/auth/sign-in",
+              { email: target, password: WRONG },
+              address(),
+            ).then((response) => response.status),
+          ),
+        ),
+      );
+      expect(result.every((status) => status === 401)).toBe(true);
+      expect(grants).toBeLessThanOrEqual(10);
+      expect((await tryPassword(target, PASSWORD)).status).toBe(401);
+    });
+
+    it("never sends more than thirty guesses from one address to the provider, however many arrive at once", async () => {
+      const noisy = address();
+      const { grants } = await countingPasswordGrants(() =>
+        Promise.all(
+          Array.from({ length: 40 }, () =>
+            post(
+              signIn,
+              "/api/auth/sign-in",
+              {
+                email: `n4-burst-guess-${nonce()}@example.test`,
+                password: WRONG,
+              },
+              noisy,
+            ),
+          ),
+        ),
+      );
+      expect(grants).toBeLessThanOrEqual(30);
+    });
+
+    it("never sends more than ten current-password guesses for one account to the provider, however many arrive at once", async () => {
+      const email = `n4-burst-change-${nonce()}@example.test`;
+      await adminCreate(email);
+      jar.current = new Map();
+      expect(
+        (
+          await post(
+            signIn,
+            "/api/auth/sign-in",
+            { email, password: PASSWORD },
+            address(),
+          )
+        ).status,
+      ).toBe(200);
+      const { result, grants } = await countingPasswordGrants(() =>
+        Promise.all(
+          Array.from({ length: 20 }, () =>
+            post(
+              changePassword,
+              "/api/auth/password",
+              { currentPassword: WRONG, newPassword: NEW_PASSWORD },
+              address(),
+            ).then((response) => response.status),
+          ),
+        ),
+      );
+      expect(result.every((status) => status === 403 || status === 429)).toBe(
+        true,
+      );
+      expect(grants).toBeLessThanOrEqual(10);
+    });
+
     it("refuses the limiter's functions to the publishable key", async () => {
       for (const [name, body] of [
         [
