@@ -246,6 +246,35 @@ describe("Mission Control's review queue (AL-2680, WP7 pull request 1)", () => {
     await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull());
   });
 
+  it("says a decision whose answer was lost could not be confirmed, never that nothing was changed, and refreshes the list (WP7 1b, item 3)", async () => {
+    const { fetcher, sent } = stubServer({
+      review: () => {
+        throw new TypeError("Failed to fetch");
+      },
+    });
+    mount();
+    await screen.findByText("Waiting update");
+    fireEvent.click(
+      screen.getByRole("button", { name: "Don’t approve Clinic opens" }),
+    );
+    const dialog = await screen.findByRole("dialog");
+    fireEvent.change(within(dialog).getByRole("textbox", { name: "Reason" }), {
+      target: { value: "Names a partner church" },
+    });
+    const before = fetcher.mock.calls.length;
+    fireEvent.click(
+      within(dialog).getByRole("button", { name: "Don’t approve" }),
+    );
+    const alert = await within(dialog).findByRole("alert");
+    expect(alert.textContent).toBe(
+      "Couldn’t confirm whether that went through. The list has been refreshed: check the update before you try again.",
+    );
+    expect(sent).toHaveLength(1);
+    await waitFor(() =>
+      expect(fetcher.mock.calls.length).toBeGreaterThan(before + 1),
+    );
+  });
+
   it("withdraws an approved update from All posts with a reason, and offers no withdrawal on one still waiting there", async () => {
     const { sent } = stubServer();
     mount();
