@@ -67,16 +67,28 @@ function stubServer(
   } = {},
 ) {
   const sent: Sent[] = [];
+  const queue = { waiting: { ...WAITING } };
+  const decide = (url: string, body: unknown) => {
+    const { decision, version } = (body ?? {}) as {
+      decision?: string;
+      version?: number;
+    };
+    return url.includes(`/${queue.waiting.id}/review`) &&
+      decision !== "withdraw" &&
+      version !== queue.waiting.content_version
+      ? Response.json(
+          { error: "The update changed since it was read" },
+          { status: 409 },
+        )
+      : Response.json({ success: true });
+  };
   const fetcher = vi.fn(async (url: string, init?: RequestInit) => {
     const method = init?.method ?? "GET";
     if (method !== "GET") {
-      sent.push({
-        url,
-        method,
-        body: init?.body ? JSON.parse(String(init.body)) : null,
-      });
+      const body = init?.body ? JSON.parse(String(init.body)) : null;
+      sent.push({ url, method, body });
       if (url.includes("/review"))
-        return answers.review?.() ?? Response.json({ success: true });
+        return answers.review?.() ?? decide(url, body);
       return answers.policy?.() ?? Response.json({ success: true });
     }
     if (url.includes("comments"))
@@ -96,18 +108,18 @@ function stubServer(
       });
     if (url.includes("reviewState=submitted"))
       return Response.json({
-        posts: [WAITING],
+        posts: [queue.waiting],
         total: 1,
         stats: { total: 2, flagged: 0, hidden: 0, waiting: 1 },
       });
     return Response.json({
-      posts: [WAITING, LIVE, HELD],
+      posts: [queue.waiting, LIVE, HELD],
       total: 3,
       stats: { total: 3, flagged: 0, hidden: 0, waiting: 1 },
     });
   });
   vi.stubGlobal("fetch", fetcher);
-  return { fetcher, sent };
+  return { fetcher, sent, queue };
 }
 
 function mount() {
@@ -155,7 +167,7 @@ describe("Mission Control's review queue (AL-2680, WP7 pull request 1)", () => {
     );
   });
 
-  it("asks for a reason before not approving, and sends it", async () => {
+  it("checks the reason when it is sent: a blank one gets a field error, aria-invalid, its description and focus, and nothing is sent; a reason is sent (WP7 1b, item 1)", async () => {
     const { sent } = stubServer();
     mount();
     await screen.findByText("Waiting update");
@@ -169,15 +181,24 @@ describe("Mission Control's review queue (AL-2680, WP7 pull request 1)", () => {
     const submit = within(dialog).getByRole("button", {
       name: "Don’t approve",
     }) as HTMLButtonElement;
-    expect(submit.disabled).toBe(true);
-    fireEvent.change(within(dialog).getByRole("textbox", { name: "Reason" }), {
-      target: { value: "  ​ " },
-    });
-    expect(submit.disabled).toBe(true);
-    fireEvent.change(within(dialog).getByRole("textbox", { name: "Reason" }), {
+    const reason = within(dialog).getByRole("textbox", { name: "Reason" });
+    for (const blank of ["", "  ​ "]) {
+      fireEvent.change(reason, { target: { value: blank } });
+      expect(submit.disabled).toBe(false);
+      fireEvent.click(submit);
+      const error = await within(dialog).findByText("Give a reason.");
+      expect(reason.getAttribute("aria-invalid")).toBe("true");
+      expect(reason.getAttribute("aria-describedby")?.split(" ")).toContain(
+        error.id,
+      );
+      expect(document.activeElement).toBe(reason);
+    }
+    expect(sent).toEqual([]);
+    fireEvent.change(reason, {
       target: { value: "Names a partner church" },
     });
-    expect(submit.disabled).toBe(false);
+    expect(within(dialog).queryByText("Give a reason.")).toBeNull();
+    expect(reason.getAttribute("aria-invalid")).toBeNull();
     fireEvent.click(submit);
     await waitFor(() =>
       expect(sent).toEqual([
@@ -191,6 +212,75 @@ describe("Mission Control's review queue (AL-2680, WP7 pull request 1)", () => {
           },
         },
       ]),
+    );
+  });
+
+  it("binds a rejection to the version its dialog opened on: after the list refreshes with new words the server refuses it, and the dialog says the update changed and shows the new words (WP7 1b, item 2)", async () => {
+    const { sent, queue } = stubServer();
+    mount();
+    await screen.findByText("Waiting update");
+    fireEvent.click(
+      screen.getByRole("button", { name: "Don’t approve Clinic opens" }),
+    );
+    const dialog = await screen.findByRole("dialog");
+    queue.waiting = {
+      ...queue.waiting,
+      content: "<p>Waiting update, revised</p>",
+      content_version: 3,
+    };
+    await getQueryClient().invalidateQueries({ queryKey: ["moderation"] });
+    await screen.findByText("Waiting update, revised");
+    fireEvent.change(within(dialog).getByRole("textbox", { name: "Reason" }), {
+      target: { value: "Names a partner church" },
+    });
+    const versions = () =>
+      sent.map((call) => (call.body as { version?: number }).version);
+    fireEvent.click(
+      within(dialog).getByRole("button", { name: "Don’t approve" }),
+    );
+    await waitFor(() => expect(versions()).toEqual([2]));
+    expect((await within(dialog).findByRole("alert")).textContent).toContain(
+      "The update changed since it was read",
+    );
+    expect(
+      within(dialog).getByText(
+        "This update changed after you opened it. Its words now:",
+      ),
+    ).toBeTruthy();
+    expect(within(dialog).getByText("Waiting update, revised")).toBeTruthy();
+    fireEvent.click(
+      within(dialog).getByRole("button", { name: "Don’t approve" }),
+    );
+    await waitFor(() => expect(versions()).toEqual([2, 3]));
+    await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull());
+  });
+
+  it("says a decision whose answer was lost could not be confirmed, never that nothing was changed, and refreshes the list (WP7 1b, item 3)", async () => {
+    const { fetcher, sent } = stubServer({
+      review: () => {
+        throw new TypeError("Failed to fetch");
+      },
+    });
+    mount();
+    await screen.findByText("Waiting update");
+    fireEvent.click(
+      screen.getByRole("button", { name: "Don’t approve Clinic opens" }),
+    );
+    const dialog = await screen.findByRole("dialog");
+    fireEvent.change(within(dialog).getByRole("textbox", { name: "Reason" }), {
+      target: { value: "Names a partner church" },
+    });
+    const before = fetcher.mock.calls.length;
+    fireEvent.click(
+      within(dialog).getByRole("button", { name: "Don’t approve" }),
+    );
+    const alert = await within(dialog).findByRole("alert");
+    expect(alert.textContent).toBe(
+      "Couldn’t confirm whether that went through. The list has been refreshed: check the update before you try again.",
+    );
+    expect(sent).toHaveLength(1);
+    await waitFor(() =>
+      expect(fetcher.mock.calls.length).toBeGreaterThan(before + 1),
     );
   });
 
@@ -222,6 +312,33 @@ describe("Mission Control's review queue (AL-2680, WP7 pull request 1)", () => {
         },
       ]),
     );
+  });
+
+  it("checks the reason of a withdrawal and of a publication policy the same way when it is sent (WP7 1b, item 1)", async () => {
+    identity.capabilities = ["updates.review", "safety.restrict_publication"];
+    const { sent } = stubServer();
+    mount();
+    await screen.findByText("Waiting update");
+    fireEvent.click(screen.getByRole("tab", { name: "All posts" }));
+    await screen.findByText("Live update");
+    for (const [open, send] of [
+      ["Withdraw Term two begins", "Withdraw update"],
+      ["Publication policy for Lee", "Save policy"],
+    ] as const) {
+      fireEvent.click(screen.getAllByRole("button", { name: open })[0]!);
+      const dialog = await screen.findByRole("dialog");
+      const reason = within(dialog).getByRole("textbox", { name: "Reason" });
+      fireEvent.click(within(dialog).getByRole("button", { name: send }));
+      const error = await within(dialog).findByText("Give a reason.");
+      expect(reason.getAttribute("aria-invalid")).toBe("true");
+      expect(reason.getAttribute("aria-describedby")?.split(" ")).toContain(
+        error.id,
+      );
+      expect(document.activeElement).toBe(reason);
+      fireEvent.click(within(dialog).getByRole("button", { name: "Cancel" }));
+      await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull());
+    }
+    expect(sent).toEqual([]);
   });
 
   it("shows the server's refusal beside the update, keeps it in the queue and reloads the queue, since the refusal means it changed (fix round A3)", async () => {

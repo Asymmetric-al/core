@@ -901,11 +901,16 @@ describe("withdrawing one's own update (AL-2680, WP7 pull request 1)", () => {
     review_state: "approved",
   };
   function feed(withdraw: () => Response) {
+    const stored = { ...published };
     fetchMock.mockImplementation(async (input) => {
       const url = String(input);
-      if (url === "/api/posts/post-1/withdraw") return withdraw();
+      if (url === "/api/posts/post-1/withdraw") {
+        const answer = await withdraw();
+        if (answer.ok) stored.review_state = "withdrawn";
+        return answer;
+      }
       if (url.startsWith("/api/posts?status=published"))
-        return jsonResponse(200, { posts: [published] });
+        return jsonResponse(200, { posts: [{ ...stored }] });
       if (url.startsWith("/api/posts")) return jsonResponse(200, { posts: [] });
       if (url.startsWith("/api/follower-requests"))
         return jsonResponse(200, { requests: [] });
@@ -952,6 +957,51 @@ describe("withdrawing one's own update (AL-2680, WP7 pull request 1)", () => {
     });
     expect(withdrawCalls()).toHaveLength(1);
     expect(result.current.posts[0]?.review_state).toBe("withdrawn");
+  });
+
+  it("starts a newer read of the published list on a withdrawal, so a Retry still in flight cannot show the update published again (WP7 1b, item 13)", async () => {
+    const stored = { ...published };
+    const retry = Promise.withResolvers<Response>();
+    let reads = 0;
+    fetchMock.mockImplementation(async (input, init) => {
+      const url = String(input);
+      if (url === "/api/posts" && init?.method === "POST")
+        return jsonResponse(201, { post: { ...stored } });
+      if (url === "/api/posts/post-1/withdraw") {
+        stored.review_state = "withdrawn";
+        return jsonResponse(200, { success: true });
+      }
+      if (url.startsWith("/api/posts?status=published")) {
+        reads += 1;
+        if (reads === 1) return jsonResponse(500, { error: "first failure" });
+        if (reads === 2) return retry.promise;
+        return jsonResponse(200, { posts: [{ ...stored }] });
+      }
+      if (url.startsWith("/api/posts")) return jsonResponse(200, { posts: [] });
+      if (url.startsWith("/api/follower-requests"))
+        return jsonResponse(200, { requests: [] });
+      throw new Error(`unexpected fetch ${url}`);
+    });
+    const { result } = renderHook(() => useWorkerFeedPageView());
+    await waitFor(() => expect(result.current.feedError).not.toBeNull());
+    let inFlight: Promise<void> = Promise.resolve();
+    act(() => {
+      inFlight = result.current.reloadPosts();
+    });
+    act(() => result.current.setPostContent("<p>We opened.</p>"));
+    await act(() => result.current.handlePost("published"));
+    expect(result.current.posts.map((post) => post.id)).toEqual(["post-1"]);
+    await act(async () => {
+      await result.current.withdrawPost("post-1");
+    });
+    await act(async () => {
+      retry.resolve(jsonResponse(200, { posts: [{ ...published }] }));
+      await inFlight;
+    });
+    await waitFor(() =>
+      expect(result.current.posts[0]?.review_state).toBe("withdrawn"),
+    );
+    expect(result.current.posts).toHaveLength(1);
   });
 
   it("keeps the update as it was and says so when the withdrawal fails", async () => {
@@ -1014,5 +1064,88 @@ describe("what the page says after a save (AL-2680, round 2, G2)", () => {
     expect(toast.error).toHaveBeenCalledWith(NOT_LINKED);
     expect(result.current.canWrite).toBe(true);
     expect(result.current.postContent).toBe("<p>Rainy season</p>");
+  });
+});
+
+describe("a save whose read-back failed (WP7 1b, item 4)", () => {
+  const R1 = "2026-11-27T10:00:00.000Z";
+  const R2 = "2026-11-27T10:01:00.000Z";
+  function server() {
+    const stored = {
+      id: "draft-1",
+      post_type: "Update",
+      title: "Clinic",
+      content: "<p>One</p>",
+      created_at: R1,
+      updated_at: R1,
+      visibility: "public",
+      status: "draft",
+      media: [],
+    };
+    const sent: unknown[] = [];
+    let saves = 0;
+    fetchMock.mockImplementation(async (input, init) => {
+      const url = String(input);
+      if (url === "/api/posts/draft-1" && init?.method === "PATCH") {
+        const body = JSON.parse(String(init.body)) as Record<string, unknown>;
+        sent.push(body.expected_updated_at);
+        if (body.expected_updated_at !== stored.updated_at)
+          return jsonResponse(409, {
+            error:
+              "This update changed while you were editing. Reload it before saving again.",
+          });
+        saves += 1;
+        Object.assign(stored, {
+          content: body.content,
+          updated_at: `2026-11-27T10:0${saves}:00.000Z`,
+        });
+        return saves === 1
+          ? jsonResponse(200, { post: { id: stored.id } })
+          : jsonResponse(200, { post: { ...stored } });
+      }
+      if (url.startsWith("/api/posts?status=draft"))
+        return jsonResponse(200, { posts: [{ ...stored }] });
+      if (url.startsWith("/api/posts")) return jsonResponse(200, { posts: [] });
+      if (url.startsWith("/api/follower-requests"))
+        return jsonResponse(200, { requests: [] });
+      throw new Error(`unexpected fetch ${url}`);
+    });
+    return { sent };
+  }
+
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  it("reloads the committed revision, so saving the update again from the list is not refused as changed", async () => {
+    const { sent } = server();
+    const { result } = renderHook(() => useWorkerFeedPageView());
+    await waitFor(() => expect(result.current.drafts).toHaveLength(1));
+    act(() => result.current.handleEditDraft(result.current.drafts[0]!));
+    act(() => result.current.setPostContent("<p>Two</p>"));
+    await act(() => result.current.handlePost("draft"));
+    act(() => result.current.handleEditDraft(result.current.drafts[0]!));
+    act(() => result.current.setPostContent("<p>Three</p>"));
+    await act(() => result.current.handlePost("draft"));
+    expect(sent).toEqual([R1, R2]);
+    expect(toast.error).not.toHaveBeenCalled();
+  });
+
+  it("reloads the committed revision after an autosave, so the next save while still editing is not refused as changed", async () => {
+    const { sent } = server();
+    const { result } = renderHook(() => useWorkerFeedPageView());
+    await waitFor(() => expect(result.current.drafts).toHaveLength(1));
+    vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout"] });
+    act(() => result.current.handleEditDraft(result.current.drafts[0]!));
+    act(() => result.current.setPostContent("<p>Two</p>"));
+    await act(async () => {
+      vi.advanceTimersByTime(31_000);
+    });
+    vi.useRealTimers();
+    await waitFor(() => expect(result.current.lastSaved).not.toBeNull());
+    act(() => result.current.setPostContent("<p>Three</p>"));
+    await act(() => result.current.handlePost("draft"));
+    expect(sent).toEqual([R1, R2]);
+    expect(toast.error).not.toHaveBeenCalled();
   });
 });
