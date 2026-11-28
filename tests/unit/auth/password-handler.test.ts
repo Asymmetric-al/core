@@ -328,7 +328,9 @@ describe("Core's password route (AL-2671 N4 PR 1)", () => {
     expect(recovery.status).toBe(200);
     expect(fixture.clear).toHaveBeenCalledWith(USER.email);
     expect(updates()).toHaveLength(1);
-    expect(verifications()).toEqual([]);
+    expect(
+      verifications().map((call) => JSON.parse(call.body).password),
+    ).toEqual([NEXT]);
   });
 
   it("refuses a short new password, and gives Core's words, not the provider's, when the provider refuses one", async () => {

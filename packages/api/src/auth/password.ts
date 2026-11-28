@@ -150,15 +150,69 @@ async function checkCurrentPassword(
   }
   await giveBack(key, { cleared: true });
 
+  await endSession(verifier, "password_check_session_not_ended");
+  return checked.data.user?.id === subject ? null : REFUSALS.currentRefused;
+}
+
+type SessionWriter = {
+  auth: {
+    setSession(session: {
+      access_token: string;
+      refresh_token: string;
+    }): Promise<{ error: unknown }>;
+  };
+};
+
+async function replaceRecoverySession(
+  supabase: SessionWriter,
+  email: string | undefined,
+  password: string,
+  recoveryToken: string | null,
+): Promise<void> {
+  const fresh = createAnonymousClient();
+  if (!fresh || !email) {
+    console.error("[auth] recovery_session_not_replaced");
+    return;
+  }
+  let session;
   try {
-    const { error } = await verifier.auth.signOut({ scope: "local" });
+    const signedIn = await fresh.auth.signInWithPassword({ email, password });
+    session = signedIn.data.session;
+    if (signedIn.error || !session) throw signedIn.error;
+    const { error } = await supabase.auth.setSession({
+      access_token: session.access_token,
+      refresh_token: session.refresh_token,
+    });
     if (error) throw error;
   } catch {
-    console.error(
-      "[auth] the password check's own session could not be ended.",
-    );
+    console.error("[auth] recovery_session_not_replaced");
+    if (session) await endSession(fresh, "recovery_fresh_session_not_ended");
+    return;
   }
-  return checked.data.user?.id === subject ? null : REFUSALS.currentRefused;
+  if (!recoveryToken) return;
+  try {
+    const { error } = await fresh.auth.admin.signOut(recoveryToken, "local");
+    if (error) throw error;
+  } catch {
+    console.error("[auth] recovery_session_not_revoked");
+  }
+}
+
+async function endSession(
+  client: {
+    auth: { signOut(options: { scope: "local" }): Promise<{ error: unknown }> };
+  },
+  code: string,
+): Promise<void> {
+  for (let attempt = 0; attempt < 2; attempt += 1) {
+    try {
+      const { error } = await client.auth.signOut({ scope: "local" });
+      if (!error) return;
+    } catch {
+      continue;
+    }
+  }
+  console.error(`[auth] ${code}`);
 }
 
 async function clearAfterRecovery(email: string | undefined): Promise<void> {
@@ -189,10 +243,13 @@ export async function POST(request: Request) {
   }
   if (!person) return refuse(REFUSALS.signedOut);
 
+  let recoveryToken: string | null = null;
   if (change.current === null) {
     let secondsLeft: number | null;
     try {
       secondsLeft = await recoverySecondsLeft(supabase);
+      recoveryToken =
+        (await supabase.auth.getSession()).data.session?.access_token ?? null;
     } catch {
       return refuse(REFUSALS.unavailable);
     }
@@ -220,6 +277,14 @@ export async function POST(request: Request) {
   } catch {
     return refuse(REFUSALS.unavailable);
   }
-  if (change.current === null) await clearAfterRecovery(person.email);
+  if (change.current === null) {
+    await clearAfterRecovery(person.email);
+    await replaceRecoverySession(
+      supabase,
+      person.email,
+      change.next,
+      recoveryToken,
+    );
+  }
   return noStoreJson({ ok: true });
 }
