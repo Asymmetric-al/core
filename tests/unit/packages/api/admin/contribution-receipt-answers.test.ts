@@ -645,3 +645,260 @@ describe("AL-2681 A2 fix round Z6: the stub refuses what the tables refuse, from
     expect(state.stagedGift.receipt_status).toBe("sent");
   });
 });
+
+const UNRECOGNIZED =
+  "This receipt's delivery is recorded in a state this screen does not know, so this action sent nothing. Check the email send log for this correction before you try again.";
+
+function giftReceiptHistory(state: State) {
+  const history: unknown[] = [];
+  let value = state.stagedGift.receipt_status;
+  Object.defineProperty(state.stagedGift, "receipt_status", {
+    get: () => value,
+    set: (next) => {
+      history.push(next);
+      value = next;
+    },
+    enumerable: true,
+    configurable: true,
+  });
+  return history;
+}
+
+describe("AL-2681 A2 fix round Z1: a row that reads bounced or complained is as final as one that reads sent", () => {
+  it("a retry that read failed fails while the webhook writes bounced: the row keeps the bounce, the gift follows the row, the replay answers bounced, and a later replay sends nothing", async () => {
+    const state = freshState(true);
+    await failedFirstSend(state, "key-z1-fail");
+    sendEmailMock.mockImplementationOnce(async () => {
+      Object.assign(state.emailSendLogs[0]!, {
+        status: "bounced",
+        resend_message_id: "msg-bounced",
+        error_code: "email.bounced",
+      });
+      return providerDown;
+    });
+    const replay = await correctWith(state, { key: "key-z1-fail" });
+    expect(replay.receiptOutcome).toMatchObject({
+      status: "bounced",
+      reason: BOUNCED,
+    });
+    expect(state.emailSendLogs).toHaveLength(1);
+    expect(state.emailSendLogs[0]).toMatchObject({
+      status: "bounced",
+      resend_message_id: "msg-bounced",
+      error_code: "email.bounced",
+    });
+    expect(state.stagedGift).toMatchObject({
+      receipt_status: "sent",
+      receipt_send_log_id: state.emailSendLogs[0]!.id,
+    });
+    sendEmailMock.mockClear();
+    const again = await correctWith(state, { key: "key-z1-fail" });
+    expect(again.receiptOutcome).toMatchObject({ status: "bounced" });
+    expect(sendEmailMock).not.toHaveBeenCalled();
+  });
+
+  it("a retry that read failed is refused while the webhook writes complained: the row keeps it, the gift follows the row, the answer is bounced, and the refusal is audited", async () => {
+    const state = freshState(true);
+    await failedFirstSend(state, "key-z1-refuse");
+    state.suppressionTypes = ["bounce"];
+    state.writeGate = (table, _operation, payload) => {
+      if (table === "email_send_logs" && payload.status === "suppressed")
+        Object.assign(state.emailSendLogs[0]!, {
+          status: "complained",
+          error_code: "email.complained",
+        });
+    };
+    const replay = await correctWith(state, { key: "key-z1-refuse" });
+    expect(replay.receiptOutcome).toMatchObject({
+      status: "bounced",
+      reason: BOUNCED,
+    });
+    expect(state.emailSendLogs[0]).toMatchObject({
+      status: "complained",
+      error_code: "email.complained",
+    });
+    expect(state.stagedGift).toMatchObject({
+      receipt_status: "sent",
+      receipt_send_log_id: state.emailSendLogs[0]!.id,
+    });
+    expect(auditMock).toHaveBeenCalledWith(
+      expect.objectContaining({ action: "email_send_suppressed" }),
+    );
+  });
+
+  it("a failed re-send of the original receipt on a row that reads bounced: the row keeps the bounce and the provider's id, the gift follows the row, the answer is failed and names no row", async () => {
+    const state = freshState(false);
+    state.emailSendLogs = [
+      {
+        ...sentRow(RECEIPT_KEY),
+        status: "bounced",
+        error_code: "email.bounced",
+      },
+    ];
+    state.stagedGift.receipt_status = "failed";
+    sendEmailMock.mockResolvedValueOnce(providerDown);
+    const answer = await sendStagedGiftReceipt({
+      supabaseAdmin: stub(state),
+      tenantId: TENANT_ID,
+      stagedGiftId: "staged-1",
+    });
+    expect(answer).toEqual({ sendLogId: null, status: "failed" });
+    expect(state.emailSendLogs).toEqual([
+      {
+        ...sentRow(RECEIPT_KEY),
+        status: "bounced",
+        error_code: "email.bounced",
+      },
+    ]);
+    expect(state.stagedGift).toMatchObject({
+      receipt_status: "sent",
+      receipt_send_log_id: "send-log-1",
+    });
+  });
+});
+
+describe("AL-2681 A2 fix round Z2: a status the code does not know sends nothing", () => {
+  it.each([["none"], ["email"]] as const)(
+    "a row that reads queued, replay with %s: nothing is sent or written, and the answer says only that the delivery state is not one this screen knows",
+    async (choice) => {
+      const state = freshState(true);
+      const { before, gift } = await mailedThenMarked(
+        state,
+        `key-z2-${choice}`,
+        "queued",
+      );
+      state.snapshots[0]!.created_at = "2026-01-01T00:00:00.000Z";
+      const replay = await correctWith(state, {
+        key: `key-z2-${choice}`,
+        choice,
+      });
+      expect(replay.receiptOutcome).toMatchObject({
+        status: "unrecognized",
+        reason: UNRECOGNIZED,
+        snapshotId: state.snapshots[0]!.id,
+      });
+      expect(replay.receiptOutcome?.reason).not.toMatch(
+        /was (not )?sent|went out|not delivered|was delivered/i,
+      );
+      expect(sendEmailMock).not.toHaveBeenCalled();
+      expect(state.emailSendLogs).toEqual(before);
+      expect(state.stagedGift).toEqual(gift);
+    },
+  );
+});
+
+describe("AL-2681 A2 fix round Z3: the delivery check looks at the donor the mailer addresses", () => {
+  const grace = {
+    id: "donor-2",
+    profile_id: null,
+    name: "Grace Hopper",
+    email: "grace@example.com",
+    do_not_email: true,
+    do_not_contact: false,
+  };
+
+  it("the staged gift re-linked in review to a donor who asked for no e-mail, the donation's donor unchanged: the correction's e-mail choice is refused and nothing is mailed", async () => {
+    const state = freshState(true);
+    state.stagedGift.donor_id = "donor-2";
+    state.donorRows = { "donor-2": grace };
+    await expect(correctWith(state, { key: "key-z3" })).rejects.toThrow(
+      /opted out of email/i,
+    );
+    expect(sendEmailMock).not.toHaveBeenCalled();
+  });
+
+  it("the same on a replay after a failed send: blocked, nothing mailed", async () => {
+    const state = freshState(true);
+    await failedFirstSend(state, "key-z3-replay");
+    state.stagedGift.donor_id = "donor-2";
+    state.donorRows = { "donor-2": grace };
+    sendEmailMock.mockClear();
+    const replay = await correctWith(state, { key: "key-z3-replay" });
+    expect(replay.receiptOutcome).toMatchObject({ status: "blocked" });
+    expect(replay.receiptOutcome?.reason).toMatch(/opted out of email/i);
+    expect(sendEmailMock).not.toHaveBeenCalled();
+  });
+});
+
+describe("AL-2681 A2 fix round Z4: a failed attempt's answer names no other attempt's log row", () => {
+  it("a re-send the provider refuses on a gift whose row reads sent: the action's reference is no row", async () => {
+    const state = freshState(false);
+    state.emailSendLogs = [sentRow(RECEIPT_KEY)];
+    state.stagedGift.receipt_send_log_id = "send-log-1";
+    sendEmailMock.mockResolvedValueOnce(providerDown);
+    const appendAuditEvent = vi.fn().mockResolvedValue("audit-1");
+    const result = await executeContributionAction({
+      tenantId: TENANT_ID,
+      actorProfileId: "profile-1",
+      actorPermissions: ["finance:manage_contributions"],
+      sourceSurface: "contribution_hub",
+      contributionId: DONATION_ID,
+      actionType: "resend_receipt",
+      reason: "The donor asked for the receipt again",
+      confirmationToken: "confirm",
+      payload: { stagedGiftId: "staged-1" },
+      dependencies: {
+        sendReceipt: ({ tenantId, stagedGiftId }) =>
+          sendStagedGiftReceipt({
+            supabaseAdmin: stub(state),
+            tenantId,
+            stagedGiftId,
+          }),
+        appendAuditEvent,
+        loadContributionDetail: vi.fn().mockResolvedValue({
+          id: DONATION_ID,
+          stagedGift: { id: "staged-1" },
+        }),
+      },
+    });
+    expect(result.providerOutcome).toMatchObject({
+      status: "failed",
+      referenceId: null,
+    });
+    expect(appendAuditEvent.mock.calls[0]![0]).toMatchObject({
+      providerOutcome: { status: "failed", referenceId: null },
+    });
+  });
+});
+
+describe("AL-2681 A2 fix round Z5: where the row reads sent, the gift reads sent before anything is returned", () => {
+  it("a refused original receipt whose row already reads sent, on a gift a half-finished write left failed: the gift reads sent with the row, the answer names no row, and the refusal is audited", async () => {
+    const state = freshState(false);
+    state.emailSendLogs = [sentRow(RECEIPT_KEY)];
+    state.stagedGift.receipt_status = "failed";
+    state.stagedGift.receipt_send_log_id = null;
+    state.suppressionTypes = ["bounce"];
+    const answer = await sendStagedGiftReceipt({
+      supabaseAdmin: stub(state),
+      tenantId: TENANT_ID,
+      stagedGiftId: "staged-1",
+    });
+    expect(answer).toEqual({ sendLogId: null, status: "suppressed" });
+    expect(state.stagedGift).toMatchObject({
+      receipt_status: "sent",
+      receipt_send_log_id: "send-log-1",
+    });
+    expect(auditMock).toHaveBeenCalledWith(
+      expect.objectContaining({ action: "email_send_suppressed" }),
+    );
+  });
+
+  it("the losing retry does not write failed over a gift that already reads sent with this row: the gift never reads failed", async () => {
+    const state = freshState(true);
+    await failedFirstSend(state, "key-z5-fail-last");
+    const history = giftReceiptHistory(state);
+    const gate = gateOnce(state, "staged_gifts", "failed");
+    sendEmailMock.mockResolvedValueOnce(providerDown);
+    const losing = correctWith(state, { key: "key-z5-fail-last" });
+    await gate.atGate;
+    const winning = await correctWith(state, { key: "key-z5-fail-last" });
+    gate.release();
+    const lost = await losing;
+    expect(winning.receiptOutcome).toMatchObject({ status: "emailed" });
+    expect(lost.receiptOutcome).toMatchObject({ status: "emailed" });
+    expect(history).toEqual(["sent"]);
+    expect(state.stagedGift.receipt_send_log_id).toBe(
+      state.emailSendLogs[0]!.id,
+    );
+  });
+});
