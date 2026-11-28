@@ -203,6 +203,27 @@ describe.skipIf(!READY)(
       );
     });
 
+    it("pins that the installed provider folds a dotted capital I spelling onto an ASCII login, and answers that spelling as an unknown address without asking the provider", async () => {
+      const login = `n4-ix-${nonce()}@example.test`;
+      await adminCreate(login);
+      const dotted = login.replace("ix", "\u0130x");
+      const direct = await fetch(`${API}/auth/v1/token?grant_type=password`, {
+        method: "POST",
+        headers: { apikey: ANON, "Content-Type": "application/json" },
+        body: JSON.stringify({ email: dotted, password: PASSWORD }),
+      });
+      expect(direct.status).toBe(200);
+      const unknown = await tryPassword(
+        `n4-nobody-${nonce()}@example.test`,
+        PASSWORD,
+      );
+      const { result, grants } = await countingPasswordGrants(() =>
+        tryPassword(dotted, PASSWORD),
+      );
+      expect(result).toEqual(unknown);
+      expect(grants).toBe(0);
+    });
+
     it("answers an unknown address, a wrong password, an unconfirmed address and a limited account alike", async () => {
       const known = `n4-known-${nonce()}@example.test`;
       const unconfirmed = `n4-unconfirmed-${nonce()}@example.test`;

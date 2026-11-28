@@ -247,6 +247,33 @@ describe("Core's sign-in route (AL-2671 N4 PR 1)", () => {
     expect(body).not.toContain("fetch failed");
   });
 
+  it("refuses an address with a letter outside ASCII exactly as an unknown one, before the limits and the provider", async () => {
+    const unknown = await answer(
+      await signIn({ email: "nobody@example.test", password: WRONG }),
+    );
+    fixture.take.mockClear();
+    provider.mockClear();
+    for (const email of [
+      "KNOWN@EXAMPLE.TEST".replace("K", "\u0130"),
+      `${"\u0130".repeat(300)}@example.test`,
+    ])
+      expect(
+        await answer(await signIn({ email, password: RIGHT })),
+        email,
+      ).toEqual(unknown);
+    expect(fixture.take).not.toHaveBeenCalled();
+    expect(provider).not.toHaveBeenCalled();
+  });
+
+  it("answers an over-long address 400, like any other malformed body", async () => {
+    const response = await signIn({
+      email: `${"a".repeat(320)}@example.test`,
+      password: RIGHT,
+    });
+    expect(response.status).toBe(400);
+    expect(fixture.take).not.toHaveBeenCalled();
+  });
+
   it("refuses a body without an email and a password, and a body that is not JSON", async () => {
     expect((await signIn({ email: USER.email })).status).toBe(400);
     expect((await signIn({ email: "", password: RIGHT })).status).toBe(400);
