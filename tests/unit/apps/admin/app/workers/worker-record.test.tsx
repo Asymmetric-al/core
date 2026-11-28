@@ -662,6 +662,23 @@ describe("AL-2678 r2b1: a worker's record in Mission Control", () => {
     expect(posts).toEqual([]);
   });
 
+  it("W6 (fix round of 2869): a reason made only of invisible characters (a zero-width space and a word joiner) is no reason: the submit marks Reason invalid with its text and sends nothing (red: it is sent and the database refuses it)", async () => {
+    show();
+    const dialog = await openDialog(/Confirm level for Worker Kestrel/);
+    fireEvent.change(within(dialog).getByLabelText("Reason"), {
+      target: { value: "​⁠" },
+    });
+    fireEvent.click(
+      within(dialog).getByRole("button", { name: "Confirm level" }),
+    );
+    const reason = within(dialog).getByLabelText("Reason");
+    await waitFor(() =>
+      expect(reason.getAttribute("aria-invalid")).toBe("true"),
+    );
+    expect(within(dialog).getByText("Give a reason.")).toBeTruthy();
+    expect(posts).toEqual([]);
+  });
+
   it("validates on submit: Restrict to a restricted level with no stored alias and an alias of invisible characters marks the alias invalid and focuses it; Lift with nothing chosen marks the level choice and focuses its first level; nothing is sent (WP5 rest 2b, issue 2835 item 1; red: the button is disabled)", async () => {
     current = worker({ securityLevel: "standard", publicAlias: null });
     show();

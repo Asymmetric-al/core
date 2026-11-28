@@ -1281,6 +1281,58 @@ describe("AL-2678 WP5 part 2-r2b1: the workers' routes (contract, error map, ali
     },
   );
 
+  it.each(COMMANDS)(
+    "W6 (fix round of 2869): %s refuses a reason made only of invisible characters with 400 REASON_REQUIRED before any call, as the database's normalization would (red: it calls the command)",
+    async (_name, handler, body) => {
+      h.auth.mockResolvedValue(makeAuth("admin"));
+      const refused = {
+        error: { code: "22023", message: "A reason is required" },
+      };
+      const rpc = stubSession({
+        worker_records: { data: [row()] },
+        restrict_worker_publication: refused,
+        lift_worker_restriction: refused,
+        confirm_worker_security_level: refused,
+        reveal_worker_identity: refused,
+      });
+      const response = await handler(
+        post(`/api/admin/workers/${WORKER}/x`, {
+          ...body,
+          reason: "​⁠",
+        }),
+        params(),
+      );
+      expect(response.status).toBe(400);
+      expect(await read(response)).toEqual({
+        error: "Give a reason.",
+        code: "REASON_REQUIRED",
+      });
+      expect(rpc).not.toHaveBeenCalled();
+    },
+  );
+
+  it("W6 (fix round of 2869): create refuses a reason made only of invisible characters with 400 REASON_REQUIRED and calls nothing (red: it calls create_worker)", async () => {
+    h.auth.mockResolvedValue(makeAuth("admin"));
+    const rpc = stubSession({
+      create_worker: {
+        error: { code: "22023", message: "A reason is required" },
+      },
+    });
+    const response = await POST_CREATE(
+      post("/api/admin/workers", {
+        displayName: "Worker Kestrel",
+        legalName: SECRET,
+        reason: "​",
+      }),
+    );
+    expect(response.status).toBe(400);
+    expect(await read(response)).toEqual({
+      error: "Give a reason.",
+      code: "REASON_REQUIRED",
+    });
+    expect(rpc).not.toHaveBeenCalled();
+  });
+
   it("an invite answer with an extra key, another organization or another Party is the outcome-unknown 500, since an invitation may have been issued, and returns no link (WP5 rest 2b, worker invitations; red: no invite route)", async () => {
     h.auth.mockResolvedValue(makeAuth("admin"));
     for (const answer of [
