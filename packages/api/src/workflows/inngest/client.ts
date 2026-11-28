@@ -1,3 +1,4 @@
+import { isProductionDeployment } from "@asym/env/target-env";
 import { Inngest } from "inngest";
 
 /**
@@ -7,8 +8,10 @@ import { Inngest } from "inngest";
  *
  * Runtime configuration comes from environment variables read by the SDK:
  * INNGEST_EVENT_KEY, INNGEST_SIGNING_KEY, INNGEST_SIGNING_KEY_FALLBACK,
- * INNGEST_DEV (local development only), and INNGEST_BASE_URL.
+ * INNGEST_DEV (local development only), and INNGEST_BASE_URL. A production
+ * deployment is always in cloud mode, whatever INNGEST_DEV says.
  */
 export const inngest = new Inngest({
   id: "asym-core-workflows",
+  ...(isProductionDeployment(process.env) ? { isDev: false } : {}),
 });

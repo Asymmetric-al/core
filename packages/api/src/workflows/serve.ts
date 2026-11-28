@@ -14,7 +14,12 @@ import {
 } from "./functions/stripe-event-processing";
 import { workflowSmoke } from "./functions/workflow-smoke";
 import { inngest } from "./inngest/client";
-import { carriesReleaseProof, jobServePath, jobSyncOrigin } from "./sync-proof";
+import {
+  carriesReleaseProof,
+  jobServePath,
+  jobSyncConfigured,
+  jobSyncOrigin,
+} from "./sync-proof";
 
 /**
  * Workflow function serving for the staff operations surface. The app route
@@ -34,6 +39,7 @@ const functions = [
 
 const servePath = jobServePath();
 const serveOrigin = jobSyncOrigin(process.env);
+const originRefused = jobSyncConfigured(process.env) && !serveOrigin;
 
 const signed = serve({
   client: inngest,
@@ -55,16 +61,20 @@ const released = serveOrigin
 
 export const { GET, POST } = signed;
 
+const unavailable = (code: string) =>
+  Response.json(
+    { code },
+    { status: 503, headers: { "Cache-Control": "no-store" } },
+  );
+
 export const PUT: RequestHandler = async (request, context) => {
+  if (originRefused) return unavailable("job_sync_origin_invalid");
   if (
+    request.headers.has("x-inngest-signature") ||
     !carriesReleaseProof(request, process.env.VERCEL_AUTOMATION_BYPASS_SECRET)
   )
     return signed.PUT(request, context);
-  if (!released || !serveOrigin)
-    return Response.json(
-      { code: "job_sync_origin_unset" },
-      { status: 503, headers: { "Cache-Control": "no-store" } },
-    );
+  if (!released || !serveOrigin) return unavailable("job_sync_origin_unset");
   return released.PUT(
     new NextRequest(new URL(servePath, serveOrigin), { method: "PUT" }),
     context,
