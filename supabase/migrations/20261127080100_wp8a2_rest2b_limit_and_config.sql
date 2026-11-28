@@ -4,7 +4,9 @@
 -- older than this pull request: the build before it calls the dropped
 -- public.checkout_giving_config(text, jsonb) behind that switch.
 --
--- 1. private.intake_rate_attempts: one row a bucket and client key. A
+-- 1. private.intake_rate_attempts: one row a bucket and gift, a gift being
+--    an organization and a client key (the same key sent to two
+--    organizations is two gifts, counted twice in the person's bucket). A
 --    bucket is the SHA-256 of 'guest:' || Site || ':' || address for a
 --    website gift, of 'account:' || organization || ':' || address for an
 --    account-area gift, and of 'person:' || user id for a signed-in gift; no
@@ -23,8 +25,11 @@
 --    minutes and, for a signed-in gift, the person bucket fewer than 6 unpaid
 --    and fewer than 15. Paid means the key's intake is completed. A key that
 --    already began an intake of the organization, or that every bucket of
---    this request already holds inside the window, is free; a key held by
---    the address bucket alone is counted in the person bucket like any other.
+--    this request already holds for this organization inside the window, is
+--    free; a key held by the address bucket alone is counted in the person
+--    bucket like any other. The person's bucket is one bucket in every
+--    organization, so its caps count the person's gifts everywhere. Each
+--    attempt trims expired rows only of the buckets it holds locks on.
 --    A refusal answers retry_after_seconds (1 to 600), when the oldest
 --    attempt that holds the bucket full leaves the window, and which bucket
 --    refused ('address' or 'person', the one that holds longer).
@@ -80,7 +85,7 @@ CREATE TABLE private.intake_rate_attempts (
   tenant_id UUID NOT NULL
     CONSTRAINT intake_rate_attempts_tenant_id_fkey REFERENCES public.tenants (id) ON DELETE RESTRICT,
   created_at TIMESTAMPTZ NOT NULL DEFAULT pg_catalog.now(),
-  CONSTRAINT intake_rate_attempts_pkey PRIMARY KEY (bucket_digest, key_digest)
+  CONSTRAINT intake_rate_attempts_pkey PRIMARY KEY (bucket_digest, tenant_id, key_digest)
 );
 
 CREATE INDEX intake_rate_attempts_created_idx ON private.intake_rate_attempts (created_at);
@@ -173,10 +178,11 @@ BEGIN
   v_since := pg_catalog.clock_timestamp() - INTERVAL '10 minutes';
 
   DELETE FROM private.intake_rate_attempts AS a
-   WHERE (a.bucket_digest, a.key_digest) IN (
-           SELECT o.bucket_digest, o.key_digest
+   WHERE (a.bucket_digest, a.tenant_id, a.key_digest) IN (
+           SELECT o.bucket_digest, o.tenant_id, o.key_digest
              FROM private.intake_rate_attempts AS o
             WHERE o.created_at < v_since
+              AND o.bucket_digest = ANY (v_buckets)
             LIMIT 200
               FOR UPDATE SKIP LOCKED
          );
@@ -194,6 +200,7 @@ BEGIN
                 SELECT 1
                   FROM private.intake_rate_attempts AS a
                  WHERE a.bucket_digest = b.digest
+                   AND a.tenant_id = v_tenant
                    AND a.key_digest = v_key
                    AND a.created_at >= v_since
               )
@@ -250,9 +257,8 @@ BEGIN
   INSERT INTO private.intake_rate_attempts (bucket_digest, key_digest, tenant_id)
   SELECT b.digest, v_key, v_tenant
     FROM pg_catalog.unnest(v_buckets) AS b(digest)
-  ON CONFLICT (bucket_digest, key_digest) DO UPDATE
-    SET created_at = EXCLUDED.created_at,
-        tenant_id = EXCLUDED.tenant_id;
+  ON CONFLICT (bucket_digest, tenant_id, key_digest) DO UPDATE
+    SET created_at = EXCLUDED.created_at;
 
   RETURN pg_catalog.jsonb_build_object('admitted', true, 'retry_after_seconds', NULL);
 END;
@@ -274,8 +280,8 @@ DECLARE
   v_removed INTEGER;
 BEGIN
   DELETE FROM private.intake_rate_attempts AS a
-   WHERE (a.bucket_digest, a.key_digest) IN (
-           SELECT o.bucket_digest, o.key_digest
+   WHERE (a.bucket_digest, a.tenant_id, a.key_digest) IN (
+           SELECT o.bucket_digest, o.tenant_id, o.key_digest
              FROM private.intake_rate_attempts AS o
             WHERE o.created_at < pg_catalog.clock_timestamp() - INTERVAL '10 minutes'
               FOR UPDATE SKIP LOCKED

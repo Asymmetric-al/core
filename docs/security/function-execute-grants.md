@@ -625,8 +625,10 @@ it names. `public.take_intake_attempt` is the limit of gift attempts: two
 buckets over a rolling ten minutes (the Site with the client address, or the
 organization with it for an account-area gift: fewer than 30 unpaid and 250 in
 all; for a signed-in gift also the session's user: fewer than 6 unpaid and 15
-in all), kept in `private.intake_rate_attempts`, which stores only SHA-256
-digests of the bucket and the client key, holds no grant for any API role, and
+in all; the person bucket counts the person's gifts in every organization),
+kept in `private.intake_rate_attempts`, one row for each bucket and gift (an
+organization and a client key), which stores only SHA-256 digests of the
+bucket and the client key, holds no grant for any API role, and
 restricts its organization's deletion. `public.purge_intake_attempts` removes
 every row older than the window that no running attempt holds; the money
 schedule calls it on each tick.
