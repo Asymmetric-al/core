@@ -67,16 +67,28 @@ function stubServer(
   } = {},
 ) {
   const sent: Sent[] = [];
+  const queue = { waiting: { ...WAITING } };
+  const decide = (url: string, body: unknown) => {
+    const { decision, version } = (body ?? {}) as {
+      decision?: string;
+      version?: number;
+    };
+    return url.includes(`/${queue.waiting.id}/review`) &&
+      decision !== "withdraw" &&
+      version !== queue.waiting.content_version
+      ? Response.json(
+          { error: "The update changed since it was read" },
+          { status: 409 },
+        )
+      : Response.json({ success: true });
+  };
   const fetcher = vi.fn(async (url: string, init?: RequestInit) => {
     const method = init?.method ?? "GET";
     if (method !== "GET") {
-      sent.push({
-        url,
-        method,
-        body: init?.body ? JSON.parse(String(init.body)) : null,
-      });
+      const body = init?.body ? JSON.parse(String(init.body)) : null;
+      sent.push({ url, method, body });
       if (url.includes("/review"))
-        return answers.review?.() ?? Response.json({ success: true });
+        return answers.review?.() ?? decide(url, body);
       return answers.policy?.() ?? Response.json({ success: true });
     }
     if (url.includes("comments"))
@@ -96,18 +108,18 @@ function stubServer(
       });
     if (url.includes("reviewState=submitted"))
       return Response.json({
-        posts: [WAITING],
+        posts: [queue.waiting],
         total: 1,
         stats: { total: 2, flagged: 0, hidden: 0, waiting: 1 },
       });
     return Response.json({
-      posts: [WAITING, LIVE, HELD],
+      posts: [queue.waiting, LIVE, HELD],
       total: 3,
       stats: { total: 3, flagged: 0, hidden: 0, waiting: 1 },
     });
   });
   vi.stubGlobal("fetch", fetcher);
-  return { fetcher, sent };
+  return { fetcher, sent, queue };
 }
 
 function mount() {
