@@ -823,6 +823,7 @@ export function useWorkerFeedPageView(): WorkerFeedPageViewModel {
         ),
       );
       toast.success("Update withdrawn");
+      await loadPosts("published");
     } finally {
       withdrawing.current.delete(postId);
     }
