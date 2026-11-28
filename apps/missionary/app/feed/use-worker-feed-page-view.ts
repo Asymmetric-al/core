@@ -401,6 +401,31 @@ export function useWorkerFeedPageView(): WorkerFeedPageViewModel {
     await loadPosts("draft");
   }, [loadPosts]);
 
+  const reloadRevision = useCallback(
+    async (postId: string, status: PostStatus) => {
+      const result = await fetchJsonResult<{ posts?: Post[] }>(
+        `/api/posts?status=${status}`,
+      );
+      if (!isCurrent() || !result.ok) return;
+      const row = (result.data.posts ?? []).find((item) => item.id === postId);
+      if (!row) return;
+      revisions.current.set(postId, row.updated_at ?? null);
+      const replace = (prev: Post[]) =>
+        prev.map((item) => (item.id === postId ? row : item));
+      setPosts(replace);
+      setDrafts(replace);
+    },
+    [isCurrent],
+  );
+
+  const revisionOf = useCallback(
+    (snapshot: ComposerDraft) =>
+      snapshot.editingPostId && revisions.current.has(snapshot.editingPostId)
+        ? (revisions.current.get(snapshot.editingPostId) ?? null)
+        : snapshot.expectedUpdatedAt,
+    [],
+  );
+
   const loadFollowerRequests = useCallback(async () => {
     const result = await fetchJsonResult<{ requests?: FollowerRequest[] }>(
       "/api/follower-requests?status=pending",
@@ -545,7 +570,7 @@ export function useWorkerFeedPageView(): WorkerFeedPageViewModel {
         ? await writeExistingPost(
             snapshot.editingPostId,
             updates,
-            snapshot.expectedUpdatedAt,
+            revisionOf(snapshot),
             save.canDispatch,
           )
         : await fetchJsonResult<{ post: Post }>("/api/posts", {
@@ -600,6 +625,8 @@ export function useWorkerFeedPageView(): WorkerFeedPageViewModel {
           toast.success("Draft saved");
         }
 
+        if (!confirmed)
+          await reloadRevision(post.id, published ? "published" : "draft");
         if (matched) resetComposer();
       } else {
         finishSave(save, false);
@@ -627,7 +654,9 @@ export function useWorkerFeedPageView(): WorkerFeedPageViewModel {
       canWrite,
       finishSave,
       prepareSave,
+      reloadRevision,
       resetComposer,
+      revisionOf,
       revokeRead,
       revokeWrite,
       postContent,
@@ -661,7 +690,7 @@ export function useWorkerFeedPageView(): WorkerFeedPageViewModel {
         autosave: true,
         media: snapshot.selectedMedia,
       },
-      snapshot.expectedUpdatedAt,
+      revisionOf(snapshot),
       save.canDispatch,
     );
     if (!save.isCurrent() || !result.ok) {
@@ -673,7 +702,7 @@ export function useWorkerFeedPageView(): WorkerFeedPageViewModel {
       }
       return;
     }
-    const { post } = answeredOrTyped(
+    const { post, confirmed } = answeredOrTyped(
       result.data.post,
       drafts.find((item) => item.id === result.data.post.id),
       {
@@ -695,10 +724,13 @@ export function useWorkerFeedPageView(): WorkerFeedPageViewModel {
     revisions.current.set(post.id, post.updated_at ?? null);
     setDrafts((prev) => placeSavedPost(prev, post, true));
     setLastSaved(new Date());
+    if (!confirmed) await reloadRevision(post.id, "draft");
   }, [
     canAutosave,
     finishSave,
     prepareSave,
+    reloadRevision,
+    revisionOf,
     revokeRead,
     revokeWrite,
     editingPostId,
