@@ -14,16 +14,22 @@ vi.mock("@asym/database/supabase/admin", () => ({
 
 import { signInAccountKey } from "../../../packages/api/src/auth/sign-in-answers";
 import {
-  recordSignInFailure,
+  clearSignInAccount,
+  releaseSignInAttempt,
   SignInLimitsUnavailableError,
   takeSignInAttempt,
 } from "../../../packages/api/src/identity/sign-in-limits";
 
 function databaseRpcRefusingBlankKeys(answer: boolean) {
-  return async (name: string, args: Record<string, string>) => {
-    const account = args.p_account?.trim() ?? "";
-    const address = args.p_address?.trim() ?? "";
-    if (!account || account.length > 320 || !address || address.length > 100)
+  return async (name: string, args: Record<string, unknown>) => {
+    const account = String(args.p_account ?? "").trim();
+    const address = String(args.p_address ?? "").trim();
+    const needsAddress = name !== "clear_sign_in_account";
+    if (
+      !account ||
+      account.length > 320 ||
+      (needsAddress && (!address || address.length > 100))
+    )
       return {
         data: null,
         error: { code: "22023", message: "sign_in_account_required" },
@@ -73,15 +79,28 @@ describe("Core's sign-in limits adapter (AL-2671 N4 PR 1)", () => {
     ).resolves.toBe(false);
   });
 
-  it("records one refused password against the account and the client address", async () => {
+  it("gives a reservation back, clearing the account when the password was accepted", async () => {
     admin.rpc.mockImplementation(databaseRpcRefusingBlankKeys(true));
-    await recordSignInFailure({
-      account: "known@example.test",
-      address: "198.51.100.7",
-    });
-    expect(admin.rpc).toHaveBeenCalledWith("record_sign_in_failure", {
+    const key = { account: "known@example.test", address: "198.51.100.7" };
+    await releaseSignInAttempt(key, { cleared: true });
+    expect(admin.rpc).toHaveBeenLastCalledWith("release_sign_in_attempt", {
       p_account: "known@example.test",
       p_address: "198.51.100.7",
+      p_cleared: true,
+    });
+    await releaseSignInAttempt(key, { cleared: false });
+    expect(admin.rpc).toHaveBeenLastCalledWith("release_sign_in_attempt", {
+      p_account: "known@example.test",
+      p_address: "198.51.100.7",
+      p_cleared: false,
+    });
+  });
+
+  it("clears an account after a recovery", async () => {
+    admin.rpc.mockImplementation(databaseRpcRefusingBlankKeys(true));
+    await clearSignInAccount("known@example.test");
+    expect(admin.rpc).toHaveBeenLastCalledWith("clear_sign_in_account", {
+      p_account: "known@example.test",
     });
   });
 
@@ -91,7 +110,10 @@ describe("Core's sign-in limits adapter (AL-2671 N4 PR 1)", () => {
       takeSignInAttempt({ account: " ", address: "198.51.100.7" }),
     ).rejects.toBeInstanceOf(SignInLimitsUnavailableError);
     await expect(
-      recordSignInFailure({ account: "known@example.test", address: "" }),
+      releaseSignInAttempt(
+        { account: "known@example.test", address: "" },
+        { cleared: true },
+      ),
     ).rejects.toBeInstanceOf(SignInLimitsUnavailableError);
 
     admin.rpc.mockResolvedValue({ data: null, error: null });

@@ -3,7 +3,8 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 const fixture = vi.hoisted(() => ({
   cookies: new Map<string, string>(),
   take: vi.fn(),
-  record: vi.fn(),
+  release: vi.fn(),
+  clear: vi.fn(),
 }));
 
 vi.mock("@asym/database/supabase/config", () => ({
@@ -30,7 +31,8 @@ vi.mock(
     return {
       ...actual,
       takeSignInAttempt: fixture.take,
-      recordSignInFailure: fixture.record,
+      releaseSignInAttempt: fixture.release,
+      clearSignInAccount: fixture.clear,
     };
   },
 );
@@ -172,7 +174,8 @@ const verifications = () =>
 beforeEach(() => {
   fixture.cookies.clear();
   fixture.take.mockReset().mockResolvedValue(true);
-  fixture.record.mockReset().mockResolvedValue(undefined);
+  fixture.release.mockReset().mockResolvedValue(undefined);
+  fixture.clear.mockReset().mockResolvedValue(undefined);
   provider = fakeProvider();
   vi.stubGlobal("fetch", provider.fetch);
   logged.length = 0;
@@ -215,10 +218,7 @@ describe("Core's password route (AL-2671 N4 PR 1)", () => {
       account: USER.email,
       address: "198.51.100.9",
     });
-    expect(fixture.record).toHaveBeenCalledWith({
-      account: USER.email,
-      address: "198.51.100.9",
-    });
+    expect(fixture.release).not.toHaveBeenCalled();
   });
 
   it("with the right current password, ends the check's own session before changing the password on the person's session", async () => {
@@ -246,7 +246,10 @@ describe("Core's password route (AL-2671 N4 PR 1)", () => {
       `update Bearer ${personToken}`,
     ]);
     expect(JSON.parse(updates()[0]!.body)).toMatchObject({ password: NEXT });
-    expect(fixture.record).not.toHaveBeenCalled();
+    expect(fixture.release).toHaveBeenCalledWith(
+      { account: USER.email, address: "198.51.100.9" },
+      { cleared: true },
+    );
   });
 
   it("a limited check never reaches the provider and changes nothing", async () => {
@@ -283,6 +286,7 @@ describe("Core's password route (AL-2671 N4 PR 1)", () => {
     withSession("recovery", 60);
     const recovery = await change({ newPassword: NEXT });
     expect(recovery.status).toBe(200);
+    expect(fixture.clear).toHaveBeenCalledWith(USER.email);
     expect(updates()).toHaveLength(1);
     expect(verifications()).toEqual([]);
   });

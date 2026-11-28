@@ -4,7 +4,7 @@ const fixture = vi.hoisted(() => ({
   cookies: new Map<string, string>(),
   writes: [] as Array<{ name: string; value: string }>,
   take: vi.fn(),
-  record: vi.fn(),
+  release: vi.fn(),
 }));
 
 vi.mock("@asym/database/supabase/config", () => ({
@@ -32,7 +32,7 @@ vi.mock(
     return {
       ...actual,
       takeSignInAttempt: fixture.take,
-      recordSignInFailure: fixture.record,
+      releaseSignInAttempt: fixture.release,
     };
   },
 );
@@ -122,7 +122,7 @@ beforeEach(() => {
   fixture.cookies.clear();
   fixture.writes.length = 0;
   fixture.take.mockReset().mockResolvedValue(true);
-  fixture.record.mockReset().mockResolvedValue(undefined);
+  fixture.release.mockReset().mockResolvedValue(undefined);
   provider = fakeInstalledPasswordGrant();
   vi.stubGlobal("fetch", provider);
   logged.length = 0;
@@ -172,24 +172,42 @@ describe("Core's sign-in route (AL-2671 N4 PR 1)", () => {
       account: "known@example.test",
       address: "198.51.100.7",
     });
-    expect(fixture.record).toHaveBeenCalledWith({
-      account: "known@example.test",
-      address: "198.51.100.7",
-    });
+    expect(fixture.release).not.toHaveBeenCalled();
   });
 
-  it("records a refused password once, and an unconfirmed address as refused; a limited attempt never reaches the provider and records nothing", async () => {
+  it("a refused password keeps its reservation, an unconfirmed address too; a limited attempt never reaches the provider and gives nothing back", async () => {
     await signIn({ email: USER.email, password: WRONG });
-    expect(fixture.record).toHaveBeenCalledTimes(1);
     await signIn({ email: "unconfirmed@example.test", password: RIGHT });
-    expect(fixture.record).toHaveBeenCalledTimes(2);
+    expect(fixture.release).not.toHaveBeenCalled();
 
     provider.mockClear();
-    fixture.record.mockClear();
     fixture.take.mockResolvedValueOnce(false);
     await signIn({ email: USER.email, password: RIGHT });
     expect(provider).not.toHaveBeenCalled();
-    expect(fixture.record).not.toHaveBeenCalled();
+    expect(fixture.release).not.toHaveBeenCalled();
+  });
+
+  it("gives back a reservation the provider answered for itself: a success clears the account, an unavailable provider does not", async () => {
+    await signIn({ email: USER.email, password: RIGHT });
+    expect(fixture.release).toHaveBeenLastCalledWith(
+      { account: USER.email, address: "198.51.100.7" },
+      { cleared: true },
+    );
+    provider = fakeInstalledPasswordGrant({ down: true });
+    vi.stubGlobal("fetch", provider);
+    await signIn({ email: USER.email, password: RIGHT });
+    expect(fixture.release).toHaveBeenLastCalledWith(
+      { account: USER.email, address: "198.51.100.7" },
+      { cleared: false },
+    );
+    expect(fixture.release).toHaveBeenCalledTimes(2);
+  });
+
+  it("logs a reservation it could not give back with a countable code, and keeps its answer", async () => {
+    fixture.release.mockRejectedValueOnce(new SignInLimitsUnavailableError());
+    const response = await signIn({ email: USER.email, password: RIGHT });
+    expect(response.status).toBe(200);
+    expect(JSON.stringify(logged)).toContain("sign_in_release_failed");
   });
 
   it("signs in with the right password: the server sets the session cookie, and the body carries no token", async () => {
@@ -206,7 +224,6 @@ describe("Core's sign-in route (AL-2671 N4 PR 1)", () => {
         name.startsWith("sb-sign-in-fixture-auth-token"),
       ),
     ).toBe(true);
-    expect(fixture.record).not.toHaveBeenCalled();
   });
 
   it("is unavailable, never a pass, without a client address or without its limits; the provider is not called", async () => {
@@ -221,14 +238,13 @@ describe("Core's sign-in route (AL-2671 N4 PR 1)", () => {
     expect(fixture.writes).toEqual([]);
   });
 
-  it("is unavailable when the provider is, and records nothing", async () => {
+  it("is unavailable when the provider is", async () => {
     provider = fakeInstalledPasswordGrant({ down: true });
     vi.stubGlobal("fetch", provider);
     const response = await signIn({ email: USER.email, password: RIGHT });
     const body = await response.text();
     expect(response.status).toBe(503);
     expect(body).not.toContain("fetch failed");
-    expect(fixture.record).not.toHaveBeenCalled();
   });
 
   it("refuses a body without an email and a password, and a body that is not JSON", async () => {
@@ -244,8 +260,8 @@ describe("Core's sign-in route (AL-2671 N4 PR 1)", () => {
     await signIn({ email: USER.email, password: RIGHT });
     fixture.take.mockRejectedValueOnce(new SignInLimitsUnavailableError());
     await signIn({ email: USER.email, password: RIGHT });
-    fixture.record.mockRejectedValueOnce(new SignInLimitsUnavailableError());
-    await signIn({ email: USER.email, password: WRONG });
+    fixture.release.mockRejectedValueOnce(new SignInLimitsUnavailableError());
+    await signIn({ email: USER.email, password: RIGHT });
     provider = fakeInstalledPasswordGrant({ down: true });
     vi.stubGlobal("fetch", provider);
     await signIn({ email: USER.email, password: RIGHT });
