@@ -13,5 +13,10 @@ import { Inngest } from "inngest";
  */
 export const inngest = new Inngest({
   id: "asym-core-workflows",
-  ...(isProductionDeployment(process.env) ? { isDev: false } : {}),
+  ...(isProductionDeployment({
+    VERCEL_ENV: process.env.VERCEL_ENV,
+    VERCEL_TARGET_ENV: process.env.VERCEL_TARGET_ENV,
+  })
+    ? { isDev: false }
+    : {}),
 });
