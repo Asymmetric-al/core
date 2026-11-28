@@ -959,6 +959,51 @@ describe("withdrawing one's own update (AL-2680, WP7 pull request 1)", () => {
     expect(result.current.posts[0]?.review_state).toBe("withdrawn");
   });
 
+  it("starts a newer read of the published list on a withdrawal, so a Retry still in flight cannot show the update published again (WP7 1b, item 13)", async () => {
+    const stored = { ...published };
+    const retry = Promise.withResolvers<Response>();
+    let reads = 0;
+    fetchMock.mockImplementation(async (input, init) => {
+      const url = String(input);
+      if (url === "/api/posts" && init?.method === "POST")
+        return jsonResponse(201, { post: { ...stored } });
+      if (url === "/api/posts/post-1/withdraw") {
+        stored.review_state = "withdrawn";
+        return jsonResponse(200, { success: true });
+      }
+      if (url.startsWith("/api/posts?status=published")) {
+        reads += 1;
+        if (reads === 1) return jsonResponse(500, { error: "first failure" });
+        if (reads === 2) return retry.promise;
+        return jsonResponse(200, { posts: [{ ...stored }] });
+      }
+      if (url.startsWith("/api/posts")) return jsonResponse(200, { posts: [] });
+      if (url.startsWith("/api/follower-requests"))
+        return jsonResponse(200, { requests: [] });
+      throw new Error(`unexpected fetch ${url}`);
+    });
+    const { result } = renderHook(() => useWorkerFeedPageView());
+    await waitFor(() => expect(result.current.feedError).not.toBeNull());
+    let inFlight: Promise<void> = Promise.resolve();
+    act(() => {
+      inFlight = result.current.reloadPosts();
+    });
+    act(() => result.current.setPostContent("<p>We opened.</p>"));
+    await act(() => result.current.handlePost("published"));
+    expect(result.current.posts.map((post) => post.id)).toEqual(["post-1"]);
+    await act(async () => {
+      await result.current.withdrawPost("post-1");
+    });
+    await act(async () => {
+      retry.resolve(jsonResponse(200, { posts: [{ ...published }] }));
+      await inFlight;
+    });
+    await waitFor(() =>
+      expect(result.current.posts[0]?.review_state).toBe("withdrawn"),
+    );
+    expect(result.current.posts).toHaveLength(1);
+  });
+
   it("keeps the update as it was and says so when the withdrawal fails", async () => {
     feed(() => jsonResponse(500, { error: "unavailable" }));
     const { result } = renderHook(() => useWorkerFeedPageView());
