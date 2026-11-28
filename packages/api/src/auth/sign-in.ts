@@ -35,6 +35,8 @@ const unavailable = () =>
 
 const refused = () => noStoreJson(SIGN_IN_REFUSED, 401);
 
+const ASCII_ADDRESS = /^[!-~]+$/;
+
 async function readCredentials(
   request: Request,
 ): Promise<{ email: string; password: string } | ApiHttpError> {
@@ -72,6 +74,8 @@ export async function POST(request: Request) {
       { ok: false, code: "SIGN_IN_INVALID", error: credentials.message },
       credentials.status,
     );
+
+  if (!ASCII_ADDRESS.test(credentials.email)) return refused();
 
   const address = signInClientAddress(request);
   if (!address) return unavailable();
