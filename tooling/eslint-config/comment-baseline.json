@@ -378,7 +378,6 @@
   "apps/donor/app/(public)/(hero)/ways-to-give/ways-to-give-client.tsx": 2,
   "apps/donor/app/(public)/(hero)/workers/workers-client.tsx": 13,
   "apps/donor/app/(public)/(solid)/[...cmsSlug]/loading.tsx": 1,
-  "apps/donor/app/(public)/(solid)/checkout/loading.tsx": 2,
   "apps/donor/app/(public)/(solid)/layout.tsx": 2,
   "apps/donor/app/(public)/(solid)/sign/[token]/page-client.tsx": 6,
   "apps/donor/app/(public)/(solid)/sign/[token]/page.tsx": 2,
