@@ -996,17 +996,21 @@ export function InviteDialog({ worker }: { worker: Worker }) {
       }}
     >
       {created ? (
-        <Field>
-          <FieldLabel htmlFor={`${id}-link`}>
-            {invitationAddressLabel("missionary")}
-          </FieldLabel>
-          <Input
-            id={`${id}-link`}
-            value={address}
-            readOnly
-            onFocus={(event) => event.currentTarget.select()}
-          />
-        </Field>
+        <div data-sentry-block="">
+          <Field>
+            <FieldLabel htmlFor={`${id}-link`}>
+              {invitationAddressLabel("missionary")}
+            </FieldLabel>
+            <Input
+              id={`${id}-link`}
+              value={address}
+              readOnly
+              autoComplete="off"
+              data-sentry-mask="true"
+              onFocus={(event) => event.currentTarget.select()}
+            />
+          </Field>
+        </div>
       ) : (
         <>
           <TextField
