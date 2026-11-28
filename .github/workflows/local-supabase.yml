@@ -140,6 +140,7 @@ on:
       # The round trips themselves.
       - playwright.auth-mail.config.ts
       - tests/e2e/auth-password-recovery.spec.ts
+      - tests/e2e/auth-sign-in-through-core.spec.ts
       - tests/e2e/auth-signup-confirmation.spec.ts
       - tests/e2e/auth-two-organizations.spec.ts
       - tests/e2e/helpers/auth-mail.ts
