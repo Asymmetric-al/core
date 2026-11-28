@@ -100,6 +100,7 @@ on:
       # The worker's record in Mission Control: its routes on real tokens, the
       # screens over them and their journey (AL-2678, WP5 part 2-r2b1).
       - tests/unit/acceptance/issue-2678/worker-record.postgrest.acceptance.test.ts
+      - tests/unit/acceptance/issue-2678/worker-record.postgrest-fixture.ts
       - packages/api/src/admin/workers/**
       # An update under review through the routes on real tokens (AL-2680,
       # WP7 pull request 1, fix round T7).

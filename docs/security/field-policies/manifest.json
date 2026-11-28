@@ -3602,6 +3602,16 @@
         "missionary": "---",
         "public": "---",
         "export": "---"
+      },
+      "party_id": {
+        "type": "uuid",
+        "nullable": true,
+        "category": "internal",
+        "mission_control": "v--",
+        "donor": "---",
+        "missionary": "---",
+        "public": "---",
+        "export": "---"
       }
     },
     "sites": {

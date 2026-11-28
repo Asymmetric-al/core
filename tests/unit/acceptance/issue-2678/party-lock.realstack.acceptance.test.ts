@@ -173,14 +173,19 @@ async function inWorld(run: (w: World) => Promise<void>) {
   }
 }
 
-async function session(user?: string, tenant?: string) {
+async function session(
+  user?: string,
+  tenant?: string,
+  isolation:
+    "read committed" | "repeatable read" | "serializable" = "read committed",
+) {
   const c = new pg.Client({ connectionString: ADMIN_URL });
   await c.connect();
   try {
     const pid = await backendPid(c);
     const open = Object.assign(c, { pid });
     opened.add(open);
-    await c.query("begin");
+    await c.query(`begin isolation level ${isolation}`);
     await c.query("set local lock_timeout = '20s'");
     if (user && tenant)
       await c.query(
@@ -657,6 +662,64 @@ describe.skipIf(!ADMIN_URL)(
             grantees: "tenant_guard",
             readsAuth: false,
           })),
+        );
+      }));
+
+    for (const level of ["repeatable read", "serializable"] as const)
+      it(`(issue 2835, 28 November, item 1) the claim's redemption refuses ${level} with 25001 before it reads: no link, no membership, no refusal audited and the claim still pending (red: it links under a snapshot taken before its lock)`, () =>
+        inWorld(async (w) => {
+          const { user, mail } = await w.login();
+          const claimed = await w.party("Claimable");
+          const donor = await w.donor(claimed, { email: mail });
+          const t = await w.claim(user, donor, mail);
+          const claim = await session(user, w.tenant, level);
+          let answer: unknown;
+          try {
+            answer = await redeem(claim, w.tenant, t).then(
+              (r) => r,
+              (error: { code?: string }) => error.code,
+            );
+            await claim.query("commit").catch(() => undefined);
+          } finally {
+            await finish(claim);
+          }
+          expect(answer).toBe("25001");
+          const after = await state(w, user);
+          expect(after.links).toEqual([]);
+          expect(after.refusals).toEqual([]);
+          expect(
+            (
+              await w.admin.query(
+                "select status, token_redeemed_at from public.account_claim_requests where tenant_id = $1",
+                [w.tenant],
+              )
+            ).rows,
+          ).toEqual([{ status: "pending", token_redeemed_at: null }]);
+          expect(
+            (
+              await w.admin.query(
+                "select count(*)::int n from authz.memberships where tenant_id = $1 and user_id = $2",
+                [w.tenant, user],
+              )
+            ).rows[0].n,
+          ).toBe(0);
+        }));
+
+    it("(issue 2835, 28 November, items 1 and 4) the claim's catalog comment gives its true order: READ COMMITTED only, the organization's row share-locked first, then the donor writer's lock before any other row lock, and when a refusal offers a pair to staff (red: the writer's lock before every row lock)", () =>
+      inWorld(async (w) => {
+        const comment = (
+          await w.admin.query(
+            "select obj_description('tenant_guard.redeem_account_claim(uuid,text)'::regprocedure, 'pg_proc') c",
+          )
+        ).rows[0].c as string;
+        expect(comment).toContain(
+          "It runs only at READ COMMITTED (25001 otherwise, before any read).",
+        );
+        expect(comment).toContain(
+          "It share-locks the organization's row first, then takes the donor writer's lock (donor_party_writer, organization:caller) before any other row lock",
+        );
+        expect(comment).toContain(
+          "offering that pair to staff only when that Party holds exactly one donor and no open candidate pairs the two in either direction",
         );
       }));
   },
