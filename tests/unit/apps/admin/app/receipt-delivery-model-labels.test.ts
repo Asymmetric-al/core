@@ -14,6 +14,10 @@ describe("receipt delivery labels", () => {
     expect(receiptOutcomeStatusLabel("blocked")).toBe("Blocked");
     expect(receiptOutcomeStatusLabel("not_required")).toBe("Not required");
     expect(receiptOutcomeStatusLabel("failed")).toBe("Failed");
+    expect(receiptOutcomeStatusLabel("bounced")).toBe("Not delivered");
+    expect(receiptOutcomeStatusLabel("unrecognized")).toBe(
+      "Delivery state not recognized",
+    );
   });
 
   it("still reads an unknown stored outcome as words, never snake_case", () => {
