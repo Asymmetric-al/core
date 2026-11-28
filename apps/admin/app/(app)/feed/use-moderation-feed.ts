@@ -111,25 +111,25 @@ export function useModerationFeed() {
   return { posts, review, comments, policies };
 }
 
+const UNCONFIRMED =
+  "Couldn’t confirm whether that went through. The list has been refreshed: check the update before you try again.";
+
 async function sendJson(
   url: string,
   method: "POST" | "PUT",
   body: unknown,
-): Promise<{ reached: boolean; error: string | null }> {
+): Promise<string | null> {
   const response = await ownApiFetch(url, {
     method,
     credentials: "same-origin",
     headers: { accept: "application/json", "content-type": "application/json" },
     body: JSON.stringify(body),
   }).catch(() => null);
-  if (response?.ok) return { reached: true, error: null };
+  if (response?.ok) return null;
   const answer = (await response?.json().catch(() => null)) as {
-    error?: string;
+    error?: unknown;
   } | null;
-  return {
-    reached: response !== null,
-    error: answer?.error ?? "Something went wrong. Nothing was changed.",
-  };
+  return typeof answer?.error === "string" ? answer.error : UNCONFIRMED;
 }
 
 export function useModerationActions() {
@@ -142,7 +142,7 @@ export function useModerationActions() {
       decision: "approve" | "reject" | "withdraw",
       reason?: string,
     ) => {
-      const answer = await sendJson(
+      const error = await sendJson(
         `/api/admin/posts/${encodeURIComponent(post.id)}/review`,
         "POST",
         decision === "withdraw"
@@ -153,8 +153,8 @@ export function useModerationActions() {
               ...(reason === undefined ? {} : { reason }),
             },
       );
-      if (answer.reached) await refresh();
-      return answer.error;
+      await refresh();
+      return error;
     },
     setPolicy: async (policy: {
       ministryAssignmentId: string;
@@ -162,13 +162,13 @@ export function useModerationActions() {
       mode: PublicationMode;
       reason: string;
     }) => {
-      const answer = await sendJson(
+      const error = await sendJson(
         "/api/admin/publication-policies",
         "PUT",
         policy,
       );
-      if (answer.reached) await refresh();
-      return answer.error;
+      await refresh();
+      return error;
     },
   };
 }
