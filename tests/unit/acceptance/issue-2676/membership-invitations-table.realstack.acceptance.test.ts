@@ -372,7 +372,7 @@ describe.skipIf(!ADMIN_URL)(
         expect(suspended.code).toBe("42501");
       }));
 
-    it("seeds five field_policies rows per column with security secrets hidden on every surface", () =>
+    it("seeds five field_policies rows per column with security secrets hidden on every surface (D-18, AL-2678 WP5 rest part B: the column party_id adds its five rows)", () =>
       tx(async () => {
         const policies = await db.query<{
           field_key: string;
@@ -388,7 +388,7 @@ describe.skipIf(!ADMIN_URL)(
               and tenant_id is null
             order by field_key, surface`,
         );
-        expect(policies.rows).toHaveLength(22 * 5);
+        expect(policies.rows).toHaveLength(23 * 5);
         for (const secretCol of [
           "selector",
           "verifier_digest",

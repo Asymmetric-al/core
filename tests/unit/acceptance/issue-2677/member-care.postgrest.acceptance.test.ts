@@ -624,7 +624,7 @@ describe.skipIf(!url && process.env.MEMBER_CARE_IT_REQUIRED !== "1")(
       }
     });
 
-    it("serves all 9 Member Care handlers on caller token with zero service-key use, zero cache directive, exact item-6 contracts, and zero audit or log leaks", async () => {
+    it("serves all 9 Member Care handlers on caller token with zero service-key use, zero cache directive, exact item-6 contracts, and zero audit or log leaks (D-18, AL-2678 WP5 rest part B: a worker with no profile is named by its Party's display name, no longer Name not set)", async () => {
       const readsSource = readFileSync(
         "packages/api/src/reads/member-care.ts",
         "utf8",
@@ -658,8 +658,8 @@ describe.skipIf(!url && process.env.MEMBER_CARE_IT_REQUIRED !== "1")(
         idsInDash.indexOf(mANoProfile),
       );
       expect(dash.personnel.find((p) => p.id === mANoProfile)).toMatchObject({
-        nameMissing: true,
-        name: "Name not set",
+        nameMissing: false,
+        name: "Care Unlinked",
       });
       expect(dash.lastContacts[mA1]).toMatchObject({
         "Check-in": expect.stringContaining("2026-11-15"),

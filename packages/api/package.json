@@ -59,6 +59,7 @@
     "./admin/members/revoke-invitation": "./src/admin/members/revoke-invitation.ts",
     "./admin/members/role": "./src/admin/members/role.ts",
     "./admin/workers/commands": "./src/admin/workers/commands.ts",
+    "./admin/workers/envelopes": "./src/admin/workers/envelopes.ts",
     "./admin/workers/read": "./src/admin/workers/read.ts",
     "./admin/workers/safety-text": "./src/admin/workers/safety-text.ts",
     "./admin/members/revoke": "./src/admin/members/revoke.ts",

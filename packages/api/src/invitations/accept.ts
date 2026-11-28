@@ -28,6 +28,42 @@ type AcceptInvitationRpcPayload = {
   is_tenant_admin: boolean;
   revived: boolean;
   accepted_at: string;
+  party_id?: string;
+  assignment_id?: string;
+};
+
+const BUSY_TEXT = "This organization is busy right now. Try again.";
+
+const KNOWN_REFUSALS: Record<
+  string,
+  { status: number; code: string; error: string }
+> = {
+  "55006": {
+    status: 409,
+    code: "WORKER_HAS_LOGIN",
+    error: "This worker already has a login. Ask your organization for help.",
+  },
+  "21000": {
+    status: 409,
+    code: "LOGIN_TIED_ELSEWHERE",
+    error:
+      "This account already belongs to another person in this organization. Ask your organization for help.",
+  },
+  "55P03": {
+    status: 503,
+    code: "RETRY",
+    error: BUSY_TEXT,
+  },
+  "40001": {
+    status: 503,
+    code: "RETRY",
+    error: BUSY_TEXT,
+  },
+  "40P01": {
+    status: 503,
+    code: "RETRY",
+    error: BUSY_TEXT,
+  },
 };
 
 type AcceptRpcResult = {
@@ -161,6 +197,13 @@ export async function POST(request: NextRequest) {
           code: "ALREADY_MEMBER",
         },
         { status: 409, headers: NO_STORE_HEADERS },
+      );
+    }
+    const worker = pgCode ? KNOWN_REFUSALS[pgCode] : undefined;
+    if (worker) {
+      return NextResponse.json(
+        { error: worker.error, code: worker.code },
+        { status: worker.status, headers: NO_STORE_HEADERS },
       );
     }
     return NextResponse.json(

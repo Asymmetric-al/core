@@ -409,13 +409,13 @@ describe("AL-2678 r2b1: a worker's record in Mission Control", () => {
     fireEvent.change(within(dialog).getByLabelText("Public alias"), {
       target: { value: "\u200b\u2060 " },
     });
+    fireEvent.click(within(dialog).getByRole("button", { name: "Restrict" }));
     expect(
-      (
-        within(dialog).getByRole("button", {
-          name: "Restrict",
-        }) as HTMLButtonElement
-      ).disabled,
-    ).toBe(true);
+      await within(dialog).findByText(
+        "A restricted or high-risk worker needs a public alias.",
+      ),
+    ).toBeTruthy();
+    expect(posts).toEqual([]);
     fireEvent.click(within(dialog).getByRole("button", { name: "Cancel" }));
     await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull());
     current = worker({ securityLevel: "standard", publicAlias: "Kite" });
@@ -594,8 +594,11 @@ describe("AL-2678 r2b1: a worker's record in Mission Control", () => {
     const submit = within(dialog).getByRole("button", {
       name: "Lift restriction",
     }) as HTMLButtonElement;
-    expect(submit.disabled).toBe(true);
+    expect(submit.disabled).toBe(false);
     fireEvent.submit(submit.closest("form")!);
+    expect(
+      await within(dialog).findByText("Choose what to change."),
+    ).toBeTruthy();
     expect(posts).toEqual([]);
     expect(
       (within(dialog).getByLabelText("Reason") as HTMLTextAreaElement).value,
@@ -634,6 +637,326 @@ describe("AL-2678 r2b1: a worker's record in Mission Control", () => {
     await waitFor(() => expect(reads()).toBeGreaterThan(before));
     expect(document.body.textContent).not.toContain(
       "Something went wrong. Nothing was changed.",
+    );
+  });
+
+  it("validates on submit: Confirm, Restrict, Lift and Reveal keep their button enabled, and a submit without a reason marks Reason invalid with its text, moves focus to it and sends nothing (WP5 rest 2b, issue 2835 item 1; red: the button is disabled and nothing says why)", async () => {
+    show();
+    for (const [trigger, submitName] of [
+      [/Confirm level for Worker Kestrel/, "Confirm level"],
+      [/Restrict Worker Kestrel/, "Restrict"],
+      [/Lift restriction for Worker Kestrel/, "Lift restriction"],
+      [/Show legal name for Worker Kestrel/, "Show legal name"],
+    ] as const) {
+      const dialog = await openDialog(trigger);
+      if (submitName === "Lift restriction")
+        fireEvent.click(
+          within(dialog).getByRole("radio", { name: "Standard" }),
+        );
+      const submit = within(dialog).getByRole("button", {
+        name: submitName,
+      }) as HTMLButtonElement;
+      expect(submit.disabled).toBe(false);
+      fireEvent.click(submit);
+      const reason = within(dialog).getByLabelText("Reason");
+      await waitFor(() =>
+        expect(reason.getAttribute("aria-invalid")).toBe("true"),
+      );
+      expect(document.activeElement).toBe(reason);
+      expect(within(dialog).getByText("Give a reason.")).toBeTruthy();
+      fireEvent.click(within(dialog).getByRole("button", { name: "Cancel" }));
+      await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull());
+    }
+    expect(posts).toEqual([]);
+  });
+
+  it("W6 (fix round of 2869): a reason made only of invisible characters (a zero-width space and a word joiner) is no reason: the submit marks Reason invalid with its text and sends nothing (red: it is sent and the database refuses it)", async () => {
+    show();
+    const dialog = await openDialog(/Confirm level for Worker Kestrel/);
+    fireEvent.change(within(dialog).getByLabelText("Reason"), {
+      target: { value: "​⁠" },
+    });
+    fireEvent.click(
+      within(dialog).getByRole("button", { name: "Confirm level" }),
+    );
+    const reason = within(dialog).getByLabelText("Reason");
+    await waitFor(() =>
+      expect(reason.getAttribute("aria-invalid")).toBe("true"),
+    );
+    expect(within(dialog).getByText("Give a reason.")).toBeTruthy();
+    expect(posts).toEqual([]);
+  });
+
+  it("validates on submit: Restrict to a restricted level with no stored alias and an alias of invisible characters marks the alias invalid and focuses it; Lift with nothing chosen marks the level choice and focuses its first level; nothing is sent (WP5 rest 2b, issue 2835 item 1; red: the button is disabled)", async () => {
+    current = worker({ securityLevel: "standard", publicAlias: null });
+    show();
+    let dialog = await openDialog(/Restrict Worker Kestrel/);
+    fillReason(dialog);
+    fireEvent.click(within(dialog).getByRole("radio", { name: "Restricted" }));
+    fireEvent.change(within(dialog).getByLabelText("Public alias"), {
+      target: { value: "​ " },
+    });
+    fireEvent.click(within(dialog).getByRole("button", { name: "Restrict" }));
+    const alias = within(dialog).getByLabelText("Public alias");
+    await waitFor(() =>
+      expect(alias.getAttribute("aria-invalid")).toBe("true"),
+    );
+    expect(document.activeElement).toBe(alias);
+    expect(
+      within(dialog).getByText(
+        "A restricted or high-risk worker needs a public alias.",
+      ),
+    ).toBeTruthy();
+    fireEvent.click(within(dialog).getByRole("button", { name: "Cancel" }));
+    await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull());
+
+    current = worker({
+      securityLevel: "restricted",
+      securityLevelSource: "manual",
+      publicAlias: "Birch",
+    });
+    await act(async () => {
+      await client.invalidateQueries();
+    });
+    dialog = await openDialog(/Lift restriction for Worker Kestrel/);
+    fillReason(dialog);
+    fireEvent.click(
+      within(dialog).getByRole("button", { name: "Lift restriction" }),
+    );
+    await waitFor(() =>
+      expect(within(dialog).getByText("Choose what to change.")).toBeTruthy(),
+    );
+    expect(document.activeElement).toBe(
+      within(dialog).getAllByRole("radio")[0],
+    );
+    expect(posts).toEqual([]);
+  });
+
+  const MAY_HAVE_SAVED =
+    "The change may have been saved. Reload this worker before trying again.";
+  const recordReads = () =>
+    fetchMock.mock.calls.filter(
+      ([url, init]) =>
+        String(url) === `/api/admin/workers/${WORKER}` &&
+        (init as RequestInit | undefined)?.method !== "POST",
+    ).length;
+
+  it("a command whose answer is lost, or is a 2xx that is not the worker envelope, shows that the change may have been saved and reads the worker again (WP5 rest 2b, issue 2835: the lost answer and item 2; red: nothing was changed, or the body taken as the worker)", async () => {
+    for (const reply of [
+      () => Promise.reject(new TypeError("Failed to fetch")),
+      () => ({ status: 200, body: { worker: { assignmentId: WORKER } } }),
+      () => ({ status: 200, body: { ok: true } }),
+    ]) {
+      postReply = reply as typeof postReply;
+      const view = show();
+      const dialog = await openDialog(/Restrict Worker Kestrel/);
+      fillReason(dialog);
+      fireEvent.click(
+        within(dialog).getByRole("checkbox", { name: "Do not publish" }),
+      );
+      const before = recordReads();
+      fireEvent.click(within(dialog).getByRole("button", { name: "Restrict" }));
+      expect((await within(dialog).findByRole("alert")).textContent).toBe(
+        MAY_HAVE_SAVED,
+      );
+      await waitFor(() => expect(recordReads()).toBeGreaterThan(before));
+      view.unmount();
+      client.clear();
+    }
+  });
+
+  it("a reveal whose answer is lost or malformed says the change may have been saved, shows no value, and sends one request with no retry of its own (WP5 rest 2b, issue 2835: the malformed reveal and the lost answer; red: nothing was changed, or a partial value drawn)", async () => {
+    for (const reply of [
+      () => Promise.reject(new TypeError("Failed to fetch")),
+      () => ({ status: 200, body: { legalName: SECRET } }),
+    ]) {
+      posts = [];
+      postReply = reply as typeof postReply;
+      const view = show();
+      const dialog = await openDialog(/Show legal name for Worker Kestrel/);
+      fillReason(dialog, "Visa paperwork");
+      fireEvent.click(
+        within(dialog).getByRole("button", { name: "Show legal name" }),
+      );
+      expect((await within(dialog).findByRole("alert")).textContent).toBe(
+        MAY_HAVE_SAVED,
+      );
+      expect(document.body.textContent).not.toContain(SECRET);
+      expect(posts).toHaveLength(1);
+      view.unmount();
+      client.clear();
+    }
+  });
+
+  it("a read whose 2xx is not the worker envelope shows that workers could not be loaded and draws no worker (WP5 rest 2b, issue 2835 item 2; red: the body drawn as the worker)", async () => {
+    fetchMock.mockImplementation(async () =>
+      respond({
+        status: 200,
+        body: { worker: { assignmentId: WORKER, displayName: "Half Kestrel" } },
+      }),
+    );
+    show();
+    expect(
+      await screen.findByText("Workers could not be loaded."),
+    ).toBeTruthy();
+    expect(document.body.textContent).not.toContain("Half Kestrel");
+  });
+  it("with people.manage_members and safety.restrict_publication, a worker with no login offers Invite to sign in: the form validates on submit (address and reason marked, focus on the first), sends the address and reason to the worker's invite route, then shows the one-time missionary workspace path with Copy; a worker with a login, or a caller without people.manage_members, has no Invite (WP5 rest 2b, worker invitations; red: no Invite)", async () => {
+    state.mc = {
+      capabilities: ["safety.restrict_publication", "people.manage_members"],
+    };
+    current = worker({ hasLogin: false });
+    postReply = (path) =>
+      path.endsWith("/invite")
+        ? {
+            status: 201,
+            body: {
+              invitation: {
+                invitationId: "00000000-0000-4000-8000-00000000e0e1",
+                email: "heron@example.org",
+                expiresAt: "2026-12-05T09:00:00+00:00",
+              },
+              invitePath: "/invite/selector-one#verifier-one",
+            },
+          }
+        : { status: 200, body: { worker: current } };
+    const view = show();
+    fireEvent.click(
+      await screen.findByRole("button", {
+        name: "Invite to sign in: Worker Kestrel",
+      }),
+    );
+    const dialog = await screen.findByRole("dialog");
+    fireEvent.click(
+      within(dialog).getByRole("button", { name: "Create invitation" }),
+    );
+    const address = within(dialog).getByLabelText("E-mail address");
+    await waitFor(() =>
+      expect(address.getAttribute("aria-invalid")).toBe("true"),
+    );
+    expect(document.activeElement).toBe(address);
+    expect(
+      within(dialog).getByLabelText("Reason").getAttribute("aria-invalid"),
+    ).toBe("true");
+    expect(posts).toEqual([]);
+    fireEvent.change(address, { target: { value: "heron@example.org" } });
+    fireEvent.change(within(dialog).getByLabelText("Reason"), {
+      target: { value: "Sign in to your record" },
+    });
+    fireEvent.click(
+      within(dialog).getByRole("button", { name: "Create invitation" }),
+    );
+    const link = await within(dialog).findByLabelText(
+      "Missionary workspace invitation path",
+    );
+    expect((link as HTMLInputElement).value).toBe(
+      "/invite/selector-one#verifier-one",
+    );
+    expect(within(dialog).getByRole("button", { name: "Copy" })).toBeTruthy();
+    expect(posts).toEqual([
+      {
+        path: `/api/admin/workers/${WORKER}/invite`,
+        body: { email: "heron@example.org", reason: "Sign in to your record" },
+      },
+    ]);
+    view.unmount();
+    client.clear();
+    current = worker({ hasLogin: true });
+    const linked = show();
+    expect(await screen.findByText("Linked")).toBeTruthy();
+    expect(
+      screen.queryByRole("button", {
+        name: "Invite to sign in: Worker Kestrel",
+      }),
+    ).toBeNull();
+    linked.unmount();
+    client.clear();
+    current = worker({ hasLogin: false });
+    state.mc = { capabilities: ["safety.restrict_publication"] };
+    show();
+    expect((await screen.findAllByText("None")).length).toBeGreaterThan(0);
+    expect(
+      screen.queryByRole("button", {
+        name: "Invite to sign in: Worker Kestrel",
+      }),
+    ).toBeNull();
+  });
+  it("W4 (fix round of 2869): the one-time invitation link is kept out of Session Replay as the members' dialog keeps it: inside a block Replay never records, its input masked and not autocompleted (red: a plain read-only input)", async () => {
+    state.mc = {
+      capabilities: ["safety.restrict_publication", "people.manage_members"],
+    };
+    current = worker({ hasLogin: false });
+    postReply = (path) =>
+      path.endsWith("/invite")
+        ? {
+            status: 201,
+            body: {
+              invitation: {
+                invitationId: "00000000-0000-4000-8000-00000000e0e1",
+                email: "heron@example.org",
+                expiresAt: "2026-12-05T09:00:00+00:00",
+              },
+              invitePath: "/invite/selector-one#verifier-one",
+            },
+          }
+        : { status: 200, body: { worker: current } };
+    show();
+    fireEvent.click(
+      await screen.findByRole("button", {
+        name: "Invite to sign in: Worker Kestrel",
+      }),
+    );
+    const dialog = await screen.findByRole("dialog");
+    fireEvent.change(within(dialog).getByLabelText("E-mail address"), {
+      target: { value: "heron@example.org" },
+    });
+    fireEvent.change(within(dialog).getByLabelText("Reason"), {
+      target: { value: "Sign in to your record" },
+    });
+    fireEvent.click(
+      within(dialog).getByRole("button", { name: "Create invitation" }),
+    );
+    const link = await within(dialog).findByLabelText(
+      "Missionary workspace invitation path",
+    );
+    expect(link.closest("[data-sentry-block]")).not.toBeNull();
+    expect(link.getAttribute("data-sentry-mask")).toBe("true");
+    expect(link.getAttribute("autocomplete")).toBe("off");
+  });
+  it("W5 (fix round of 2869): an invite refused 403 shows the route's own sentence, which names the missing permission, not the Restrict publication line (red: every 403 reads as the Restrict publication line)", async () => {
+    state.mc = {
+      capabilities: ["safety.restrict_publication", "people.manage_members"],
+    };
+    current = worker({ hasLogin: false });
+    postReply = (path) =>
+      path.endsWith("/invite")
+        ? {
+            status: 403,
+            body: {
+              error:
+                "Inviting a worker to sign in needs the Manage members permission.",
+              code: "NOT_PERMITTED",
+            },
+          }
+        : { status: 200, body: { worker: current } };
+    show();
+    fireEvent.click(
+      await screen.findByRole("button", {
+        name: "Invite to sign in: Worker Kestrel",
+      }),
+    );
+    const dialog = await screen.findByRole("dialog");
+    fireEvent.change(within(dialog).getByLabelText("E-mail address"), {
+      target: { value: "heron@example.org" },
+    });
+    fireEvent.change(within(dialog).getByLabelText("Reason"), {
+      target: { value: "Sign in to your record" },
+    });
+    fireEvent.click(
+      within(dialog).getByRole("button", { name: "Create invitation" }),
+    );
+    expect((await within(dialog).findByRole("alert")).textContent).toBe(
+      "Inviting a worker to sign in needs the Manage members permission.",
     );
   });
 });

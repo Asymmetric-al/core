@@ -24,10 +24,20 @@ const FUNCTIONS = [
   "private.rederive_ministry_assignment_children()",
   "private.repair_ministry_assignment_ids()",
   "public.missionary_task_write(uuid,uuid,uuid,text,uuid,jsonb)",
+  "tenant_guard.confirm_worker_security_level(uuid,uuid,text,text,text)",
+  "public.confirm_worker_security_level(uuid,uuid,text,text,text)",
+  "private.insert_worker(uuid,text,uuid)",
+  "tenant_guard.create_worker(uuid,text,text,text,text,text,text,uuid,text)",
+  "public.create_worker(uuid,text,text,text,text,text,text,uuid,text)",
+  "tenant_guard.accept_membership_invitation(text,text)",
+  "private.accept_worker_invitation(uuid,uuid,uuid)",
+  "tenant_guard.invite_worker(uuid,text,uuid,text,text,text,text,uuid,text)",
+  "public.invite_worker(uuid,text,uuid,text,text,text,text,uuid,text)",
+  "public.member_care_directory_rows(uuid,uuid,integer)",
 ];
 
 describe.skipIf(!ADMIN_URL)(
-  "AL-2678 WP5 rest 2a, fix round F6 of pull request 2859: on a scratch database built to just before 20261127060000, each of the three files' committed check is valid and false before the file, true after it; its Down restores every function, comment and grant the file changed, changes only the rows the file changed, and leaves the check false; and the file applies again",
+  "AL-2678 WP5 rest 2a, fix round F6 of pull request 2859, and WP5 rest 2b (D-18: part B's files join the cycle): on a scratch database built to just before 20261127060000, each file's committed check is valid and false before the file, true after it; its Down restores every function, comment and grant the file changed, changes only the rows the file changed, and leaves the check false; and the file applies again",
   () => {
     const name = `acc2678rest2_${randomUUID().replaceAll("-", "")}`;
     const admin = new pg.Client({ connectionString: ADMIN_URL });
@@ -51,9 +61,22 @@ describe.skipIf(!ADMIN_URL)(
         ],
         { encoding: "utf8", timeout: 120_000 },
       );
+    const applied = new Set<string>();
     const apply = (file: string) => {
       const run = psql(file);
       expect(run.status, run.stderr).toBe(0);
+      applied.add(file);
+    };
+    const catchUp = (version: string) => {
+      for (const f of readdirSync(MIG)
+        .filter(
+          (f) =>
+            /^\d{14}_.+\.sql$/.test(f) &&
+            f.slice(0, 14) >= FIRST &&
+            f.slice(0, 14) < version,
+        )
+        .sort())
+        if (!applied.has(`${MIG}/${f}`)) apply(`${MIG}/${f}`);
     };
     const committed = async (file: string) =>
       Object.values(
@@ -80,6 +103,14 @@ describe.skipIf(!ADMIN_URL)(
           "select nspacl::text from pg_namespace where nspname = 'tenant_guard'",
         )
       ).rows,
+      invitations: (
+        await db.query(
+          `select (select array_agg(attname::text order by attname) from pg_attribute where attrelid = 'public.membership_invitations'::regclass and attnum > 0 and not attisdropped) as columns,
+                  (select array_agg(conname::text order by conname) from pg_constraint where conrelid = 'public.membership_invitations'::regclass) as constraints,
+                  (select array_agg(indexname::text order by indexname) from pg_indexes where schemaname = 'public' and tablename = 'membership_invitations') as indexes,
+                  (select count(*)::int from public.field_policies where record_type = 'membership_invitations') as policies`,
+        )
+      ).rows,
     });
     const upAndDown = async (
       suffix: string,
@@ -89,6 +120,7 @@ describe.skipIf(!ADMIN_URL)(
       } = {},
     ) => {
       const file = migration(suffix);
+      catchUp(file.slice(MIG.length + 1, MIG.length + 15));
       const before = await snapshot();
       expect(await committed(file), "before the file").toBe(false);
       apply(file);
@@ -236,6 +268,26 @@ describe.skipIf(!ADMIN_URL)(
 
     it("20261127060200 (the assignment-key race): the check, the file, the Down (the four functions and three comments restored) and the file again", async () => {
       await upAndDown("_wp5_rest2_assignment_key_race");
+    }, 300_000);
+
+    it("20261127090000 (part B, the stale confirm's entry): the check, the file, the Down (the command and its wrapper dropped) and the file again", async () => {
+      await upAndDown("_wp5_rest2b_confirm_level");
+    }, 300_000);
+
+    it("20261127090100 (part B, create_worker): the check, the file, the Down (the command, its wrapper and private.insert_worker dropped, tenant_guard's grant on its schema as before) and the file again", async () => {
+      await upAndDown("_wp5_rest2b_create_worker");
+    }, 300_000);
+
+    it("20261127090200 (part B, issue 2835's items of 28 November): the check, the file, the Down (the claim's text and comment, and the two key triggers' comments, restored) and the file again", async () => {
+      await upAndDown("_wp5_rest2b_claim_and_key_order");
+    }, 300_000);
+
+    it("20261127090300 (part B, worker invitations): the check, the file, the Down (the acceptance's text and comment restored, the invite command, its wrapper and the helper dropped, the column with its key, check, index and five field_policies rows removed) and the file again", async () => {
+      await upAndDown("_wp5_rest2b_worker_invitations");
+    }, 300_000);
+
+    it("20261127090400 (part B, Care's worker names): the check, the file, the Down (the reader's text and comment restored) and the file again", async () => {
+      await upAndDown("_wp5_rest2b_care_worker_names");
     }, 300_000);
   },
 );

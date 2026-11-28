@@ -3,12 +3,15 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
   POST_CONFIRM,
+  POST_CREATE,
+  POST_INVITE,
   POST_LIFT,
   POST_RESTRICT,
   POST_REVEAL,
 } from "../../../../../packages/api/src/admin/workers/commands";
 import {
   GET,
+  GET_LEGAL_ENTITIES,
   GET_RECORD,
   GET_UNREVIEWED_COUNT,
 } from "../../../../../packages/api/src/admin/workers/read";
@@ -36,12 +39,23 @@ const h = vi.hoisted(() => ({
   serviceKeyUsed: vi.fn(),
   captureError: vi.fn(),
   auditLog: vi.fn(),
+  capabilities: null as string[] | null,
 }));
 
-vi.mock("@asym/auth/context", async (importOriginal) => ({
-  ...(await importOriginal<typeof AuthModule>()),
-  getAuthContext: h.auth,
-}));
+vi.mock("@asym/auth/context", async (importOriginal) => {
+  const original = await importOriginal<typeof AuthModule>();
+  return {
+    ...original,
+    getAuthContext: h.auth,
+    hasContextCapability: (
+      context: Parameters<typeof original.hasContextCapability>[0],
+      capability: Parameters<typeof original.hasContextCapability>[1],
+    ) =>
+      h.capabilities
+        ? h.capabilities.includes(capability)
+        : original.hasContextCapability(context, capability),
+  };
+});
 
 vi.mock("@asym/database/supabase/admin", () => ({
   getAdminClient: () => ({
@@ -234,6 +248,7 @@ describe("AL-2678 WP5 part 2-r2b1: the workers' routes (contract, error map, ali
     h.serviceKeyUsed.mockReset();
     h.captureError.mockReset();
     h.auditLog.mockReset();
+    h.capabilities = null;
   });
 
   it("the directory answers every staff member the ten fields in camelCase with no-store, has_legal_identity passed as it came (null without the capability)", async () => {
@@ -651,7 +666,7 @@ describe("AL-2678 WP5 part 2-r2b1: the workers' routes (contract, error map, ali
     }
   });
 
-  it("confirm calls nothing and answers 409 LEVEL_CHANGED unless the row is still unreviewed at the body's level; then it sends restrict only that level and the organization from the session", async () => {
+  it("confirm calls nothing and answers 409 LEVEL_CHANGED unless the row is still unreviewed at the body's level; then it sends confirm_worker_security_level that level, the source it read and the organization from the session, never restrict (WP5 rest 2b, issue 2835: the stale confirm; red: restrict without the level and source it read)", async () => {
     h.auth.mockResolvedValue(makeAuth("admin"));
     for (const current of [
       row({ security_level_source: "manual" }),
@@ -679,7 +694,7 @@ describe("AL-2678 WP5 part 2-r2b1: the workers' routes (contract, error map, ali
           reads++ === 0 ? row() : row({ security_level_source: "manual" }),
         ],
       }),
-      restrict_worker_publication: { data: commandAnswer() },
+      confirm_worker_security_level: { data: commandAnswer() },
     });
     const response = await POST_CONFIRM(
       post(`/api/admin/workers/${WORKER}/confirm`, {
@@ -692,13 +707,40 @@ describe("AL-2678 WP5 part 2-r2b1: the workers' routes (contract, error map, ali
     expect((await read(response)).worker).toMatchObject({
       securityLevelSource: "manual",
     });
-    expect(rpc).toHaveBeenCalledWith("restrict_worker_publication", {
+    expect(rpc).toHaveBeenCalledWith("confirm_worker_security_level", {
       p_tenant_id: TENANT,
       p_party_id: PARTY,
-      p_security_level: "standard",
-      p_public_alias: null,
-      p_do_not_publish: null,
+      p_expected_level: "standard",
+      p_expected_source: "unreviewed_default",
       p_reason: "Reviewed with the field director",
+    });
+    expect(rpc.mock.calls.map(([fn]) => fn)).not.toContain(
+      "restrict_worker_publication",
+    );
+  });
+
+  it("a confirm whose level or source another command changed after the read answers 409 LEVEL_CHANGED with the reload text, as the entry refuses it (WP5 rest 2b, issue 2835: the stale confirm; red: the change was overwritten)", async () => {
+    h.auth.mockResolvedValue(makeAuth("admin"));
+    stubSession({
+      worker_records: { data: [row()] },
+      confirm_worker_security_level: {
+        error: {
+          code: "22023",
+          message: "The level changed since it was read",
+        },
+      },
+    });
+    const response = await POST_CONFIRM(
+      post(`/api/admin/workers/${WORKER}/confirm`, {
+        level: "standard",
+        reason: "Review",
+      }),
+      params(),
+    );
+    expect(response.status).toBe(409);
+    expect(await read(response)).toEqual({
+      error: "This worker's level has changed. Reload to see it.",
+      code: "LEVEL_CHANGED",
     });
   });
 
@@ -841,6 +883,7 @@ describe("AL-2678 WP5 part 2-r2b1: the workers' routes (contract, error map, ali
           page === 0 || reread === null ? { data: [row()] } : reread,
         restrict_worker_publication: { data: commandAnswer(extra) },
         lift_worker_restriction: { data: commandAnswer(extra) },
+        confirm_worker_security_level: { data: commandAnswer(extra) },
       });
       const response = await handler(
         post(`/api/admin/workers/${WORKER}/x`, body),
@@ -966,6 +1009,474 @@ describe("AL-2678 WP5 part 2-r2b1: the workers' routes (contract, error map, ali
     } finally {
       consoleError.mockRestore();
       consoleLog.mockRestore();
+    }
+  });
+
+  it("a reveal whose answer is malformed has already written its audit row, so it answers the outcome-unknown text and code, never that nothing was changed, and returns no value (WP5 rest 2b, issue 2835; red: the failure text)", async () => {
+    h.auth.mockResolvedValue(makeAuth("admin"));
+    const consoleError = vi
+      .spyOn(console, "error")
+      .mockImplementation(() => {});
+    try {
+      for (const data of [
+        null,
+        { party_id: PARTY, legal_name: SECRET },
+        {
+          party_id: PARTY,
+          legal_name: SECRET,
+          real_country: null,
+          precise_location: null,
+          extra: SECRET,
+        },
+      ]) {
+        stubSession({
+          worker_records: { data: [row()] },
+          reveal_worker_identity: { data },
+        });
+        const failed = await POST_REVEAL(
+          post(`/api/admin/workers/${WORKER}/reveal`, { reason: "x" }),
+          params(),
+        );
+        expect(failed.status).toBe(500);
+        const body = await read(failed);
+        expect(body).toEqual({
+          error: OUTCOME_UNKNOWN,
+          code: "OUTCOME_UNKNOWN",
+        });
+        expect(JSON.stringify(body)).not.toContain(SECRET);
+      }
+    } finally {
+      consoleError.mockRestore();
+    }
+  });
+  it("create sends create_worker the names, level, alias, legal entity and reason with the organization from the session, then answers 201 with the worker read back by its id and never the legal name (WP5 rest 2b, create_worker; red: no create route)", async () => {
+    h.auth.mockResolvedValue(makeAuth("admin"));
+    const consoleError = vi
+      .spyOn(console, "error")
+      .mockImplementation(() => {});
+    try {
+      const rpc = stubSession({
+        create_worker: {
+          data: {
+            tenant_id: TENANT,
+            party_id: PARTY,
+            assignment_id: WORKER,
+            security_level: "standard",
+            security_level_source: "unreviewed_default",
+          },
+        },
+        worker_records: { data: [row()] },
+      });
+      const response = await POST_CREATE(
+        post("/api/admin/workers", {
+          displayName: "Worker Kestrel",
+          legalName: SECRET,
+          reason: "New field worker",
+        }),
+      );
+      expect(response.status).toBe(201);
+      const body = await read(response);
+      expect(body.worker).toMatchObject({
+        assignmentId: WORKER,
+        securityLevelSource: "unreviewed_default",
+      });
+      expect(JSON.stringify(body)).not.toContain(SECRET);
+      expect(rpc).toHaveBeenCalledWith("create_worker", {
+        p_tenant_id: TENANT,
+        p_display_name: "Worker Kestrel",
+        p_legal_name: SECRET,
+        p_real_country: null,
+        p_precise_location: null,
+        p_security_level: null,
+        p_public_alias: null,
+        p_legal_entity_id: null,
+        p_reason: "New field worker",
+      });
+      expect(rpc).toHaveBeenCalledWith("worker_records", {
+        p_assignment_id: WORKER,
+      });
+      for (const spy of [consoleError, h.captureError])
+        expect(JSON.stringify(spy.mock.calls)).not.toContain(SECRET);
+    } finally {
+      consoleError.mockRestore();
+    }
+  });
+
+  it.each([
+    [
+      "A display name is required",
+      "22023",
+      400,
+      "DISPLAY_NAME_REQUIRED",
+      "Give a display name.",
+    ],
+    [
+      "A legal name is required",
+      "22023",
+      400,
+      "LEGAL_NAME_REQUIRED",
+      "Give the worker's legal name.",
+    ],
+    [
+      "Name the legal entity",
+      "22023",
+      400,
+      "LEGAL_ENTITY_REQUIRED",
+      "Choose the legal entity this worker serves under.",
+    ],
+    [
+      "No legal entity with that id in this organization",
+      "P0002",
+      404,
+      "LEGAL_ENTITY_NOT_FOUND",
+      "That legal entity is not this organization's.",
+    ],
+    [
+      "tenant_guard: missing capability",
+      "42501",
+      403,
+      "NOT_PERMITTED",
+      NOT_PERMITTED,
+    ],
+  ])(
+    "create answers %s (%s) with %i %s and its fixed text, never the legal name (WP5 rest 2b, create_worker; red: no create route)",
+    async (message, code, status, errorCode, text) => {
+      h.auth.mockResolvedValue(makeAuth("admin"));
+      stubSession({ create_worker: { error: { code, message } } });
+      const response = await POST_CREATE(
+        post("/api/admin/workers", {
+          displayName: "Worker Kestrel",
+          legalName: SECRET,
+          reason: "New",
+        }),
+      );
+      expect(response.status).toBe(status);
+      const body = await read(response);
+      expect(body).toEqual({ error: text, code: errorCode });
+    },
+  );
+  const INVITATION = "00000000-0000-4000-8000-00000000e0e1";
+  const SELECTOR = "s".repeat(32);
+  const VERIFIER = "v".repeat(43);
+  const inviteAnswer = (overrides: Record<string, unknown> = {}) => ({
+    invitation_id: INVITATION,
+    tenant_id: TENANT,
+    selector: SELECTOR,
+    verifier: VERIFIER,
+    expires_at: "2026-12-05T09:00:00+00:00",
+    role: "missionary",
+    staff_role: null,
+    is_tenant_admin: false,
+    party_id: PARTY,
+    assignment_id: WORKER,
+    ...overrides,
+  });
+
+  it("invite sends invite_worker the worker's Party, the address and the reason with the organization from the session, and answers 201 with the invitation's id, address, expiry and link path, no-store and no-referrer, the verifier in no report (WP5 rest 2b, worker invitations; red: no invite route)", async () => {
+    h.auth.mockResolvedValue(makeAuth("admin"));
+    const rpc = stubSession({
+      worker_records: { data: [row()] },
+      invite_worker: { data: inviteAnswer() },
+    });
+    const response = await POST_INVITE(
+      post(`/api/admin/workers/${WORKER}/invite`, {
+        email: "heron@example.org",
+        reason: "Sign in to your record",
+      }),
+      params(),
+    );
+    expect(response.status).toBe(201);
+    expect(response.headers.get("referrer-policy")).toBe("no-referrer");
+    expect(await read(response)).toEqual({
+      invitation: {
+        invitationId: INVITATION,
+        email: "heron@example.org",
+        expiresAt: "2026-12-05T09:00:00+00:00",
+      },
+      invitePath: `/invite/${SELECTOR}#${VERIFIER}`,
+    });
+    expect(rpc).toHaveBeenCalledWith("invite_worker", {
+      p_tenant_id: TENANT,
+      p_email: "heron@example.org",
+      p_party_id: PARTY,
+      p_display_name: null,
+      p_legal_name: null,
+      p_real_country: null,
+      p_precise_location: null,
+      p_legal_entity_id: null,
+      p_reason: "Sign in to your record",
+    });
+    expect(JSON.stringify(h.captureError.mock.calls)).not.toContain(VERIFIER);
+  });
+
+  it("invite calls no command for a worker that already has a login (409 HAS_LOGIN), an invalid address (400 INVALID_INPUT) or a blank reason (400 REASON_REQUIRED) (WP5 rest 2b, worker invitations; red: no invite route)", async () => {
+    h.auth.mockResolvedValue(makeAuth("admin"));
+    for (const [name, body, worker, status, code] of [
+      [
+        "has a login",
+        { email: "a@example.org", reason: "R" },
+        row({ has_login: true }),
+        409,
+        "HAS_LOGIN",
+      ],
+      [
+        "invalid address",
+        { email: "not an address", reason: "R" },
+        row(),
+        400,
+        "INVALID_INPUT",
+      ],
+      [
+        "blank reason",
+        { email: "a@example.org", reason: " " },
+        row(),
+        400,
+        "REASON_REQUIRED",
+      ],
+    ] as const) {
+      const rpc = stubSession({ worker_records: { data: [worker] } });
+      const response = await POST_INVITE(
+        post(`/api/admin/workers/${WORKER}/invite`, body),
+        params(),
+      );
+      expect([name, response.status]).toEqual([name, status]);
+      expect([name, (await read(response)).code]).toEqual([name, code]);
+      expect(rpc.mock.calls.map(([fn]) => fn)).not.toContain("invite_worker");
+    }
+  });
+
+  it.each([
+    [
+      "This worker already has a login",
+      "55006",
+      409,
+      "HAS_LOGIN",
+      "This worker already has a login.",
+    ],
+    [
+      "A valid email address is required",
+      "22023",
+      400,
+      "EMAIL_REQUIRED",
+      "Give a valid e-mail address.",
+    ],
+    [
+      "No worker with that id in this organization",
+      "P0002",
+      404,
+      "NOT_FOUND",
+      "Worker not found.",
+    ],
+  ])(
+    "invite answers %s (%s) with %i %s and its fixed text (WP5 rest 2b, worker invitations; red: no invite route)",
+    async (message, code, status, errorCode, text) => {
+      h.auth.mockResolvedValue(makeAuth("admin"));
+      stubSession({
+        worker_records: { data: [row()] },
+        invite_worker: { error: { code, message } },
+      });
+      const response = await POST_INVITE(
+        post(`/api/admin/workers/${WORKER}/invite`, {
+          email: "heron@example.org",
+          reason: "Sign in",
+        }),
+        params(),
+      );
+      expect(response.status).toBe(status);
+      expect(await read(response)).toEqual({ error: text, code: errorCode });
+    },
+  );
+
+  it.each(COMMANDS)(
+    "W6 (fix round of 2869): %s refuses a reason made only of invisible characters with 400 REASON_REQUIRED before any call, as the database's normalization would (red: it calls the command)",
+    async (_name, handler, body) => {
+      h.auth.mockResolvedValue(makeAuth("admin"));
+      const refused = {
+        error: { code: "22023", message: "A reason is required" },
+      };
+      const rpc = stubSession({
+        worker_records: { data: [row()] },
+        restrict_worker_publication: refused,
+        lift_worker_restriction: refused,
+        confirm_worker_security_level: refused,
+        reveal_worker_identity: refused,
+      });
+      const response = await handler(
+        post(`/api/admin/workers/${WORKER}/x`, {
+          ...body,
+          reason: "​⁠",
+        }),
+        params(),
+      );
+      expect(response.status).toBe(400);
+      expect(await read(response)).toEqual({
+        error: "Give a reason.",
+        code: "REASON_REQUIRED",
+      });
+      expect(rpc).not.toHaveBeenCalled();
+    },
+  );
+
+  it("W1 (fix round of 2869): the legal-entities read answers this organization's entities, id and name only, ordered by name, with no-store, to staff holding Restrict publication; a missionary is refused 403 and nothing is read (red: no read)", async () => {
+    const calls: unknown[][] = [];
+    const query = {
+      select: (...args: unknown[]) => (calls.push(["select", ...args]), query),
+      eq: (...args: unknown[]) => (calls.push(["eq", ...args]), query),
+      order: (...args: unknown[]) => (calls.push(["order", ...args]), query),
+      then: <R>(resolve: (value: { data: unknown; error: null }) => R) =>
+        Promise.resolve(
+          resolve({
+            data: [
+              {
+                id: "00000000-0000-4000-8000-0000000000e1",
+                name: "Give Hope UK",
+              },
+              {
+                id: "00000000-0000-4000-8000-0000000000e2",
+                name: "Give Hope US",
+              },
+            ],
+            error: null,
+          }),
+        ),
+    };
+    const from = vi.fn(() => query);
+    h.session.mockResolvedValue({ rpc: vi.fn(), from });
+    h.auth.mockResolvedValue(makeAuth("admin"));
+    const response = await GET_LEGAL_ENTITIES(
+      get("/api/admin/workers/legal-entities"),
+    );
+    expect(response.status).toBe(200);
+    expect(await read(response)).toEqual({
+      legalEntities: [
+        { id: "00000000-0000-4000-8000-0000000000e1", name: "Give Hope UK" },
+        { id: "00000000-0000-4000-8000-0000000000e2", name: "Give Hope US" },
+      ],
+    });
+    expect(from).toHaveBeenCalledWith("legal_entities");
+    expect(calls).toEqual([
+      ["select", "id, name"],
+      ["eq", "tenant_id", TENANT],
+      ["order", "name", { ascending: true }],
+      ["order", "id", { ascending: true }],
+    ]);
+    from.mockClear();
+    h.auth.mockResolvedValue(makeAuth("missionary"));
+    const refused = await GET_LEGAL_ENTITIES(
+      get("/api/admin/workers/legal-entities"),
+    );
+    expect(refused.status).toBe(403);
+    expect(from).not.toHaveBeenCalled();
+  });
+
+  it.each([
+    [
+      ["safety.restrict_publication"],
+      "Inviting a worker to sign in needs the Manage members permission.",
+    ],
+    [
+      ["people.manage_members"],
+      "Inviting a worker to sign in needs the Restrict publication permission.",
+    ],
+    [
+      [],
+      "Inviting a worker to sign in needs the Manage members and Restrict publication permissions.",
+    ],
+  ])(
+    "W5 (fix round of 2869): the invite route asks for both capabilities before it reads the worker: holding %j, the answer is 403 naming only what is missing (proposed text), never 409 for a worker with a login, and nothing is read or called (red: it passes on Restrict publication alone and answers in that permission's words)",
+    async (held, text) => {
+      h.auth.mockResolvedValue(makeAuth("admin"));
+      h.capabilities = held;
+      const rpc = stubSession({
+        worker_records: { data: [row({ has_login: true })] },
+      });
+      const response = await POST_INVITE(
+        post(`/api/admin/workers/${WORKER}/invite`, {
+          email: "heron@example.org",
+          reason: "Sign in",
+        }),
+        params(),
+      );
+      expect(response.status).toBe(403);
+      expect(await read(response)).toEqual({
+        error: text,
+        code: "NOT_PERMITTED",
+      });
+      expect(rpc).not.toHaveBeenCalled();
+    },
+  );
+
+  it("W5 (fix round of 2869): when the session held both capabilities but the database refuses (42501, a capability removed meanwhile), the invite answers 403 saying the permissions changed, naming none the person may still hold (proposed text; red: the Restrict publication sentence)", async () => {
+    h.auth.mockResolvedValue(makeAuth("admin"));
+    stubSession({
+      worker_records: { data: [row()] },
+      invite_worker: {
+        error: {
+          code: "42501",
+          message:
+            "tenant_guard: the selected assignment does not hold the capability this command requires",
+        },
+      },
+    });
+    const response = await POST_INVITE(
+      post(`/api/admin/workers/${WORKER}/invite`, {
+        email: "heron@example.org",
+        reason: "Sign in",
+      }),
+      params(),
+    );
+    expect(response.status).toBe(403);
+    expect(await read(response)).toEqual({
+      error:
+        "Your permissions here have changed. Reload the page to see what you can do.",
+      code: "NOT_PERMITTED",
+    });
+  });
+
+  it("W6 (fix round of 2869): create refuses a reason made only of invisible characters with 400 REASON_REQUIRED and calls nothing (red: it calls create_worker)", async () => {
+    h.auth.mockResolvedValue(makeAuth("admin"));
+    const rpc = stubSession({
+      create_worker: {
+        error: { code: "22023", message: "A reason is required" },
+      },
+    });
+    const response = await POST_CREATE(
+      post("/api/admin/workers", {
+        displayName: "Worker Kestrel",
+        legalName: SECRET,
+        reason: "​",
+      }),
+    );
+    expect(response.status).toBe(400);
+    expect(await read(response)).toEqual({
+      error: "Give a reason.",
+      code: "REASON_REQUIRED",
+    });
+    expect(rpc).not.toHaveBeenCalled();
+  });
+
+  it("an invite answer with an extra key, another organization or another Party is the outcome-unknown 500, since an invitation may have been issued, and returns no link (WP5 rest 2b, worker invitations; red: no invite route)", async () => {
+    h.auth.mockResolvedValue(makeAuth("admin"));
+    for (const answer of [
+      inviteAnswer({ extra: 1 }),
+      inviteAnswer({ tenant_id: OTHER_TENANT }),
+      inviteAnswer({ party_id: WORKER }),
+    ]) {
+      stubSession({
+        worker_records: { data: [row()] },
+        invite_worker: { data: answer },
+      });
+      const response = await POST_INVITE(
+        post(`/api/admin/workers/${WORKER}/invite`, {
+          email: "heron@example.org",
+          reason: "Sign in",
+        }),
+        params(),
+      );
+      expect(response.status).toBe(500);
+      const body = await read(response);
+      expect(body).toEqual({ error: OUTCOME_UNKNOWN, code: "OUTCOME_UNKNOWN" });
+      expect(JSON.stringify(body)).not.toContain(VERIFIER);
     }
   });
 });

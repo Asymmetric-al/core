@@ -158,6 +158,52 @@ describe("InvitationDoorway", () => {
     });
   });
 
+  it("W3 (fix round of 2869): a busy answer (503 RETRY) shows its sentence, not the invalid invitation, keeps Accept enabled, and a second click accepts (guard: the doorway shows the route's text)", async () => {
+    window.history.replaceState(null, "", `/invite/${SELECTOR}#${VERIFIER}`);
+    const navigateSpy = vi.fn();
+    fetchSpy
+      .mockResolvedValueOnce(
+        new Response(
+          JSON.stringify({
+            error: "This organization is busy right now. Try again.",
+            code: "RETRY",
+          }),
+          { status: 503, headers: { "content-type": "application/json" } },
+        ),
+      )
+      .mockResolvedValueOnce(
+        new Response(
+          JSON.stringify({ tenant_id: TENANT, redirectPath: `/${TENANT}` }),
+          { status: 200, headers: { "content-type": "application/json" } },
+        ),
+      );
+    render(
+      <InvitationDoorway
+        selector={SELECTOR}
+        surfaceName="Missionary workspace"
+        onNavigate={navigateSpy}
+      />,
+    );
+    const button = await screen.findByRole("button", {
+      name: /accept invitation/i,
+    });
+    await waitFor(() =>
+      expect((button as HTMLButtonElement).disabled).toBe(false),
+    );
+    fireEvent.click(button);
+    expect(
+      await screen.findByText(
+        "This organization is busy right now. Try again.",
+      ),
+    ).toBeTruthy();
+    expect(screen.queryByText(/invalid or no longer available/i)).toBeNull();
+    await waitFor(() =>
+      expect((button as HTMLButtonElement).disabled).toBe(false),
+    );
+    fireEvent.click(button);
+    await waitFor(() => expect(navigateSpy).toHaveBeenCalledWith(`/${TENANT}`));
+  });
+
   it("preserves the stripped verifier under React.StrictMode and accepts a verifier added via hashchange", async () => {
     window.history.replaceState(null, "", "/invite/sel-strict#ver-strict");
     const first = render(
