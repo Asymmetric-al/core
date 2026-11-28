@@ -873,4 +873,46 @@ describe("AL-2678 r2b1: a worker's record in Mission Control", () => {
       }),
     ).toBeNull();
   });
+  it("W4 (fix round of 2869): the one-time invitation link is kept out of Session Replay as the members' dialog keeps it: inside a block Replay never records, its input masked and not autocompleted (red: a plain read-only input)", async () => {
+    state.mc = {
+      capabilities: ["safety.restrict_publication", "people.manage_members"],
+    };
+    current = worker({ hasLogin: false });
+    postReply = (path) =>
+      path.endsWith("/invite")
+        ? {
+            status: 201,
+            body: {
+              invitation: {
+                invitationId: "00000000-0000-4000-8000-00000000e0e1",
+                email: "heron@example.org",
+                expiresAt: "2026-12-05T09:00:00+00:00",
+              },
+              invitePath: "/invite/selector-one#verifier-one",
+            },
+          }
+        : { status: 200, body: { worker: current } };
+    show();
+    fireEvent.click(
+      await screen.findByRole("button", {
+        name: "Invite to sign in: Worker Kestrel",
+      }),
+    );
+    const dialog = await screen.findByRole("dialog");
+    fireEvent.change(within(dialog).getByLabelText("E-mail address"), {
+      target: { value: "heron@example.org" },
+    });
+    fireEvent.change(within(dialog).getByLabelText("Reason"), {
+      target: { value: "Sign in to your record" },
+    });
+    fireEvent.click(
+      within(dialog).getByRole("button", { name: "Create invitation" }),
+    );
+    const link = await within(dialog).findByLabelText(
+      "Missionary workspace invitation path",
+    );
+    expect(link.closest("[data-sentry-block]")).not.toBeNull();
+    expect(link.getAttribute("data-sentry-mask")).toBe("true");
+    expect(link.getAttribute("autocomplete")).toBe("off");
+  });
 });
