@@ -141,9 +141,20 @@ file applied and not recorded, and the next run applies it again (see
    its proof, and stops before any request without it. The route syncs a
    proven `PUT` at `INNGEST_SERVE_ORIGIN` where the admin project sets it,
    otherwise at `https://admin.asymmetric.al` on a production deployment
-   (`VERCEL_ENV=production`), with `/admin/api/inngest` when the switch is on.
-   A deployment that is not production never registers production's origin.
-   With no origin it answers 503 and the release ends red after promotion.
+   (`isProductionDeployment`: `VERCEL_ENV` or `VERCEL_TARGET_ENV` is
+   `production`), with `/admin/api/inngest` when the switch is on. A
+   deployment that is not production never registers production's host. With
+   no origin, or with a configured value the route refuses, it answers 503
+   and the release ends red after promotion.
+
+   Before a release that registers, check that `INNGEST_SERVE_ORIGIN` on the
+   admin project's Production environment is unset, or an `https` origin with
+   no path (a trailing slash and capital letters are accepted).
+
+   If the register step ends red, correct the cause, then dispatch **Release**
+   anew with operation `release` and `apps: all`. A dispatch with
+   `apps: changed` finds admin already serving the commit, skips it, skips the
+   registration with it, and ends green with the jobs not registered.
 
 ### Serving under paths
 
@@ -1578,7 +1589,7 @@ Names only. Values live in GitHub environments and never in the repository.
 | Environment `release-owner-approval` | none                                                       |          | Holds no secret. Its required reviewer (the owner) approves each marker change and each first rebuild                                                                                                                                                                                                                                                                                                                                                                           |
 | Repository (exist today)             | `VERCEL_TOKEN`, `VERCEL_ORG_ID`                            | secret   | Unchanged                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
 |                                      | `VERCEL_{ADMIN,DONOR,MISSIONARY}_PROJECT_ID`               | secret   | Unchanged                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
-|                                      | `VERCEL_{ADMIN,DONOR,MISSIONARY}_AUTOMATION_BYPASS_SECRET` | secret   | Unchanged; used as a header to reach staged and preview deployments                                                                                                                                                                                                                                                                                                                                                                                                             |
+|                                      | `VERCEL_{ADMIN,DONOR,MISSIONARY}_AUTOMATION_BYPASS_SECRET` | secret   | Unchanged; used as a header to reach staged and preview deployments. The admin value is also the job-function registration's proof: the register step sends it                                                                                                                                                                                                                                                                                                                  |
 | Repository or `release-production`   | `RELEASE_REGISTER_JOB_FUNCTIONS`                           | variable | `true` once Inngest is configured in production; unset otherwise                                                                                                                                                                                                                                                                                                                                                                                                                |
 
 The cms_owner login is derived from `RELEASE_DATABASE_URL` (same host,
