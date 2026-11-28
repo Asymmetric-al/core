@@ -238,9 +238,75 @@ export async function givingReadback(db: pg.Client, world: GivingWorld) {
   ).rows as Record<string, unknown>[];
 }
 
+function localAuth() {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL?.trim() ?? "";
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY?.trim() ?? "";
+  const host = url ? new URL(url).hostname : "";
+  if (!key || !["127.0.0.1", "localhost", "::1"].includes(host))
+    throw new Error(
+      "A signed-in journey needs the local stack's Auth (NEXT_PUBLIC_SUPABASE_URL on this machine and SUPABASE_SERVICE_ROLE_KEY).",
+    );
+  return {
+    url,
+    headers: {
+      apikey: key,
+      Authorization: `Bearer ${key}`,
+      "Content-Type": "application/json",
+    },
+  };
+}
+
+export async function createDonorLogin(
+  email: string,
+  password: string,
+): Promise<string> {
+  const auth = localAuth();
+  const created = await fetch(`${auth.url}/auth/v1/admin/users`, {
+    method: "POST",
+    headers: auth.headers,
+    body: JSON.stringify({ email, password, email_confirm: true }),
+  });
+  if (created.status !== 200)
+    throw new Error(`creating the journey login answered ${created.status}`);
+  return ((await created.json()) as { id: string }).id;
+}
+
+export async function removeDonorLogin(id: string) {
+  const auth = localAuth();
+  await fetch(`${auth.url}/auth/v1/admin/users/${id}`, {
+    method: "DELETE",
+    headers: auth.headers,
+  });
+}
+
+export async function signInOnHome(
+  page: Page,
+  host: string,
+  email: string,
+  password: string,
+) {
+  await page.goto(`${origin(host)}/login`);
+  await page.getByLabel("Email").fill(email);
+  await page.getByLabel("Password", { exact: true }).fill(password);
+  await page.getByRole("button", { name: "Sign in" }).click();
+  await page.waitForURL((url) => !url.pathname.startsWith("/login"));
+}
+
 export const STRIPE_JS_STUB = `(() => {
   const log = (window.__stripeStub = window.__stripeStub || { loads: [], elements: [], paymentElements: [], confirms: [], refused: [], retrieves: 0 });
-  const intents = (window.__stripeStubIntents = window.__stripeStubIntents || {});
+  const INTENTS = "__stripeStubIntents";
+  const intents = {
+    get(secret) {
+      try { return JSON.parse(localStorage.getItem(INTENTS) || "{}")[secret]; } catch (_) { return undefined; }
+    },
+    set(secret, state) {
+      try {
+        const all = JSON.parse(localStorage.getItem(INTENTS) || "{}");
+        all[secret] = state;
+        localStorage.setItem(INTENTS, JSON.stringify(all));
+      } catch (_) {}
+    },
+  };
   const plan = () => window.__stripeStubPlan || {};
   const nextConfirm = () => {
     const p = plan();
@@ -301,15 +367,14 @@ export const STRIPE_JS_STUB = `(() => {
         }
         const answer = nextConfirm();
         const state = stateAfter(answer);
-        if (state && args && args.clientSecret) intents[args.clientSecret] = state;
-        if (answer.markSucceeded && args && args.clientSecret) intents[args.clientSecret] = { status: "succeeded" };
+        if (state && args && args.clientSecret) intents.set(args.clientSecret, state);
         return Promise.resolve(answer);
       },
       retrievePaymentIntent(clientSecret) {
         log.retrieves += 1;
         const p = plan();
         if (p.retrieve) return Promise.resolve(p.retrieve);
-        return Promise.resolve({ paymentIntent: intents[clientSecret] || { status: "requires_payment_method", last_payment_error: null } });
+        return Promise.resolve({ paymentIntent: intents.get(clientSecret) || { status: "requires_payment_method", last_payment_error: null } });
       },
     };
   }

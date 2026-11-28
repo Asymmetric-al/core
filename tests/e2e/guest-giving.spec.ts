@@ -12,12 +12,15 @@ import {
 import pg from "pg";
 
 import {
+  createDonorLogin,
   createGivingWorld,
   givingCounts,
   givingReadback,
   journeyAccounts,
   origin,
+  removeDonorLogin,
   removeGivingWorld,
+  signInOnHome,
   stubStripeAtTheNetwork,
   type GivingAccounts,
   type GivingWorld,
@@ -581,6 +584,31 @@ test.describe("Guest giving with the switch on (Level 1: Stripe.js stubbed at th
       sourceSiteId: world.sites.siteA,
     });
   });
+
+  test("a signed-in gift on the home confirms with the e-mail the page shows, and is received", async ({
+    page,
+  }) => {
+    const email = `signed-in-${Date.now()}@example.test`;
+    const password = `Journey-${Date.now()}-pass!`;
+    const login = await createDonorLogin(email, password);
+    try {
+      await answerIntake(page, world.accounts.A1);
+      const posts = donatePosts(page);
+      await signInOnHome(page, world.hosts.homeA, email, password);
+      await page.goto(
+        checkoutUrl(world.hosts.homeA, `fund_id=${world.funds.A1}&amount=31`),
+      );
+      await expect(page.getByText(`Giving as ${email}`)).toBeVisible();
+      await waitForChallenge(page);
+      await page.getByRole("button", { name: /^Give \$/ }).click();
+      await expect(page.getByText(WORDS.received)).toBeVisible();
+      expect(posts[0]).toMatchObject({ mode: "signed_in", contact: { email } });
+      const log = await stubLog(page);
+      expect(log.refused).toEqual([]);
+    } finally {
+      await removeDonorLogin(login);
+    }
+  });
 });
 
 async function enterCard(page: Page, number: string) {
@@ -706,9 +734,10 @@ test.describe("Level 2: the real Payment Element on Stripe TEST accounts", () =>
     await second.close();
   });
 
-  test("C24 a declined card keeps the payment open, and a good card on the same payment is received @level2", async ({
+  test("C24 a declined card keeps the payment open, and a good card on the same payment in the same tab is received with no second request @level2", async ({
     page,
   }) => {
+    const posts = donatePosts(page);
     await giveWithCard(
       page,
       checkoutUrl(world.hosts.siteA, `fund_id=${world.funds.A1}&amount=15`),
@@ -720,17 +749,21 @@ test.describe("Level 2: the real Payment Element on Stripe TEST accounts", () =>
     });
     await shot(page, "c24-declined");
     await enterCard(page, "4242424242424242");
-    await waitForChallenge(page);
     await page.getByRole("button", { name: /^Give \$/ }).click();
     await expect(page.getByText(WORDS.received)).toBeVisible({
       timeout: 120_000,
     });
+    expect(posts).toHaveLength(1);
     await shot(page, "c24-retried");
   });
 
-  test("C24 a card that asks for a check is received once the check passes @level2", async ({
+  test("C24 a card that asks for a check is received once the check passes, and the run records whether the check left the page @level2", async ({
     page,
   }) => {
+    const pages: string[] = [];
+    page.on("framenavigated", (frame) => {
+      if (frame === page.mainFrame()) pages.push(frame.url());
+    });
     await giveWithCard(
       page,
       checkoutUrl(world.hosts.siteA, `fund_id=${world.funds.A1}&amount=16`),
@@ -742,5 +775,78 @@ test.describe("Level 2: the real Payment Element on Stripe TEST accounts", () =>
       timeout: 120_000,
     });
     await shot(page, "c24-card-check");
+    const left = pages.some(
+      (url) => new URL(url).hostname !== world.hosts.siteA,
+    );
+    if (EVIDENCE)
+      writeFileSync(
+        path.join(EVIDENCE, "card-check-navigation.json"),
+        JSON.stringify(
+          {
+            leftThePage: left,
+            mainFrameAddresses: pages.map((url) => {
+              const parsed = new URL(url);
+              return `${parsed.origin}${parsed.pathname}`;
+            }),
+          },
+          null,
+          2,
+        ),
+      );
+    expect(page.url()).not.toContain("client_secret");
+  });
+
+  test("C30 a signed-in gift on the home is received @level2", async ({
+    page,
+  }) => {
+    const email = `c30-${Date.now()}@example.test`;
+    const password = `Proof-${Date.now()}-pass!`;
+    const login = await createDonorLogin(email, password);
+    try {
+      await signInOnHome(page, world.hosts.homeA, email, password);
+      await page.goto(
+        checkoutUrl(world.hosts.homeA, `fund_id=${world.funds.A1}&amount=17`),
+      );
+      await expect(page.getByText(`Giving as ${email}`)).toBeVisible();
+      await enterCard(page, "4242424242424242");
+      await waitForChallenge(page);
+      await page.getByRole("button", { name: /^Give \$/ }).click();
+      await expect(page.getByText(WORDS.received)).toBeVisible({
+        timeout: 120_000,
+      });
+      await shot(page, "c30-signed-in");
+    } finally {
+      await removeDonorLogin(login);
+    }
+  });
+
+  test("C31 a typed amount is the amount charged, and a reload after success shows the same thank-you @level2", async ({
+    page,
+  }) => {
+    const posts = donatePosts(page);
+    await page.goto(
+      checkoutUrl(world.hosts.siteA, `fund_id=${world.funds.A1}&amount=25`),
+    );
+    await typeGuest(page, `c31-${Date.now()}@example.test`);
+    const amount = page.getByLabel("Amount (USD)");
+    await amount.click();
+    await amount.press("ControlOrMeta+a");
+    await amount.pressSequentially("18.5");
+    await amount.press("Tab");
+    await expect(amount).toHaveValue("18.50");
+    await enterCard(page, "4242424242424242");
+    await waitForChallenge(page);
+    await page.getByRole("button", { name: "Give $18.50" }).click();
+    await expect(page.getByText(WORDS.received)).toBeVisible({
+      timeout: 120_000,
+    });
+    expect(posts[0]?.lines).toEqual([
+      { fundId: world.funds.A1, amountCents: 1850 },
+    ]);
+    await page.reload();
+    await expect(page.getByText(WORDS.received)).toBeVisible({
+      timeout: 120_000,
+    });
+    await shot(page, "c31-typed-and-reloaded");
   });
 });
