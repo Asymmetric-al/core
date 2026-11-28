@@ -517,5 +517,161 @@ describe.skipIf(!ADMIN_URL)(
       });
       expect(await audits(party)).toHaveLength(1);
     });
+    async function holdingRemoval(user: string) {
+      const remover = new pg.Client({ connectionString: ADMIN_URL });
+      await remover.connect();
+      const pid = await backendPid(remover);
+      await remover.query("begin");
+      await remover.query(
+        "update authz.memberships set is_tenant_admin = false, staff_role = 'member_care' where user_id = $1 and tenant_id = $2",
+        [user, tenant],
+      );
+      return Object.assign(remover, { pid });
+    }
+
+    for (const [label, level] of [
+      ["prepared at a level the worker no longer has", "standard"],
+      ["prepared at the level it has", "sensitive"],
+    ] as const)
+      it(`W2 (fix round of 2869), two sessions: while an administrator's removal of the confirmer's Restrict publication is held, a confirm ${label} waits for it and is then refused 42501, never told whether the level matched (red: 22023 for a stale level)`, async () => {
+        const user = await staffLogin();
+        const party = await worker("sensitive", "unreviewed_default");
+        const remover = await holdingRemoval(user);
+        let confirmer: (pg.Client & { pid: number }) | undefined;
+        let pending: Promise<unknown> | undefined;
+        try {
+          confirmer = await session(user);
+          pending = confirm(confirmer, party, level, "unreviewed_default");
+          const waited = await blockedOrSettled(
+            admin,
+            pending,
+            confirmer.pid,
+            remover.pid,
+          );
+          await remover.query("commit");
+          expect(await pending).toMatchObject({ ok: false, code: "42501" });
+          expect(waited).toBe(true);
+        } finally {
+          await remover.query("rollback").catch(() => undefined);
+          await remover.end();
+          await pending?.catch(() => undefined);
+          if (confirmer) await finish(confirmer);
+        }
+        expect(await state(party)).toEqual({
+          security_level: "sensitive",
+          security_level_source: "unreviewed_default",
+        });
+      });
+
+    it("W2 (fix round of 2869), two sessions: while an administrator's removal of the creator's Restrict publication is held, a create naming another organization's legal entity waits for it and is refused 42501, not told about the entity, and writes nothing (red: P0002 at once)", async () => {
+      const user = await staffLogin();
+      const other = randomUUID();
+      await admin.query(
+        "insert into public.tenants (id, name, slug) values ($1::uuid, 'wp5rest2b w2', 'wp5rest2b-w2-' || $1::text)",
+        [other],
+      );
+      await admin.query(
+        "insert into public.legal_entities (id, tenant_id, name, country_code, currency, legal_name) values ($1, $1, 'W', 'US', 'usd', 'W')",
+        [other],
+      );
+      const before = await counts();
+      const remover = await holdingRemoval(user);
+      let creator: (pg.Client & { pid: number }) | undefined;
+      let pending: Promise<unknown> | undefined;
+      try {
+        creator = await session(user);
+        pending = create(creator, { entity: other });
+        const waited = await blockedOrSettled(
+          admin,
+          pending,
+          creator.pid,
+          remover.pid,
+        );
+        await remover.query("commit");
+        expect(await pending).toMatchObject({ ok: false, code: "42501" });
+        expect(waited).toBe(true);
+      } finally {
+        await remover.query("rollback").catch(() => undefined);
+        await remover.end();
+        await pending?.catch(() => undefined);
+        if (creator) await finish(creator);
+        await admin.query(
+          "delete from public.legal_entities where tenant_id = $1",
+          [other],
+        );
+        await admin.query("delete from public.tenants where id = $1", [other]);
+      }
+      expect(await counts()).toEqual(before);
+    });
+
+    it("W7 (fix round of 2869), two sessions: a confirm holding the worker makes a lift wait; once the confirm commits the lift runs on the confirmed level, and each writes its one audit row (guard)", async () => {
+      const [first, second] = [await staffLogin(), await staffLogin()];
+      const party = await worker("sensitive", "unreviewed_default");
+      const confirmer = await session(first);
+      let lifter: (pg.Client & { pid: number }) | undefined;
+      let pending: Promise<unknown> | undefined;
+      try {
+        const confirmed = await confirm(
+          confirmer,
+          party,
+          "sensitive",
+          "unreviewed_default",
+        );
+        expect(confirmed.ok, JSON.stringify(confirmed)).toBe(true);
+        lifter = await session(second);
+        pending = lift(lifter, party);
+        const waited = await blockedOrSettled(
+          admin,
+          pending,
+          lifter.pid,
+          confirmer.pid,
+        );
+        await confirmer.query("commit");
+        await pending;
+        await lifter.query("commit");
+        expect(waited).toBe(true);
+      } finally {
+        await finish(confirmer);
+        await pending?.catch(() => undefined);
+        if (lifter) await finish(lifter);
+      }
+      expect(await state(party)).toEqual({
+        security_level: "standard",
+        security_level_source: "manual",
+      });
+      expect(await audits(party)).toHaveLength(2);
+    });
+
+    it("W7 (fix round of 2869), two sessions: two confirms prepared at the same level and source: the second waits for the first, then writes nothing and answers that the level changed, since the first marked it reviewed (guard)", async () => {
+      const [first, second] = [await staffLogin(), await staffLogin()];
+      const party = await worker("sensitive", "unreviewed_default");
+      const one = await session(first);
+      let two: (pg.Client & { pid: number }) | undefined;
+      let pending: Promise<unknown> | undefined;
+      try {
+        expect(
+          (await confirm(one, party, "sensitive", "unreviewed_default")).ok,
+        ).toBe(true);
+        two = await session(second);
+        pending = confirm(two, party, "sensitive", "unreviewed_default");
+        const waited = await blockedOrSettled(admin, pending, two.pid, one.pid);
+        await one.query("commit");
+        expect(await pending).toMatchObject({
+          ok: false,
+          code: "22023",
+          message: "The level changed since it was read",
+        });
+        expect(waited).toBe(true);
+      } finally {
+        await finish(one);
+        await pending?.catch(() => undefined);
+        if (two) await finish(two);
+      }
+      expect(await state(party)).toEqual({
+        security_level: "sensitive",
+        security_level_source: "manual",
+      });
+      expect(await audits(party)).toHaveLength(1);
+    });
   },
 );
